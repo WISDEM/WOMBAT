@@ -1,6 +1,5 @@
 import codecs
 import os
-
 from setuptools import find_packages, setup
 
 
@@ -28,7 +27,10 @@ setup(
     version=get_version(os.path.join("wombat", "__init__.py")),
     description=description,
     long_description=read("README.md"),
+    author="Rob Hammond",
+    author_email="rob.hammond@nrel.gov",
     project_urls={"Source": "https://github.com/WISDEM/WOMBAT"},
+    download_url="https://pypi.org/project/wombat/",
     classifiers=[
         # TODO: https://pypi.org/pypi?%3Aaction=list_classifiers
         "Development Status :: 3 - Alpha",
