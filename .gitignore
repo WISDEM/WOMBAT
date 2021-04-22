@@ -1,7 +1,21 @@
+# project specific files
+./library/outputs
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Temporary  and compiled/optimized/DLL Python files
+*.pyc
+*.egg-info
+.ipynb_checkpoints
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary OS files
+Icon*
 
 # C extensions
 *.so
@@ -26,6 +40,9 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+/build/
+/dist/
+*.spec
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -71,6 +88,14 @@ instance/
 # Sphinx documentation
 docs/_build/
 
+# Generated documentation
+/docs/gen/
+/docs/apidocs/
+/site/
+/*.html
+/docs/*.png
+
+
 # PyBuilder
 target/
 
@@ -101,7 +126,7 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
-# Environments
+# Environments and serves
 .env
 .venv
 env/
@@ -109,10 +134,23 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+/.cache/
+/.venv/
+*.pid
 
 # Spyder project settings
 .spyderproject
 .spyproject
+
+# Text editors
+.vscode/
+.idea/
+
+# Sublime Text
+*.sublime-workspace
+
+# Eclipse
+.settings
 
 # Rope project settings
 .ropeproject
@@ -127,3 +165,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Mac-specific:
+.DS_Store
