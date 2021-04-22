@@ -1,13 +1,13 @@
 repos:
 -   repo: https://github.com/timothycrosley/isort
-    rev: 4.3.21
+    rev: 5.8.0
     hooks:
         - id: isort
           name: isort
           stages: [commit]
 
 -   repo: https://github.com/psf/black
-    rev: stable
+    rev: 20.8b1
     hooks:
         - id: black
           name: black
@@ -15,12 +15,18 @@ repos:
           language_version: python3.7
 
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: ''  # Use the sha / tag you want to point at
+    rev: 'v0.812'  # Use the sha / tag you want to point at
     hooks:
     -   id: mypy
 
+-   repo: https://github.com/pycqa/flake8
+    rev: 3.9.1
+    hooks:
+    -   id: flake8
+        additional_dependencies: [flake8-docstrings]
+
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.3.0
+    rev: v3.4.0
     hooks:
     -   id: trailing-whitespace
     -   id: end-of-file-fixer
@@ -32,11 +38,9 @@ repos:
     -   id: mixed-line-ending
     -   id: pretty-format-json
         args: [--autofix]
-    -   id: flake8
-        exclude: ^tests/
 
 -   repo: https://github.com/pre-commit/mirrors-pylint
-    rev: v2.1.1
+    rev: v3.0.0a1
     hooks:
     -   id: pylint
         exclude: ^tests/
