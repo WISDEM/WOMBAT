@@ -1,0 +1,20 @@
+site_name: WOMBAT
+site_description: Windfarm Operations and Maintenance cost-Benefit Analysis Tool
+site_author: Robert Hammond
+
+repo_url: https://github.com/WISDEM/WOMBAT
+edit_uri: https://github.com/WISDEM/WOMBAT
+
+theme: readthedocs
+
+markdown_extensions:
+  - codehilite:
+      linenums: true
+
+nav:
+- Home: index.md
+- Advanced: advanced.md
+- About:
+  - Release Notes: about/changelog.md
+  - Contributing: about/contributing.md
+  - License: about/license.md
