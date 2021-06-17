@@ -42,16 +42,19 @@ Environment Setup
 -----------------
 
 Download the latest version of `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_
-   for the appropriate OS. Follow the remaining `steps <https://conda.io/projects/conda/en/latest/user-guide/install/index.html#regular-installation>`_
-   for the appropriate OS version.
+for the appropriate OS. Follow the remaining `steps <https://conda.io/projects/conda/en/latest/user-guide/install/index.html#regular-installation>`_
+for the appropriate OS version.
 
 Using conda, create a new virtual environment:
-```text
-$ conda create -n <environment_name> python=3.8 --no-default-packages
-$ conda activate <environment_name>
-$ conda install -c anaconda pip
-# to deactivate: conda deactivate
-```
+
+.. code-block:: console
+    conda create -n <environment_name> python=3.8 --no-default-packages
+    conda activate <environment_name>
+    conda install -c anaconda pip
+
+    # to deactivate
+    conda deactivate
+
 
 
 Installation
@@ -61,9 +64,9 @@ Installation
 Pip
 ---
 
-```text
-$ pip install wombat
-```
+.. code-block:: console
+    pip install wombat
+
 
 NOTE: For now, you will have to download the data separetely if you're going to be
 using the "dinwoodie" or "iea_26" data libraries. This will amended before the end of
@@ -75,56 +78,60 @@ From Source
 
 Install it directly into an activated virtual environment:
 
-```text
-$ git clone https://github.com/WISDEM/WOMBAT.git
-$ cd wombat
-$ python setup.py install
-```
+.. code-block:: console
+   git clone https://github.com/WISDEM/WOMBAT.git
+   cd wombat
+   python setup.py install
+
 
 or if you will be contributing:
 
-```text
-$ git clone https://github.com/WISDEM/WOMBAT.git
-$ cd wombat
-$ pip install -e '.[dev]'
-# Required for automatic code formatting!
-$ pre-commit install
-```
+.. code-block:: console
+   git clone https://github.com/WISDEM/WOMBAT.git
+   cd wombat
+   pip install -e '.[dev]'
+
+
+Required for automatic code formatting!
+
+.. code-block:: console
+   pre-commit install
+
 
 or for documentation:
 
-```text
-$ git clone https://github.com/WISDEM/WOMBAT.git
-$ cd wombat
-$ pip install -e '.[docs]'
-```
+.. code-block:: console
+   git clone https://github.com/WISDEM/WOMBAT.git
+   cd wombat
+   pip install -e '.[docs]'
+
+
 Build the site
 NOTE: You may want to change the "execute_notebook" parameter in the `conf.py` file to
 "off" unless you're updating the coded examples or they will be run every time you
 build the site.
 
-```text
-$ cd docs/
-$ make html
-```
+.. code-block:: console
+   cd docs/
+   make html
+
 
 View the results: `docs/_build/html/index.html`
 
 or both at once:
 
-```text
-$ git clone https://github.com/WISDEM/WOMBAT.git
-$ cd wombat
-$ pip install -e '.[all]'
-```
+.. code-block:: console
+   git clone https://github.com/WISDEM/WOMBAT.git
+   cd wombat
+   pip install -e '.[all]'
+
 
 Usage
 =====
 
 After installation, the package can imported:
 
-```text
-$ python
->>> import wombat
->>> wombat.__version__
-```
+.. code-block:: console
+   python
+   import wombat
+   wombat.__version__
