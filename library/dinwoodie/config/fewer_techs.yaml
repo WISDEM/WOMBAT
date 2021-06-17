@@ -1,5 +1,5 @@
 name: dinwoodie_fewer_techs
-library: /Users/rhammond/Documents/GitHub/wombat/library/dinwoodie
+library: DINWOODIE
 weather: alpha_ventus_weather_2002_2014.csv
 service_equipment: [ctv1.yaml, ctv2.yaml, ctv3.yaml, fsv.yaml, hlv_1.yaml, hlv_2.yaml, hlv_3.yaml]
 layout: layout.csv

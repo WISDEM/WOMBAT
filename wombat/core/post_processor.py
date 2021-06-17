@@ -13,7 +13,7 @@ import PySAM.PySSC as pssc  # type: ignore
 import PySAM.Singleowner as pysam_singleowner_financial_model  # type: ignore
 
 from wombat.core import FixedCosts
-from wombat.utilities import load_yaml
+from wombat.core.library import load_yaml
 
 
 def _calculate_time_availability(
