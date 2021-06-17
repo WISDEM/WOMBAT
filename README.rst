@@ -46,13 +46,14 @@ for the appropriate OS version.
 
 Using conda, create a new virtual environment:
 
-.. code-block:: console
-   conda create -n <environment_name> python=3.8 --no-default-packages
-   conda activate <environment_name>
-   conda install -c anaconda pip
+ .. code-block:: console
+ 
+    conda create -n <environment_name> python=3.8 --no-default-packages
+    conda activate <environment_name>
+    conda install -c anaconda pip
 
-   # to deactivate
-   conda deactivate
+    # to deactivate
+    conda deactivate
 
 
 
@@ -64,6 +65,7 @@ Pip
 ~~~
 
 .. code-block:: console
+
    pip install wombat
 
 
@@ -78,6 +80,7 @@ From Source
 Install it directly into an activated virtual environment:
 
 .. code-block:: console
+
    git clone https://github.com/WISDEM/WOMBAT.git
    cd wombat
    python setup.py install
@@ -86,6 +89,7 @@ Install it directly into an activated virtual environment:
 or if you will be contributing:
 
 .. code-block:: console
+
    git clone https://github.com/WISDEM/WOMBAT.git
    cd wombat
    pip install -e '.[dev]'
@@ -94,12 +98,14 @@ or if you will be contributing:
 Required for automatic code formatting!
 
 .. code-block:: console
+
    pre-commit install
 
 
 or for documentation:
 
 .. code-block:: console
+
    git clone https://github.com/WISDEM/WOMBAT.git
    cd wombat
    pip install -e '.[docs]'
@@ -112,6 +118,7 @@ NOTE: You may want to change the "execute_notebook" parameter in the `conf.py` f
 build the site.
 
 .. code-block:: console
+
    cd docs/
    make html
 
@@ -121,6 +128,7 @@ View the results: `docs/_build/html/index.html`
 or both at once:
 
 .. code-block:: console
+
    git clone https://github.com/WISDEM/WOMBAT.git
    cd wombat
    pip install -e '.[all]'
@@ -132,6 +140,7 @@ Usage
 After installation, the package can imported:
 
 .. code-block:: console
+
    python
    import wombat
    wombat.__version__
