@@ -21,7 +21,7 @@ import numpy as np
 import pandas as pd
 
 from wombat.core import Configuration, Simulation
-from wombat.utilities import load_yaml
+from wombat.core.library import DINWOODIE, load_yaml
 
 
 # Seed the random variable for consistently randomized results
@@ -54,6 +54,10 @@ pd.set_option("display.max_columns", 1000)
 # │   ├── transport         <- Servicing equipment configurations
 # ├── weather               <- Weather profiles
 # ```
+#
+# As a convenience feature you can import the provided validation data libraries as
+# `DINWOODIE` or `IEA_26` as is seen in the imports above, and a consistent path will be
+# enabled.
 # ````
 #
 #
@@ -392,14 +396,13 @@ pd.set_option("display.max_columns", 1000)
 #
 # ### Define the data library path
 #
-# The set library enables WOMBAT to easily access and store data files in a consistent manner.
-#
-# **Note**: A relative path to the wombat library is used here
+# The set library enables WOMBAT to easily access and store data files in a consistent
+# manner. Here the `DINWOODIE` reference is going to be used again.
 
 # In[2]:
 
 
-library_path = Path("../../../../wombat/library/dinwoodie/").resolve()
+library_path = DINWOODIE
 
 
 # ### Load the configuration file
@@ -429,13 +432,14 @@ pprint(config, sort_dicts=False)
 # Option 1
 sim = Simulation.from_inputs(**config)
 
-# Delete the logging files that get initialized
-sim.env.cleanup_log_files(log_only=False)
+# Delete the .log files that get initialized
+sim.env.cleanup_log_files(log_only=True)
 
 # Option 2
+# Note here that a string "DINWOODIE" is passed because the Simulation class knows to
+# retrieve the appropriate path
 simulation_name = "example_dinwoodie"
-library_path = Path("../../../../wombat/library/dinwoodie/").resolve()
-sim = Simulation(name=simulation_name, library_path=library_path, config="base.yaml")
+sim = Simulation(name=simulation_name, library_path="DINWOODIE", config="base.yaml")
 
 
 # ```{note}
