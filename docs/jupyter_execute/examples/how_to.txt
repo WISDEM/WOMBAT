@@ -1,0 +1,66 @@
+from time import perf_counter  # timing purposes only
+from pprint import pprint  # better print formatiting
+from pathlib import Path  # a better path management system
+
+import numpy as np
+import pandas as pd
+
+from wombat.core import Simulation, Configuration
+from wombat.utilities import load_yaml
+
+# Seed the random variable for consistently randomized results
+np.random.seed(0)
+
+# Improve ability to read longer outputs
+pd.set_option("display.float_format", '{:,.2f}'.format)
+pd.set_option("display.max_rows", 1000)
+pd.set_option("display.max_columns", 1000)
+
+library_path = Path("../../../../wombat/library/dinwoodie/").resolve()
+
+config = load_yaml(str(library_path / "config"), "base.yaml")
+
+pprint(config, sort_dicts=False)
+
+# Option 1
+sim = Simulation.from_inputs(**config)
+
+# Option 2
+simulation_name = "example_dinwoodie"
+library_path = Path("../../../../wombat/library/dinwoodie/").resolve()
+sim = Simulation(
+    name=simulation_name,
+    library_path=library_path,
+    config="base.yaml"
+)
+
+# Timing for a demonstration of performance
+start = perf_counter()
+
+sim.run()
+
+end = perf_counter()
+
+timing = end - start
+if timing > 60 * 2:
+    print(f"Run time: {timing / 60:,.2f} minutes")
+else:
+    print(f"Run time: {timing:,.4f} seconds")
+
+net_cf = sim.metrics.capacity_factor(which="net", frequency="project", by="windfarm")
+gross_cf = sim.metrics.capacity_factor(which="gross", frequency="project", by="windfarm")
+print(f"  Net Capacity Factor: {net_cf:2.1f}%")
+print(f"Gross Capacity Factor: {gross_cf:2.1f}%")
+
+# Report back a subset of the metrics
+total = sim.metrics.time_based_availability(frequency="project", by="windfarm")
+print(f"  Project time-based availability: {total * 100:.1f}%")
+
+total = sim.metrics.production_based_availability(frequency="project", by="windfarm")
+print(f"Project energy-based availability: {total * 100:.1f}%")
+
+total = sim.metrics.equipment_costs(frequency="project", by_equipment=False)
+print(f"          Project equipment costs: ${total / sim.metrics.project_capacity:,.2f}/MW")
+
+
+sim.env.cleanup_log_files(log_only=False)

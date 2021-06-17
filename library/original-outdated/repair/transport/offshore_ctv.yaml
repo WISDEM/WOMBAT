@@ -1,0 +1,22 @@
+name: Windcat MK III
+equipment_rate: 3400  # 3,000($EUR) round up to $3,400
+day_rate: 465  # 150,000($EUR) round up to $170,000 -> $465/day (ECN 2011)
+n_day_rate: 3  # maximum required techs from offshore base case
+hourly_rate: 125  # (Maples et al. 2013)
+n_hourly_rate: 0
+start_month: 1
+start_day: 1
+end_month: 12
+end_day: 31
+start_year: 1998
+end_year: 2017
+onsite: True
+capability: CTV
+max_severity: 10
+mobilization_cost: 0
+mobilization_days: 0
+speed: 46  # 25 knots rounded to 26
+max_windspeed_transport: 12
+max_windspeed_repair: 12
+max_waveheight_transport: 1.5
+max_waveheight_repair: 1.5
