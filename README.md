@@ -19,7 +19,7 @@ testing (coming FY22!).
 ## WOMBAT in Action
 
 * Dinwoodie, et al. replication for `wombat` can be found in the [examples folder](./notebooks/examples.ipynb).
-* IEA Task 26 [validation exercise](./eaxamples/iea_26_validation.ipynb).
+* IEA Task 26 [validation exercise](./examples/iea_26_validation.ipynb).
 * Presentations: [slides](./presentation_material/).
 
 ## Setup
