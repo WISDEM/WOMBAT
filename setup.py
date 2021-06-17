@@ -62,7 +62,6 @@ setup(
     version=get_version(os.path.join("wombat", "__init__.py")),
     description=description,
     long_description=long_description,
-    long_description_content_type="text/x-rst",
     project_urls={
         # "Documentation": "https://pip.pypa.io",
         "Source": "https://github.com/WISDEM/WOMBAT",
