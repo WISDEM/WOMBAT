@@ -97,17 +97,18 @@ or for documentation:
 $ git clone https://github.com/WISDEM/WOMBAT.git
 $ cd wombat
 $ pip install -e '.[docs]'
+```
+Build the site
+NOTE: You may want to change the "execute_notebook" parameter in the `conf.py` file to
+"off" unless you're updating the coded examples or they will be run every time you
+build the site.
 
-# Build the site
-# NOTE: You may want to change the "execute_notebook" parameter in the `conf.py` file to
-# "off" unless you're updating the coded examples or they will be run every time you
-# build the site
-
+```text
 $ cd docs/
 $ make html
-
-# view the results: `docs/_build/html/index.html`
 ```
+
+View the results: `docs/_build/html/index.html`
 
 or both at once:
 
