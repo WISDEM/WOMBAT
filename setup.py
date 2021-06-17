@@ -54,10 +54,12 @@ extra_package_requirements["all"] = [
 
 setup(
     name=name,
+    author="Rob Hammond",
+    author_email="rob.hammond@nrel.gov",
     version=get_version(os.path.join("wombat", "__init__.py")),
     description=description,
     long_description=read("README.md"),
-    ong_description_content_type="text/markdown",
+    long_description_content_type="text/markdown",
     project_urls={
         # "Documentation": "https://pip.pypa.io",
         "Source": "https://github.com/WISDEM/WOMBAT",
@@ -85,6 +87,7 @@ setup(
         "matplotlib",
         "nrel-pysam",
     ],
+    python_requires=">=3.7",
     extras_require=extra_package_requirements,
     test_suite="pytest",
     tests_require=["pytest", "pytest-xdist", "pytest-cov"],
