@@ -1,0 +1,23 @@
+# Sample onsite rig and crew for land and sea-based windfarms
+# Waveheight data is not requried for land-based operations
+equipment_rate: 6450  # day rate for the vessel, in $USD
+day_rate: 10000  # day rate for vessel and workers, in $USD
+n_day_rate: 2  # number of salaried workers, in $USD
+hourly_rate: 500  # hourly labor rate for subcontractors, in $USD
+n_hourly_rate: 4  # number of hourly/subcontractor workers, in $USD
+crane: crane.yaml  # name of the file that contains the crane data
+start_month: 1  # first month to start operations
+start_day: 1  # first day of the month to start operations
+end_month: 12  # last month for operations
+end_day: 31  # last day of the month for operations
+start_year: 1979  # starting year for the rig to come onsite
+end_year: 1980  # completion year for the rig to come onsite, if the rig comes annually, then fill in the last scheduled year
+onsite: True  # indicates that this is onsite and is available year round
+capability: CTV  # equipment classification: one (or multiple) of CAB, CRN, CTV
+max_severity: 10  # maximum severity failure that can be serviced by the crew
+mobilization: 100000  # mobilization cost, in $USD
+speed: 10  # maximum safe traveling speed of the rig, km/hr
+max_windspeed_transport: 20  # maximum windspeed where the rig can safely travel, m/s
+max_windspeed_repair: 18  # maximum windspeed where a repair can occur, m/s
+max_waveheight_transport: 3  # maximum waveheight where the rig can safely travel, m
+max_waveheight_repair: 3  # maximum waveheight where a repair can occur, m

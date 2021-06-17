@@ -1,7 +1,7 @@
 import codecs
 import os
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
 
 def read(relative_path):
@@ -22,7 +22,7 @@ def get_version(relative_path):
 
 
 name = "wombat"
-description = "Simulated windfarm operations and maintenance cost model"
+description = "Windfarm operations and maintenance cost-benefit analysis tool"
 extra_package_requirements = {
     "dev": [
         "pre-commit",
@@ -57,6 +57,7 @@ setup(
     version=get_version(os.path.join("wombat", "__init__.py")),
     description=description,
     long_description=read("README.md"),
+    ong_description_content_type="text/markdown",
     project_urls={
         # "Documentation": "https://pip.pypa.io",
         "Source": "https://github.com/WISDEM/WOMBAT",
@@ -70,7 +71,7 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
     ],
-    packages=["wombat"],
+    packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     install_requires=[
         "attr",
         "numpy",

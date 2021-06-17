@@ -1,0 +1,34 @@
+capacity_kw: 201000
+capex_kw: 140
+transformer:
+  name: transformer
+  maintenance:
+  - description: system check
+    time: 1
+    materials: 500
+    service_equipment:
+    - CAB
+    - CTV
+    - CRN
+    frequency: 365
+  failures:
+    1:
+      scale: 2.77775
+      shape: 1
+      time: 8
+      materials: 5700
+      service_equipment:
+      - CTV
+      operation_reduction: 0
+      level: 1
+      description: small transformer repair
+    2:
+      scale: 25.0
+      shape: 1
+      time: 48
+      materials: 285000
+      service_equipment:
+      - CTV
+      operation_reduction: 0
+      level: 2
+      description: large transformer repair

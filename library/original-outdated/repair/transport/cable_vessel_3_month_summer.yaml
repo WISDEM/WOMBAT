@@ -1,0 +1,22 @@
+name: Cable Laying Vessel
+equipment_rate: 115000
+day_rate: 465
+n_day_rate: 3
+hourly_rate: 125
+n_hourly_rate: 0
+start_month: 6
+start_day: 1
+end_month: 8
+end_day: 31
+start_year: 1998
+end_year: 2017
+onsite: false
+capability:
+- CAB
+mobilization_cost: 625000
+mobilization_days: 30
+speed: 26
+max_windspeed_transport: 99
+max_windspeed_repair: 10
+max_waveheight_transport: 2
+max_waveheight_repair: 1
