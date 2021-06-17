@@ -1,5 +1,5 @@
 name: dinwoodie_manual_resets_only
-library: /Users/rhammond/Documents/GitHub/wombat/library/dinwoodie
+library: DINWOODIE
 weather: alpha_ventus_weather_2002_2014.csv
 service_equipment: [ctv1.yaml, ctv2.yaml, ctv3.yaml]
 layout: layout_manual_resets_only.csv
