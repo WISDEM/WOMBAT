@@ -4,7 +4,6 @@ Initializes the simulation modules, classes, and functions.
 isort:skip_file
 """
 
-import library
 from .data_classes import (
     Maintenance,
     Failure,
