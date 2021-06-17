@@ -25,9 +25,9 @@ There a few Jupyter notebooks to get users up and running with WOMBAT in the `ex
 folder, but here are a few highlights:
 
 * Dinwoodie, et al. replication for `wombat` can be found in the
-`examples folder <https://github.com/WISDEM/WOMBAT/blob/main/examples/dinwoodie_validation.ipynb>`_.
+  `examples folder <https://github.com/WISDEM/WOMBAT/blob/main/examples/dinwoodie_validation.ipynb>`_.
 * IEA Task 26
-`validation exercise  <https://github.com/WISDEM/WOMBAT/blob/main/examples/iea_26_validation.ipynb>`_.
+  `validation exercise  <https://github.com/WISDEM/WOMBAT/blob/main/examples/iea_26_validation.ipynb>`_.
 * Presentations: `slides  <https://github.com/WISDEM/WOMBAT/blob/main/presentation_material/>`_.
 
 Setup
