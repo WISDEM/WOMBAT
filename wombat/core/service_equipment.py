@@ -16,7 +16,8 @@ from wombat.core import (
     ServiceEquipmentData,
     WombatEnvironment,
 )
-from wombat.utilities import hours_until_future_hour, load_yaml
+from wombat.core.library import load_yaml
+from wombat.utilities import hours_until_future_hour
 from wombat.windfarm import Windfarm
 from wombat.windfarm.system.cable import Cable
 from wombat.windfarm.system.subassembly import Subassembly

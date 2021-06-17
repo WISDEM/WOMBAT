@@ -27,7 +27,7 @@ import numpy as np
 import pandas as pd
 
 from wombat.core import Simulation, Configuration
-from wombat.utilities import load_yaml
+from wombat.core.library import load_yaml, DINWOODIE
 
 # Seed the random variable for consistently randomized results
 np.random.seed(0)
@@ -60,6 +60,10 @@ data must be placed in the appropriate locations in your analysis' library as fo
 │   ├── transport         <- Servicing equipment configurations
 ├── weather               <- Weather profiles
 ```
+
+As a convenience feature you can import the provided validation data libraries as
+`DINWOODIE` or `IEA_26` as is seen in the imports above, and a consistent path will be
+enabled.
 ````
 
 
@@ -398,12 +402,12 @@ a simulation.
 
 ### Define the data library path
 
-The set library enables WOMBAT to easily access and store data files in a consistent manner.
+The set library enables WOMBAT to easily access and store data files in a consistent
+manner. Here the `DINWOODIE` reference is going to be used again.
 
-**Note**: A relative path to the wombat library is used here
 
 ```{code-cell} ipython3
-library_path = Path("../../../../wombat/library/dinwoodie/").resolve()
+library_path = DINWOODIE
 ```
 
 ### Load the configuration file
@@ -433,11 +437,12 @@ sim = Simulation.from_inputs(**config)
 sim.env.cleanup_log_files(log_only=True)
 
 # Option 2
+# Note here that a string "DINWOODIE" is passed because the Simulation class knows to
+# retrieve the appropriate path
 simulation_name = "example_dinwoodie"
-library_path = Path("../../../../wombat/library/dinwoodie/").resolve()
 sim = Simulation(
     name=simulation_name,
-    library_path=library_path,
+    library_path="DINWOODIE",
     config="base.yaml"
 )
 ```
