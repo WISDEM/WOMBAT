@@ -83,7 +83,7 @@ source_suffix = {
     ".myst": "myst-nb",
 }
 
-jupyter_execute_notebooks = "auto"
+jupyter_execute_notebooks = "off"
 execution_timeout = -1
 execution_allow_errors = True
 
