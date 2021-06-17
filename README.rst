@@ -46,14 +46,14 @@ for the appropriate OS version.
 
 Using conda, create a new virtual environment:
 
- .. code-block:: console
+.. code-block:: console
 
-    conda create -n <environment_name> python=3.8 --no-default-packages
-    conda activate <environment_name>
-    conda install -c anaconda pip
+   conda create -n <environment_name> python=3.8 --no-default-packages
+   conda activate <environment_name>
+   conda install -c anaconda pip
 
-    # to deactivate
-    conda deactivate
+   # to deactivate
+   conda deactivate
 
 
 

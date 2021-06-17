@@ -35,9 +35,8 @@ pd.set_option("display.max_columns", 1000)
 
 
 simulation_name = "example_dinwoodie"
-library_path = Path("../../../../wombat/library/dinwoodie/").resolve()
 
-sim = Simulation(simulation_name, library_path, "base.yaml")
+sim = Simulation(simulation_name, "DINWOODIE", "base.yaml")
 sim.run()
 
 # For convenience only
