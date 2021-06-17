@@ -58,8 +58,7 @@ setup(
     author_email="rob.hammond@nrel.gov",
     version=get_version(os.path.join("wombat", "__init__.py")),
     description=description,
-    long_description=read("README.md"),
-    long_description_content_type="text/markdown",
+    long_description=read("README.rst"),
     project_urls={
         # "Documentation": "https://pip.pypa.io",
         "Source": "https://github.com/WISDEM/WOMBAT",
