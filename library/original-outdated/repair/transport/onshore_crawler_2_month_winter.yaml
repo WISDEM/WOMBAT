@@ -1,0 +1,20 @@
+name: Crawler Crane
+equipment_rate: 20000
+day_rate: 0
+n_day_rate: 0
+hourly_rate: 100
+n_hourly_rate: 8
+start_month: 12
+start_day: 1
+end_month: 1
+end_day: 31
+start_year: 1998
+end_year: 2017
+onsite: false
+capability:
+- CRN
+mobilization_cost: 300000
+mobilization_days: 0
+speed: 2
+max_windspeed_transport: 99
+max_windspeed_repair: 10

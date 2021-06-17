@@ -1,0 +1,28 @@
+transformer:
+  name: transformer
+  maintenance:
+    -
+      description: n/a
+      time: 0
+      materials:
+      service_equipment: CTV
+      frequency:
+  failures:
+    1:
+      scale: 0.45
+      shape: 1
+      time: 8
+      materials: 5600
+      service_equipment: CTV
+      operation_reduction: 0.0
+      level: 1
+      description: small transformer repair
+    2:
+      scale: 0.05
+      shape: 1
+      time: 48
+      materials: 280000
+      service_equipment: CTV
+      operation_reduction: 0.
+      level: 4
+      description: large transformer repair

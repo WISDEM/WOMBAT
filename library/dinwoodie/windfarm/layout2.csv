@@ -1,0 +1,3 @@
+﻿id,substation_id,name,longitude,latitude,string,order,distance,subassembly,upstream_cable
+OSS1,OSS1,OSS1,0,0,,,,offshore_substation.yaml,export.yaml
+S00T1,OSS1,S00T1,0,0,0,0,0,vestas_v90.yaml,array.yaml

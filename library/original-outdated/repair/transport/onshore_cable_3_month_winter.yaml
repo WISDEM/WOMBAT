@@ -1,0 +1,22 @@
+name: Onshore Cabling
+equipment_rate: 1800
+day_rate: 465
+n_day_rate: 3
+hourly_rate: 100
+n_hourly_rate: 2
+start_month: 12
+start_day: 1
+end_month: 2
+end_day: 28
+start_year: 1998
+end_year: 2017
+onsite: false
+capability:
+- CAB
+mobilization_cost: 10000
+mobilization_days: 10
+speed: 25
+max_windspeed_transport: 99
+max_windspeed_repair: 10
+max_waveheight_transport: 0
+max_waveheight_repair: 0

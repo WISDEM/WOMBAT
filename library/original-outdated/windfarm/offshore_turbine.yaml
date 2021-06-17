@@ -1,0 +1,435 @@
+capacity_kw: 10000
+capex_kw: 1300  # NREL trend line for 2020 from 2018 OSWMR, Fig 35: https://www.energy.gov/sites/prod/files/2019/09/f66/2018%20Offshore%20Wind%20Technologies%20Market%20Report.pdf
+electrical_system:
+  name: electrical_system
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+    2:
+      scale: 2.1834
+      shape: 1
+      time: 4
+      materials: 0.0001
+      service_equipment: CTV
+      operation_reduction: 0.0
+      level: 2
+      description: inspection/small repair
+    4:
+      scale: 4.8544
+      shape: 1
+      time: 8
+      materials: 0.001
+      operation_reduction: 0.0
+      service_equipment:
+      - CRN
+      level: 4
+      description: small part replacement
+electronic_control:
+  name: electronic_control
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+    2:
+      scale: 1.1792
+      shape: 1
+      time: 4
+      materials: 0.0001
+      service_equipment: CTV
+      operation_reduction: 0.0
+      level: 2
+      description: inspection/small repair
+    4:
+      scale: 2.6178
+      shape: 1
+      time: 8
+      materials: 0.001
+      service_equipment: CRN
+      operation_reduction: 0.0
+      level: 4
+      description: small part replacement
+sensors:
+  name: sensors  # data copied from electronic control
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+    2:
+      scale: 1.1792
+      shape: 1
+      time: 4
+      materials: 0.0001
+      service_equipment: CTV
+      operation_reduction: 0.0
+      level: 2
+      description: inspection/small repair
+    4:
+      scale: 2.6178
+      shape: 1
+      time: 8
+      materials: 0.001
+      service_equipment: CRN
+      operation_reduction: 0.0
+      level: 4
+      description: small part replacement
+hydraulic_system:
+  name: hydraulic_system
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+    2:
+      scale: 18.5185
+      shape: 1
+      time: 4
+      materials: 0.0001
+      service_equipment: CTV
+      operation_reduction: 0.0
+      level: 2
+      description: inspection/small repair
+    4:
+      scale: 47.619
+      shape: 1
+      time: 8
+      materials: 0.001
+      service_equipment: CRN
+      operation_reduction: 0.0
+      level: 4
+      description: small part replacement
+yaw_system:
+  name: yaw_system
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+    2:
+      scale: 3.0303
+      shape: 1
+      time: 4
+      materials: 0.0001
+      service_equipment: CTV
+      operation_reduction: 0.0
+      level: 2
+      description: inspection/small repair
+    10:
+      scale: 4.386
+      shape: 1
+      time: 16
+      materials: 0.01
+      service_equipment: CRN
+      operation_reduction: 0.0
+      level: 4
+      description: medium part replacement
+    12:
+      scale: 19.6078
+      shape: 1
+      time: 40
+      materials: 0.02
+      service_equipment: CRN
+      operation_reduction: 1.0
+      level: 4
+      description: large part replacement
+rotor_blades:
+  name: rotor_blades
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+    2:
+      scale: 15.3846
+      shape: 1
+      time: 4
+      materials: 0.0001
+      service_equipment: CTV
+      operation_reduction: 0.0
+      level: 2
+      description: inspection/small repair
+    3:
+      scale: 142.8571
+      shape: 1
+      time: 8
+      materials: 0.0001
+      service_equipment: CTV
+      operation_reduction: 0.0
+      level: 3
+      description: inspection/small repair
+    4:
+      scale: 100
+      shape: 1
+      time: 8
+      materials: 0.0001
+      service_equipment: CRN
+      operation_reduction: 0.0
+      level: 4
+      description: small part replacement
+    6:
+      scale: 62.5
+      shape: 1
+      time: 16
+      materials: 0.01
+      service_equipment: CRN
+      operation_reduction: 0.0
+      level: 6
+      description: medium part replacement
+    13:
+      scale: 142.8571
+      shape: 1
+      time: 40
+      materials: 0.1
+      service_equipment: CRN
+      operation_reduction: 1.0
+      level: 13
+      description: large part replacement
+mechanical_brake:
+  name: mechanical_brake
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+    2:
+      scale: 47.619
+      shape: 1
+      time: 4
+      materials: 0.0001
+      service_equipment: CTV
+      operation_reduction: 0.0
+      level: 2
+      description: inspection/small repair
+    6:
+      scale: 90.9091
+      shape: 1
+      time: 16
+      materials: 0.01
+      service_equipment: CRN
+      operation_reduction: 0.0
+      level: 6
+      description: medium part replacement
+rotor_hub:
+  name: rotor_hub
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+    2:
+      scale: 14.4928
+      shape: 1
+      time: 4
+      materials: 0.0001
+      service_equipment: CTV
+      operation_reduction: 0.0
+      level: 2
+      description: inspection/small repair
+    4:
+      scale: 100.0
+      shape: 1
+      time: 8
+      materials: 0.001
+      service_equipment: CRN
+      operation_reduction: 0.0
+      level: 4
+      description: small part replacement
+    6:
+      scale: 100.0
+      shape: 1
+      time: 16
+      materials: 0.01
+      service_equipment: CRN
+      operation_reduction: 0.0
+      level: 6
+      description: medium part replacement
+    12:
+      scale: 333.3333
+      shape: 1
+      time: 40
+      materials: 0.02
+      service_equipment: CRN
+      operation_reduction: 1.0
+      level: 12
+      description: large part replacement
+gearbox:
+  name: gearbox
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+    2:
+      scale: 1.2788
+      shape: 1
+      time: 4
+      materials: 0.0001
+      service_equipment: CTV
+      operation_reduction: 0.0
+      level: 2
+      description: inspection/small repair
+    5:
+      scale: 2.8409
+      shape: 1
+      time: 16
+      materials: 0.001
+      service_equipment: CRN
+      operation_reduction: 0.0
+      level: 5
+      description: small part replacement
+    8:
+      scale: 12.8205
+      shape: 1
+      time: 24
+      materials: 0.05
+      service_equipment: CRN
+      operation_reduction: 0.0
+      level: 8
+      description: medium part replacement
+generator:
+  name: generator
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+    2:
+      scale: 2.1368
+      shape: 1
+      time: 4
+      materials: 0.0001
+      service_equipment: CTV
+      operation_reduction: 0.0
+      level: 2
+      description: inspection/small repair
+    6:
+      scale: 1000.0
+      shape: 1
+      time: 16
+      materials: 0.01
+      service_equipment: CRN
+      operation_reduction: 0.0
+      level: 6
+      description: medium part replacement
+    13:
+      scale: 1000.0
+      shape: 1
+      time: 40
+      materials: 0.1
+      service_equipment: CRN
+      operation_reduction: 1.0
+      level: 13
+      description: large part replacement
+supporting_structure:
+  name: supporting_structure
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+    2:
+      scale: 6.2893
+      shape: 1
+      time: 4
+      materials: 0.0001
+      service_equipment: CTV
+      operation_reduction: 0.0
+      level: 2
+      description: inspection/small repair
+    4:
+      scale: 22.2222
+      shape: 1
+      time: 8
+      materials: 0.01
+      service_equipment: CRN
+      operation_reduction: 0.0
+      level: 4
+      description: medium part replacement
+    7:
+      scale: 66.6667
+      shape: 1
+      time: 24
+      materials: 0.1
+      service_equipment: CRN
+      operation_reduction: 1.0
+      level: 7
+      description: large part replacement
+    13:
+      scale: 125.0
+      shape: 1
+      time: 40
+      materials: 0.1
+      service_equipment: CRN
+      operation_reduction: 1.0
+      level: 13
+      description: large part replacement
+drive_train:
+  name: drive_train
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+    2:
+      scale: 66.6667
+      shape: 1
+      time: 4
+      materials: 0.0001
+      service_equipment: CTV
+      operation_reduction: 0.0
+      level: 2
+      description: inspection/small repair
+    4:
+      scale: 250.0
+      shape: 1
+      time: 8
+      materials: 0.001
+      service_equipment: CRN
+      operation_reduction: 0.0
+      level: 4
+      description: small part replacement
+    6:
+      scale: 1000.0
+      shape: 1
+      time: 16
+      materials: 0.01
+      service_equipment: CRN
+      operation_reduction: 0.0
+      level: 6
+      description: medium part replacement
+    11:
+      scale: 1000.0
+      shape: 1
+      time: 24
+      materials: 0.02
+      service_equipment: CRN
+      operation_reduction: 1.0
+      level: 11
+      description: large part replacement
