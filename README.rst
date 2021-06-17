@@ -6,7 +6,7 @@ This library provides a tool to simulate the operation and maintenance phase (O&
 distributed, land-based, and offshore windfarms using a discrete event simultaion
 framework.
 
-WOMBAT is written around the [SimPy](https://gitlab.com/team-simpy/simpy) framework
+WOMBAT is written around the `SimPy <https://gitlab.com/team-simpy/simpy>`_ framework
 for discrete event simulation framework. Additionally, this is supported using a
 flexible and modular object-oriented code base, which enables the modeling of
 arbitrarily large (or small) windfarms with as many or as few failure and maintenance
@@ -24,9 +24,11 @@ WOMBAT in Action
 There a few Jupyter notebooks to get users up and running with WOMBAT in the `examples/`
 folder, but here are a few highlights:
 
-* Dinwoodie, et al. replication for `wombat` can be found in the [examples folder](./examples/dinwoodie_validation.ipynb).
-* IEA Task 26 [validation exercise](./examples/iea_26_validation.ipynb).
-* Presentations: [slides](./presentation_material/).
+* Dinwoodie, et al. replication for `wombat` can be found in the
+`examples folder <https://github.com/WISDEM/WOMBAT/blob/main/examples/dinwoodie_validation.ipynb>`_.
+* IEA Task 26
+`validation exercise  <https://github.com/WISDEM/WOMBAT/blob/main/examples/iea_26_validation.ipynb>`_.
+* Presentations: `slides  <https://github.com/WISDEM/WOMBAT/blob/main/presentation_material/>`_.
 
 Setup
 =====
@@ -39,8 +41,8 @@ Requirements
 Environment Setup
 -----------------
 
-Download the latest version of [Miniconda](<https://docs.conda.io/en/latest/miniconda.html>)
-   for the appropriate OS. Follow the remaining [steps](<https://conda.io/projects/conda/en/latest/user-guide/install/index.html#regular-installation>)
+Download the latest version of `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_
+   for the appropriate OS. Follow the remaining `steps <https://conda.io/projects/conda/en/latest/user-guide/install/index.html#regular-installation>`_
    for the appropriate OS version.
 
 Using conda, create a new virtual environment:
