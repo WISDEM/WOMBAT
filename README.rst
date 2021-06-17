@@ -1,4 +1,3 @@
-====================================================================
 WOMBAT: Windfarm Operations & Maintenance cost-Benefit Analysis Tool
 ====================================================================
 
@@ -19,7 +18,7 @@ any improvements at all, from fixing typos (guaranteed to be a few) to features 
 testing (coming FY22!).
 
 WOMBAT in Action
-================
+----------------
 
 There a few Jupyter notebooks to get users up and running with WOMBAT in the `examples/`
 folder, but here are a few highlights:
@@ -31,15 +30,15 @@ folder, but here are a few highlights:
 * Presentations: `slides  <https://github.com/WISDEM/WOMBAT/blob/main/presentation_material/>`_.
 
 Setup
-=====
+-----
 
 Requirements
-------------
+~~~~~~~~~~~~
 
 * Python 3.7+, see the next section for more.
 
 Environment Setup
------------------
+~~~~~~~~~~~~~~~~~
 
 Download the latest version of `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_
 for the appropriate OS. Follow the remaining `steps <https://conda.io/projects/conda/en/latest/user-guide/install/index.html#regular-installation>`_
@@ -48,24 +47,24 @@ for the appropriate OS version.
 Using conda, create a new virtual environment:
 
 .. code-block:: console
-    conda create -n <environment_name> python=3.8 --no-default-packages
-    conda activate <environment_name>
-    conda install -c anaconda pip
+   conda create -n <environment_name> python=3.8 --no-default-packages
+   conda activate <environment_name>
+   conda install -c anaconda pip
 
-    # to deactivate
-    conda deactivate
+   # to deactivate
+   conda deactivate
 
 
 
 Installation
-------------
+~~~~~~~~~~~~
 
 
 Pip
----
+~~~
 
 .. code-block:: console
-    pip install wombat
+   pip install wombat
 
 
 NOTE: For now, you will have to download the data separetely if you're going to be
@@ -74,7 +73,7 @@ the year.
 
 
 From Source
------------
+~~~~~~~~~~~
 
 Install it directly into an activated virtual environment:
 
@@ -107,6 +106,7 @@ or for documentation:
 
 
 Build the site
+
 NOTE: You may want to change the "execute_notebook" parameter in the `conf.py` file to
 "off" unless you're updating the coded examples or they will be run every time you
 build the site.
@@ -127,7 +127,7 @@ or both at once:
 
 
 Usage
-=====
+-----
 
 After installation, the package can imported:
 
