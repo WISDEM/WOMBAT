@@ -10,7 +10,7 @@ from wombat.core import (
     Maintenance,
     RepairRequest,
     SubassemblyData,
-    SwomEnvironment,
+    WombatEnvironment,
 )
 
 
@@ -22,7 +22,7 @@ TIMEOUT = 24  # Wait time of 1 day for replacement to occur
 
 class Subassembly:
     def __init__(
-        self, turbine, env: SwomEnvironment, s_id: str, subassembly_data: dict,
+        self, turbine, env: WombatEnvironment, s_id: str, subassembly_data: dict,
     ) -> None:
         """Creates a subassembly object that models various maintenance and failure types.
 
@@ -30,7 +30,7 @@ class Subassembly:
         ----------
         turbine : wombat.windfarm.System
             The turbine containing subassembly object(s).
-        env : SwomEnvironment
+        env : WombatEnvironment
             The simulation environment.
         s_id : str
             A unique identifier for the subassembly within the turbine.

@@ -21,7 +21,7 @@ from wombat.utilities import (
 )
 
 
-class SwomEnvironment(simpy.Environment):
+class WombatEnvironment(simpy.Environment):
     def __init__(
         self,
         data_dir: str,

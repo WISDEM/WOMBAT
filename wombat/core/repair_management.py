@@ -6,7 +6,7 @@ from typing import Iterator, Optional, Sequence  # type: ignore
 import numpy as np  # type: ignore
 from simpy.resources.store import FilterStore, FilterStoreGet  # type: ignore
 
-from wombat.core import Failure, Maintenance, RepairRequest, SwomEnvironment
+from wombat.core import Failure, Maintenance, RepairRequest, WombatEnvironment
 
 
 class RepairManager(FilterStore):
@@ -17,18 +17,18 @@ class RepairManager(FilterStore):
     FilterStore : simpy.resources.store.FilterStore
         The `simpy` class on which RepairManager is based to manage the repair and
         maintenance tasks.
-    env : wombat.core.SwomEnvironment
+    env : wombat.core.WombatEnvironment
         The simulation environment.
     capacity : float
         The maximum number of tasks that can be submitted to the manager, by default `np.inf`.
     """
 
-    def __init__(self, env: SwomEnvironment, capacity: float = np.inf) -> None:
+    def __init__(self, env: WombatEnvironment, capacity: float = np.inf) -> None:
         """Initializes the class.
 
         Parameters
         ----------
-        env : SwomEnvironment
+        env : WombatEnvironment
             The simualation environment.
         capacity : float, optional
             The maximum number of tasks that the manager should be storing, by default

@@ -7,7 +7,7 @@ from typing import Callable, List, Union  # type: ignore
 import numpy as np
 import pandas as pd
 
-from wombat.core import RepairManager, SwomEnvironment
+from wombat.core import RepairManager, WombatEnvironment
 from wombat.utilities import IEC_power_curve
 from wombat.windfarm.system import Subassembly
 
@@ -40,7 +40,7 @@ class System:
 
     def __init__(
         self,
-        env: SwomEnvironment,
+        env: WombatEnvironment,
         repair_manager: RepairManager,
         t_id: str,
         name: str,
@@ -51,7 +51,7 @@ class System:
 
         Parameters
         ----------
-        env : SwomEnvironment
+        env : WombatEnvironment
             The simulation environment.
         repair_manager : RepairManager
             The simulation repair and maintenance task manager.

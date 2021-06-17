@@ -14,7 +14,7 @@ from wombat.core import (
     RepairManager,
     RepairRequest,
     ServiceEquipmentData,
-    SwomEnvironment,
+    WombatEnvironment,
 )
 from wombat.utilities import hours_until_future_hour, load_yaml
 from wombat.windfarm import Windfarm
@@ -53,7 +53,7 @@ class ServiceEquipment:
 
     Parameters
     ----------
-    env : SwomEnvironment
+    env : WombatEnvironment
         The simulation environment.
     windfarm : Windfarm
         The `Windfarm` object.
@@ -65,7 +65,7 @@ class ServiceEquipment:
 
     def __init__(
         self,
-        env: SwomEnvironment,
+        env: WombatEnvironment,
         windfarm: Windfarm,
         repair_manager: RepairManager,
         equipment_data_file: str,
@@ -74,7 +74,7 @@ class ServiceEquipment:
 
         Parameters
         ----------
-        env : SwomEnvironment
+        env : WombatEnvironment
             The simulation environment.
         windfarm : Windfarm
             The `Windfarm` object.

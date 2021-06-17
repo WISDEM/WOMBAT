@@ -13,7 +13,7 @@ from .data_classes import (
     ServiceEquipmentData,
     FixedCosts,
 )
-from .environment import SwomEnvironment
+from .environment import WombatEnvironment
 from .post_processor import Metrics
 from .repair_management import RepairManager
 from .service_equipment import ServiceEquipment
