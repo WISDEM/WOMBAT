@@ -11,7 +11,7 @@ from wombat.core import (
     Maintenance,
     RepairRequest,
     SubassemblyData,
-    SwomEnvironment,
+    WombatEnvironment,
 )
 
 
@@ -28,7 +28,7 @@ class Cable:
     ----------
     windfarm : `wombat.windfarm.Windfarm`
         The `Windfarm` object.
-    env : SwomEnvironment
+    env : WombatEnvironment
         The simulation environment.
     cable_id : str
         The unique identifier for the cable.
@@ -43,7 +43,7 @@ class Cable:
     def __init__(
         self,
         windfarm,
-        env: SwomEnvironment,
+        env: WombatEnvironment,
         cable_id: str,
         start_node: str,
         upstream_nodes: List[str],
@@ -55,7 +55,7 @@ class Cable:
         ----------
         windfarm : `wombat.windfarm.Windfarm`
             The `Windfarm` object.
-        env : SwomEnvironment
+        env : WombatEnvironment
             The simulation environment.
         cable_id : str
             The unique identifier for the cable.

@@ -7,14 +7,17 @@ import networkx as nx  # type: ignore
 import pandas as pd  # type: ignore
 from geopy import distance  # type: ignore
 
-from wombat.core import RepairManager, SwomEnvironment
+from wombat.core import RepairManager, WombatEnvironment
 from wombat.utilities import load_yaml
 from wombat.windfarm.system import Cable, System
 
 
 class Windfarm:
     def __init__(
-        self, env: SwomEnvironment, windfarm_layout: str, repair_manager: RepairManager
+        self,
+        env: WombatEnvironment,
+        windfarm_layout: str,
+        repair_manager: RepairManager,
     ) -> None:
 
         self.env = env

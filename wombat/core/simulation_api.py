@@ -7,7 +7,7 @@ import attr
 import pandas as pd
 from simpy.events import Event  # type: ignore
 
-from wombat.core import Metrics, RepairManager, ServiceEquipment, SwomEnvironment
+from wombat.core import Metrics, RepairManager, ServiceEquipment, WombatEnvironment
 from wombat.utilities import load_yaml
 from wombat.windfarm import Windfarm
 
@@ -21,14 +21,14 @@ class Configuration:
     name: str
         Name of the simulation. Used for logging files.
     library : str
-        The data directory. See `wombat.simulation.SwomEnvironment` for more details.
+        The data directory. See `wombat.simulation.WombatEnvironment` for more details.
     layout : str
         The windfarm layout file. See `wombat.Windfarm` for more details.
     service_equipment : Union[str, List[str]]
         The equpiment that will be used in the simulation. See
         `wombat.core.ServiceEquipment` for more details.
     weather : str
-        The weather profile to be used. See `wombat.simulation.SwomEnvironment`
+        The weather profile to be used. See `wombat.simulation.WombatEnvironment`
         for more details.
     workday_start : int
         Starting hour for a typical work shift. Can be overridden by
@@ -136,14 +136,14 @@ class Simulation:
         name: str
             Name of the simulation. Used for logging files.
         library : str
-            The data directory. See `wombat.simulation.SwomEnvironment` for more details.
+            The data directory. See `wombat.simulation.WombatEnvironment` for more details.
         layout : str
             The windfarm layout file. See `wombat.Windfarm` for more details.
         service_equipment : Union[str, List[str]]
             The equpiment that will be used in the simulation. See
             `wombat.core.ServiceEquipment` for more details.
         weather : str
-            The weather profile to be used. See `wombat.simulation.SwomEnvironment`
+            The weather profile to be used. See `wombat.simulation.WombatEnvironment`
             for more details.
         start_year : int
             Start year of the simulation. The exact date will be determined by
@@ -191,7 +191,7 @@ class Simulation:
 
     def setup_simulation(self):
         """Initializes the simulation objects."""
-        self.env = SwomEnvironment(
+        self.env = WombatEnvironment(
             self.config.library,
             self.config.weather,
             simulation_name=self.config.name,
@@ -211,8 +211,8 @@ class Simulation:
             )
 
     def run(self, until: Optional[Union[int, float, Event]] = None):
-        """Calls `SwomEnvironment.run()` and gathers the results for post-processing.
-        See `wombat.simulation.SwomEnvironment.run` or `simpy.Environment.run` for more
+        """Calls `WombatEnvironment.run()` and gathers the results for post-processing.
+        See `wombat.simulation.WombatEnvironment.run` or `simpy.Environment.run` for more
         details.
 
         Parameters
