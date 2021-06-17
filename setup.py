@@ -21,6 +21,9 @@ def get_version(relative_path):
         raise RuntimeError("Unable to find version string.")
 
 
+with open("README.rst", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
 name = "wombat"
 description = "Windfarm operations and maintenance cost-benefit analysis tool"
 extra_package_requirements = {
@@ -58,7 +61,7 @@ setup(
     author_email="rob.hammond@nrel.gov",
     version=get_version(os.path.join("wombat", "__init__.py")),
     description=description,
-    long_description=read("README.rst"),
+    long_description=long_description,
     project_urls={
         # "Documentation": "https://pip.pypa.io",
         "Source": "https://github.com/WISDEM/WOMBAT",
