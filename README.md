@@ -10,6 +10,12 @@ flexible and modular object-oriented code base, which enables the modeling of
 arbitrarily large (or small) windfarms with as many or as few failure and maintenance
 tasks that can be encoded.
 
+Please note that this is still heavily under development, so you may find some functionality
+to be incomplete at the current moment, but rest assured the functionality is expanding.
+With that said, it would be greatly appreciated for issues or PRs to be submitted for
+any improvements at all, from fixing typos (guaranteed to be a few) to features to
+testing (coming FY22!).
+
 ## WOMBAT in Action
 
 * Dinwoodie, et al. replication for `wombat` can be found in the [examples folder](./notebooks/examples.ipynb).
