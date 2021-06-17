@@ -8,8 +8,26 @@ import pandas as pd
 from simpy.events import Event  # type: ignore
 
 from wombat.core import Metrics, RepairManager, ServiceEquipment, WombatEnvironment
-from wombat.utilities import load_yaml
+from wombat.core.library import library_map, load_yaml
 from wombat.windfarm import Windfarm
+
+
+def _library_mapper(file_path: Union[str, Path]) -> Union[str, Path]:
+    """Attempts to extract a default library path if one of "DINWOODIE" or "IEA_26"
+    are passed, other returns `file_path`.
+
+    Parameters
+    ----------
+    file_path : Union[str, Path]
+        Should be a valid file path, or one of "DINWOODIE" or "IEA_26" to indicate a
+        provided library is being used.
+
+    Returns
+    -------
+    Union[str, Path]
+        The library path.
+    """
+    return library_map.get(file_path, file_path)
 
 
 @attr.s(frozen=True, auto_attribs=True)
@@ -55,7 +73,7 @@ class Configuration:
 
     name: str
     library: Path
-    layout: str
+    layout: str = attr.ib(converter=_library_mapper)
     service_equipment: Union[str, List[str]]
     weather: Union[str, pd.DataFrame]
     workday_start: int
@@ -93,7 +111,7 @@ class Simulation:
         name: str
             Name of the simulation. Used for logging files.
         library_path : str
-            The path to the main data library.
+            The path to the main data library. If one of DINWOODIE or IEA_26
         config : Union[str, dict]
             The path to a configuration dictionary or the dictionary itself.
 
@@ -102,6 +120,7 @@ class Simulation:
         Simulation
             A `Simulation` object
         """
+        library_path = _library_mapper(library_path)
         self.data_dir = Path(library_path).resolve()
         if isinstance(config, str):
             config = load_yaml(self.data_dir / "config", config)  # type: ignore
@@ -174,7 +193,7 @@ class Simulation:
         """
         config = dict(
             name=name,
-            library=library,
+            library=_library_mapper(library),
             layout=layout,
             service_equipment=service_equipment,
             weather=weather,

@@ -8,7 +8,7 @@ import pandas as pd  # type: ignore
 from geopy import distance  # type: ignore
 
 from wombat.core import RepairManager, WombatEnvironment
-from wombat.utilities import load_yaml
+from wombat.core.library import load_yaml
 from wombat.windfarm.system import Cable, System
 
 
