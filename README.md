@@ -18,7 +18,10 @@ testing (coming FY22!).
 
 ## WOMBAT in Action
 
-* Dinwoodie, et al. replication for `wombat` can be found in the [examples folder](./notebooks/examples.ipynb).
+There a few Jupyter notebooks to get users up and running with WOMBAT in the `examples/`
+folder, but here are a few highlights:
+
+* Dinwoodie, et al. replication for `wombat` can be found in the [examples folder](./examples/dinwoodie_validation.ipynb).
 * IEA Task 26 [validation exercise](./examples/iea_26_validation.ipynb).
 * Presentations: [slides](./presentation_material/).
 
