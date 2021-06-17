@@ -1,4 +1,6 @@
-# WOMBAT: Windfarm Operations & Maintenance cost-Benefit Analysis Tool
+====================================================================
+WOMBAT: Windfarm Operations & Maintenance cost-Benefit Analysis Tool
+====================================================================
 
 This library provides a tool to simulate the operation and maintenance phase (O&M) of
 distributed, land-based, and offshore windfarms using a discrete event simultaion
@@ -16,7 +18,8 @@ With that said, it would be greatly appreciated for issues or PRs to be submitte
 any improvements at all, from fixing typos (guaranteed to be a few) to features to
 testing (coming FY22!).
 
-## WOMBAT in Action
+WOMBAT in Action
+================
 
 There a few Jupyter notebooks to get users up and running with WOMBAT in the `examples/`
 folder, but here are a few highlights:
@@ -25,13 +28,16 @@ folder, but here are a few highlights:
 * IEA Task 26 [validation exercise](./examples/iea_26_validation.ipynb).
 * Presentations: [slides](./presentation_material/).
 
-## Setup
+Setup
+=====
 
-### Requirements
+Requirements
+------------
 
 * Python 3.7+, see the next section for more.
 
-### Environment Setup
+Environment Setup
+-----------------
 
 Download the latest version of [Miniconda](<https://docs.conda.io/en/latest/miniconda.html>)
    for the appropriate OS. Follow the remaining [steps](<https://conda.io/projects/conda/en/latest/user-guide/install/index.html#regular-installation>)
@@ -46,10 +52,12 @@ $ conda install -c anaconda pip
 ```
 
 
-### Installation
+Installation
+------------
 
 
-#### Pip
+Pip
+---
 
 ```text
 $ pip install wombat
@@ -60,7 +68,8 @@ using the "dinwoodie" or "iea_26" data libraries. This will amended before the e
 the year.
 
 
-#### From Source
+From Source
+-----------
 
 Install it directly into an activated virtual environment:
 
@@ -106,7 +115,8 @@ $ cd wombat
 $ pip install -e '.[all]'
 ```
 
-## Usage
+Usage
+=====
 
 After installation, the package can imported:
 
