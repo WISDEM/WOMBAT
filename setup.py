@@ -21,7 +21,7 @@ def get_version(relative_path):
         raise RuntimeError("Unable to find version string.")
 
 
-with open("README.rst", "r", encoding="utf-8") as fh:
+with open("README.rst", "r") as fh:
     long_description = fh.read()
 
 name = "wombat"
