@@ -9,10 +9,9 @@ for the appropriate OS version.
 
 
 Using conda, create a new virtual environment, replacing `<environment_name>` with a name
-of your choosing (without spaces), and be sure to use Python 3.8 (some examples require
-features from 3.8):
+of your choosing (without spaces):
 ```text
-$ conda create -n <environment_name> python=3.8 --no-default-packages
+$ conda create -n <environment_name> python=3.7 --no-default-packages
 $ conda activate <environment_name>
 $ conda install -c anaconda pip
 ```
