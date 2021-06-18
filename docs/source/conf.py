@@ -75,7 +75,7 @@ myst_enable_extensions = [
     "linkify",
     # "substitution",
 ]
-myst_url_schemes = ("http", "https", "mailto")
+myst_url_schemes = ["http", "https", "mailto"]
 
 source_suffix = {
     ".rst": "restructuredtext",
@@ -83,6 +83,7 @@ source_suffix = {
     ".myst": "myst-nb",
 }
 
+# toggle this between auto/off to rerun full documentation build
 jupyter_execute_notebooks = "off"
 execution_timeout = -1
 execution_allow_errors = True

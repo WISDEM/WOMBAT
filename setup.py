@@ -76,6 +76,8 @@ setup(
         "Programming Language :: Python :: 3.7",
     ],
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
+    include_package_data=True,
+    package_data={"": ["*.yaml", "*.csv"]},
     install_requires=[
         "attr",
         "numpy",

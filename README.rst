@@ -1,6 +1,27 @@
 WOMBAT: Windfarm Operations & Maintenance cost-Benefit Analysis Tool
 ====================================================================
 
+.. image:: https://badge.fury.io/py/wombat.svg
+   :target: https://badge.fury.io/py/wombat
+
+.. image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples
+
+.. image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
+   :target: https://opensource.org/licenses/Apache-2.0
+
+.. image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
+   :target: https://github.com/pre-commit/pre-commit
+   :alt: pre-commit
+
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+   :target: https://github.com/psf/black
+
+.. image:: https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336
+   :target: https://pycqa.github.io/isort/
+
+
+
 This library provides a tool to simulate the operation and maintenance phase (O&M) of
 distributed, land-based, and offshore windfarms using a discrete event simultaion
 framework.
@@ -35,7 +56,7 @@ Setup
 Requirements
 ~~~~~~~~~~~~
 
-* Python 3.7+, see the next section for more.
+* Python 3.8+, see the next section for more.
 
 Environment Setup
 ~~~~~~~~~~~~~~~~~
