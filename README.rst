@@ -8,7 +8,7 @@ WOMBAT: Windfarm Operations & Maintenance cost-Benefit Analysis Tool
    :target: https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples
 
 .. image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
-   : target: https://opensource.org/licenses/Apache-2.0
+   :target: https://opensource.org/licenses/Apache-2.0
 
 .. image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
    :target: https://github.com/pre-commit/pre-commit
