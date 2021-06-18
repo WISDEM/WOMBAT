@@ -77,7 +77,7 @@ setup(
     ],
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     include_package_data=True,
-    package_data={"wombat": ["library/*"]},
+    package_data={"": ["library/*"]},
     install_requires=[
         "attr",
         "numpy",
