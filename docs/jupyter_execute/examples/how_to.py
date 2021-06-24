@@ -419,7 +419,8 @@ library_path = DINWOODIE
 
 config = load_yaml(str(library_path / "config"), "base.yaml")
 
-pprint(config, sort_dicts=False)
+for k, v in config.items():
+    print(f"\033[1m{k}\033[0m:\n  {v}")  # make the keys bold
 
 
 # ## Instantiate the simulation
