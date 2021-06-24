@@ -63,8 +63,9 @@ setup(
     description=description,
     long_description=long_description,
     project_urls={
-        # "Documentation": "https://pip.pypa.io",
-        "Source": "https://github.com/WISDEM/WOMBAT",
+        "Documentation": "https://wisdem.github.io/WOMBAT/",
+        "Source Code": "https://github.com/WISDEM/WOMBAT",
+        "Bug Tracker": "https://github.com/WISDEM/WOMBAT/issues",
     },
     classifiers=[
         # TODO: https://pypi.org/pypi?%3Aaction=list_classifiers
