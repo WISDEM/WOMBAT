@@ -9,6 +9,7 @@ from geopy import distance  # type: ignore
 
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.core.library import load_yaml
+from wombat.utilities import _mean
 from wombat.windfarm.system import Cable, System
 
 
@@ -29,6 +30,8 @@ class Windfarm:
         self._create_turbines_and_substations()
         self._create_cables()
         self.capacity = sum(self.node_system(turb).capacity for turb in self.turbine_id)
+
+        self.repair_manager._register_windfarm(self)
 
         self.env.process(self._log_operations())
 
@@ -198,3 +201,9 @@ class Windfarm:
             The `System` object.
         """
         return self.graph.nodes[system_id]["system"]
+
+    @property
+    def current_availability(self) -> float:
+        return _mean(
+            *(self.node_system(system).operating_level for system in self.graph.nodes)
+        )

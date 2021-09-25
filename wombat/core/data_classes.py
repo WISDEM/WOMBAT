@@ -2,6 +2,7 @@
 
 
 import datetime  # type: ignore
+import typing  # type: ignore
 from math import fsum  # type: ignore
 from typing import Callable, Dict, List, Sequence, Union  # type: ignore
 
@@ -114,8 +115,32 @@ def convert_ratio_to_absolute(
     return ratio
 
 
+@attr.s
+class FromDictMixin:
+    """A Mixin class to allow for kwargs overloading when a data class doesn't
+    have a specific parameter definied. This allows passing of larger dictionaries
+    to a data class without throwing an error.
+    """
+
+    @classmethod
+    @typing.no_type_check
+    def from_dict(cls, data: dict):
+        """Maps a data dictionary to an `attr`-defined class.
+
+        Args:
+            data : dict
+                The data dictionary to be mapped.
+        Returns:
+            cls
+                The `attr`-defined class.
+        """
+        return cls(  # type: ignore
+            **{a.name: data[a.name] for a in cls.__attrs_attrs__ if a.name in data}
+        )
+
+
 @attr.s(frozen=True, auto_attribs=True)
-class Maintenance:
+class Maintenance(FromDictMixin):
     """Data class to store maintenance data used in subassembly and cable modeling.
 
     Parameters
@@ -147,7 +172,6 @@ class Maintenance:
     service_equipment: Union[List[str], str]
     system_value: Union[int, float]
     description: str = "routine maintenance"
-    level: int = 0
     operation_reduction: float = 0.0
     request_id: str = attr.ib(init=False)
 
@@ -179,7 +203,7 @@ class Maintenance:
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class Failure:
+class Failure(FromDictMixin):
     """Data class to store failure data used in subassembly and cable modeling.
 
     Parameters
@@ -268,7 +292,7 @@ class Failure:
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class SubassemblyData:
+class SubassemblyData(FromDictMixin):
     """Data storage and validation class for the subassemblies.
 
     Parameters
@@ -313,7 +337,7 @@ class SubassemblyData:
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class RepairRequest:
+class RepairRequest(FromDictMixin):
     """Repair/Maintenance request data class.
 
     Parameters
@@ -359,7 +383,7 @@ class RepairRequest:
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class ServiceEquipmentData:
+class ScheduledServiceEquipmentData(FromDictMixin):
     """Crew data class.
 
     Parameters
@@ -426,8 +450,6 @@ class ServiceEquipmentData:
         Determines if the ship will do all maximum severity repairs first or do all
         the repairs at one turbine before going to the next, by default severity.
         Should by one of "severity" or "turbine".
-    max_severity : int
-        Maximum severity failure that a crew can service, default None.
     """
 
     name: str
@@ -454,8 +476,8 @@ class ServiceEquipmentData:
     workday_end: int = attr.ib(default=-1)
     onsite: bool = attr.ib(default=False)
     method: str = attr.ib(default="severity")
-    max_severity: int = attr.ib(default=None)
     operating_dates: np.ndarray = attr.ib(init=False)
+    strategy: str = attr.ib(default="scheduled", init=False)
 
     @workday_start.validator
     def _check_workday_start(self, attribute, value) -> None:
@@ -532,7 +554,197 @@ class ServiceEquipmentData:
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class FixedCosts:
+class UnscheduledServiceEquipmentData(FromDictMixin):
+    """Crew data class.
+
+    Parameters
+    ----------
+    name: str
+        Name of the piece of servicing equipment.
+    equipment_rate: float
+        Day rate for the equipment/vessel, in USD.
+    day_rate: float
+        Day rate for salaried workers, in USD.
+    n_day_rate: int
+        Number of salaried workers.
+    hourly_rate: float
+        Hourly labor rate for subcontractors, in USD.
+    n_hourly_rate: int
+        Number of hourly/subcontractor workers.
+    charter_days : int
+        The number of days the servicing equipment can be chartered for.
+    capability : str
+        The type of capabilities the equipment contains. Must be one of:
+         - RMT: remote (no actual equipment BUT no special implementation)
+         - DRN: drone
+         - CTV: crew transfer vessel/vehicle
+         - SCN: small crane (i.e., field support vessel)
+         - LCN: large crane (i.e., heavy lift vessel)
+         - CAB: cabling vessel/vehicle
+         - DSV: diving support vessel
+    mobilization_cost : float
+        Cost to mobilize the rig and crew.
+    mobilization_days : int
+        Number of days it takes to mobilize the equipment.
+    speed : float
+        Maximum transit speed, km/hr.
+    max_windspeed_transport : float
+        Maximum windspeed for safe transport, m/s.
+    max_windspeed_repair : float
+        Maximum windspeed for safe operations, m/s.
+    max_waveheight_transport : float
+        Maximum waveheight for safe transport, m, default 1000 (land-based).
+    max_waveheight_repair : float
+        Maximum waveheight for safe operations, m, default 1000 (land-based).
+    workday_start : int
+        The starting hour of a workshift, in 24 hour time.
+    workday_end : int
+        The ending hour of a workshift, in 24 hour time.
+    onsite : bool
+        Indicator for if the rig and crew are based onsite.
+        ... note:: if the rig and crew are onsite be sure that the start and end dates
+        represent the first and last day/month of the year, respectively, and the start
+        and end years represent the fist and last year in the weather file.
+    method : str
+        Determines if the ship will do all maximum severity repairs first or do all
+        the repairs at one turbine before going to the next, by default severity.
+        Should by one of "severity" or "turbine".
+    """
+
+    name: str
+    equipment_rate: float
+    day_rate: float
+    n_day_rate: int
+    hourly_rate: float
+    n_hourly_rate: int
+    charter_days: int
+    capability: Union[List[str], str] = attr.ib()
+    mobilization_cost: float
+    mobilization_days: int
+    speed: float
+    max_windspeed_transport: float
+    max_windspeed_repair: float
+    max_waveheight_transport: float = attr.ib(default=1000)
+    max_waveheight_repair: float = attr.ib(default=1000)
+    workday_start: int = attr.ib(default=-1)
+    workday_end: int = attr.ib(default=-1)
+    onsite: bool = attr.ib(default=False)
+    method: str = attr.ib(default="severity")
+    operating_dates: np.ndarray = attr.ib(init=False)
+    strategy: str = attr.ib(default="unscheduled", init=False)
+
+    @workday_start.validator
+    def _check_workday_start(self, attribute, value) -> None:
+        """Ensures that the workday_start is a valid time."""
+        if not -1 <= value <= 24:
+            raise ValueError(
+                "Input 'workday_start' must be between 0 and 24, inclusive."
+            )
+
+    @workday_end.validator
+    def _check_workday_end(self, attribute, value) -> None:
+        """Ensures that the workday_end is a valid time."""
+        if value == -1:
+            return
+        if not 0 <= value <= 24 or value <= self.workday_start:
+            raise ValueError(
+                "Input 'workday_end' must be between 0 and 24, inclusive, and after workday_start"
+            )
+
+    @capability.validator
+    def _check_capability(self, attribute, value) -> None:
+        """Ensures that capability has a valid input."""
+        valid = set(("CTV", "SCN", "LCN", "CAB", "RMT", "DRN", "DSV"))
+        values = set(convert_to_list(value, str.upper))
+        invalid = values - valid
+        if invalid:
+            raise ValueError(f"Input 'capability' must be any combination of {valid}.")
+
+    @method.validator
+    def _check_method(self, attribute, value) -> None:
+        """Ensures that method is a valid input."""
+        valid = ("turbine", "severity")
+        if value.lower() not in valid:
+            raise ValueError(f"Input 'method' must be one of {valid}.")
+
+    def _set_environment_shift(self, start: int, end: int) -> None:
+        """Used to set the `workday_start` and `workday_end` to the environment's values.
+
+        Parameters
+        ----------
+        start : int
+            Starting hour of a workshift.
+        end : int
+            Ending hour of a workshift.
+        """
+        object.__setattr__(self, "workday_start", start)
+        object.__setattr__(self, "workday_end", end)
+
+    def __attrs_post_init__(self) -> None:
+        object.__setattr__(
+            self, "capability", convert_to_list(self.capability, str.upper)
+        )
+        object.__setattr__(self, "method", self.method.lower())
+
+
+@attr.s(frozen=True, auto_attribs=True)
+class ServiceEquipmentData(FromDictMixin):
+    """Helps to determine the type ServiceEquipment that should be used, based on the
+    repair strategy for its operation.
+
+    Parameters
+    ----------
+    data_dict : dict
+        The dictionary that will be used to create the appropriate ServiceEquipmentData.
+        This should contain a field called 'strategy' with either "scheduled" or
+        "unscheduled" as a value if strategy is not provided as a keyword argument.
+    strategy : str, optional
+        Should be either "scheduled" or "unscheduled".
+
+    Returns
+    -------
+    Union[ScheduledServiceEquipmentData, UnscheduledServiceEquipmentData]
+        The appropriate `xxServiceEquipmentData` scheme
+
+    Raises
+    ------
+    ValueError
+        If `strategy` is not one of "scheduled" or "unscheduled" an error will be raised.
+    """
+
+    data_dict: dict = attr.ib(kw_only=True)
+    strategy: str = attr.ib(kw_only=True, default=None)
+
+    def __attrs_post_init__(self):
+        if self.strategy is None:
+            object.__setattr__(
+                self, "strategy", self.data_dict["strategy"].lower().strip()
+            )
+        if self.strategy not in ("scheduled", "unscheduled"):
+            raise ValueError(
+                "ServiceEquipment strategy should be one of 'scheduled' or 'unscheduled'."
+            )
+
+    def determine_type(
+        self,
+    ) -> Union[ScheduledServiceEquipmentData, UnscheduledServiceEquipmentData]:
+        """Generates the appropriate ServiceEquipmentData variation.
+
+        Returns
+        -------
+        Union[ScheduledServiceEquipmentData, UnscheduledServiceEquipmentData]
+            The appropriate `xxServiceEquipmentData` schema depending on the strategy the
+            `ServiceEquipment` will use.
+        """
+        if self.strategy == "scheduled":
+            data_class = ScheduledServiceEquipmentData.from_dict(self.data_dict)
+        elif self.strategy == "unscheduled":
+            data_class = UnscheduledServiceEquipmentData.from_dict(self.data_dict)
+        return data_class
+
+
+@attr.s(frozen=True, auto_attribs=True)
+class FixedCosts(FromDictMixin):
     """The fixed costs for operating a windfarm. All values are assumed to be in $/kW/yr.
 
     Parameters

@@ -9,6 +9,14 @@ import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
 
 
+try:
+    from functools import cache  # type: ignore
+except ImportError:
+    from functools import lru_cache
+
+    cache = lru_cache(None)
+
+
 def convert_dt_to_hours(diff: datetime.timedelta) -> float:
     """Converts a `datetime.timedelta` object to number of hours at the seconds resolution.
 
@@ -49,6 +57,23 @@ def hours_until_future_hour(dt: datetime.datetime, hour: int) -> float:
         new_dt = dt.replace(hour=hour, minute=0, second=0)
     diff = new_dt - dt
     return convert_dt_to_hours(diff)
+
+
+@cache
+def _mean(*args) -> float:
+    """Multiplies two numbers. Used for a reduce operation.
+
+    Parameters
+    ----------
+    args : Union[int, float]
+        The values to compute the mean over
+
+    Returns
+    -------
+    float
+        The average of the values provided
+    """
+    return np.mean(args)
 
 
 def setup_logger(logger_name: str, log_file: str, level: Any = logging.INFO) -> None:
@@ -182,7 +207,7 @@ def IEC_power_curve(
     windspeed_end: float = 30.0,
 ) -> Callable:
     """
-    Direct copy, plus bug fix from OpenOA: https://github.com/NREL/OpenOA/blob/main/operational_analysis/toolkits/power_curve/functions.py#L13-L51
+    Direct copy, plus bug fix from OpenOA: https://github.com/NREL/OpenOA/blob/main/operational_analysis/toolkits/power_curve/functions.py#L16-L57
     Use IEC 61400-12-1-2 method for creating wind-speed binned power curve.
     Args:
         windspeed_column (:obj:`pandas.Series`): feature column
