@@ -79,7 +79,7 @@ class Configuration(FromDictMixin):
 
     name: str
     library: Path
-    layout: Union[Path, str] = attr.ib(converter=_library_mapper)
+    layout: str
     service_equipment: Union[str, List[str]]
     weather: Union[str, pd.DataFrame]
     workday_start: int
@@ -104,14 +104,14 @@ class Simulation:
     ----------
     name: str
         Name of the simulation. Used for logging files.
-    data_dir : str
+    library_path : str
         The path to the main data library.
     config : Union[str, dict]
         The path to a configuration dictionary or the dictionary itself.
     """
 
     name: str = attr.ib(converter=str)
-    data_dir: Path = attr.ib(converter=_library_mapper)
+    library_path: Path = attr.ib(converter=_library_mapper)
     config: Configuration = attr.ib()
 
     def __attrs_post_init__(self) -> None:
@@ -119,7 +119,7 @@ class Simulation:
 
     @config.validator
     def create_configuration(
-        self, attribute: str, value: Union[str, dict, Configuration]
+        self, attribute: attr.Attribute, value: Union[str, dict, Configuration]
     ) -> None:
         """Validates the configuration object and creates the `Configuration` object
         for the simulation.Raises:
@@ -136,11 +136,11 @@ class Simulation:
             The validated simulation configuration
         """
         if isinstance(value, str):
-            value = load_yaml(self.data_dir / "config", value)
+            value = load_yaml(self.library_path / "config", value)
         if isinstance(value, dict):
             value = Configuration.from_dict(value)
         if isinstance(value, Configuration):
-            object.__setattr__(self, attribute, value)
+            object.__setattr__(self, attribute.name, value)
         else:
             raise ValueError(
                 "`config` must be a dictionary, valid file path to a yaml-enocoded",

@@ -62,8 +62,7 @@ class Windfarm:
         windfarm_layout : str
             Filename to use for reading in the windfarm layout; must be a csv file.
         """
-        layout_path = os.path.join(self.env.data_dir, "windfarm", windfarm_layout)
-
+        layout_path = str(self.env.data_dir / "windfarm" / windfarm_layout)
         layout = (
             pd.read_csv(layout_path)
             .sort_values(by=["string", "order"])

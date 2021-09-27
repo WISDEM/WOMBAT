@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from collections import Counter
+from itertools import chain
 from typing import (  # type: ignore
     TYPE_CHECKING,
     Dict,
@@ -26,6 +28,47 @@ if TYPE_CHECKING:
 
 
 @attr.s(auto_attribs=True)
+class EquipmentMap:
+    """Internal mapping for servicing equipment strategy information."""
+
+    strategy_threshold: Union[int, float]
+    equipment: ServiceEquipment
+
+
+@attr.s(auto_attribs=True)
+class StrategyMap:
+    """Internal mapping for equipment capabilities and their data."""
+
+    CTV: List[EquipmentMap] = attr.ib(factory=list)
+    SCN: List[EquipmentMap] = attr.ib(factory=list)
+    LCN: List[EquipmentMap] = attr.ib(factory=list)
+    CAB: List[EquipmentMap] = attr.ib(factory=list)
+    RMT: List[EquipmentMap] = attr.ib(factory=list)
+    DRN: List[EquipmentMap] = attr.ib(factory=list)
+    DSV: List[EquipmentMap] = attr.ib(factory=list)
+
+    def update(
+        self, capability: str, threshold: Union[int, float], equipment: ServiceEquipment
+    ) -> None:
+        if capability == "CTV":
+            self.CTV.append(EquipmentMap(threshold, equipment))
+        elif capability == "SCN":
+            self.SCN.append(EquipmentMap(threshold, equipment))
+        elif capability == "LCN":
+            self.LCN.append(EquipmentMap(threshold, equipment))
+        elif capability == "CAB":
+            self.CAB.append(EquipmentMap(threshold, equipment))
+        elif capability == "RMT":
+            self.RMT.append(EquipmentMap(threshold, equipment))
+        elif capability == "DRN":
+            self.DRN.append(EquipmentMap(threshold, equipment))
+        elif capability == "DSV":
+            self.DSV.append(EquipmentMap(threshold, equipment))
+        else:
+            # This should not even be able to be reached
+            raise ValueError("Invalid servicing equipment has been provided!")
+
+
 class RepairManager(FilterStore):
     """Provides a class to manage repair and maintenance tasks.
 
@@ -38,69 +81,48 @@ class RepairManager(FilterStore):
         The simulation environment.
     capacity : float
         The maximum number of tasks that can be submitted to the manager, by default `np.inf`.
-    strategy : str
-        For any unscheduled maintenance servicing equipment, this determines the
-        strategy for dispatching. Should be on of "downtime" or "requests". By default,
-        None, to indicate that all servicing equipment is pre-scheduled.
-    strategy_threshold : str
-        For downtime-based scenarios, this is based on the operating level, and should
-        be in the range (0, 1). For reqest-based scenarios, this is the maximum number
-        of requests that are allowed to build up for any given type of unscheduled
-        servicing equipment, should be an integer >= 1.
+
+    Attributes
+    ----------
+    env : wombat.core.WombatEnvironment
+        The simulation environment.
+    windfarm: wombat.windfarm.Windfarm
+        The simulated windfarm. This is only used for getting the operational capacity.
+    _current_id : int
+        The logged and auto-incrememented integer base for the ID generated for each
+        submitted repair request.
+    downtime_based_equipment: StrategyMap
+        The mapping between downtime-based servicing equipment and their capabilities.
+    request_based_equipment: StrategyMap
+        The mapping between request-based servicing equipment and their capabilities.
     """
-
-    env: WombatEnvironment
-    capacity: float = attr.ib(default=np.inf, converter=float)
-    strategy: str = attr.ib(default=None)
-    strategy_threshold: Union[int, float] = attr.ib(default=0)
-
-    # Registering attributes without initialization
-    equipment: List[ServiceEquipment] = attr.ib(factory=list, init=False)
-    windfarm: Windfarm = attr.ib(init=False)
-    equipment_map: Dict[str, List[ServiceEquipment]] = attr.ib(
-        default=dict(CTV=[], SCN=[], LCN=[], CAB=[], RMT=[], DRN=[], DSV=[]), init=False
-    )
-    _current_id: int = attr.ib(default=0, init=False)
 
     def __init__(self, env: WombatEnvironment, capacity: float = np.inf) -> None:
         super().__init__(env, capacity)
 
-    @strategy.validator
-    def check_strategy(self, attribute: str, value: str) -> None:
-        """Ensures the `strategy` provided is valid."""
-        if value not in ("downtime", "requests"):
-            raise ValueError(
-                "`strategy` for unscheduled maintence handling must be one of",
-                "'downtime' or 'requests'",
-            )
+        self.env = env
+        self._current_id = 0
 
-    @strategy_threshold.validator
-    def validate_threshold(self, attribute: str, value: Union[int, float]) -> None:
-        """Ensures a valid threshold is provided for a given `strategy`."""
-        if not isinstance(value, (int, float)):
-            raise TypeError("`strategy_threshold` must be an `int` or `float`!")
-
-        if self.strategy == "downtime":
-            if value <= 0 or value >= 1:
-                raise ValueError(
-                    "Downtime-based strategies must have a `strategy_threshold`",
-                    "between 0 and 1, non-inclusive!",
-                )
-        if self.strategy == "requests":
-            if value <= 0:
-                raise ValueError(
-                    "Requests-based strategies must have a `strategy_threshold`",
-                    "greater than 0!",
-                )
+        self.downtime_based_equipment = StrategyMap()
+        self.request_based_equipment = StrategyMap()
 
     def _update_equipment_map(self, service_equipment: ServiceEquipment) -> None:
         """Updates `equipment_map` with a provided servicing equipment object."""
         capability = service_equipment.settings.capability
+        strategy = service_equipment.settings.strategy
+        strategy_threshold = service_equipment.settings.strategy_threshold  # type: ignore
+
+        if strategy == "downtime":
+            mapping = self.downtime_based_equipment
+        elif strategy == "requests":
+            mapping = self.request_based_equipment
+        else:
+            # Shouldn't be possible to get here!
+            raise ValueError("Invalid servicing equipment!")
+
         if isinstance(capability, list):
             for c in capability:
-                self.equipment_map[c].append(service_equipment)
-        else:
-            self.equipment_map[capability].append(service_equipment)
+                mapping.update(c, strategy_threshold, service_equipment)
 
     def _register_windfarm(self, windfarm: Windfarm) -> None:
         """Adds the simulation windfarm to the class attributes"""
@@ -143,29 +165,38 @@ class RepairManager(FilterStore):
         self._current_id += 1
         return request_id
 
-    def _run_equipment_downtime(self, request_mapping: Dict[str, int]) -> None:
-        """Run any equipment that has a pending request for its capability category.
-
-        Parameters
-        ----------
-        request_mapping: Dict[str, int]
-            A copy of the `request_map` object.
+    def _run_equipment_downtime(self) -> None:
+        """Run any equipment that has a pending request where the current windfarm
+        operating capacity is less than or equal to the servicing equipment's threshold.
         """
-        for capability, n_requests in request_mapping.items():
-            if n_requests > 0:
-                # Run only the first piece of equipment in the mapping list
-                equipment = self.equipment_map[capability].pop(0)
-                self.env.process(equipment.run_unscheduled())
-                self.equipment_map[capability].append(equipment)
+        operating_capacity = self.windfarm.current_availability
+        for capability in self.request_map:
+            equipment_mapping = getattr(self.downtime_based_equipment, capability)
+            for equipment in equipment_mapping:
+                if operating_capacity > equipment.strategy_threshold:
+                    continue
+                if equipment.equipment.onsite:
+                    continue
+                self.env.process(equipment.equipment.run_unscheduled())
+                break
 
-    def _run_equipment_requests(self, request_mapping: Dict[str, int]) -> None:
-        for capability, n_requests in request_mapping.items():
-            if n_requests >= self.strategy_threshold:
+    def _run_equipment_requests(self) -> None:
+        """Run the first piece of equipment (if none are onsite) for each equipment
+        capability category where the number of requests is greater than or equal to the
+        equipment's threshold.
+        """
+        for capability, n_requests in self.request_map.items():
+            equipment_mapping = getattr(self.request_based_equipment, capability)
+            for i, equipment in enumerate(equipment_mapping):
+                if n_requests > equipment.strategy_threshold:
+                    continue
                 # Run only the first piece of equipment in the mapping list, but ensure
                 # that it moves to the back of the line after being used
-                equipment = self.equipment_map[capability].pop(0)
-                self.env.process(equipment.run_unscheduled())
-                self.equipment_map[capability].append(equipment)
+                if equipment.equipment.onsite:
+                    equipment_mapping.append(equipment_mapping.pop(i))
+                    break
+                self.env.process(equipment.equipment.run_unscheduled())
+                equipment_mapping.append(equipment_mapping.pop(i))
 
     def submit_request(self, request: RepairRequest) -> RepairRequest:
         """The method to submit requests to the repair mananger and adds a unique
@@ -185,15 +216,9 @@ class RepairManager(FilterStore):
         request_id = self._create_request_id(request)
         request.assign_id(request_id)
         self.put(request)
-        self.update_equipment_request_map(request)
 
-        request_mapping = self.request_map
-        if self.strategy == "downtime":
-            if self.windfarm.current_availability <= self.strategy_threshold:
-                self.run_equipment_downtime(request_mapping)
-        elif self.strategy == "requests":
-            if any(val >= self.strategy_threshold for val in request_mapping.values()):
-                self.run_equipment_requests(request_mapping)
+        self._run_equipment_downtime()
+        self._run_equipment_requests()
 
         return request
 
@@ -321,15 +346,11 @@ class RepairManager(FilterStore):
 
     @property
     def request_map(self) -> Dict[str, int]:
-        """Creates an update mapping between the servicing equipment and the number
-        of requests that each category of capability can service.
+        """Creates an updated mapping between the servicing equipment capabilities and
+        the number of requests that fall into each capability category (nonzero values only).
         """
-        mapping = dict(CTV=0, SCN=0, LCN=0, CAB=0, RMT=0, DRN=0, DSV=0)
-        for request in self.items:
-            capability = request.details.service_equipment
-            if isinstance(capability, list):
-                for c in capability:
-                    mapping[c] += 1
-            else:
-                mapping[capability] += 1
-        return mapping
+        # mapping = dict(CTV=0, SCN=0, LCN=0, CAB=0, RMT=0, DRN=0, DSV=0)
+        all_requests = [request.details.service_equipment for request in self.items]
+        requests = dict(Counter(chain.from_iterable(all_requests)))
+        # mapping.update(requests)
+        return requests

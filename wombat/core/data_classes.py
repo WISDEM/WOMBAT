@@ -42,6 +42,22 @@ def convert_to_list(
     return list(value)
 
 
+def clean_string_input(value: str) -> str:
+    """Converts a string to lower case and and removes leading and trailing white spaces.
+
+    Parameters
+    ----------
+    value: str
+        The user input string.
+
+    Returns
+    -------
+    str
+        value.lower().strip()
+    """
+    return value.lower().strip()
+
+
 def annual_date_range(
     start_day: int,
     end_day: int,
@@ -115,7 +131,7 @@ def convert_ratio_to_absolute(
     return ratio
 
 
-@attr.s
+@attr.s(auto_attribs=True)
 class FromDictMixin:
     """A Mixin class to allow for kwargs overloading when a data class doesn't
     have a specific parameter definied. This allows passing of larger dictionaries
@@ -174,6 +190,7 @@ class Maintenance(FromDictMixin):
     description: str = "routine maintenance"
     operation_reduction: float = 0.0
     request_id: str = attr.ib(init=False)
+    level: int = attr.ib(default=0, init=False)
 
     def __attrs_post_init__(self):
         """Convert frequency to hours (simulation time scale) and the equipment
@@ -464,7 +481,7 @@ class ScheduledServiceEquipmentData(FromDictMixin):
     end_month: int
     end_day: int
     end_year: int
-    capability: Union[List[str], str] = attr.ib()
+    capability: Union[List[str], str] = attr.ib(converter=convert_to_list)
     mobilization_cost: float
     mobilization_days: int
     speed: float
@@ -477,7 +494,7 @@ class ScheduledServiceEquipmentData(FromDictMixin):
     onsite: bool = attr.ib(default=False)
     method: str = attr.ib(default="severity")
     operating_dates: np.ndarray = attr.ib(init=False)
-    strategy: str = attr.ib(default="scheduled", init=False)
+    strategy: str = attr.ib(default="scheduled")
 
     @workday_start.validator
     def _check_workday_start(self, attribute, value) -> None:
@@ -596,6 +613,14 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         Maximum waveheight for safe transport, m, default 1000 (land-based).
     max_waveheight_repair : float
         Maximum waveheight for safe operations, m, default 1000 (land-based).
+    strategy : str
+        For any unscheduled maintenance servicing equipment, this determines the
+        strategy for dispatching. Should be on of "downtime" or "requests".
+    strategy_threshold : str
+        For downtime-based scenarios, this is based on the operating level, and should
+        be in the range (0, 1). For reqest-based scenarios, this is the maximum number
+        of requests that are allowed to build up for any given type of unscheduled
+        servicing equipment, should be an integer >= 1.
     workday_start : int
         The starting hour of a workshift, in 24 hour time.
     workday_end : int
@@ -618,20 +643,20 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
     hourly_rate: float
     n_hourly_rate: int
     charter_days: int
-    capability: Union[List[str], str] = attr.ib()
+    capability: Union[List[str], str] = attr.ib(converter=convert_to_list)
     mobilization_cost: float
     mobilization_days: int
     speed: float
     max_windspeed_transport: float
     max_windspeed_repair: float
+    strategy: str = attr.ib(converter=clean_string_input)
+    strategy_threshold: Union[int, float] = attr.ib()
     max_waveheight_transport: float = attr.ib(default=1000)
     max_waveheight_repair: float = attr.ib(default=1000)
     workday_start: int = attr.ib(default=-1)
     workday_end: int = attr.ib(default=-1)
     onsite: bool = attr.ib(default=False)
     method: str = attr.ib(default="severity")
-    operating_dates: np.ndarray = attr.ib(init=False)
-    strategy: str = attr.ib(default="unscheduled", init=False)
 
     @workday_start.validator
     def _check_workday_start(self, attribute, value) -> None:
@@ -667,6 +692,37 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         if value.lower() not in valid:
             raise ValueError(f"Input 'method' must be one of {valid}.")
 
+    @strategy.validator
+    def _validate_strategy(self, attribute: attr.Attribute, value: str) -> None:
+        """Determines if the provided strategy is valid"""
+        valid = ("requests", "downtime")
+        if value not in valid:
+            raise ValueError(
+                "`strategy` for unscheduled servicing equipment must be one of",
+                "'requests' or 'downtime'!",
+            )
+
+    @strategy_threshold.validator
+    def _validate_threshold(
+        self, attribute: attr.Attribute, value: Union[int, float]
+    ) -> None:
+        """Ensures a valid threshold is provided for a given `strategy`."""
+        if not isinstance(value, (int, float)):
+            raise TypeError("`strategy_threshold` must be an `int` or `float`!")
+
+        if self.strategy == "downtime":
+            if value <= 0 or value >= 1:
+                raise ValueError(
+                    "Downtime-based strategies must have a `strategy_threshold`",
+                    "between 0 and 1, non-inclusive!",
+                )
+        if self.strategy == "requests":
+            if value <= 0:
+                raise ValueError(
+                    "Requests-based strategies must have a `strategy_threshold`",
+                    "greater than 0!",
+                )
+
     def _set_environment_shift(self, start: int, end: int) -> None:
         """Used to set the `workday_start` and `workday_end` to the environment's values.
 
@@ -699,7 +755,8 @@ class ServiceEquipmentData(FromDictMixin):
         This should contain a field called 'strategy' with either "scheduled" or
         "unscheduled" as a value if strategy is not provided as a keyword argument.
     strategy : str, optional
-        Should be either "scheduled" or "unscheduled".
+        Should be one of "scheduled", "requests", "downtime". If nothing is provided,
+        the equipment configuration will be checked.
 
     Returns
     -------
@@ -712,15 +769,15 @@ class ServiceEquipmentData(FromDictMixin):
         If `strategy` is not one of "scheduled" or "unscheduled" an error will be raised.
     """
 
-    data_dict: dict = attr.ib(kw_only=True)
+    data_dict: dict
     strategy: str = attr.ib(kw_only=True, default=None)
 
     def __attrs_post_init__(self):
         if self.strategy is None:
             object.__setattr__(
-                self, "strategy", self.data_dict["strategy"].lower().strip()
+                self, "strategy", clean_string_input(self.data_dict["strategy"])
             )
-        if self.strategy not in ("scheduled", "unscheduled"):
+        if self.strategy not in ("scheduled", "requests", "downtime"):
             raise ValueError(
                 "ServiceEquipment strategy should be one of 'scheduled' or 'unscheduled'."
             )
@@ -737,10 +794,11 @@ class ServiceEquipmentData(FromDictMixin):
             `ServiceEquipment` will use.
         """
         if self.strategy == "scheduled":
-            data_class = ScheduledServiceEquipmentData.from_dict(self.data_dict)
-        elif self.strategy == "unscheduled":
-            data_class = UnscheduledServiceEquipmentData.from_dict(self.data_dict)
-        return data_class
+            return ScheduledServiceEquipmentData.from_dict(self.data_dict)
+        elif self.strategy in ("requests", "downtime"):
+            return UnscheduledServiceEquipmentData.from_dict(self.data_dict)
+        else:
+            raise ValueError("Invalid strategy provided!")
 
 
 @attr.s(frozen=True, auto_attribs=True)

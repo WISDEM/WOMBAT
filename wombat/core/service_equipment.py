@@ -87,19 +87,24 @@ class ServiceEquipment:
         self.env = env
         self.windfarm = windfarm
         self.manager = repair_manager
+        self.onsite = False
 
         data = load_yaml(
             os.path.join(env.data_dir, "repair", "transport"), equipment_data_file
         )
-        if data["start_year"] < self.env.start_year:
-            data["start_year"] = self.env.start_year
-        if data["end_year"] > self.env.end_year:
-            data["end_year"] = self.env.end_year
-        self.settings = ServiceEquipmentData.from_dict(data)
+        try:
+            if data["start_year"] < self.env.start_year:
+                data["start_year"] = self.env.start_year
+            if data["end_year"] > self.env.end_year:
+                data["end_year"] = self.env.end_year
+        except KeyError:
+            # Ignores for unscheduled maintenace equipment that would not have this input
+            pass
+        self.settings = ServiceEquipmentData(data).determine_type()
 
         # Register servicing equipment with the repair manager if it is using an
         # unscheduled maintenance scenario, so it can be dispatched as needed
-        if self.settings.strategy == "unscheduled":
+        if self.settings.strategy != "scheduled":
             self.manager._register_equipment(self)
 
         # Only run the equipment if it is on a scheduled basis, otherwise wait
@@ -267,10 +272,10 @@ class ServiceEquipment:
             and when the next operational period starts.
         """
         current = self.env.simulation_time.date()
-        ix_match = np.where(current < self.settings.operating_dates)[0]
+        ix_match = np.where(current < self.settings.operating_dates)[0]  # type: ignore
         if ix_match.size > 0:
             still_in_operation = True
-            next_operating_date = self.settings.operating_dates[ix_match[0]]
+            next_operating_date = self.settings.operating_dates[ix_match[0]]  # type: ignore
             hours_to_next_shift = (
                 self.env.date_ix(next_operating_date)
                 - self.env.now
@@ -603,7 +608,7 @@ class ServiceEquipment:
         """
         while True:
             # Wait for a valid operational period to start
-            if self.env.simulation_time.date() not in self.settings.operating_dates:
+            if self.env.simulation_time.date() not in self.settings.operating_dates:  # type: ignore
 
                 yield self.env.process(self.mobilize_scheduled())
 
@@ -646,11 +651,12 @@ class ServiceEquipment:
             The simulation
         """
 
-        charter_end_env_time = self.settings.charter_days * HOURS_IN_DAY
+        charter_end_env_time = self.settings.charter_days * HOURS_IN_DAY  # type: ignore
         charter_end_env_time += self.settings.mobilization_days * HOURS_IN_DAY
         charter_end_env_time += self.env.now
         while True:
             if self.env.now >= charter_end_env_time:
+                self.onsite = False
                 break
 
             if not self.onsite:
