@@ -69,8 +69,8 @@ class WombatEnvironment(simpy.Environment):
             Raised if `data_dir` cannot be found.
         """
         super().__init__()
-        self.data_dir = Path(data_dir)
-        if not os.path.isdir(self.data_dir):
+        self.data_dir = Path(data_dir).resolve()
+        if not self.data_dir.is_dir():
             raise FileNotFoundError(f"{self.data_dir} does not exist")
 
         self.workday_start = workday_start

@@ -2,14 +2,16 @@
 
 import logging  # type: ignore
 import os  # type: ignore
+from itertools import chain
+from math import fsum
 
 import networkx as nx  # type: ignore
+import numpy as np
 import pandas as pd  # type: ignore
 from geopy import distance  # type: ignore
 
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.core.library import load_yaml
-from wombat.utilities import _mean
 from wombat.windfarm.system import Cable, System
 
 
@@ -30,6 +32,7 @@ class Windfarm:
         self._create_turbines_and_substations()
         self._create_cables()
         self.capacity = sum(self.node_system(turb).capacity for turb in self.turbine_id)
+        self._create_substation_turbine_map()
 
         self.repair_manager._register_windfarm(self)
 
@@ -155,6 +158,31 @@ class Windfarm:
             )
         pass
 
+    def _create_substation_turbine_map(self) -> None:
+        """Creates `substation_turbine_map`, a dictionary, that maps substation(s) to
+        the dependent turbines in the windfarm, and the weighting of each turbine in the
+        windfarm.
+        """
+        # Get all turbines dependent on each substation
+        s_t_map = {
+            s_id: list(
+                chain.from_iterable(nx.dfs_successors(self.graph, source=s_id).values())
+            )
+            for s_id in self.substation_id
+        }
+
+        # Reorient the mapping to have the turbine list and the capacity-based weighting
+        # of each turbine
+        s_t_map = {
+            s_id: dict(  # type: ignore
+                turbines=np.array(s_t_map[s_id]),
+                weights=np.array([self.node_system(t).capacity for t in s_t_map[s_id]])
+                / self.capacity,
+            )
+            for s_id in s_t_map
+        }
+        self.substation_turbine_map = s_t_map
+
     def _log_operations(self):
         """Logs the operational data for a simulation."""
         system_list = list(self.graph.nodes)
@@ -203,6 +231,31 @@ class Windfarm:
 
     @property
     def current_availability(self) -> float:
-        return _mean(
-            *(self.node_system(system).operating_level for system in self.graph.nodes)
+        """Calculates the product of all system `operating_level` variables across the
+        windfarm using the following forumation
+
+        .. math:: \sum{OperatingLevel_{substation_{i}} * \sum{OperatingLevel_{turbine_{j}} * Weight_{turbine_{j}}}}  # noqa: W605
+
+        where the \mathtt{OperatingLevel} is the product of the operating level of each  # noqa: W605
+        subassembly on a given system (substation or turbine), and the \mathtt{Weight}  # noqa: W605
+        is the proportion of one turbine's capacity relative to the whole windfarm.
+
+        """
+        operating_levels = {
+            s_id: [
+                self.node_system(t).operating_level
+                for t in self.substation_turbine_map[s_id]["turbines"]  # type: ignore
+            ]
+            for s_id in self.substation_turbine_map
+        }
+        availability = fsum(
+            [
+                self.node_system(s_id).operating_level
+                * fsum(
+                    operating_levels[s_id]
+                    * self.substation_turbine_map[s_id]["weights"]  # type: ignore
+                )
+                for s_id in self.substation_turbine_map
+            ]
         )
+        return availability

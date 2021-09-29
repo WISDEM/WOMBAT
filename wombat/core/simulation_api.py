@@ -78,7 +78,7 @@ class Configuration(FromDictMixin):
     """
 
     name: str
-    library: Path
+    library: Path = attr.ib(converter=_library_mapper)
     layout: str
     service_equipment: Union[str, List[str]]
     weather: Union[str, pd.DataFrame]
@@ -97,7 +97,7 @@ class Configuration(FromDictMixin):
 
 
 @attr.s(auto_attribs=True)
-class Simulation:
+class Simulation(FromDictMixin):
     """The primary API to interact with the simulation methodologies.
 
     Parameters
