@@ -10,7 +10,10 @@ from .data_classes import (
     SubassemblyData,
     RepairRequest,
     ServiceEquipmentData,
+    ScheduledServiceEquipmentData,
+    UnscheduledServiceEquipmentData,
     FixedCosts,
+    FromDictMixin,
 )
 from .environment import WombatEnvironment
 from .post_processor import Metrics

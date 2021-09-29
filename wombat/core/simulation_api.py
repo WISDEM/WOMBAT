@@ -7,12 +7,18 @@ import attr
 import pandas as pd
 from simpy.events import Event  # type: ignore
 
-from wombat.core import Metrics, RepairManager, ServiceEquipment, WombatEnvironment
+from wombat.core import (
+    FromDictMixin,
+    Metrics,
+    RepairManager,
+    ServiceEquipment,
+    WombatEnvironment,
+)
 from wombat.core.library import library_map, load_yaml
 from wombat.windfarm import Windfarm
 
 
-def _library_mapper(file_path: Union[str, Path]) -> Union[str, Path]:
+def _library_mapper(file_path: Union[str, Path]) -> Path:
     """Attempts to extract a default library path if one of "DINWOODIE" or "IEA_26"
     are passed, other returns `file_path`.
 
@@ -27,11 +33,11 @@ def _library_mapper(file_path: Union[str, Path]) -> Union[str, Path]:
     Union[str, Path]
         The library path.
     """
-    return library_map.get(file_path, file_path)
+    return Path(library_map.get(file_path, file_path)).resolve()  # type: ignore
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class Configuration:
+class Configuration(FromDictMixin):
     """The `Simulation` configuration data class that provides all the necessary definitions.
 
     Parameters
@@ -72,8 +78,8 @@ class Configuration:
     """
 
     name: str
-    library: Path
-    layout: str = attr.ib(converter=_library_mapper)
+    library: Path = attr.ib(converter=_library_mapper)
+    layout: str
     service_equipment: Union[str, List[str]]
     weather: Union[str, pd.DataFrame]
     workday_start: int
@@ -90,7 +96,8 @@ class Configuration:
             object.__setattr__(self, "service_equipment", [self.service_equipment])
 
 
-class Simulation:
+@attr.s(auto_attribs=True)
+class Simulation(FromDictMixin):
     """The primary API to interact with the simulation methodologies.
 
     Parameters
@@ -103,32 +110,69 @@ class Simulation:
         The path to a configuration dictionary or the dictionary itself.
     """
 
-    def __init__(self, name: str, library_path: str, config: Union[str, dict]):
-        """Creates a `Simulation` object with an analysis ready to run.
+    name: str = attr.ib(converter=str)
+    library_path: Path = attr.ib(converter=_library_mapper)
+    config: Configuration = attr.ib()
 
-        Parameters
-        ----------
-        name: str
-            Name of the simulation. Used for logging files.
-        library_path : str
-            The path to the main data library. If one of DINWOODIE or IEA_26
-        config : Union[str, dict]
-            The path to a configuration dictionary or the dictionary itself.
+    def __attrs_post_init__(self) -> None:
+        self.setup_simulation()
+
+    @config.validator
+    def create_configuration(
+        self, attribute: attr.Attribute, value: Union[str, dict, Configuration]
+    ) -> None:
+        """Validates the configuration object and creates the `Configuration` object
+        for the simulation.Raises:
+
+        Raises
+        ------
+        ValueError
+            Raised if the value provided is not able to create a valid `Configuration`
+            object
 
         Returns
         -------
-        Simulation
-            A `Simulation` object
+        Configuration
+            The validated simulation configuration
         """
-        library_path = _library_mapper(library_path)
-        self.data_dir = Path(library_path).resolve()
-        if isinstance(config, str):
-            config = load_yaml(self.data_dir / "config", config)  # type: ignore
-        config["name"] = name  # type: ignore
-        config["library"] = self.data_dir  # type: ignore
-        self.config = Configuration(**config)  # type: ignore
+        if isinstance(value, str):
+            value = load_yaml(self.library_path / "config", value)
+        if isinstance(value, dict):
+            value = Configuration.from_dict(value)
+        if isinstance(value, Configuration):
+            object.__setattr__(self, attribute.name, value)
+        else:
+            raise ValueError(
+                "`config` must be a dictionary, valid file path to a yaml-enocoded",
+                "dictionary, or `Configuration` object!",
+            )
 
-        self.setup_simulation()
+    # def __init__(self, name: str, library_path: str, config: Union[str, dict]):
+    #     """Creates a `Simulation` object with an analysis ready to run.
+
+    #     Parameters
+    #     ----------
+    #     name: str
+    #         Name of the simulation. Used for logging files.
+    #     library_path : str
+    #         The path to the main data library. If one of DINWOODIE or IEA_26
+    #     config : Union[str, dict]
+    #         The path to a configuration dictionary or the dictionary itself.
+
+    #     Returns
+    #     -------
+    #     Simulation
+    #         A `Simulation` object
+    #     """
+    #     library_path = _library_mapper(library_path)
+    #     self.data_dir = Path(library_path).resolve()
+    #     if isinstance(config, str):
+    #         config = load_yaml(self.data_dir / "config", config)  # type: ignore
+    #     config["name"] = name  # type: ignore
+    #     config["library"] = self.data_dir  # type: ignore
+    #     self.config = Configuration(**config)  # type: ignore
+
+    #     self.setup_simulation()
 
     @classmethod
     def from_inputs(
@@ -206,7 +250,7 @@ class Simulation:
             project_capacity=project_capacity,
             SAM_settings=SAM_settings,
         )
-        return cls(name, library, config)
+        return cls(name, library, config)  # type: ignore
 
     def setup_simulation(self):
         """Initializes the simulation objects."""

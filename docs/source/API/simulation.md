@@ -48,7 +48,8 @@ below will show how each of the APIs are powered to enable the full flexibility 
 ### Subassembly
 ```{eval-rst}
 .. automodule:: wombat.windfarm.system.subassembly
-    :members:
+   :members:
+   :undoc-members:
 ```
 
 ### Cable

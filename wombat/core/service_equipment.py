@@ -87,17 +87,31 @@ class ServiceEquipment:
         self.env = env
         self.windfarm = windfarm
         self.manager = repair_manager
+        self.onsite = False
+        self.enroute = False
 
         data = load_yaml(
             os.path.join(env.data_dir, "repair", "transport"), equipment_data_file
         )
-        if data["start_year"] < self.env.start_year:
-            data["start_year"] = self.env.start_year
-        if data["end_year"] > self.env.end_year:
-            data["end_year"] = self.env.end_year
-        self.settings = ServiceEquipmentData(**data)
+        try:
+            if data["start_year"] < self.env.start_year:
+                data["start_year"] = self.env.start_year
+            if data["end_year"] > self.env.end_year:
+                data["end_year"] = self.env.end_year
+        except KeyError:
+            # Ignores for unscheduled maintenace equipment that would not have this input
+            pass
+        self.settings = ServiceEquipmentData(data).determine_type()
 
-        self.env.process(self.run())
+        # Register servicing equipment with the repair manager if it is using an
+        # unscheduled maintenance scenario, so it can be dispatched as needed
+        if self.settings.strategy != "scheduled":
+            self.manager._register_equipment(self)
+
+        # Only run the equipment if it is on a scheduled basis, otherwise wait
+        # for it to be dispatched
+        if self.settings.strategy == "scheduled":
+            self.env.process(self.run_scheduled())
 
     def _check_working_hours(self) -> None:
         """Checks the working hours of the equipment and overrides a default (-1) to
@@ -238,11 +252,19 @@ class ServiceEquipment:
         )
         yield self.env.timeout(delay)
 
-    def wait_until_next_operational_period(self) -> Generator[Timeout, None, None]:
+    def wait_until_next_operational_period(
+        self, *, less_mobilization_hours: int = 0
+    ) -> Generator[Timeout, None, None]:
         """Delays the crew and equipment until the start of the next operational
         period.
 
         TODO: Need a custom error if weather doesn't align with the equipment dates.
+
+        Parameters
+        ----------
+        less_mobilization_hours : int
+            The number of hours required for mobilization that will be subtracted from
+            the waiting period to account for mobilization, by default 0.
 
         Yields
         -------
@@ -251,14 +273,15 @@ class ServiceEquipment:
             and when the next operational period starts.
         """
         current = self.env.simulation_time.date()
-        ix_match = np.where(current < self.settings.operating_dates)[0]
+        ix_match = np.where(current < self.settings.operating_dates)[0]  # type: ignore
         if ix_match.size > 0:
             still_in_operation = True
-            next_operating_date = self.settings.operating_dates[ix_match[0]]
+            next_operating_date = self.settings.operating_dates[ix_match[0]]  # type: ignore
             hours_to_next_shift = (
                 self.env.date_ix(next_operating_date)
                 - self.env.now
                 + self.env.workday_start
+                - less_mobilization_hours
             )
         else:
             still_in_operation = False
@@ -280,7 +303,7 @@ class ServiceEquipment:
             action="delay",
             reason="work is complete",
             additional=additional,
-            duration=0,
+            duration=hours_to_next_shift,
             salary_labor_cost=0,
             hourly_labor_cost=0,
             equipment_cost=0,
@@ -288,9 +311,11 @@ class ServiceEquipment:
 
         yield self.env.timeout(hours_to_next_shift)
 
-    def mobilize(self) -> Generator[Timeout, None, None]:
-        """Mobilizes the Equipment object by waiting for the next operational period,
-        then logging the mobiliztion cost.
+    def mobilize_scheduled(self) -> Generator[Timeout, None, None]:
+        """Mobilizes the ServiceEquipment object by waiting for the next operational
+        period, less the mobilization time, then logging the mobiliztion cost.
+
+        NOTE: weather delays are not accounted for in this process.
 
         Yields
         -------
@@ -298,7 +323,33 @@ class ServiceEquipment:
             A Timeout event for the number of hours between when the function is called
             and when the next operational period starts.
         """
-        yield self.env.process(self.wait_until_next_operational_period())
+        mobilization_hours = self.settings.mobilization_days * HOURS_IN_DAY
+        yield self.env.process(
+            self.wait_until_next_operational_period(
+                less_mobilization_hours=mobilization_hours
+            )
+        )
+        self.env.log_action(
+            system_id="",
+            system_name="",
+            part_id="",
+            part_name="",
+            system_ol="",
+            part_ol="",
+            agent=self.settings.name,
+            action="mobilization",
+            reason=f"{self.settings.name} is being mobilized",
+            additional="mobilization",
+            duration=0,
+            salary_labor_cost=0,
+            hourly_labor_cost=0,
+            equipment_cost=0,
+        )
+
+        self.enroute = True
+        yield self.env.timeout(mobilization_hours)
+        self.onsite = True
+        self.enroute = False
 
         self.env.log_action(
             system_id="",
@@ -309,9 +360,60 @@ class ServiceEquipment:
             part_ol="",
             agent=self.settings.name,
             action="mobilization",
-            reason=f"{self.settings.name} is scheduled",
+            reason=f"{self.settings.name} has arrived on site",
+            additional="mobilization",
+            duration=mobilization_hours,
+            salary_labor_cost=0,
+            hourly_labor_cost=0,
+            equipment_cost=self.settings.mobilization_cost,
+        )
+
+    def mobilize(self) -> Generator[Timeout, None, None]:
+        """Mobilizes the ServiceEquipment object.
+
+        NOTE: weather delays are not accounted for at this stage.
+
+        Yields
+        -------
+        Generator[Timeout, None, None]
+            A Timeout event for the number of hours the ServiceEquipment requires for
+            mobilizing to the windfarm site.
+        """
+        self.env.log_action(
+            system_id="",
+            system_name="",
+            part_id="",
+            part_name="",
+            system_ol="",
+            part_ol="",
+            agent=self.settings.name,
+            action="mobilization",
+            reason=f"{self.settings.name} is being mobilized",
             additional="mobilization",
             duration=0,
+            salary_labor_cost=0,
+            hourly_labor_cost=0,
+            equipment_cost=0,
+        )
+
+        self.enroute = True
+        mobilization_hours = self.settings.mobilization_days * HOURS_IN_DAY
+        yield self.env.timeout(mobilization_hours)
+        self.onsite = True
+        self.enroute = False
+
+        self.env.log_action(
+            system_id="",
+            system_name="",
+            part_id="",
+            part_name="",
+            system_ol="",
+            part_ol="",
+            agent=self.settings.name,
+            action="mobilization",
+            reason=f"{self.settings.name} has arrived on site",
+            additional="mobilization",
+            duration=mobilization_hours,
             salary_labor_cost=0,
             hourly_labor_cost=0,
             equipment_cost=self.settings.mobilization_cost,
@@ -344,8 +446,9 @@ class ServiceEquipment:
         satisfactory_wave = wave <= self.settings.max_waveheight_repair
         all_clear = satisfactory_wind & satisfactory_wave
 
-        delay = all_clear.size - np.count_nonzero(all_clear)
-        enough_windows = hours_required <= np.count_nonzero(all_clear)
+        total_clear_hours = np.count_nonzero(all_clear)
+        delay = all_clear.size - total_clear_hours
+        enough_windows = hours_required <= total_clear_hours
         shift_exceeded = all_clear.size > self.env.shift_length
         if enough_windows or shift_exceeded:
             return all_clear
@@ -540,7 +643,7 @@ class ServiceEquipment:
             request_id=request.request_id,
         )
 
-    def run(self) -> Generator[Process, None, None]:
+    def run_scheduled(self) -> Generator[Process, None, None]:
         """Runs the simulation.
 
         Yields
@@ -550,9 +653,9 @@ class ServiceEquipment:
         """
         while True:
             # Wait for a valid operational period to start
-            if self.env.simulation_time.date() not in self.settings.operating_dates:
+            if self.env.simulation_time.date() not in self.settings.operating_dates:  # type: ignore
 
-                yield self.env.process(self.mobilize())
+                yield self.env.process(self.mobilize_scheduled())
 
             # Wait for next shift to start
             is_workshift = self.env.is_workshift(
@@ -570,6 +673,55 @@ class ServiceEquipment:
                     )
                 )
 
+            request = self.get_next_request()
+            if request is None:
+                yield self.env.process(
+                    self.wait_until_next_shift(
+                        **dict(
+                            agent=self.settings.name,
+                            reason="no requests",
+                            additional="no work requests submitted by start of shift",
+                        )
+                    )
+                )
+            else:
+                yield self.env.process(self.process_repair(request.value))
+
+    def run_unscheduled(self) -> Generator[Process, None, None]:
+        """Runs an unscheduled maintenance simulation
+
+        Yields
+        -------
+        Generator[Process, None, None]
+            The simulation
+        """
+
+        charter_end_env_time = self.settings.charter_days * HOURS_IN_DAY  # type: ignore
+        charter_end_env_time += self.settings.mobilization_days * HOURS_IN_DAY
+        charter_end_env_time += self.env.now
+        while True:
+            if self.env.now >= charter_end_env_time:
+                self.onsite = False
+                break
+
+            if not self.onsite:
+                yield self.env.process(self.mobilize())
+
+            # Wait for next shift to start
+            is_workshift = self.env.is_workshift(
+                workday_start=self.settings.workday_start,
+                workday_end=self.settings.workday_end,
+            )
+            if not is_workshift:
+                yield self.env.process(
+                    self.wait_until_next_shift(
+                        **dict(
+                            agent=self.settings.name,
+                            reason="not in working hours",
+                            additional="not in working hours",
+                        )
+                    )
+                )
             request = self.get_next_request()
             if request is None:
                 yield self.env.process(
