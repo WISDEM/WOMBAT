@@ -175,7 +175,7 @@ class RepairManager(FilterStore):
             for equipment in equipment_mapping:
                 if operating_capacity > equipment.strategy_threshold:
                     continue
-                if equipment.equipment.onsite:
+                if equipment.equipment.onsite or equipment.equipment.enroute:
                     continue
                 self.env.process(equipment.equipment.run_unscheduled())
                 break
@@ -192,7 +192,7 @@ class RepairManager(FilterStore):
                     continue
                 # Run only the first piece of equipment in the mapping list, but ensure
                 # that it moves to the back of the line after being used
-                if equipment.equipment.onsite:
+                if equipment.equipment.onsite or equipment.equipment.enroute:
                     equipment_mapping.append(equipment_mapping.pop(i))
                     break
                 self.env.process(equipment.equipment.run_unscheduled())

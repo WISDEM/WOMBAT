@@ -88,6 +88,7 @@ class ServiceEquipment:
         self.windfarm = windfarm
         self.manager = repair_manager
         self.onsite = False
+        self.enroute = False
 
         data = load_yaml(
             os.path.join(env.data_dir, "repair", "transport"), equipment_data_file
@@ -314,6 +315,8 @@ class ServiceEquipment:
         """Mobilizes the ServiceEquipment object by waiting for the next operational
         period, less the mobilization time, then logging the mobiliztion cost.
 
+        NOTE: weather delays are not accounted for in this process.
+
         Yields
         -------
         Generator[Timeout, None, None]
@@ -326,8 +329,6 @@ class ServiceEquipment:
                 less_mobilization_hours=mobilization_hours
             )
         )
-        yield self.env.timeout(mobilization_hours)
-        self.onsite = True
         self.env.log_action(
             system_id="",
             system_name="",
@@ -337,7 +338,29 @@ class ServiceEquipment:
             part_ol="",
             agent=self.settings.name,
             action="mobilization",
-            reason=f"{self.settings.name} is scheduled",
+            reason=f"{self.settings.name} is being mobilized",
+            additional="mobilization",
+            duration=0,
+            salary_labor_cost=0,
+            hourly_labor_cost=0,
+            equipment_cost=0,
+        )
+
+        self.enroute = True
+        yield self.env.timeout(mobilization_hours)
+        self.onsite = True
+        self.enroute = False
+
+        self.env.log_action(
+            system_id="",
+            system_name="",
+            part_id="",
+            part_name="",
+            system_ol="",
+            part_ol="",
+            agent=self.settings.name,
+            action="mobilization",
+            reason=f"{self.settings.name} has arrived on site",
             additional="mobilization",
             duration=mobilization_hours,
             salary_labor_cost=0,
@@ -348,15 +371,14 @@ class ServiceEquipment:
     def mobilize(self) -> Generator[Timeout, None, None]:
         """Mobilizes the ServiceEquipment object.
 
+        NOTE: weather delays are not accounted for at this stage.
+
         Yields
         -------
         Generator[Timeout, None, None]
             A Timeout event for the number of hours the ServiceEquipment requires for
             mobilizing to the windfarm site.
         """
-        mobilization_hours = self.settings.mobilization_days * HOURS_IN_DAY
-        yield self.env.timeout(mobilization_hours)
-        self.onsite = True
         self.env.log_action(
             system_id="",
             system_name="",
@@ -366,7 +388,30 @@ class ServiceEquipment:
             part_ol="",
             agent=self.settings.name,
             action="mobilization",
-            reason=f"{self.settings.name} is scheduled",
+            reason=f"{self.settings.name} is being mobilized",
+            additional="mobilization",
+            duration=0,
+            salary_labor_cost=0,
+            hourly_labor_cost=0,
+            equipment_cost=0,
+        )
+
+        self.enroute = True
+        mobilization_hours = self.settings.mobilization_days * HOURS_IN_DAY
+        yield self.env.timeout(mobilization_hours)
+        self.onsite = True
+        self.enroute = False
+
+        self.env.log_action(
+            system_id="",
+            system_name="",
+            part_id="",
+            part_name="",
+            system_ol="",
+            part_ol="",
+            agent=self.settings.name,
+            action="mobilization",
+            reason=f"{self.settings.name} has arrived on site",
             additional="mobilization",
             duration=mobilization_hours,
             salary_labor_cost=0,
