@@ -34,8 +34,8 @@ class System:
     """Can either be a turbine or substation, but is meant to be something that consists
     of 'Subassembly' pieces.
 
-    See [here](https://www.sciencedirect.com/science/article/pii/S1364032117308985) for
-    more information.
+    See `here <https://www.sciencedirect.com/science/article/pii/S1364032117308985>`_
+    for more information.
     """
 
     def __init__(

@@ -234,13 +234,17 @@ class Windfarm:
         """Calculates the product of all system `operating_level` variables across the
         windfarm using the following forumation
 
-        .. math:: \sum{OperatingLevel_{substation_{i}} * \sum{OperatingLevel_{turbine_{j}} * Weight_{turbine_{j}}}}  # noqa: W605
+        .. math::
+            \sum{
+                OperatingLevel_{substation_{i}} *
+                \sum{OperatingLevel_{turbine_{j}} * Weight_{turbine_{j}}}
+            }
 
-        where the \mathtt{OperatingLevel} is the product of the operating level of each  # noqa: W605
-        subassembly on a given system (substation or turbine), and the \mathtt{Weight}  # noqa: W605
-        is the proportion of one turbine's capacity relative to the whole windfarm.
-
-        """
+        where the :math:`{OperatingLevel}` is the product of the operating level
+        of each subassembly on a given system (substation or turbine), and the
+        :math:`{Weight}` is the proportion of one turbine's capacity relative to
+        the whole windfarm.
+        """  # noqa: W605
         operating_levels = {
             s_id: [
                 self.node_system(t).operating_level
