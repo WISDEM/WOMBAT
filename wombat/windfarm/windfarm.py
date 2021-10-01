@@ -2,7 +2,7 @@
 
 import logging  # type: ignore
 import os  # type: ignore
-from itertools import chain
+from itertools import chain, combinations
 from math import fsum
 
 import networkx as nx  # type: ignore
@@ -116,7 +116,7 @@ class Windfarm:
                 )
 
             subassembly_dict = load_yaml(
-                os.path.join(self.env.data_dir, "windfarm"), data["subassembly"]
+                self.env.data_dir / "windfarm", data["subassembly"]
             )
             self.graph.nodes[system_id]["system"] = System(
                 self.env,
@@ -130,16 +130,17 @@ class Windfarm:
     def _create_cables(self) -> None:
         for start_node, end_node, data in self.graph.edges(data=True):
 
+            start_coordinates = (
+                self.graph.nodes[start_node]["latitude"],
+                self.graph.nodes[start_node]["longitude"],
+            )
+            end_coordinates = (
+                self.graph.nodes[end_node]["latitude"],
+                self.graph.nodes[end_node]["longitude"],
+            )
+
             # If the real distance/cable length is not input, then the geodesic distance is calculated
             if data["length"] == 0:
-                start_coordinates = (
-                    self.graph.nodes[start_node]["latitude"],
-                    self.graph.nodes[start_node]["longitude"],
-                )
-                end_coordinates = (
-                    self.graph.nodes[end_node]["latitude"],
-                    self.graph.nodes[end_node]["longitude"],
-                )
                 data["length"] = distance.geodesic(
                     start_coordinates, end_coordinates, ellipsoid="WGS-84"
                 ).km
@@ -156,7 +157,29 @@ class Windfarm:
                 upstream_turbines,
                 cable_dict,
             )
-        pass
+
+            # Calaculate the geometric center point
+            end_points = np.array((start_coordinates, end_coordinates))
+            data["latitude"], data["longitude"] = end_points.mean(axis=0)
+
+    def calculate_distance_matrix(self) -> None:
+        ids = list(self.graph.nodes())
+        ids.extend([data["cable"].id for *_, data in self.graph.edges(data=True)])
+        coords = [
+            (data["latitude"], data["longitude"])
+            for *_, data in (*self.graph.nodes(data=True), *self.graph.edges(data=True))
+        ]
+
+        dist = [distance.geodesic(c1, c2).km for c1, c2 in combinations(coords, 2)]
+        dist_arr = np.ones((len(ids), len(ids)))
+        triangle_ix = np.triu_indices_from(dist_arr, 1)
+        dist_arr[triangle_ix] = dist_arr.T[triangle_ix] = dist
+
+        # Set the self distance to infinity, so that only one crew can be dropped off
+        # at a single point
+        np.fill_diagonal(dist_arr, np.inf)
+
+        self.distance_matrix = pd.DataFrame(dist_arr, index=ids, columns=ids)
 
     def _create_substation_turbine_map(self) -> None:
         """Creates `substation_turbine_map`, a dictionary, that maps substation(s) to
