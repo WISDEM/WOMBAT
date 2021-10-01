@@ -182,7 +182,7 @@ class Simulation(FromDictMixin):
         Simulation
             A ready-to-run `Simulation` object.
         """
-        if isinstance(config, str):
+        if isinstance(config, (str, Path)):
             config = Path(config).resolve()  # type: ignore
             assert isinstance(config, Path)  # lets mypy know that I know what I'm doing
             config = load_yaml(config.parent, config.name)
