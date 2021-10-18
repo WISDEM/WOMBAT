@@ -1,11 +1,10 @@
 """Creates the Turbine class."""
 
 
-from functools import reduce
-from typing import Callable, List, Union  # type: ignore
-
 import numpy as np
 import pandas as pd
+from functools import reduce
+from typing import Callable, List, Union  # type: ignore
 
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.utilities import IEC_power_curve
@@ -78,7 +77,7 @@ class System:
         self.capacity = subassemblies["capacity_kw"]
 
         system = system.lower().strip()
-        self._calculate_system_value(system, subassemblies)
+        self._calculate_system_value(subassemblies)
         if system == "turbine":
             self._create_turbine_subassemblies(subassemblies)
             self._initialize_power_curve(subassemblies.get("power_curve", None))
@@ -87,7 +86,7 @@ class System:
         else:
             raise ValueError("'system' must be one of 'turbine' or 'substation'!")
 
-    def _calculate_system_value(self, system, subassemblies: dict) -> None:
+    def _calculate_system_value(self, subassemblies: dict) -> None:
         """Calculates the turbine's value based its capex_kw and capacity.
 
         Parameters
@@ -165,17 +164,14 @@ class System:
         ]
 
         self.env.log_action(
-            system_id=self.id,
-            system_name=self.name,
-            part_id="",
-            part_name="",
-            system_ol=self.operating_level,
-            part_ol=1,
             agent=self.name,
             action="subassemblies created",
             reason="windfarm initialization",
+            system_id=self.id,
+            system_name=self.name,
+            system_ol=self.operating_level,
+            part_ol=1,
             additional="initialization",
-            duration=0,
         )
 
     def _initialize_power_curve(self, power_curve_dict: dict) -> None:
@@ -226,15 +222,12 @@ class System:
         self.env.log_action(
             system_id=self.id,
             system_name=self.name,
-            part_id="",
-            part_name="",
             system_ol=self.operating_level,
             part_ol=1,
             agent=self.name,
             action="subassemblies created",
             reason="windfarm initialization",
             additional="initialization",
-            duration=0,
         )
 
     @property
