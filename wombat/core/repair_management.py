@@ -3,8 +3,11 @@
 
 from __future__ import annotations
 
+import attr
+import numpy as np
 from collections import Counter
 from itertools import chain
+from simpy.resources.store import FilterStore, FilterStoreGet  # type: ignore
 from typing import (  # type: ignore
     TYPE_CHECKING,
     Dict,
@@ -14,10 +17,6 @@ from typing import (  # type: ignore
     Sequence,
     Union,
 )
-
-import attr
-import numpy as np
-from simpy.resources.store import FilterStore, FilterStoreGet  # type: ignore
 
 from wombat.core import Failure, Maintenance, RepairRequest, WombatEnvironment
 
@@ -31,8 +30,8 @@ if TYPE_CHECKING:
 class EquipmentMap:
     """Internal mapping for servicing equipment strategy information."""
 
-    strategy_threshold: Union[int, float]
-    equipment: ServiceEquipment
+    strategy_threshold: Union[int, float] = attr.ib()
+    equipment: ServiceEquipment = attr.ib()
 
 
 @attr.s(auto_attribs=True)
@@ -50,6 +49,24 @@ class StrategyMap:
     def update(
         self, capability: str, threshold: Union[int, float], equipment: ServiceEquipment
     ) -> None:
+        """A method to update the strategy mapping between capability types and the
+        available `ServiceEquipment` objects.
+
+        Parameters
+        ----------
+        capability : str
+            The `equipment`'s capability.
+        threshold : Union[int, float]
+            The threshold for `equipment`'s strategy.
+        equipment : ServiceEquipment
+            The actual `ServiceEquipment` object to be logged.
+
+        Raises
+        ------
+        ValueError
+            Raised if there is an invalid capability, though this shouldn't be able to
+            be reached.
+        """
         if capability == "CTV":
             self.CTV.append(EquipmentMap(threshold, equipment))
         elif capability == "SCN":

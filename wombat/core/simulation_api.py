@@ -1,11 +1,10 @@
 """The main API for the `wombat`."""
 
-from pathlib import Path
-from typing import List, Optional, Union
-
 import attr
 import pandas as pd
+from pathlib import Path
 from simpy.events import Event  # type: ignore
+from typing import List, Optional, Union
 
 from wombat.core import (
     FromDictMixin,
@@ -115,10 +114,10 @@ class Simulation(FromDictMixin):
     config: Configuration = attr.ib()
 
     def __attrs_post_init__(self) -> None:
-        self.setup_simulation()
+        self._setup_simulation()
 
-    @config.validator
-    def create_configuration(
+    @config.validator  # type: ignore
+    def _create_configuration(
         self, attribute: attr.Attribute, value: Union[str, dict, Configuration]
     ) -> None:
         """Validates the configuration object and creates the `Configuration` object
@@ -126,9 +125,12 @@ class Simulation(FromDictMixin):
 
         Raises
         ------
-        ValueError
+        TypeError
             Raised if the value provided is not able to create a valid `Configuration`
             object
+        ValueError
+            Raised if `name` and `config.name` or `library_path` and `config.library`
+            are not aligned.
 
         Returns
         -------
@@ -142,117 +144,55 @@ class Simulation(FromDictMixin):
         if isinstance(value, Configuration):
             object.__setattr__(self, attribute.name, value)
         else:
-            raise ValueError(
+            raise TypeError(
                 "`config` must be a dictionary, valid file path to a yaml-enocoded",
                 "dictionary, or `Configuration` object!",
             )
 
-    # def __init__(self, name: str, library_path: str, config: Union[str, dict]):
-    #     """Creates a `Simulation` object with an analysis ready to run.
-
-    #     Parameters
-    #     ----------
-    #     name: str
-    #         Name of the simulation. Used for logging files.
-    #     library_path : str
-    #         The path to the main data library. If one of DINWOODIE or IEA_26
-    #     config : Union[str, dict]
-    #         The path to a configuration dictionary or the dictionary itself.
-
-    #     Returns
-    #     -------
-    #     Simulation
-    #         A `Simulation` object
-    #     """
-    #     library_path = _library_mapper(library_path)
-    #     self.data_dir = Path(library_path).resolve()
-    #     if isinstance(config, str):
-    #         config = load_yaml(self.data_dir / "config", config)  # type: ignore
-    #     config["name"] = name  # type: ignore
-    #     config["library"] = self.data_dir  # type: ignore
-    #     self.config = Configuration(**config)  # type: ignore
-
-    #     self.setup_simulation()
+        if self.config.name != self.name:
+            raise ValueError("`name` and the name in `config` do not match!")
+        if self.config.library != self.library_path:
+            raise ValueError("`library_path` and the library in `config` do not match!")
 
     @classmethod
-    def from_inputs(
-        cls,
-        name: str,
-        library: str,
-        layout: str,
-        service_equipment: Union[str, List[str]],
-        weather: str,
-        start_year: int,
-        end_year: int,
-        workday_start: int,
-        workday_end: int,
-        inflation_rate: float,
-        fixed_costs: str,
-        project_capacity: Union[int, float],
-        SAM_settings: str = None,
-    ):
-        """Creates a `Simulation` object from a series of inputs instead of a
-        predefined dictionary or YAML file.
+    def from_config(cls, config: Union[str, dict, Configuration]):
+        """Creates the `Simulation` object only the configuration contents as either a
+        full file path to the configuration file, a dictionary of the configuration
+        contents, or pre-loaded `Configuration` object.
 
         Parameters
         ----------
-        name: str
-            Name of the simulation. Used for logging files.
-        library : str
-            The data directory. See `wombat.simulation.WombatEnvironment` for more details.
-        layout : str
-            The windfarm layout file. See `wombat.Windfarm` for more details.
-        service_equipment : Union[str, List[str]]
-            The equpiment that will be used in the simulation. See
-            `wombat.core.ServiceEquipment` for more details.
-        weather : str
-            The weather profile to be used. See `wombat.simulation.WombatEnvironment`
-            for more details.
-        start_year : int
-            Start year of the simulation. The exact date will be determined by
-            the first valid date of this year in `weather`.
-        end_year : int
-            Final year of the simulation. The exact date will be determined by
-            the last valid date of this year in `weather`.
-        workday_start : int
-            Starting hour for a typical work shift. Can be overridden by
-            equipment-specific settings.
-        workday_end : int
-            Ending hour for a typical work shift. Can be overridden by
-            equipment-specific settings.
-        inflation_rate : float
-            The annual inflation rate to be used for post-processing.
-        fixed_costs : str
-            The file name for the fixed costs assumptions.
-        project_capacity : Union[int, float]
-            The total capacity of the wind plant, in MW.
-        SAM_settings : str
-            The SAM settings file to be used for financial modeling, optional, by
-            default None.
+        config : Union[str, dict, Configuration]
+            The simulation configuration, see `Configuration` for more details on the
+            contents. The following is a description of the acceptable contents:
+
+             - `str` : the full file path of the configuration yaml file.
+             - `dict` : a dictionary with the requried configuration settings.
+             - `Configuration` : a pre-created `Configuration` object.
+
+        Raises
+        ------
+        TypeError
+            If `config` is not one of the three acceptable input types, then an error is
+            raised.
 
         Returns
         -------
         Simulation
-            Returns a `Simulation` object.
+            A ready-to-run `Simulation` object.
         """
-        config = dict(
-            name=name,
-            library=_library_mapper(library),
-            layout=layout,
-            service_equipment=service_equipment,
-            weather=weather,
-            start_year=start_year,
-            end_year=end_year,
-            workday_start=workday_start,
-            workday_end=workday_end,
-            inflation_rate=inflation_rate,
-            fixed_costs=fixed_costs,
-            project_capacity=project_capacity,
-            SAM_settings=SAM_settings,
-        )
-        return cls(name, library, config)  # type: ignore
+        if isinstance(config, (str, Path)):
+            config = Path(config).resolve()  # type: ignore
+            assert isinstance(config, Path)  # lets mypy know that I know what I'm doing
+            config = load_yaml(config.parent, config.name)
+        if isinstance(config, dict):
+            config = Configuration.from_dict(config)
+        if not isinstance(config, Configuration):
+            raise TypeError("`config` must be a dictionary or `Configuration` object!")
+        assert isinstance(config, Configuration)  # lets mypy know it's a Configuration
+        return cls(config.name, config.library, config)
 
-    def setup_simulation(self):
+    def _setup_simulation(self):
         """Initializes the simulation objects."""
         self.env = WombatEnvironment(
             self.config.library,
