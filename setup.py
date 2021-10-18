@@ -1,6 +1,5 @@
 import codecs
 import os
-
 from setuptools import find_packages, setup
 
 
@@ -31,12 +30,14 @@ extra_package_requirements = {
         "pre-commit",
         "pylint",
         "flake8",
+        "flake8-docstrings",
         "black",
         "isort",
         "pytest",
         "pytest-cov",
         "pytest-xdist",
         "mypy",
+        "types-attrs",
     ],
     "docs": [
         "sphinx",
