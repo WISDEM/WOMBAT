@@ -3,10 +3,9 @@
 
 import datetime  # type: ignore
 import logging  # type: ignore
-from typing import Any, Callable, Union  # type: ignore
-
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
+from typing import Any, Callable, Union  # type: ignore
 
 
 try:
@@ -36,7 +35,8 @@ def convert_dt_to_hours(diff: datetime.timedelta) -> float:
 
 
 def hours_until_future_hour(dt: datetime.datetime, hour: int) -> float:
-    """Number of hours until a future hour in the same day.
+    """Number of hours until a future hour in the same day for `hour` <= 24, otherwise,
+    it is the number of hours until a time in the proceeding days.
 
     Parameters
     ----------
@@ -50,8 +50,9 @@ def hours_until_future_hour(dt: datetime.datetime, hour: int) -> float:
     float
         Number of hours between the two times.
     """
-    if hour == 24:
-        new_dt = dt + datetime.timedelta(days=1)
+    if hour >= 24:
+        days, hour = divmod(hour, 24)
+        new_dt = dt + datetime.timedelta(days=days)
         new_dt = new_dt.replace(hour=0, minute=0, second=0)
     else:
         new_dt = dt.replace(hour=hour, minute=0, second=0)

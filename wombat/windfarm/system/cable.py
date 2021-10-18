@@ -1,10 +1,9 @@
 """"Creates the Cable class."""
 
 
-from typing import Generator, List  # type: ignore
-
 import numpy as np  # type: ignore
 import simpy  # type: ignore
+from typing import Generator, List  # type: ignore
 
 from wombat.core import (
     Failure,
@@ -77,7 +76,7 @@ class Cable:
         self.upstream_nodes = upstream_nodes
 
         cable_data = {**cable_data, "system_value": self.turbine.value}
-        self.data = SubassemblyData(**cable_data)
+        self.data = SubassemblyData.from_dict(cable_data)
         self.name = self.data.name
 
         self.downstream_failure = False
@@ -153,8 +152,6 @@ class Cable:
 
                 upstream_cable.downstream_failure = True
                 self.env.log_action(
-                    system_id="",
-                    system_name="",
                     part_id=upstream_cable.id,
                     part_name=upstream_cable.name,
                     system_ol=np.nan,
@@ -163,7 +160,6 @@ class Cable:
                     action="repair request",
                     reason=failure.description,
                     additional="cable failure shutting off all upstream cables and turbines that are still operating",
-                    duration=0,
                     request_id=failure.request_id,
                 )
 
@@ -172,15 +168,12 @@ class Cable:
                 self.env.log_action(
                     system_id=system_id,
                     system_name=node.name,
-                    part_id="",
-                    part_name="",
                     system_ol=node.operating_level,
                     part_ol=np.nan,
                     agent=self.name,
                     action="repair request",
                     reason=failure.description,
                     additional="cable failure shutting off all upstream cables and turbines that are still operating",
-                    duration=0,
                     request_id=failure.request_id,
                 )
                 start_id: str = system_id  # noqa: F841
@@ -256,7 +249,6 @@ class Cable:
                         action="maintenance request",
                         reason=maintenance.description,
                         additional="request",
-                        duration=0,
                         request_id=repair_request.request_id,
                     )
 
@@ -351,7 +343,6 @@ class Cable:
                         action="repair request",
                         reason=failure.description,
                         additional=f"severity level {failure.level}",
-                        duration=0,
                         request_id=repair_request.request_id,
                     )
 

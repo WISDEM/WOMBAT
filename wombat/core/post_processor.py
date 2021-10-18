@@ -1,16 +1,15 @@
 """The postprocessing metric computation."""
 
+import numpy as np  # type: ignore
 import os  # type: ignore
+import pandas as pd  # type: ignore
+import PySAM.PySSC as pssc  # type: ignore
+import PySAM.Singleowner as pysam_singleowner_financial_model  # type: ignore
 from copy import deepcopy  # type: ignore
 from functools import partial  # type: ignore
 from itertools import product  # type: ignore
 from pathlib import Path  # type: ignore
 from typing import List, Tuple, Union  # type: ignore
-
-import numpy as np  # type: ignore
-import pandas as pd  # type: ignore
-import PySAM.PySSC as pssc  # type: ignore
-import PySAM.Singleowner as pysam_singleowner_financial_model  # type: ignore
 
 from wombat.core import FixedCosts
 from wombat.core.library import load_yaml
@@ -70,8 +69,7 @@ def _process_single(
 
 
 class Metrics:
-    """The metric computation class that will store the logged outputs and compile results.
-    """
+    """The metric computation class that will store the logged outputs and compile results."""
 
     _hourly_cost = "hourly_labor_cost"
     _salary_cost = "salary_labor_cost"
@@ -274,8 +272,7 @@ class Metrics:
         return events
 
     def _setup_pysam(self) -> None:
-        """Creates and executes the PySAM model for financial metrics.
-        """
+        """Creates and executes the PySAM model for financial metrics."""
         # Define the model and import the SAM settings file.
         self.financial_model = pysam_singleowner_financial_model.default(
             "WindPowerSingleOwner"
@@ -602,7 +599,7 @@ class Metrics:
         ].reset_index(drop=True)
 
         if frequency == "project":
-            return requests.shape[0] / completions.shape[0]
+            return completions.shape[0] / requests.shape[0]
 
         requests[["year", "month"]] = [
             requests.env_datetime.dt.year.values.reshape(-1, 1),

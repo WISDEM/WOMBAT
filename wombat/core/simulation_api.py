@@ -1,11 +1,10 @@
 """The main API for the `wombat`."""
 
-from pathlib import Path
-from typing import List, Optional, Union
-
 import attr
 import pandas as pd
+from pathlib import Path
 from simpy.events import Event  # type: ignore
+from typing import List, Optional, Union
 
 from wombat.core import (
     FromDictMixin,
@@ -117,7 +116,7 @@ class Simulation(FromDictMixin):
     def __attrs_post_init__(self) -> None:
         self._setup_simulation()
 
-    @config.validator
+    @config.validator  # type: ignore
     def _create_configuration(
         self, attribute: attr.Attribute, value: Union[str, dict, Configuration]
     ) -> None:

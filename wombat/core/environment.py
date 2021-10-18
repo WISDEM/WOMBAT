@@ -3,17 +3,17 @@
 
 import logging  # type: ignore
 import math  # type: ignore
-import os  # type: ignore
-from datetime import datetime, timedelta  # type: ignore
-from pathlib import Path  # type: ignore
-from typing import Optional, Tuple, Union  # type: ignore
-
 import numpy as np  # type: ignore
+import os  # type: ignore
 import pandas as pd  # type: ignore
 import simpy  # type: ignore
+from datetime import datetime, timedelta  # type: ignore
+from pandas.core.indexes.datetimes import DatetimeIndex
+from pathlib import Path  # type: ignore
 from simpy.events import Event  # type: ignore
+from typing import Optional, Tuple, Union  # type: ignore
 
-import wombat
+import wombat  # pylint: disable=W0611
 from wombat.utilities import (
     format_events_log_message,
     hours_until_future_hour,
@@ -24,7 +24,7 @@ from wombat.utilities import (
 class WombatEnvironment(simpy.Environment):
     def __init__(
         self,
-        data_dir: str,
+        data_dir: Union[Path, str],
         weather_file: str,
         workday_start: int,
         workday_end: int,
@@ -32,7 +32,7 @@ class WombatEnvironment(simpy.Environment):
         start_year: Optional[int] = None,
         end_year: Optional[int] = None,
     ) -> None:
-        """wombat.Environment initialization.
+        """Initialization.
 
         Parameters
         ----------
@@ -110,8 +110,7 @@ class WombatEnvironment(simpy.Environment):
         super().run(until=until)
 
     def _logging_setup(self) -> None:
-        """Completes the setup for logging data.
-        """
+        """Completes the setup for logging data."""
         if self.simulation_name is None:
             simulation = "wombat"
         else:
@@ -301,8 +300,7 @@ class WombatEnvironment(simpy.Environment):
         return weather
 
     def _create_endpoints(self) -> None:
-        """Creates the `start_date` and `end_date` time stamps for the simulation.
-        """
+        """Creates the `start_date` and `end_date` time stamps for the simulation."""
         self.start_datetime = self.weather.index[0].to_pydatetime()
         self.end_datetime = self.weather.index[-1].to_pydatetime()
 
@@ -317,36 +315,41 @@ class WombatEnvironment(simpy.Environment):
         """
         return self.weather.iloc[self.now].values
 
-    def weather_forecast(self, hours: int) -> np.ndarray:
+    def weather_forecast(
+        self, hours: Union[int, float]
+    ) -> Tuple[DatetimeIndex, np.ndarray, np.ndarray]:
         """Returns the wind and wave data for the next `hours` hours.
 
         Parameters
         ----------
-        hours : int
-            Number of hours to look ahead.
+        hours : Union[int, float]
+            Number of hours to look ahead, rounds up to the nearest hour.
 
         Returns
         -------
-        np.ndarray
-            Array of shape `hours` x 2, representing the wind and wave data for each hour.
+        Tuple[DatetimeIndex, np.ndarray, np.ndarray]
+            The pandas DatetimeIndex, windspeed array, and waveheight array for the
+            hours requested.
         """
         start = math.ceil(self.now)
-        end = start + hours
+        end = start + math.ceil(hours)
 
-        return self.weather.iloc[start:end].values
+        weather = self.weather.iloc[start:end]
+        return (weather.index, weather.windspeed.values, weather.waveheight.values)
 
     def log_action(
         self,
-        system_id: str,
-        system_name: str,
-        part_id: str,
-        part_name: str,
-        system_ol: Union[float, str],
-        part_ol: Union[float, str],
+        *,
         agent: str,
         action: str,
         reason: str,
         additional: str = "",
+        system_id: str = "",
+        system_name: str = "",
+        part_id: str = "",
+        part_name: str = "",
+        system_ol: Union[float, str] = "",
+        part_ol: Union[float, str] = "",
         duration: float = 0,
         request_id: str = "na",
         materials_cost: Union[int, float] = 0,
@@ -358,31 +361,31 @@ class WombatEnvironment(simpy.Environment):
 
         Parameters
         ----------
-        system_id : str
-            Turbine ID, `System.id`.
-        system_name : str
-            Turbine name, `System.name`.
-        part_id : str
-            Subassembly, component, or cable ID, `_.id`.
-        part_name : str
-            Subassembly, component, or cable name, `_.name`.
-        system_ol : Union[float, str]
-            Turbine operating level, `System.operating_level`. Use an empty string for n/a.
-        part_ol : Union[float, str]
-            Subassembly, component, or cable operating level, `_.operating_level`. Use
-            an empty string for n/a.
         agent : str
             Agent performing the action.
         action : str
             Action that was taken.
-        request_id : str
-            The `RepairManager` assigned request_id found in `RepairRequest.request_id`.
         reason : str
             Reason an action was taken.
         additional : str
             Any additional information that needs to be logged.
+        system_id : str
+            Turbine ID, `System.id`, by default "".
+        system_name : str
+            Turbine name, `System.name`, by default "".
+        part_id : str
+            Subassembly, component, or cable ID, `_.id`, by default "".
+        part_name : str
+            Subassembly, component, or cable name, `_.name`, by default "".
+        system_ol : Union[float, str]
+            Turbine operating level, `System.operating_level`. Use an empty string for n/a, by default "".
+        part_ol : Union[float, str]
+            Subassembly, component, or cable operating level, `_.operating_level`. Use
+            an empty string for n/a, by default "".
+        request_id : str
+            The `RepairManager` assigned request_id found in `RepairRequest.request_id`, by default "na".
         duration : float
-            Length of time the action lasted.
+            Length of time the action lasted, by default 0.
         materials_cost : Union[int, float], optional
             Total cost of materials for action, in USD, by default 0.
         hourly_labor_cost : Union[int, float], optional
@@ -534,7 +537,7 @@ class WombatEnvironment(simpy.Environment):
         windfarm: "wombat.windfarm.Windfarm",  # type: ignore
         operations: Optional[pd.DataFrame] = None,
         return_df: bool = True,
-    ) -> Union[None, Tuple[pd.DataFrame, pd.DataFrame]]:
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Creates the power production `DataFrame` and optionally returns it.
 
         Parameters
@@ -549,8 +552,8 @@ class WombatEnvironment(simpy.Environment):
 
         Returns
         -------
-        Union[None, pd.DataFrame]
-            The power production timeseries data.
+        Tuple[pd.DataFrame, pd.DataFrame]
+            The power potential and production timeseries data.
         """
         if operations is None:
             operations = self._create_operations_log_dataframe().sort_values("env_time")

@@ -1,15 +1,14 @@
 """Turbine and turbine component shared utilities."""
 
 
-import datetime  # type: ignore
-import typing  # type: ignore
-from math import fsum  # type: ignore
-from typing import Callable, Dict, List, Sequence, Union  # type: ignore
-
 import attr  # type: ignore
+import datetime  # type: ignore
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
+import typing  # type: ignore
+from math import fsum  # type: ignore
 from scipy.stats import weibull_min  # type: ignore
+from typing import Any, Callable, Dict, List, Optional, Sequence, Union  # type: ignore
 
 
 HOURS_IN_YEAR = 8760
@@ -17,7 +16,8 @@ HOURS_IN_DAY = 24
 
 
 def convert_to_list(
-    value: Union[Sequence, Union[str, int, float]], manipulation: Callable = None
+    value: Union[Sequence, Union[str, int, float]],
+    manipulation: Optional[Union[Callable, None]] = None,
 ):
     """Converts an unknown element that could be a list or single, non-sequence element
     to a list of elements.
@@ -40,6 +40,38 @@ def convert_to_list(
     if manipulation is not None:
         return [manipulation(el) for el in value]
     return list(value)
+
+
+def str_lower(value: str) -> str:
+    """Converts a string to all lower case.
+
+    Parameters
+    ----------
+    value : str
+        The string to turn to lower case.
+
+    Returns
+    -------
+    str
+        The lower case string.
+    """
+    return value.lower()
+
+
+def str_upper(value: str) -> str:
+    """Converts a string to all upper case.
+
+    Parameters
+    ----------
+    value : str
+        The string to turn to upper case.
+
+    Returns
+    -------
+    str
+        The upper case string.
+    """
+    return value.upper()
 
 
 def clean_string_input(value: str) -> str:
@@ -131,6 +163,90 @@ def convert_ratio_to_absolute(
     return ratio
 
 
+def valid_hour(
+    instance: Any, attribute: attr.Attribute, value: int  # pylint: disable=W0613
+) -> None:
+    """Validator that ensures that the input is a valid time or null value.
+
+    Parameters
+    ----------
+    instance : Any
+        A class object.
+    attribute : attr.Attribute
+        The attribute being validated.
+    value : int
+        A whole number, hour of the day or -1 (null).
+
+    Raises
+    ------
+    ValueError
+        Raised if `value` is not between -1 and 24, inclusive.
+    """
+    if not -1 <= value <= 24:
+        raise ValueError(f"Input {attribute.name} must be between 0 and 24, inclusive.")
+
+
+def check_capability(
+    instance: Any,  # pylint: disable=W0613
+    attribute: attr.Attribute,
+    value: Union[str, List[str]],
+) -> None:
+    """Validator that ensures capability has a valid input.
+
+    Parameters
+    ----------
+    instance : Any
+        A class object.
+    attribute : attr.Attribute
+        The attribute being validated.
+    value : Union[str, List[str]]
+        The servicing equipment's capability. Should be one of the following:
+         - CTV: crew transfer vehicle/vessel
+         - SCN: small crane
+         - LCN: large crane
+         - CAB: cabling equipment/vessel
+         - RMT: remote reset
+         - DRN: drone
+         - DSV: diving support vessel
+
+    Raises
+    ------
+    ValueError
+        Raised if the input is not of the valid inputs.
+    """
+    valid = set(("CTV", "SCN", "LCN", "CAB", "RMT", "DRN", "DSV"))
+    values = set(convert_to_list(value, str.upper))
+    invalid = values - valid
+    if invalid:
+        raise ValueError(f"Input {attribute.name} must be any combination of {valid}.")
+
+
+def check_method(
+    instance: Any, attribute: attr.Attribute, value: str  # pylint: disable=W0613
+) -> None:
+    """Validator that ensures that method is a valid input.
+
+    Parameters
+    ----------
+    instance : Any
+        A class object.
+    attribute : attr.Attribute
+        The attribute being validated.
+    value : str
+        The priority method for retreiving the next repair. Should be one of:
+         - turbine: get all repairs on a turbine/system first, regardless of severity.
+         - severity: move from highest to lowest priority, regardless of location.
+
+    Raises
+    ------
+    ValueError
+        Raised `value` is not one of valid inputs.
+    """
+    valid = ("turbine", "severity")
+    if value not in valid:
+        raise ValueError(f"Input {attribute.name} must be one of {valid}.")
+
+
 @attr.s(auto_attribs=True)
 class FromDictMixin:
     """A Mixin class to allow for kwargs overloading when a data class doesn't
@@ -185,7 +301,9 @@ class Maintenance(FromDictMixin):
     time: float
     materials: float
     frequency: float
-    service_equipment: Union[List[str], str]
+    service_equipment: List[str] = attr.ib(
+        converter=convert_to_list, validator=check_capability
+    )
     system_value: Union[int, float]
     description: str = "routine maintenance"
     operation_reduction: float = 0.0
@@ -259,7 +377,9 @@ class Failure(FromDictMixin):
     materials: float
     operation_reduction: float
     level: int
-    service_equipment: Union[List[str], str]
+    service_equipment: Union[List[str], str] = attr.ib(
+        converter=convert_to_list, validator=check_capability
+    )
     system_value: Union[int, float]
     description: str = "failure"
     weibull: weibull_min = attr.ib(init=False)
@@ -329,8 +449,8 @@ class SubassemblyData(FromDictMixin):
     """
 
     name: str
-    maintenance: List[Dict[str, Union[float, str]]]
-    failures: Dict[int, Dict[str, Union[float, str]]]
+    maintenance: List[Union[Maintenance, Dict[str, Union[float, str]]]]
+    failures: Dict[int, Union[Failure, Dict[str, Union[float, str]]]]
     system_value: Union[int, float]
 
     def __attrs_post_init__(self):
@@ -339,7 +459,7 @@ class SubassemblyData(FromDictMixin):
             self,
             "maintenance",
             [
-                Maintenance(**el, **{"system_value": self.system_value})
+                Maintenance.from_dict(**el, **{"system_value": self.system_value})
                 for el in self.maintenance
             ],
         )
@@ -347,7 +467,9 @@ class SubassemblyData(FromDictMixin):
             self,
             "failures",
             {
-                level: Failure(**values, **{"system_value": self.system_value})
+                level: Failure.from_dict(
+                    **values, **{"system_value": self.system_value}
+                )
                 for level, values in self.failures.items()
             },
         )
@@ -503,7 +625,9 @@ class ScheduledServiceEquipmentData(FromDictMixin):
     end_month: int = attr.ib(converter=int)
     end_day: int = attr.ib(converter=int)
     end_year: int = attr.ib(converter=int)
-    capability: Union[List[str], str] = attr.ib(converter=convert_to_list)
+    capability: Union[List[str], str] = attr.ib(
+        converter=convert_to_list, validator=check_capability
+    )
     mobilization_cost: float = attr.ib(converter=float)
     mobilization_days: int = attr.ib(converter=int)
     speed: float = attr.ib(converter=float)
@@ -511,47 +635,17 @@ class ScheduledServiceEquipmentData(FromDictMixin):
     max_windspeed_repair: float = attr.ib(converter=float)
     max_waveheight_transport: float = attr.ib(default=1000.0, converter=float)
     max_waveheight_repair: float = attr.ib(default=1000.0, converter=float)
-    workday_start: int = attr.ib(default=-1, converter=int)
-    workday_end: int = attr.ib(default=-1, converter=int)
+    workday_start: int = attr.ib(default=-1, converter=int, validator=valid_hour)
+    workday_end: int = attr.ib(default=-1, converter=int, validator=valid_hour)
     crew_transfer_time: float = attr.ib(converter=float, default=0.0)
     onsite: bool = attr.ib(default=False, converter=bool)
-    method: str = attr.ib(default="severity", converter=str)
+    method: str = attr.ib(  # type: ignore
+        default="severity",
+        converter=[str, str_lower],  # type: ignore
+        validator=check_method,
+    )
     operating_dates: np.ndarray = attr.ib(init=False)
     strategy: str = attr.ib(default="scheduled")
-
-    @workday_start.validator
-    def _check_workday_start(self, attribute, value) -> None:
-        """Ensures that the workday_start is a valid time."""
-        if not -1 <= value <= 24:
-            raise ValueError(
-                "Input 'workday_start' must be between 0 and 24, inclusive."
-            )
-
-    @workday_end.validator
-    def _check_workday_end(self, attribute, value) -> None:
-        """Ensures that the workday_end is a valid time."""
-        if value == -1:
-            return
-        if not 0 <= value <= 24 or value <= self.workday_start:
-            raise ValueError(
-                "Input 'workday_end' must be between 0 and 24, inclusive, and after workday_start"
-            )
-
-    @capability.validator
-    def _check_capability(self, attribute, value) -> None:
-        """Ensures that capability has a valid input."""
-        valid = set(("CTV", "SCN", "LCN", "CAB", "RMT", "DRN", "DSV"))
-        values = set(convert_to_list(value, str.upper))
-        invalid = values - valid
-        if invalid:
-            raise ValueError(f"Input 'capability' must be any combination of {valid}.")
-
-    @method.validator
-    def _check_method(self, attribute, value) -> None:
-        """Ensures that method is a valid input."""
-        valid = ("turbine", "severity")
-        if value.lower() not in valid:
-            raise ValueError(f"Input 'method' must be one of {valid}.")
 
     def create_date_range(self) -> np.ndarray:
         """Creates an `np.ndarray` of valid operational dates for the service equipment."""
@@ -589,7 +683,6 @@ class ScheduledServiceEquipmentData(FromDictMixin):
         object.__setattr__(
             self, "capability", convert_to_list(self.capability, str.upper)
         )
-        object.__setattr__(self, "method", self.method.lower())
         object.__setattr__(self, "operating_dates", self.create_date_range())
 
 
@@ -666,7 +759,9 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
     n_crews: int = attr.ib(converter=int)
     crew: ServiceCrew = attr.ib(converter=ServiceCrew.from_dict)  # type: ignore
     charter_days: int = attr.ib(converter=int)
-    capability: Union[List[str], str] = attr.ib(converter=convert_to_list)
+    capability: Union[List[str], str] = attr.ib(
+        converter=convert_to_list, validator=check_capability
+    )
     mobilization_cost: float = attr.ib(converter=float)
     mobilization_days: int = attr.ib(converter=int)
     speed: float = attr.ib(converter=float)
@@ -676,48 +771,20 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
     strategy_threshold: Union[int, float] = attr.ib()
     max_waveheight_transport: float = attr.ib(default=1000)
     max_waveheight_repair: float = attr.ib(default=1000)
-    workday_start: int = attr.ib(default=-1)
-    workday_end: int = attr.ib(default=-1)
+    workday_start: int = attr.ib(default=-1, converter=int, validator=valid_hour)
+    workday_end: int = attr.ib(default=-1, converter=int, validator=valid_hour)
     crew_transfer_time: float = attr.ib(converter=float, default=0.0)
     onsite: bool = attr.ib(default=False)
-    method: str = attr.ib(default="severity")
+    method: str = attr.ib(  # type: ignore
+        default="severity",
+        converter=[str, str_lower],  # type: ignore
+        validator=check_method,
+    )
 
-    @workday_start.validator
-    def _check_workday_start(self, attribute, value) -> None:
-        """Ensures that the workday_start is a valid time."""
-        if not -1 <= value <= 24:
-            raise ValueError(
-                "Input 'workday_start' must be between 0 and 24, inclusive."
-            )
-
-    @workday_end.validator
-    def _check_workday_end(self, attribute, value) -> None:
-        """Ensures that the workday_end is a valid time."""
-        if value == -1:
-            return
-        if not 0 <= value <= 24 or value <= self.workday_start:
-            raise ValueError(
-                "Input 'workday_end' must be between 0 and 24, inclusive, and after workday_start"
-            )
-
-    @capability.validator
-    def _check_capability(self, attribute, value) -> None:
-        """Ensures that capability has a valid input."""
-        valid = set(("CTV", "SCN", "LCN", "CAB", "RMT", "DRN", "DSV"))
-        values = set(convert_to_list(value, str.upper))
-        invalid = values - valid
-        if invalid:
-            raise ValueError(f"Input 'capability' must be any combination of {valid}.")
-
-    @method.validator
-    def _check_method(self, attribute, value) -> None:
-        """Ensures that method is a valid input."""
-        valid = ("turbine", "severity")
-        if value.lower() not in valid:
-            raise ValueError(f"Input 'method' must be one of {valid}.")
-
-    @strategy.validator
-    def _validate_strategy(self, attribute: attr.Attribute, value: str) -> None:
+    @strategy.validator  # type: ignore
+    def _validate_strategy(  # pylint: disable=R0201
+        self, attribute: attr.Attribute, value: str  # pylint: disable=W0613
+    ) -> None:
         """Determines if the provided strategy is valid"""
         valid = ("requests", "downtime")
         if value not in valid:
@@ -726,9 +793,11 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
                 "'requests' or 'downtime'!",
             )
 
-    @strategy_threshold.validator
+    @strategy_threshold.validator  # type: ignore
     def _validate_threshold(
-        self, attribute: attr.Attribute, value: Union[int, float]
+        self,
+        attribute: attr.Attribute,  # pylint: disable=W0613
+        value: Union[int, float],
     ) -> None:
         """Ensures a valid threshold is provided for a given `strategy`."""
         if not isinstance(value, (int, float)):
@@ -764,7 +833,6 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         object.__setattr__(
             self, "capability", convert_to_list(self.capability, str.upper)
         )
-        object.__setattr__(self, "method", self.method.lower())
 
 
 @attr.s(frozen=True, auto_attribs=True)

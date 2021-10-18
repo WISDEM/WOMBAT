@@ -1,14 +1,13 @@
 """Creates the Windfarm class/model."""
 
 import logging  # type: ignore
-import os  # type: ignore
-from itertools import chain, combinations
-from math import fsum
-
 import networkx as nx  # type: ignore
 import numpy as np
+import os  # type: ignore
 import pandas as pd  # type: ignore
 from geopy import distance  # type: ignore
+from itertools import chain, combinations
+from math import fsum
 
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.core.library import load_yaml
@@ -33,6 +32,7 @@ class Windfarm:
         self._create_cables()
         self.capacity = sum(self.node_system(turb).capacity for turb in self.turbine_id)
         self._create_substation_turbine_map()
+        self.calculate_distance_matrix()
 
         self.repair_manager._register_windfarm(self)
 
@@ -139,7 +139,8 @@ class Windfarm:
                 self.graph.nodes[end_node]["longitude"],
             )
 
-            # If the real distance/cable length is not input, then the geodesic distance is calculated
+            # If the real distance/cable length is not input, then the geodesic distance
+            # is calculated
             if data["length"] == 0:
                 data["length"] = distance.geodesic(
                     start_coordinates, end_coordinates, ellipsoid="WGS-84"
@@ -163,6 +164,9 @@ class Windfarm:
             data["latitude"], data["longitude"] = end_points.mean(axis=0)
 
     def calculate_distance_matrix(self) -> None:
+        """Calculates hte geodesic distance, in km, between all of the windfarm's nodes, e.g.,
+        substations and turbines, and cables.
+        """
         ids = list(self.graph.nodes())
         ids.extend([data["cable"].id for *_, data in self.graph.edges(data=True)])
         coords = [
@@ -220,12 +224,9 @@ class Windfarm:
 
         message = [self.env.simulation_time, self.env.now]
         message.extend(
-            [
-                self.graph.nodes[system]["system"].operating_level
-                for system in system_list
-            ]
+            [self.node_system(system).operating_level for system in system_list]
         )
-        message = " :: ".join((f"{m}" for m in message))
+        message = " :: ".join((f"{m}" for m in message))  # type: ignore
         self.env._operations_logger.info(message)
 
         HOURS = 1
@@ -234,7 +235,7 @@ class Windfarm:
             message = [self.env.simulation_time, self.env.now] + [
                 self.node_system(system).operating_level for system in system_list
             ]
-            message = " :: ".join(f"{m}" for m in message)
+            message = " :: ".join(f"{m}" for m in message)  # type: ignore
             self.env._operations_logger.info(message)
 
     def node_system(self, system_id: str) -> System:
