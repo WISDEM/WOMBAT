@@ -400,6 +400,28 @@ class RepairRequest(FromDictMixin):
 
 
 @attr.s(frozen=True, auto_attribs=True)
+class ServiceCrew(FromDictMixin):
+    """A data class for the indivdual crew units that are on the servicing equipment.
+
+    Parameters
+    ----------
+    n_day_rate: int
+        Number of salaried workers.
+    day_rate: float
+        Day rate for salaried workers, in USD.
+    n_hourly_rate: int
+        Number of hourly/subcontractor workers.
+    hourly_rate: float
+        Hourly labor rate for subcontractors, in USD.
+    """
+
+    n_day_rate: int = attr.ib(converter=int)
+    day_rate: float = attr.ib(converter=float)
+    n_hourly_rate: int = attr.ib(converter=int)
+    hourly_rate: float = attr.ib(converter=float)
+
+
+@attr.s(frozen=True, auto_attribs=True)
 class ScheduledServiceEquipmentData(FromDictMixin):
     """Crew data class.
 
@@ -409,14 +431,12 @@ class ScheduledServiceEquipmentData(FromDictMixin):
         Name of the piece of servicing equipment.
     equipment_rate: float
         Day rate for the equipment/vessel, in USD.
-    day_rate: float
-        Day rate for salaried workers, in USD.
-    n_day_rate: int
-        Number of salaried workers.
-    hourly_rate: float
-        Hourly labor rate for subcontractors, in USD.
-    n_hourly_rate: int
-        Number of hourly/subcontractor workers.
+    n_crews : int
+        Number of crew units for the equipment.
+        .. note: the input to this does not matter yet, as multi-crew functionality
+        is not yet implemented.
+    crew : ServiceCrew
+        The crew details, see `ServiceCrew` for more information.
     start_month : int
         The day to start operations for the rig and crew.
     start_day : int
@@ -458,6 +478,10 @@ class ScheduledServiceEquipmentData(FromDictMixin):
         The starting hour of a workshift, in 24 hour time.
     workday_end : int
         The ending hour of a workshift, in 24 hour time.
+    crew_transfer_time : float
+        The number of hours it takes to transfer the crew from the equipment to the
+        system, e.g. how long does it take to transfer the crew from the CTV to the turbine,
+        default 0.
     onsite : bool
         Indicator for if the rig and crew are based onsite.
         ... note:: if the rig and crew are onsite be sure that the start and end dates
@@ -469,30 +493,29 @@ class ScheduledServiceEquipmentData(FromDictMixin):
         Should by one of "severity" or "turbine".
     """
 
-    name: str
-    equipment_rate: float
-    day_rate: float
-    n_day_rate: int
-    hourly_rate: float
-    n_hourly_rate: int
-    start_month: int
-    start_day: int
-    start_year: int
-    end_month: int
-    end_day: int
-    end_year: int
+    name: str = attr.ib(converter=str)
+    equipment_rate: float = attr.ib(converter=float)
+    n_crews: int = attr.ib(converter=int)
+    crew: ServiceCrew = attr.ib(converter=ServiceCrew.from_dict)  # type: ignore
+    start_month: int = attr.ib(converter=int)
+    start_day: int = attr.ib(converter=int)
+    start_year: int = attr.ib(converter=int)
+    end_month: int = attr.ib(converter=int)
+    end_day: int = attr.ib(converter=int)
+    end_year: int = attr.ib(converter=int)
     capability: Union[List[str], str] = attr.ib(converter=convert_to_list)
-    mobilization_cost: float
-    mobilization_days: int
-    speed: float
-    max_windspeed_transport: float
-    max_windspeed_repair: float
-    max_waveheight_transport: float = attr.ib(default=1000)
-    max_waveheight_repair: float = attr.ib(default=1000)
-    workday_start: int = attr.ib(default=-1)
-    workday_end: int = attr.ib(default=-1)
-    onsite: bool = attr.ib(default=False)
-    method: str = attr.ib(default="severity")
+    mobilization_cost: float = attr.ib(converter=float)
+    mobilization_days: int = attr.ib(converter=int)
+    speed: float = attr.ib(converter=float)
+    max_windspeed_transport: float = attr.ib(converter=float)
+    max_windspeed_repair: float = attr.ib(converter=float)
+    max_waveheight_transport: float = attr.ib(default=1000.0, converter=float)
+    max_waveheight_repair: float = attr.ib(default=1000.0, converter=float)
+    workday_start: int = attr.ib(default=-1, converter=int)
+    workday_end: int = attr.ib(default=-1, converter=int)
+    crew_transfer_time: float = attr.ib(converter=float, default=0.0)
+    onsite: bool = attr.ib(default=False, converter=bool)
+    method: str = attr.ib(default="severity", converter=str)
     operating_dates: np.ndarray = attr.ib(init=False)
     strategy: str = attr.ib(default="scheduled")
 
@@ -580,14 +603,12 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         Name of the piece of servicing equipment.
     equipment_rate: float
         Day rate for the equipment/vessel, in USD.
-    day_rate: float
-        Day rate for salaried workers, in USD.
-    n_day_rate: int
-        Number of salaried workers.
-    hourly_rate: float
-        Hourly labor rate for subcontractors, in USD.
-    n_hourly_rate: int
-        Number of hourly/subcontractor workers.
+    n_crews : int
+        Number of crew units for the equipment.
+        .. note: the input to this does not matter yet, as multi-crew functionality
+        is not yet implemented.
+    crew : ServiceCrew
+        The crew details, see `ServiceCrew` for more information.
     charter_days : int
         The number of days the servicing equipment can be chartered for.
     capability : str
@@ -625,6 +646,10 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         The starting hour of a workshift, in 24 hour time.
     workday_end : int
         The ending hour of a workshift, in 24 hour time.
+    crew_transfer_time : float
+        The number of hours it takes to transfer the crew from the equipment to the
+        system, e.g. how long does it take to transfer the crew from the CTV to the turbine,
+        default 0.
     onsite : bool
         Indicator for if the rig and crew are based onsite.
         ... note:: if the rig and crew are onsite be sure that the start and end dates
@@ -636,25 +661,24 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         Should by one of "severity" or "turbine".
     """
 
-    name: str
-    equipment_rate: float
-    day_rate: float
-    n_day_rate: int
-    hourly_rate: float
-    n_hourly_rate: int
-    charter_days: int
+    name: str = attr.ib(converter=str)
+    equipment_rate: float = attr.ib(converter=float)
+    n_crews: int = attr.ib(converter=int)
+    crew: ServiceCrew = attr.ib(converter=ServiceCrew.from_dict)  # type: ignore
+    charter_days: int = attr.ib(converter=int)
     capability: Union[List[str], str] = attr.ib(converter=convert_to_list)
-    mobilization_cost: float
-    mobilization_days: int
-    speed: float
-    max_windspeed_transport: float
-    max_windspeed_repair: float
+    mobilization_cost: float = attr.ib(converter=float)
+    mobilization_days: int = attr.ib(converter=int)
+    speed: float = attr.ib(converter=float)
+    max_windspeed_transport: float = attr.ib(converter=float)
+    max_windspeed_repair: float = attr.ib(converter=float)
     strategy: str = attr.ib(converter=clean_string_input)
     strategy_threshold: Union[int, float] = attr.ib()
     max_waveheight_transport: float = attr.ib(default=1000)
     max_waveheight_repair: float = attr.ib(default=1000)
     workday_start: int = attr.ib(default=-1)
     workday_end: int = attr.ib(default=-1)
+    crew_transfer_time: float = attr.ib(converter=float, default=0.0)
     onsite: bool = attr.ib(default=False)
     method: str = attr.ib(default="severity")
 
