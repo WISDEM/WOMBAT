@@ -100,7 +100,7 @@ class Metrics:
         substation_id: Union[str, List[str]],
         turbine_id: Union[str, List[str]],
         service_equipment_names: Union[str, List[str]],
-        SAM_settings: str = "SAM_Singleowner_defaults.yaml",
+        SAM_settings: Union[str, None] = None,
     ) -> None:
         """Initializes the Metrics class.
 
@@ -135,9 +135,11 @@ class Metrics:
             The names of the servicing equipment, corresponding to
             `ServiceEquipment.settings.name` for each `ServiceEquipment` in the
             simulation.
-        SAM_settings : str
-            The SAM settings YAML file located in <data_dir>/windfarm/<SAM_settings> that
-            should end in ".yaml", by default "SAM_Singleowner_defaults.yaml".
+        SAM_settings : Union[str, None]
+            The SAM settings YAML file located in <data_dir>/windfarm/<SAM_settings>
+            that should end in ".yaml". If no input is provided, then the model will
+            raise a `NotImplementedError` when the SAM-powered metrics are attempted to
+            be accessed.
         """
         self.data_dir = Path(data_dir)
         if not os.path.isdir(self.data_dir):
@@ -148,10 +150,6 @@ class Metrics:
 
         fixed_costs = load_yaml(self.data_dir / "windfarm", fixed_costs)
         self.fixed_costs = FixedCosts(**fixed_costs)  # type: ignore
-
-        if SAM_settings is None:
-            SAM_settings = "SAM_Singleowner_defaults.yaml"
-        self.sam_settings = load_yaml(self.data_dir / "windfarm", SAM_settings)
 
         if isinstance(substation_id, str):
             substation_id = [substation_id]
@@ -185,7 +183,13 @@ class Metrics:
             production = self._read_data(production)
         self.production = self._tidy_data(production, kind="production")
 
-        self._setup_pysam()
+        if SAM_settings is not None:
+            SAM_settings = "SAM_Singleowner_defaults.yaml"
+            self.sam_settings = load_yaml(self.data_dir / "windfarm", SAM_settings)
+            self._setup_pysam()
+        else:
+            self.sam_settings = None
+            self.financial_model = None
 
     def _tidy_data(self, data: pd.DataFrame, kind: str) -> pd.DataFrame:
         """Tidies the "raw" csv-converted data to be able to be used among the `Metrics`
@@ -287,6 +291,9 @@ class Metrics:
 
         # Create a years variable for later use with the PySAM outputs
         self.years = sorted(self.production.year.unique())
+
+        # Let mypy know that I know what I'm doing
+        assert isinstance(self.financial_model, pysam_singleowner_financial_model)
 
         # Replace the coded generation with modeled generation
         self.financial_model.FinancialParameters.analysis_period = len(self.years)
@@ -1341,11 +1348,19 @@ class Metrics:
 
         See here for more: https://nrel-pysam.readthedocs.io/en/master/modules/Singleowner.html#PySAM.Singleowner.Singleowner.Outputs.cf_project_return_aftertax_npv
 
+        Raises
+        ------
+        NotImplementedError: Raised if a PySAM input file is not provided to run the model.
+
         Returns
         -------
         float
             Final, project-level NPV, in $.
         """
+        if self.financial_model is None:
+            raise NotImplementedError(
+                "No SAM inputs were provided, and 'pysam_npv()' cannot be calculated!"
+            )
         npv = self.financial_model.Outputs.cf_project_return_aftertax_npv
         npv = npv[len(self.years)]
         return npv
@@ -1355,11 +1370,19 @@ class Metrics:
 
         See here for more: https://nrel-pysam.readthedocs.io/en/master/modules/Singleowner.html#PySAM.Singleowner.Singleowner.Outputs.lcoe_real
 
+        Raises
+        ------
+        NotImplementedError: Raised if a PySAM input file is not provided to run the model.
+
         Returns
         -------
         float
             Real LCOE, in $/kW.
         """
+        if self.financial_model is None:
+            raise NotImplementedError(
+                "No SAM inputs were provided, and 'pysam_lcoe_real()' cannot be calculated!"
+            )
         return self.financial_model.Outputs.lcoe_real / 100.0
 
     def pysam_lcoe_nominal(self) -> float:
@@ -1367,11 +1390,19 @@ class Metrics:
 
         See here for more: https://nrel-pysam.readthedocs.io/en/master/modules/Singleowner.html#PySAM.Singleowner.Singleowner.Outputs.lcoe_nom
 
+        Raises
+        ------
+        NotImplementedError: Raised if a PySAM input file is not provided to run the model.
+
         Returns
         -------
         float
             Nominal LCOE, in $/kW.
         """
+        if self.financial_model is None:
+            raise NotImplementedError(
+                "No SAM inputs were provided, and 'pysam_lcoe_nominal()' cannot be calculated!"
+            )
         return self.financial_model.Outputs.lcoe_nom / 100.0
 
     def pysam_irr(self) -> float:
@@ -1379,11 +1410,19 @@ class Metrics:
 
         See here for more: https://nrel-pysam.readthedocs.io/en/master/modules/Singleowner.html#PySAM.Singleowner.Singleowner.Outputs.cf_project_return_aftertax_irr
 
+        Raises
+        ------
+        NotImplementedError: Raised if a PySAM input file is not provided to run the model.
+
         Returns
         -------
         pd.DataFrame
             Annual after-tax IRR value, in %.
         """
+        if self.financial_model is None:
+            raise NotImplementedError(
+                "No SAM inputs were provided, and 'pysam_irr()' cannot be calculated!"
+            )
         irr = self.financial_model.Outputs.cf_project_return_aftertax_irr
         irr = irr[len(self.years)]
         return irr
@@ -1397,11 +1436,19 @@ class Metrics:
          - Real LOCE
          - IRR
 
+        Raises
+        ------
+        NotImplementedError: Raised if a PySAM input file is not provided to run the model.
+
         Returns
         -------
         pd.DataFrame
             Project financial values values.
         """
+        if self.financial_model is None:
+            raise NotImplementedError(
+                "No SAM inputs were provided, and 'pysam_all_outputs()' cannot be calculated!"
+            )
         financials = [
             self.pysam_npv(),
             self.pysam_lcoe_nominal(),
