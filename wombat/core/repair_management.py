@@ -50,16 +50,16 @@ class StrategyMap:
         self, capability: str, threshold: Union[int, float], equipment: ServiceEquipment
     ) -> None:
         """A method to update the strategy mapping between capability types and the
-        available `ServiceEquipment` objects.
+        available ``ServiceEquipment`` objects.
 
         Parameters
         ----------
         capability : str
-            The `equipment`'s capability.
+            The ``equipment``'s capability.
         threshold : Union[int, float]
-            The threshold for `equipment`'s strategy.
+            The threshold for ``equipment``'s strategy.
         equipment : ServiceEquipment
-            The actual `ServiceEquipment` object to be logged.
+            The actual ``ServiceEquipment`` object to be logged.
 
         Raises
         ------
@@ -92,12 +92,12 @@ class RepairManager(FilterStore):
     Parameters
     ----------
     FilterStore : simpy.resources.store.FilterStore
-        The `simpy` class on which RepairManager is based to manage the repair and
+        The ``simpy`` class on which RepairManager is based to manage the repair and
         maintenance tasks.
     env : wombat.core.WombatEnvironment
         The simulation environment.
     capacity : float
-        The maximum number of tasks that can be submitted to the manager, by default `np.inf`.
+        The maximum number of tasks that can be submitted to the manager, by default ``np.inf``.
 
     Attributes
     ----------
@@ -124,7 +124,7 @@ class RepairManager(FilterStore):
         self.request_based_equipment = StrategyMap()
 
     def _update_equipment_map(self, service_equipment: ServiceEquipment) -> None:
-        """Updates `equipment_map` with a provided servicing equipment object."""
+        """Updates ``equipment_map`` with a provided servicing equipment object."""
         capability = service_equipment.settings.capability
         strategy = service_equipment.settings.strategy
         strategy_threshold = service_equipment.settings.strategy_threshold  # type: ignore
@@ -152,7 +152,7 @@ class RepairManager(FilterStore):
         self._update_equipment_map(service_equipment)
 
     def _create_request_id(self, request: RepairRequest) -> str:
-        """Creates a unique `request_id` to be logged in the `request`.
+        """Creates a unique ``request_id`` to be logged in the ``request``.
 
         Parameters
         ----------
@@ -168,7 +168,7 @@ class RepairManager(FilterStore):
         Raises
         ------
         ValueError
-            If the `request.details` property is not a `Failure` or `Maintenance` object,
+            If the ``request.details`` property is not a ``Failure`` or ``Maintenance`` object,
             then a ValueError will be raised.
         """
         if isinstance(request.details, Failure):
@@ -176,7 +176,7 @@ class RepairManager(FilterStore):
         elif isinstance(request.details, Maintenance):
             prefix = "MNT"
         else:
-            raise ValueError("A valid `RepairRequest` must be submitted")
+            raise ValueError("A valid ``RepairRequest`` must be submitted")
 
         request_id = f"{prefix}{str(self._current_id).zfill(8)}"
         self._current_id += 1
@@ -242,9 +242,9 @@ class RepairManager(FilterStore):
     def get_request_by_turbine(
         self, equipment_capability: Sequence[str], turbine_id: Optional[str] = None
     ) -> Optional[FilterStoreGet]:
-        """Gets all repair requests for a certain turbine with maximum severity of `severity_max`.
+        """Gets all repair requests for a certain turbine with maximum severity of ``severity_max``.
 
-        Note: For now, this will simply order the items by `Turbine.id` and
+        Note: For now, this will simply order the items by ``Turbine.id`` and
         return the first turbine.
 
         Parameters
@@ -252,8 +252,8 @@ class RepairManager(FilterStore):
         equipment_capability : List[str]
             The capability of the equipment requesting possible repairs to make.
         turbine_id : Optional[str], optional
-            ID of the turbine; should correspond to `Turbine.id`, by default None.
-            If None, then it will simply sort the list by `Turbine.id` and
+            ID of the turbine; should correspond to ``Turbine.id``, by default None.
+            If None, then it will simply sort the list by ``Turbine.id`` and
             return the first repair requested.
 
         Returns
@@ -281,7 +281,7 @@ class RepairManager(FilterStore):
     def get_next_highest_severity_request(
         self, equipment_capability: Sequence[str], severity_level: Optional[int] = None
     ) -> Optional[FilterStoreGet]:
-        """Gets the next repair request by `severity_level`.
+        """Gets the next repair request by ``severity_level``.
 
         Parameters
         ----------
@@ -323,9 +323,9 @@ class RepairManager(FilterStore):
         Parameters
         ----------
         system_id : str
-            `System.id`.
+            ``System.id``.
         subassembly_id : str
-            `Subassembly.id`.
+            ``Subassembly.id``.
 
         Yields
         -------

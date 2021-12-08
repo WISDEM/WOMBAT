@@ -175,8 +175,8 @@ class System:
         )
 
     def _initialize_power_curve(self, power_curve_dict: dict) -> None:
-        """Creates the power curve function based on the `power_curve` input in the
-        `subassembly_data` dictionary. If there is no valid input, then 0 will always
+        """Creates the power curve function based on the ``power_curve`` input in the
+        ``subassembly_data`` dictionary. If there is no valid input, then 0 will always
         be reutrned.
 
         Parameters

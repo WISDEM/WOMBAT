@@ -3,6 +3,7 @@
 import numpy as np  # type: ignore
 import os  # type: ignore
 import pandas as pd  # type: ignore
+import PySAM
 import PySAM.PySSC as pssc  # type: ignore
 import PySAM.Singleowner as pysam_singleowner_financial_model  # type: ignore
 from copy import deepcopy  # type: ignore
@@ -41,19 +42,19 @@ def _calculate_time_availability(
 def _process_single(
     events: pd.DataFrame, request_filter: np.ndarray
 ) -> Tuple[str, float, float, float, int]:
-    """Computes the timing values for a single `request_id`.
+    """Computes the timing values for a single ``request_id``.
 
     Parameters
     ----------
     events : pd.DataFrame
-        The NaN-filtered events `pd.DataFrame`.
+        The NaN-filtered events ``pd.DataFrame``.
     request_filter : np.ndarray
         The indicies to include for the calculation of the timings.
 
     Returns
     -------
     Tuple[str, float, float, float, int]
-        The timing values. See `process_times`.
+        The timing values. See ``process_times``.
     """
     request = events.iloc[request_filter]
     downtime = request[request.system_operating_level < 1]
@@ -109,14 +110,14 @@ class Metrics:
         data_dir : Union[str, Path]
             This should be the same as was used for running the analysis.
         events : Union[str, pd.DataFrame]
-            Either a pandas `DataFrame` or filename to be used to read the csv log data.
+            Either a pandas ``DataFrame`` or filename to be used to read the csv log data.
         operations : Union[str, pd.DataFrame]
-            Either a pandas `DataFrame` or filename to be used to read the csv log data.
+            Either a pandas ``DataFrame`` or filename to be used to read the csv log data.
         potential : Union[str, pd.DataFrame]
-            Either a pandas `DataFrame` or a filename to be used to read the csv
+            Either a pandas ``DataFrame`` or a filename to be used to read the csv
             potential power production data.
         production : Union[str, pd.DataFrame]
-            Either a pandas `DataFrame` or a filename to be used to read the csv power
+            Either a pandas ``DataFrame`` or a filename to be used to read the csv power
             production data.
         inflation_rate : float
             The inflation rate to be applied to all dollar amounts from the analysis
@@ -124,7 +125,7 @@ class Metrics:
         project_capacity : float
             The project's rated capacity, in MW.
         turbine_capacities : Union[float, List[float]]
-            The capacity of each individual turbine corresponding to `turbine_id`, in kW.
+            The capacity of each individual turbine corresponding to ``turbine_id``, in kW.
         fixed_costs : str
             The filename of the project's fixed costs.
         substation_id : Union[str, List[str]]
@@ -133,12 +134,12 @@ class Metrics:
             The turbine id(s).
         service_equipment_names : Union[str, List[str]]
             The names of the servicing equipment, corresponding to
-            `ServiceEquipment.settings.name` for each `ServiceEquipment` in the
+            ``ServiceEquipment.settings.name`` for each ``ServiceEquipment`` in the
             simulation.
         SAM_settings : Union[str, None]
             The SAM settings YAML file located in <data_dir>/windfarm/<SAM_settings>
             that should end in ".yaml". If no input is provided, then the model will
-            raise a `NotImplementedError` when the SAM-powered metrics are attempted to
+            raise a ``NotImplementedError`` when the SAM-powered metrics are attempted to
             be accessed.
         """
         self.data_dir = Path(data_dir)
@@ -192,7 +193,7 @@ class Metrics:
             self.financial_model = None
 
     def _tidy_data(self, data: pd.DataFrame, kind: str) -> pd.DataFrame:
-        """Tidies the "raw" csv-converted data to be able to be used among the `Metrics`
+        """Tidies the "raw" csv-converted data to be able to be used among the ``Metrics``
         class.
 
         Parameters
@@ -200,7 +201,7 @@ class Metrics:
         data : pd.DataFrame
             The freshly imported csv log data.
         kind : str
-            The category of the input provided to `data`. Should be one of:
+            The category of the input provided to ``data``. Should be one of:
              - "operations"
              - "events"
              - "potential"
@@ -293,7 +294,7 @@ class Metrics:
         self.years = sorted(self.production.year.unique())
 
         # Let mypy know that I know what I'm doing
-        assert isinstance(self.financial_model, pysam_singleowner_financial_model)
+        assert isinstance(self.financial_model, PySAM.Singleowner.Singleowner)
 
         # Replace the coded generation with modeled generation
         self.financial_model.FinancialParameters.analysis_period = len(self.years)
@@ -314,7 +315,7 @@ class Metrics:
         value, annual average, or monthly average for the whole windfarm or by turbine.
 
         .. note:: This currently assumes that if there are multiple substations, that
-        the turbines are all connected to multiple.
+          the turbines are all connected to multiple.
 
         Parameters
         ----------
@@ -331,12 +332,12 @@ class Metrics:
         frequency = frequency.lower().strip()
         if frequency not in ("project", "annual", "monthly", "month-year"):
             raise ValueError(
-                '`frequency` must be one of "project", "annual", "monthly", or "month-year".'
+                '``frequency`` must be one of "project", "annual", "monthly", or "month-year".'
             )
 
         by = by.lower().strip()
         if by not in ("windfarm", "turbine"):
-            raise ValueError('`by` must be one of "windfarm" or "turbine".')
+            raise ValueError('``by`` must be one of "windfarm" or "turbine".')
         by_turbine = by == "turbine"
 
         operations = deepcopy(self.operations)
@@ -402,7 +403,7 @@ class Metrics:
         turbine.
 
         .. note:: This currently assumes that if there are multiple substations, that
-        the turbines are all connected to multiple.
+          the turbines are all connected to multiple.
 
         Parameters
         ----------
@@ -419,12 +420,12 @@ class Metrics:
         frequency = frequency.lower().strip()
         if frequency not in ("project", "annual", "monthly", "month-year"):
             raise ValueError(
-                '`frequency` must be one of "project", "annual", "monthly", or "month-year".'
+                '``frequency`` must be one of "project", "annual", "monthly", or "month-year".'
             )
 
         by = by.lower().strip()
         if by not in ("windfarm", "turbine"):
-            raise ValueError('`by` must be one of "windfarm" or "turbine".')
+            raise ValueError('``by`` must be one of "windfarm" or "turbine".')
         by_turbine = by == "turbine"
 
         production = self.production.loc[:, self.turbine_id]
@@ -480,7 +481,7 @@ class Metrics:
         annual average, or monthly average for the whole windfarm or by turbine.
 
         .. note:: This currently assumes that if there are multiple substations, that
-        the turbines are all connected to multiple.
+          the turbines are all connected to multiple.
 
 
         Parameters
@@ -499,17 +500,17 @@ class Metrics:
         """
         which = which.lower().strip()
         if which not in ("net", "gross"):
-            raise ValueError('`which` must be one of "net" or "gross".')
+            raise ValueError('``which`` must be one of "net" or "gross".')
 
         frequency = frequency.lower().strip()
         if frequency not in ("project", "annual", "monthly", "month-year"):
             raise ValueError(
-                '`frequency` must be one of "project", "annual", "monthly", or "month-year".'
+                '``frequency`` must be one of "project", "annual", "monthly", or "month-year".'
             )
 
         by = by.lower().strip()
         if by not in ("windfarm", "turbine"):
-            raise ValueError('`by` must be one of "windfarm" or "turbine".')
+            raise ValueError('``by`` must be one of "windfarm" or "turbine".')
         by_turbine = by == "turbine"
         capacity = (
             np.array(self.turbine_capacities) if by_turbine else self.project_capacity
@@ -562,7 +563,7 @@ class Metrics:
         annual average, or monthly average for the whole windfarm or by turbine.
 
         .. note:: This currently assumes that if there are multiple substations, that
-        the turbines are all connected to multiple.
+          the turbines are all connected to multiple.
 
         Parameters
         ----------
@@ -579,13 +580,13 @@ class Metrics:
         which = which.lower().strip()
         if which not in ("scheduled", "unscheduled", "both"):
             raise ValueError(
-                '`which` must be one of "scheduled", "unscheduled", or "both".'
+                '``which`` must be one of "scheduled", "unscheduled", or "both".'
             )
 
         frequency = frequency.lower().strip()
         if frequency not in ("project", "annual", "monthly", "month-year"):
             raise ValueError(
-                '`frequency` must be one of "project", "annual", "monthly", or "month-year".'
+                '``frequency`` must be one of "project", "annual", "monthly", or "month-year".'
             )
 
         if which == "scheduled":
@@ -670,7 +671,7 @@ class Metrics:
         Returns
         -------
         Union[float, pd.DataFrame]
-            Returns either a float for whole project-level costs or a pandas `DataFrame`
+            Returns either a float for whole project-level costs or a pandas ``DataFrame``
             with columns:
                 - year (if appropriate for frequency)
                 - month (if appropriate for frequency)
@@ -679,18 +680,18 @@ class Metrics:
         Raises
         ------
         ValueError
-            If `frequency` is not one of "project", "annual", "monthly", or "month-year".
+            If ``frequency`` is not one of "project", "annual", "monthly", or "month-year".
         ValueError
-            If `by_equipment` is not one of `True` or `False`.
+            If ``by_equipment`` is not one of ``True`` or ``False``.
         """
         frequency = frequency.lower().strip()
         if frequency not in ("project", "annual", "monthly", "month-year"):
             raise ValueError(
-                '`frequency` must be one of "project", "annual", or "monthly".'
+                '``frequency`` must be one of "project", "annual", or "monthly".'
             )
 
         if not isinstance(by_equipment, bool):
-            raise ValueError("`by_equipment` must be one of `True` or `False`")
+            raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
 
         if frequency == "annual":
             col_filter = ["year"]
@@ -752,16 +753,16 @@ class Metrics:
         Returns
         -------
         pd.DataFrame
-            The utilization rate of each of the simulation `SerivceEquipment`.
+            The utilization rate of each of the simulation ``SerivceEquipment``.
 
         Raises
         ------
         ValueError
-            If `frequency` is not one of "project" or "annual".
+            If ``frequency`` is not one of "project" or "annual".
         """
         frequency = frequency.lower().strip()
         if frequency not in ("project", "annual"):
-            raise ValueError('`frequency` must be one of "project" or "annual".')
+            raise ValueError('``frequency`` must be one of "project" or "annual".')
 
         no_requests = []
         total_days = []
@@ -828,7 +829,7 @@ class Metrics:
         Returns
         -------
         Union[float, pd.DataFrame]
-            Returns either a float for whole project-level costs or a pandas `DataFrame`
+            Returns either a float for whole project-level costs or a pandas ``DataFrame``
             with columns:
 
              - year (if appropriate for frequency)
@@ -840,18 +841,18 @@ class Metrics:
         Raises
         ------
         ValueError
-            If `frequency` is not one of "project", "annual", "monthly", or "month-year".
+            If ``frequency`` is not one of "project", "annual", "monthly", or "month-year".
         ValueError
-            If `by_type` is not one of `True` or `False`.
+            If ``by_type`` is not one of ``True`` or ``False``.
         """
         frequency = frequency.lower().strip()
         if frequency not in ("project", "annual", "monthly", "month-year"):
             raise ValueError(
-                '`frequency` must be one of "project", "annual", "monthly", or "month-year".'
+                '``frequency`` must be one of "project", "annual", "monthly", or "month-year".'
             )
 
         if not isinstance(by_type, bool):
-            raise ValueError("`by_equipment` must be one of `True` or `False`")
+            raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
 
         labor_cols = [self._hourly_cost, self._salary_cost, self._labor_cost]
         if frequency == "project":
@@ -899,30 +900,30 @@ class Metrics:
         Returns
         -------
         pd.DataFrame
-            Returns pandas `DataFrame` with columns:
+            Returns pandas ``DataFrame`` with columns:
                 - year (if appropriate for frequency)
                 - month (if appropriate for frequency)
                 - reason
-                - hourly_labor_cost (if by_category == `True`)
-                - salary_labor_cost (if by_category == `True`)
-                - total_labor_cost (if by_category == `True`)
-                - equipment_cost (if by_category == `True`)
+                - hourly_labor_cost (if by_category == ``True``)
+                - salary_labor_cost (if by_category == ``True``)
+                - total_labor_cost (if by_category == ``True``)
+                - equipment_cost (if by_category == ``True``)
                 - total_cost (if broken out)
 
         Raises
         ------
         ValueError
-            If `frequency` is not one of "project", "annual", "monthly", or "month-year".
+            If ``frequency`` is not one of "project", "annual", "monthly", or "month-year".
         ValueError
-            If `by_category` is not one of `True` or `False`.
+            If ``by_category`` is not one of ``True`` or ``False``.
         """
         frequency = frequency.lower().strip()
         if frequency not in ("project", "annual", "monthly", "month-year"):
             raise ValueError(
-                '`frequency` must be one of "project", "annual", or "monthly".'
+                '``frequency`` must be one of "project", "annual", or "monthly".'
             )
         if not isinstance(by_category, bool):
-            raise ValueError("`by_equipment` must be one of `True` or `False`")
+            raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
 
         group_filter = ["action", "reason", "additional"]
         if frequency in ("annual", "month-year"):
@@ -1063,7 +1064,7 @@ class Metrics:
         Returns
         -------
         Union[float, pd.DataFrame]
-            Returns either a float for whole project-level costs or a pandas `DataFrame`
+            Returns either a float for whole project-level costs or a pandas ``DataFrame``
             with columns:
                 - year (if appropriate for frequency)
                 - month (if appropriate for frequency)
@@ -1077,21 +1078,21 @@ class Metrics:
         Raises
         ------
         ValueError
-            If `frequency` is not one of "project", "annual", "monthly", or "month-year".
+            If ``frequency`` is not one of "project", "annual", "monthly", or "month-year".
         ValueError
-            If `by_category` is not one of `True` or `False`.
+            If ``by_category`` is not one of ``True`` or ``False``.
         ValueError
-            If `by_action` is not one of `True` or `False`.
+            If ``by_action`` is not one of ``True`` or ``False``.
         """
         frequency = frequency.lower().strip()
         if frequency not in ("project", "annual", "monthly", "month-year"):
             raise ValueError(
-                '`frequency` must be one of "project", "annual", or "monthly".'
+                '``frequency`` must be one of "project", "annual", or "monthly".'
             )
         if not isinstance(by_category, bool):
-            raise ValueError("`by_equipment` must be one of `True` or `False`")
+            raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
         if not isinstance(by_action, bool):
-            raise ValueError("`by_equipment` must be one of `True` or `False`")
+            raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
 
         events = deepcopy(self.events)
         events = events[~events.part_id.isna()]
@@ -1199,11 +1200,12 @@ class Metrics:
         resolution : str
             One of "low", "medium", or "high", where the values correspond to:
 
-             - low: `FixedCosts.resolution["low"]`, corresponding to the itemized costs.
-             - medium: `FixedCosts.resolution["medium"]`, corresponding to the
-             overarching cost categories.
-             - high: `FixedCosts.resolution["high"]`, corresponding to a lump sum.
-            These values can also be seen through the `FixedCosts.hierarchy`
+             - low: ``FixedCosts.resolution["low"]``, corresponding to the itemized costs.
+             - medium: ``FixedCosts.resolution["medium"]``, corresponding to the
+               overarching cost categories.
+             - high: ``FixedCosts.resolution["high"]``, corresponding to a lump sum.
+
+            These values can also be seen through the ``FixedCosts.hierarchy``
 
         Returns
         -------
@@ -1214,17 +1216,19 @@ class Metrics:
         Raises
         ------
         ValueError
-            If `frequency` not one of "project" or "annual".
+            If ``frequency`` not one of "project" or "annual".
         ValueError
-            If `resolution` must be one of "low", "medium", or "high".
+            If ``resolution`` must be one of "low", "medium", or "high".
         """
         frequency = frequency.lower().strip()
         if frequency not in ("project", "annual"):
-            raise ValueError('`frequency` must be one of "project" or "annual".')
+            raise ValueError('``frequency`` must be one of "project" or "annual".')
 
         resolution = resolution.lower().strip()
         if resolution not in ("low", "medium", "high"):
-            raise ValueError('`resolution` must be one of "low", "medium", or "high".')
+            raise ValueError(
+                '``resolution`` must be one of "low", "medium", or "high".'
+            )
 
         keys = self.fixed_costs.resolution[resolution]
         vals = [[getattr(self.fixed_costs, key) for key in keys]]
@@ -1296,7 +1300,7 @@ class Metrics:
         Returns
         -------
         Union[float, pd.DataFrame]
-            Returns either a float for whole project-level costs or a pandas `DataFrame`
+            Returns either a float for whole project-level costs or a pandas ``DataFrame``
             with columns:
 
              - year (if appropriate for frequency)
@@ -1307,18 +1311,18 @@ class Metrics:
         Raises
         ------
         ValueError
-            If `frequency` is not one of "project", "annual", "monthly", or "month-year".
+            If ``frequency`` is not one of "project", "annual", "monthly", or "month-year".
         ValueError
-            If `by_turbine` is not one of `True` or `False`.
+            If ``by_turbine`` is not one of ``True`` or ``False``.
         """
         frequency = frequency.lower().strip()
         if frequency not in ("project", "annual", "monthly", "month-year"):
             raise ValueError(
-                '`frequency` must be one of "project", "annual", or "monthly".'
+                '``frequency`` must be one of "project", "annual", or "monthly".'
             )
 
         if not isinstance(by_turbine, bool):
-            raise ValueError("`by_turbine` must be one of `True` or `False`")
+            raise ValueError("``by_turbine`` must be one of ``True`` or ``False``")
 
         if frequency == "annual":
             group_cols = ["year"]

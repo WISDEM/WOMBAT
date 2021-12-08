@@ -41,32 +41,32 @@ class WombatEnvironment(simpy.Environment):
         data_dir : str
             Directory where the inputs are stored and where to save outputs.
         weather_file : str
-            Name of the weather file. Should be contained within `data_dir`/weather/.
+            Name of the weather file. Should be contained within ``data_dir``/weather/.
         workday_start : int
             Starting time for the repair crew, in 24 hour local time. This can be
-            overridden by an `ServiceEquipmentData` object that operates outside of the "typical"
+            overridden by an ``ServiceEquipmentData`` object that operates outside of the "typical"
             working hours.
         workday_end : int
             Ending time for the repair crew, in 24 hour local time. This can be
-            overridden by an `ServiceEquipmentData` object that operates outside of the "typical"
+            overridden by an ``ServiceEquipmentData`` object that operates outside of the "typical"
             working hours.
         simulation_name : Optional[str], optional
-            Name of the simulation; will be used for naming the log file, by default `None`.
-            If `None`, then the current time will be used. Will always save to
-            `data_dir`/outputs/logs/`simulation_name`.log.
+            Name of the simulation; will be used for naming the log file, by default ``None``.
+            If ``None``, then the current time will be used. Will always save to
+            ``data_dir``/outputs/logs/``simulation_name``.log.
             ... note: spaces (" ") will be replaced with underscores ("_"), for example:
             "my example analysis" becomes "my_example_analysis".
         start_year : Optional[int], optional
-            Custom starting year for the weather profile, by default None. If `None` or
+            Custom starting year for the weather profile, by default None. If ``None`` or
             less than the first year of the weather profile, this will be ignored.
         end_year : Optional[int], optional
-            Custom ending year for the weather profile, by default None. If `None` or
+            Custom ending year for the weather profile, by default None. If ``None`` or
             greater than the last year of the weather profile, this will be ignored.
 
         Raises
         ------
         FileNotFoundError
-            Raised if `data_dir` cannot be found.
+            Raised if ``data_dir`` cannot be found.
         """
         super().__init__()
         self.data_dir = Path(data_dir).resolve()
@@ -93,15 +93,15 @@ class WombatEnvironment(simpy.Environment):
         self._logging_setup()
 
     def run(self, until: Optional[Union[int, float, Event]] = None):
-        """Extends the `simpy.Environment.run` method to change the default behavior if
-        no argument is passed to `until`, which will now run a simulation until the end
+        """Extends the ``simpy.Environment.run`` method to change the default behavior if
+        no argument is passed to ``until``, which will now run a simulation until the end
         of the weather profile is reached.
 
         Parameters
         ----------
         until : Optional[Union[int, float, Event]], optional
             When to stop the simulation, by default None. See documentation on
-            `simpy.Environment.run` for more details.
+            ``simpy.Environment.run`` for more details.
         """
         if until is None:
             until = self.max_run_time
@@ -168,10 +168,10 @@ class WombatEnvironment(simpy.Environment):
         ----------
         workday_start : int
             A valid hour in 24 hour time, by default -1. This should only be provided from an
-            `ServiceEquipmentData` object. `workday_end` must also be provided in order to be used.
+            ``ServiceEquipmentData`` object. ``workday_end`` must also be provided in order to be used.
         workday_end : int
             A valid hour in 24 hour time, by default -1. This should only be provided from an
-            `ServiceEquipmentData` object. `workday_start` must also be provided in order to be used.
+            ``ServiceEquipmentData`` object. ``workday_start`` must also be provided in order to be used.
 
         Returns
         -------
@@ -185,7 +185,7 @@ class WombatEnvironment(simpy.Environment):
     def hour_in_shift(
         self, hour: int, workday_start: int = -1, workday_end: int = -1
     ) -> bool:
-        """Checks whether an `hour` is within the working hours.
+        """Checks whether an ``hour`` is within the working hours.
 
         Parameters
         ----------
@@ -193,15 +193,15 @@ class WombatEnvironment(simpy.Environment):
             Hour of the day.
         workday_start : int
             A valid hour in 24 hour time, by default -1. This should only be provided from an
-            `ServiceEquipmentData` object. `workday_end` must also be provided in order to be used.
+            ``ServiceEquipmentData`` object. ``workday_end`` must also be provided in order to be used.
         workday_end : int
             A valid hour in 24 hour time, by default -1. This should only be provided from an
-            `ServiceEquipmentData` object. `workday_start` must also be provided in order to be used.
+            ``ServiceEquipmentData`` object. ``workday_start`` must also be provided in order to be used.
 
         Returns
         -------
         bool
-            True if `hour` is during working hours, False otherwise.
+            True if ``hour`` is during working hours, False otherwise.
         """
         if -1 in (workday_start, workday_end):
             return self.workday_start <= hour < self.workday_end
@@ -214,7 +214,7 @@ class WombatEnvironment(simpy.Environment):
         ----------
         workday_start : int
             A valid hour in 24 hour time, by default -1. This should only be provided
-            from an `ServiceEquipmentData` object.
+            from an ``ServiceEquipmentData`` object.
 
         Returns
         -------
@@ -250,7 +250,7 @@ class WombatEnvironment(simpy.Environment):
         Returns
         -------
         int
-            Index of the weather profile corresponds to the first hour of `date`.
+            Index of the weather profile corresponds to the first hour of ``date``.
         """
         return np.where(self.weather.index.date == date)[0][0]
 
@@ -269,12 +269,12 @@ class WombatEnvironment(simpy.Environment):
         ----------
         weather_file : str
             Name of the weather file to be used by the environment. Should be contained
-            within `data_dir/weather`.
+            within ``data_dir/weather``.
         start_year : Optional[int], optional
-            Custom starting year for the weather profile, by default None. If `None` or
+            Custom starting year for the weather profile, by default None. If ``None`` or
             less than the first year of the weather profile, this will be ignored.
         end_year : Optional[int], optional
-            Custom ending year for the weather profile, by default None. If `None` or
+            Custom ending year for the weather profile, by default None. If ``None`` or
             greater than the last year of the weather profile, this will be ignored.
 
         Returns
@@ -300,7 +300,7 @@ class WombatEnvironment(simpy.Environment):
         return weather
 
     def _create_endpoints(self) -> None:
-        """Creates the `start_date` and `end_date` time stamps for the simulation."""
+        """Creates the ``start_date`` and ``end_date`` time stamps for the simulation."""
         self.start_datetime = self.weather.index[0].to_pydatetime()
         self.end_datetime = self.weather.index[-1].to_pydatetime()
 
@@ -318,7 +318,7 @@ class WombatEnvironment(simpy.Environment):
     def weather_forecast(
         self, hours: Union[int, float]
     ) -> Tuple[DatetimeIndex, np.ndarray, np.ndarray]:
-        """Returns the wind and wave data for the next `hours` hours.
+        """Returns the wind and wave data for the next ``hours`` hours.
 
         Parameters
         ----------
@@ -370,20 +370,20 @@ class WombatEnvironment(simpy.Environment):
         additional : str
             Any additional information that needs to be logged.
         system_id : str
-            Turbine ID, `System.id`, by default "".
+            Turbine ID, ``System.id``, by default "".
         system_name : str
-            Turbine name, `System.name`, by default "".
+            Turbine name, ``System.name``, by default "".
         part_id : str
-            Subassembly, component, or cable ID, `_.id`, by default "".
+            Subassembly, component, or cable ID, ``_.id``, by default "".
         part_name : str
-            Subassembly, component, or cable name, `_.name`, by default "".
+            Subassembly, component, or cable name, ``_.name``, by default "".
         system_ol : Union[float, str]
-            Turbine operating level, `System.operating_level`. Use an empty string for n/a, by default "".
+            Turbine operating level, ``System.operating_level``. Use an empty string for n/a, by default "".
         part_ol : Union[float, str]
-            Subassembly, component, or cable operating level, `_.operating_level`. Use
+            Subassembly, component, or cable operating level, ``_.operating_level``. Use
             an empty string for n/a, by default "".
         request_id : str
-            The `RepairManager` assigned request_id found in `RepairRequest.request_id`, by default "na".
+            The ``RepairManager`` assigned request_id found in ``RepairRequest.request_id``, by default "na".
         duration : float
             Length of time the action lasted, by default 0.
         materials_cost : Union[int, float], optional
@@ -419,8 +419,8 @@ class WombatEnvironment(simpy.Environment):
         )
 
     def _create_events_log_dataframe(self) -> pd.DataFrame:
-        """Imports the logging file created in `run` and returns it as a formatted
-        `pandas.DataFrame`.
+        """Imports the logging file created in ``run`` and returns it as a formatted
+        ``pandas.DataFrame``.
 
         Returns
         -------
@@ -468,8 +468,8 @@ class WombatEnvironment(simpy.Environment):
         return log_df
 
     def _create_operations_log_dataframe(self) -> pd.DataFrame:
-        """Imports the logging file created in `run` and returns it as a formatted
-        `pandas.DataFrame`.
+        """Imports the logging file created in ``run`` and returns it as a formatted
+        ``pandas.DataFrame``.
 
         Returns
         -------
@@ -513,8 +513,8 @@ class WombatEnvironment(simpy.Environment):
         Returns
         -------
         Tuple[pd.DataFrame, pd.DataFrame]
-            Returns nothing if `return` == False, otherwise returns the operations and
-            events log `pd.DataFrame` objects in that order.
+            Returns nothing if ``return_df`` is False, otherwise returns the operations and
+            events log ``pd.DataFrame`` objects in that order.
         """
         events = self._create_events_log_dataframe().sort_values("env_time")
         operations = self._create_operations_log_dataframe().sort_values("env_time")
@@ -538,15 +538,15 @@ class WombatEnvironment(simpy.Environment):
         operations: Optional[pd.DataFrame] = None,
         return_df: bool = True,
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        """Creates the power production `DataFrame` and optionally returns it.
+        """Creates the power production ``DataFrame`` and optionally returns it.
 
         Parameters
         ----------
         windfarm : wombat.windfarm.Windfarm
             The simulation's windfarm object.
         operations : Optional[pd.DataFrame], optional
-            The operations log `DataFrame` if readily available, by default None. If
-            `None`, then it will be created through `convert_logs_to_csv()`.
+            The operations log ``DataFrame`` if readily available, by default None. If
+            ``None``, then it will be created through ``convert_logs_to_csv()``.
         return_df : bool, optional
             Indicator to return the power production for further usage, by default True.
 

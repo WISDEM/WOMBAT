@@ -17,17 +17,17 @@ except ImportError:
 
 
 def convert_dt_to_hours(diff: datetime.timedelta) -> float:
-    """Converts a `datetime.timedelta` object to number of hours at the seconds resolution.
+    """Converts a ``datetime.timedelta`` object to number of hours at the seconds resolution.
 
     Parameters
     ----------
     diff : datetime.timedelta
-        The difference between two `datetime.datetime` objects.
+        The difference between two ``datetime.datetime`` objects.
 
     Returns
     -------
     float
-        Number of hours between to `datetime.datetime` objects.
+        Number of hours between to ``datetime.datetime`` objects.
     """
     days = diff.days * 24 if diff.days > 0 else 0
     seconds = diff.seconds / 60 / 60
@@ -35,7 +35,7 @@ def convert_dt_to_hours(diff: datetime.timedelta) -> float:
 
 
 def hours_until_future_hour(dt: datetime.datetime, hour: int) -> float:
-    """Number of hours until a future hour in the same day for `hour` <= 24, otherwise,
+    """Number of hours until a future hour in the same day for ``hour`` <= 24, otherwise,
     it is the number of hours until a time in the proceeding days.
 
     Parameters
@@ -80,7 +80,7 @@ def _mean(*args) -> float:
 def setup_logger(logger_name: str, log_file: str, level: Any = logging.INFO) -> None:
     """Creates the logging infrastructure for a given logging category.
 
-    TODO: Figure out how to type check `logging.INFO`; `Callable`?
+    TODO: Figure out how to type check ``logging.INFO``; ``Callable``?
 
     Parameters
     ----------
@@ -131,19 +131,19 @@ def format_events_log_message(
     simulation_time : datetime64
         Timestamp within the simulation time.
     env_time : float
-        Environment simulation time (`Environment.now`).
+        Environment simulation time (``Environment.now``).
     system_id : str
-        Turbine ID, `System.id`.
+        Turbine ID, ``System.id``.
     system_name : str
-        Turbine name, `System.name`.
+        Turbine name, ``System.name``.
     part_id : str
-        Subassembly, component, or cable ID, `_.id`.
+        Subassembly, component, or cable ID, ``_.id``.
     part_name : str
-        Subassembly, component, or cable name, `_.name`.
+        Subassembly, component, or cable name, ``_.name``.
     system_ol : Union[float, str]
-        System operating level, `System.operating_level`. Use an empty string for n/a.
+        System operating level, ``System.operating_level``. Use an empty string for n/a.
     part_ol : Union[float, str]
-        Subassembly, component, or cable operating level, `_.operating_level`. Use an
+        Subassembly, component, or cable operating level, ``_.operating_level``. Use an
         empty string for n/a.
     agent : str
         Agent performin the action.
@@ -156,7 +156,7 @@ def format_events_log_message(
     duration : float
         Length of time the action lasted.
     request_id : str
-        The `RepairRequest.request_id` or "na".
+        The ``RepairRequest.request_id`` or "na".
     materials_cost : Union[int, float], optional
         Total cost of materials for action, in USD, by default 0.
     hourly_labor_cost : Union[int, float], optional
@@ -211,13 +211,13 @@ def IEC_power_curve(
     Direct copy, plus bug fix from OpenOA: https://github.com/NREL/OpenOA/blob/main/operational_analysis/toolkits/power_curve/functions.py#L16-L57
     Use IEC 61400-12-1-2 method for creating wind-speed binned power curve.
     Args:
-        windspeed_column (:obj:`pandas.Series`): feature column
-        power_column (:obj:`pandas.Series`): response column
-        bin_width(:obj:`float`): width of windspeed bin, default is 0.5 m/s according to standard
-        windspeed_start(:obj:`float`): left edge of first windspeed bin
-        windspeed_end(:obj:`float`): right edge of last windspeed bin
+        windspeed_column (:obj:``pandas.Series``): feature column
+        power_column (:obj:``pandas.Series``): response column
+        bin_width(:obj:``float``): width of windspeed bin, default is 0.5 m/s according to standard
+        windspeed_start(:obj:``float``): left edge of first windspeed bin
+        windspeed_end(:obj:``float``): right edge of last windspeed bin
     Returns:
-        :obj:`function`: Python function of type (Array[float] -> Array[float]) implementing the power curve.
+        :obj:``function``: Python function of type (Array[float] -> Array[float]) implementing the power curve.
     """
 
     # Set up evenly spaced bins of fixed width, with any value over the maximum getting np.inf

@@ -186,7 +186,7 @@ class Windfarm:
         self.distance_matrix = pd.DataFrame(dist_arr, index=ids, columns=ids)
 
     def _create_substation_turbine_map(self) -> None:
-        """Creates `substation_turbine_map`, a dictionary, that maps substation(s) to
+        """Creates ``substation_turbine_map``, a dictionary, that maps substation(s) to
         the dependent turbines in the windfarm, and the weighting of each turbine in the
         windfarm.
         """
@@ -244,18 +244,18 @@ class Windfarm:
         Parameters
         ----------
         system_id : str
-            The system's unique identifier, `wombat.windfarm.System.id`.
+            The system's unique identifier, ``wombat.windfarm.System.id``.
 
         Returns
         -------
         System
-            The `System` object.
+            The ``System`` object.
         """
         return self.graph.nodes[system_id]["system"]
 
     @property
     def current_availability(self) -> float:
-        """Calculates the product of all system `operating_level` variables across the
+        """Calculates the product of all system ``operating_level`` variables across the
         windfarm using the following forumation
 
         .. math::
@@ -264,9 +264,9 @@ class Windfarm:
                 \sum{OperatingLevel_{turbine_{j}} * Weight_{turbine_{j}}}
             }
 
-        where the :math:`{OperatingLevel}` is the product of the operating level
+        where the :math:``{OperatingLevel}`` is the product of the operating level
         of each subassembly on a given system (substation or turbine), and the
-        :math:`{Weight}` is the proportion of one turbine's capacity relative to
+        :math:``{Weight}`` is the proportion of one turbine's capacity relative to
         the whole windfarm.
         """  # noqa: W605
         operating_levels = {
