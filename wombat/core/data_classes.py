@@ -118,7 +118,7 @@ def annual_date_range(
     Yields
     -------
     np.ndarray
-        A `numpy.ndarray` of `datetime.date` objects.
+        A ``numpy.ndarray`` of ``datetime.date`` objects.
     """
     date_ranges = []
     if end_month >= start_month:
@@ -148,7 +148,7 @@ def convert_ratio_to_absolute(
     Parameters
     ----------
     ratio : Union[int, float]
-        The proportional materials cost for a `Maintenance` or `Failure`.
+        The proportional materials cost for a ``Maintenance`` or ``Failure``.
     total: Union[int, float]
         The turbine's replacement cost.
 
@@ -180,7 +180,7 @@ def valid_hour(
     Raises
     ------
     ValueError
-        Raised if `value` is not between -1 and 24, inclusive.
+        Raised if ``value`` is not between -1 and 24, inclusive.
     """
     if not -1 <= value <= 24:
         raise ValueError(f"Input {attribute.name} must be between 0 and 24, inclusive.")
@@ -240,7 +240,7 @@ def check_method(
     Raises
     ------
     ValueError
-        Raised `value` is not one of valid inputs.
+        Raised ``value`` is not one of valid inputs.
     """
     valid = ("turbine", "severity")
     if value not in valid:
@@ -257,14 +257,14 @@ class FromDictMixin:
     @classmethod
     @typing.no_type_check
     def from_dict(cls, data: dict):
-        """Maps a data dictionary to an `attr`-defined class.
+        """Maps a data dictionary to an ``attr``-defined class.
 
         Args:
             data : dict
                 The data dictionary to be mapped.
         Returns:
             cls
-                The `attr`-defined class.
+                The ``attr``-defined class.
         """
         return cls(  # type: ignore
             **{a.name: data[a.name] for a in cls.__attrs_attrs__ if a.name in data}
@@ -284,7 +284,7 @@ class Maintenance(FromDictMixin):
     frequency : float
         Optimal number of days between performing maintenance, in days.
     service_equipment: Union[List[str], str]
-        Any combination of the `Equipment.capability` options.
+        Any combination of the ``Equipment.capability`` options.
          - RMT: remote (no actual equipment BUT no special implementation)
          - DRN: drone
          - CTV: crew transfer vessel/vehicle
@@ -332,7 +332,7 @@ class Maintenance(FromDictMixin):
         Parameters
         ----------
         request_id : str
-            The `wombat.core.RepairManager` generated identifier.
+            The ``wombat.core.RepairManager`` generated identifier.
         """
         object.__setattr__(self, "request_id", request_id)
 
@@ -354,10 +354,10 @@ class Failure(FromDictMixin):
     operation_reduction : float
         Performance reduction caused by the failure, between (0, 1].
     level : int, optional
-        Level of severity, will be generated in the `ComponentData.create_severities`
+        Level of severity, will be generated in the ``ComponentData.create_severities``
         method.
     service_equipment: Union[List[str], str]
-        Any combination of the `Equipment.capability` options.
+        Any combination of the ``Equipment.capability`` options.
          - RMT: remote (no actual equipment BUT no special implementation)
          - DRN: drone
          - CTV: crew transfer vessel/vehicle
@@ -402,14 +402,14 @@ class Failure(FromDictMixin):
         )
 
     def hours_to_next_failure(self) -> Union[None, float]:
-        """Samples the next time to failure in a Weibull distribution. If the `scale`
-        and `shape` parameters are set to 0, then the model will return `None` to cause
+        """Samples the next time to failure in a Weibull distribution. If the ``scale``
+        and ``shape`` parameters are set to 0, then the model will return ``None`` to cause
         the subassembly to timeout to the end of the simulation.
 
         Returns
         -------
         Union[None, float]
-            Returns `None` for a non-modelled failure, or the time until the next
+            Returns ``None`` for a non-modelled failure, or the time until the next
             simulated failure.
         """
         if self.scale == self.shape == 0:
@@ -423,7 +423,7 @@ class Failure(FromDictMixin):
         Parameters
         ----------
         request_id : str
-            The `wombat.core.RepairManager` generated identifier.
+            The ``wombat.core.RepairManager`` generated identifier.
         """
         object.__setattr__(self, "request_id", request_id)
 
@@ -438,10 +438,10 @@ class SubassemblyData(FromDictMixin):
         Name of the component/subassembly.
     maintenance : List[Dict[str, Union[float, str]]]
         List of the maintenance classification dictionaries. This will be converted
-        to a list of `Maintenance` objects in the post initialization hook.
+        to a list of ``Maintenance`` objects in the post initialization hook.
     failures : Dict[int, Dict[str, Union[float, str]]]
         Dictionary of failure classifications in a numerical (ordinal) categorization
-        order. This will be converted to a dictionary of `Failure` objects in the
+        order. This will be converted to a dictionary of ``Failure`` objects in the
         post initialization hook.
     system_value : Union[int, float]
         Turbine's cost of replacement. Used in case percentages of turbine cost are used
@@ -454,24 +454,21 @@ class SubassemblyData(FromDictMixin):
     system_value: Union[int, float]
 
     def __attrs_post_init__(self):
-        """Converts the maintenance and failure data to `Maintenance` and `Failure` objects, respectively."""
+        """Converts the maintenance and failure data to ``Maintenance`` and ``Failure`` objects, respectively."""
+        for kwargs in self.maintenance:
+            assert isinstance(kwargs, dict)
+            kwargs.update({"system_value": self.system_value})
         object.__setattr__(
-            self,
-            "maintenance",
-            [
-                Maintenance.from_dict(**el, **{"system_value": self.system_value})
-                for el in self.maintenance
-            ],
+            self, "maintenance", [Maintenance.from_dict(kw) for kw in self.maintenance]
         )
+
+        for kwargs in self.failures.values():  # type: ignore
+            assert isinstance(kwargs, dict)
+            kwargs.update({"system_value": self.system_value})
         object.__setattr__(
             self,
             "failures",
-            {
-                level: Failure.from_dict(
-                    **values, **{"system_value": self.system_value}
-                )
-                for level, values in self.failures.items()
-            },
+            {level: Failure.from_dict(kw) for level, kw in self.failures.items()},
         )
 
 
@@ -482,21 +479,21 @@ class RepairRequest(FromDictMixin):
     Parameters
     ----------
     system_id : str
-        `System.id`.
+        ``System.id``.
     system_name : str
-        `System.name`.
+        ``System.name``.
     subassembly_id : str
-        `Subassembly.id`.
+        ``Subassembly.id``.
     subassembly_name : str
-        `Subassembly.name`.
+        ``Subassembly.name``.
     severity_level : int
-        `Maintenance.level` or `Failure.level`.
+        ``Maintenance.level`` or ``Failure.level``.
     details : Union[Failure, Maintenance]
         The actual data class.
     cable : bool
         Indicator that the request is for a cable, by default False.
     upstream_turbines : List[str]
-        The cable's upstream turbines, by default []. No need to use this if `cable` == False.
+        The cable's upstream turbines, by default []. No need to use this if ``cable`` == False.
     """
 
     system_id: str
@@ -515,7 +512,7 @@ class RepairRequest(FromDictMixin):
         Parameters
         ----------
         request_id : str
-            The `wombat.core.RepairManager` generated identifier.
+            The ``wombat.core.RepairManager`` generated identifier.
         """
         object.__setattr__(self, "request_id", request_id)
         self.details.assign_id(request_id)
@@ -523,7 +520,7 @@ class RepairRequest(FromDictMixin):
 
 @attr.s(frozen=True, auto_attribs=True)
 class ServiceCrew(FromDictMixin):
-    """A data class for the indivdual crew units that are on the servicing equipment.
+    """An internal data class for the indivdual crew units that are on the servicing equipment.
 
     Parameters
     ----------
@@ -545,7 +542,8 @@ class ServiceCrew(FromDictMixin):
 
 @attr.s(frozen=True, auto_attribs=True)
 class ScheduledServiceEquipmentData(FromDictMixin):
-    """Crew data class.
+    """The data class specification for servicing equipment that will use a pre-scheduled
+    basis for returning to site.
 
     Parameters
     ----------
@@ -558,7 +556,7 @@ class ScheduledServiceEquipmentData(FromDictMixin):
         .. note: the input to this does not matter yet, as multi-crew functionality
         is not yet implemented.
     crew : ServiceCrew
-        The crew details, see `ServiceCrew` for more information.
+        The crew details, see ``ServiceCrew`` for more information.
     start_month : int
         The day to start operations for the rig and crew.
     start_day : int
@@ -648,7 +646,7 @@ class ScheduledServiceEquipmentData(FromDictMixin):
     strategy: str = attr.ib(default="scheduled")
 
     def create_date_range(self) -> np.ndarray:
-        """Creates an `np.ndarray` of valid operational dates for the service equipment."""
+        """Creates an ``np.ndarray`` of valid operational dates for the service equipment."""
         start_date = datetime.datetime(
             self.start_year, self.start_month, self.start_day
         )
@@ -667,7 +665,7 @@ class ScheduledServiceEquipmentData(FromDictMixin):
         return date_range
 
     def _set_environment_shift(self, start: int, end: int) -> None:
-        """Used to set the `workday_start` and `workday_end` to the environment's values.
+        """Used to set the ``workday_start`` and ``workday_end`` to the environment's values.
 
         Parameters
         ----------
@@ -688,7 +686,8 @@ class ScheduledServiceEquipmentData(FromDictMixin):
 
 @attr.s(frozen=True, auto_attribs=True)
 class UnscheduledServiceEquipmentData(FromDictMixin):
-    """Crew data class.
+    """The data class specification for servicing equipment that will use either a
+    basis of windfarm downtime or total number of requests serviceable by the equipment.
 
     Parameters
     ----------
@@ -701,7 +700,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         .. note: the input to this does not matter yet, as multi-crew functionality
         is not yet implemented.
     crew : ServiceCrew
-        The crew details, see `ServiceCrew` for more information.
+        The crew details, see ``ServiceCrew`` for more information.
     charter_days : int
         The number of days the servicing equipment can be chartered for.
     capability : str
@@ -789,7 +788,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         valid = ("requests", "downtime")
         if value not in valid:
             raise ValueError(
-                "`strategy` for unscheduled servicing equipment must be one of",
+                "``strategy`` for unscheduled servicing equipment must be one of",
                 "'requests' or 'downtime'!",
             )
 
@@ -799,25 +798,25 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         attribute: attr.Attribute,  # pylint: disable=W0613
         value: Union[int, float],
     ) -> None:
-        """Ensures a valid threshold is provided for a given `strategy`."""
+        """Ensures a valid threshold is provided for a given ``strategy``."""
         if not isinstance(value, (int, float)):
-            raise TypeError("`strategy_threshold` must be an `int` or `float`!")
+            raise TypeError("``strategy_threshold`` must be an ``int`` or ``float``!")
 
         if self.strategy == "downtime":
             if value <= 0 or value >= 1:
                 raise ValueError(
-                    "Downtime-based strategies must have a `strategy_threshold`",
+                    "Downtime-based strategies must have a ``strategy_threshold``",
                     "between 0 and 1, non-inclusive!",
                 )
         if self.strategy == "requests":
             if value <= 0:
                 raise ValueError(
-                    "Requests-based strategies must have a `strategy_threshold`",
+                    "Requests-based strategies must have a ``strategy_threshold``",
                     "greater than 0!",
                 )
 
     def _set_environment_shift(self, start: int, end: int) -> None:
-        """Used to set the `workday_start` and `workday_end` to the environment's values.
+        """Used to set the ``workday_start`` and ``workday_end`` to the environment's values.
 
         Parameters
         ----------
@@ -838,7 +837,10 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
 @attr.s(frozen=True, auto_attribs=True)
 class ServiceEquipmentData(FromDictMixin):
     """Helps to determine the type ServiceEquipment that should be used, based on the
-    repair strategy for its operation.
+    repair strategy for its operation. See
+    :py:class:`~data_classes.ScheduledServiceEquipmentData` or
+    :py:class:`~data_classes.UnscheduledServiceEquipmentData` for more details on each
+    classifcation.
 
     Parameters
     ----------
@@ -850,15 +852,50 @@ class ServiceEquipmentData(FromDictMixin):
         Should be one of "scheduled", "requests", "downtime". If nothing is provided,
         the equipment configuration will be checked.
 
-    Returns
-    -------
-    Union[ScheduledServiceEquipmentData, UnscheduledServiceEquipmentData]
-        The appropriate `xxServiceEquipmentData` scheme
-
     Raises
     ------
     ValueError
-        If `strategy` is not one of "scheduled" or "unscheduled" an error will be raised.
+        If ``strategy`` is not one of "scheduled" or "unscheduled" an error will be raised.
+
+    Examples
+    --------
+    The below workflow is how a new data :py:class:`~data_classes.ScheduledServiceEquipmentData`
+    object could be created via a generic/routinized creation method, and is how the
+    :py:class:`~service_equipment.ServiceEquipment`'s ``__init__`` method creates the
+    settings data.
+
+    >>> from wombat.core.data_classes import  ServiceEquipmentData
+    >>>
+    >>> data_dict = {
+    >>>     "name": "Crew Transfer Vessel 1",
+    >>>     "equipment_rate": 1750,
+    >>>     "start_month": 1,
+    >>>     "start_day": 1,
+    >>>     "end_month": 12,
+    >>>     "end_day": 31,
+    >>>     "start_year": 2002,
+    >>>     "end_year": 2014,
+    >>>     "onsite": True,
+    >>>     "capability": "CTV",
+    >>>     "max_severity": 10,
+    >>>     "mobilization_cost": 0,
+    >>>     "mobilization_days": 0,
+    >>>     "speed": 37.04,
+    >>>     "max_windspeed_transport": 99,
+    >>>     "max_windspeed_repair": 99,
+    >>>     "max_waveheight_transport": 1.5,
+    >>>     "max_waveheight_repair": 1.5,
+    >>>     "strategy": scheduled,
+    >>>     "crew_transfer_time": 0.25,
+    >>>     "n_crews": 1,
+    >>>     "crew": {
+    >>>         "day_rate": 0,
+    >>>         "n_day_rate": 0,
+    >>>         "hourly_rate": 0,
+    >>>         "n_hourly_rate": 0,
+    >>>     },
+    >>> }
+    >>> equipment = ServiceEquipmentData(data_dict).determine_type()
     """
 
     data_dict: dict
@@ -882,8 +919,8 @@ class ServiceEquipmentData(FromDictMixin):
         Returns
         -------
         Union[ScheduledServiceEquipmentData, UnscheduledServiceEquipmentData]
-            The appropriate `xxServiceEquipmentData` schema depending on the strategy the
-            `ServiceEquipment` will use.
+            The appropriate ``xxServiceEquipmentData`` schema depending on the strategy the
+            ``ServiceEquipment`` will use.
         """
         if self.strategy == "scheduled":
             return ScheduledServiceEquipmentData.from_dict(self.data_dict)
@@ -911,7 +948,7 @@ class FixedCosts(FromDictMixin):
         and marine activities.
 
         This should only be used when not breaking down the cost into the following
-        categories: `project_management_administration`,
+        categories: ``project_management_administration``,
         ``operation_management_administration``, ``marine_management``, and/or
         ``weather_forecasting``
 
