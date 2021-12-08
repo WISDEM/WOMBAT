@@ -44,7 +44,7 @@ repos:
     rev: v3.0.0a4
     hooks:
     -   id: pylint
-        exclude: ^tests/
+        exclude: ^tests/,^docs/jupyter_execute/
 
 # -   repo: local
 #     hooks:
