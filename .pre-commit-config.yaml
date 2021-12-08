@@ -18,7 +18,7 @@ repos:
     rev: 'v0.910-1'  # Use the sha / tag you want to point at
     hooks:
     -   id: mypy
-        entry: mypy --install-types --non-interactive --exclude docs
+        entry: mypy --install-types --non-interactive
 
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v2.3.0
