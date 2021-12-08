@@ -1,13 +1,13 @@
 repos:
 -   repo: https://github.com/timothycrosley/isort
-    rev: 5.9.3
+    rev: 5.10.1
     hooks:
         - id: isort
           name: isort
           stages: [commit]
 
 -   repo: https://github.com/psf/black
-    rev: 21.9b0
+    rev: 21.12b0
     hooks:
         - id: black
           name: black
