@@ -39,7 +39,7 @@ HOURS_IN_DAY = 24
 
 def consecutive_groups(data: np.ndarray, step_size: int = 1) -> List[np.ndarray]:
     """Generates the subgroups of an array where the difference between two sequential
-    elements is equal to the `step_size`. The intent is to find the length of delays
+    elements is equal to the ``step_size``. The intent is to find the length of delays
     in a weather forecast
 
     Parameters
@@ -52,7 +52,7 @@ def consecutive_groups(data: np.ndarray, step_size: int = 1) -> List[np.ndarray]
     Returns
     -------
     List[np.ndarray]
-        A list of arrays of the consecutive elements of `data`.
+        A list of arrays of the consecutive elements of ``data``.
     """
     # Consecutive groups in delay
     groups = np.split(data, np.where(np.diff(data) != step_size)[0] + 1)
@@ -68,9 +68,9 @@ class ServiceEquipment:
     env : WombatEnvironment
         The simulation environment.
     windfarm : Windfarm
-        The `Windfarm` object.
+        The ``Windfarm`` object.
     repair_manager : RepairManager
-        The `RepairManager` object.
+        The ``RepairManager`` object.
     equipment_data_file : str
         The equipment settings file name with extension.
     """
@@ -82,16 +82,16 @@ class ServiceEquipment:
         repair_manager: RepairManager,
         equipment_data_file: str,
     ):
-        """Initializes the `ServiceEquipment` class.
+        """Initializes the ``ServiceEquipment`` class.
 
         Parameters
         ----------
         env : WombatEnvironment
             The simulation environment.
         windfarm : Windfarm
-            The `Windfarm` object.
+            The ``Windfarm`` object.
         repair_manager : RepairManager
-            The `RepairManager` object.
+            The ``RepairManager`` object.
         equipment_data_file : str
             The equipment settings file name with extension.
         """
@@ -131,7 +131,7 @@ class ServiceEquipment:
 
     def _check_working_hours(self) -> None:
         """Checks the working hours of the equipment and overrides a default (-1) to
-        the `env` settings, otherwise hours remain the same.
+        the ``env`` settings, otherwise hours remain the same.
         """
         start_is_invalid = self.settings.workday_start == -1
         end_is_invalid = self.settings.workday_end == -1
@@ -201,7 +201,7 @@ class ServiceEquipment:
         starting_operating_level: float,
     ) -> None:
         """Goes into the repaired subassembly, component, or cable and returns its
-        `operating_level` back to good as new for the specific repair. For fatal cable
+        ``operating_level`` back to good as new for the specific repair. For fatal cable
         failures, all upstream turbines are turned back on unless there is another fatal
         cable failure preventing any more from operating.
 
@@ -233,6 +233,8 @@ class ServiceEquipment:
             _ = self.manager.purge_subassembly_requests(
                 repair.system_id, repair.subassembly_id
             )
+        elif repair.details.operation_reduction == 0:
+            pass
         else:
             subassembly.operating_level += starting_operating_level
             subassembly.operating_level /= 1 - repair.details.operation_reduction
@@ -432,7 +434,7 @@ class ServiceEquipment:
         """Finds the delay required before starting on a process that won't be able to
         be interrupted by a weather delay.
 
-        TODO: WEATHER FORECAST NEEDS TO BE DONE FOR `math.floor(self.now)`, not the ceiling
+        TODO: WEATHER FORECAST NEEDS TO BE DONE FOR ``math.floor(self.now)``, not the ceiling
         or there will be a whole lot of rounding up errors on process times.
 
         Parameters
@@ -483,7 +485,7 @@ class ServiceEquipment:
         """Assesses at which points in the repair window, the wind (and wave)
         constraints for safe operation are met.
 
-        The initial search looks for a weather window of length `hours_required`, and
+        The initial search looks for a weather window of length ``hours_required``, and
         adds 24 hours to the window for the proceeding 9 days. If no satisfactory window
         is found, then the calling process must make another call to this function, but
         likely there is something wrong with the constraints or weather conditions if
@@ -519,7 +521,7 @@ class ServiceEquipment:
         Returns
         -------
         simpy.resources.store.FilterStoreGet
-            The next `RepairRequest` to be processed.
+            The next ``RepairRequest`` to be processed.
         """
         if self.settings.method == "turbine":
             return self.manager.get_request_by_turbine(self.settings.capability)
@@ -531,7 +533,7 @@ class ServiceEquipment:
     def weather_delay(
         self, hours: Union[int, float], **kwargs
     ) -> Union[None, Generator[Union[Timeout, Process], None, None]]:
-        """Processes a weather delay of length `hours` hours.
+        """Processes a weather delay of length ``hours`` hours.
 
         Parameters
         ----------
@@ -546,7 +548,7 @@ class ServiceEquipment:
         Yields
         -------
         Union[None, Generator[Union[Timeout, Process], None, None]]
-            If the delay is more than 0 hours, then a `Timeout` is yielded of length `hours`.
+            If the delay is more than 0 hours, then a ``Timeout`` is yielded of length ``hours``.
         """
         if hours == 0:
             return
@@ -583,7 +585,7 @@ class ServiceEquipment:
         Yields
         -------
         Union[None, Generator[Union[Timeout, Process], None, None]]
-            A `Timeout` is yielded of length `hours`.
+            A ``Timeout`` is yielded of length ``hours``.
         """
         action = "repair" if isinstance(request_details, Failure) else "maintenance"
         salary_cost = self.calculate_salary_cost(hours)
@@ -610,9 +612,9 @@ class ServiceEquipment:
         Parameters
         ----------
         start : Union[str, None]
-            The starting onsite location. If `None`, then 0 is returned.
+            The starting onsite location. If ``None``, then 0 is returned.
         end : Union[str, None]
-            The ending onsite location. If `None`, then 0 is returned.
+            The ending onsite location. If ``None``, then 0 is returned.
 
         Returns
         -------
@@ -643,7 +645,7 @@ class ServiceEquipment:
         end : str
             The starting location, one of "site", "port", or "system".
         set_current : str, optional
-            Where to set `current_system` to be if traveling to site or a different
+            Where to set ``current_system`` to be if traveling to site or a different
             system onsite, by default None.
 
         Yields
@@ -654,17 +656,17 @@ class ServiceEquipment:
         Raises
         ------
         ValueError
-            Raised if `start` is not one of the required inputs.
+            Raised if ``start`` is not one of the required inputs.
         ValueError
-            Raised if `end` is not one of the required inputs.
+            Raised if ``end`` is not one of the required inputs.
         """
         if start not in ("port", "site", "system"):
             raise ValueError(
-                "`start` location must be one of 'port', 'site', or 'system'!"
+                "``start`` location must be one of 'port', 'site', or 'system'!"
             )
         if end not in ("port", "site", "system"):
             raise ValueError(
-                "`end` location must be one of 'port', 'site', or 'system'!"
+                "``end`` location must be one of 'port', 'site', or 'system'!"
             )
 
         # TODO: Need a port-to-site distance to be implemented
@@ -719,7 +721,7 @@ class ServiceEquipment:
         request: RepairRequest,
         to_system: bool,
     ) -> Union[None, Generator[Union[Timeout, Process], None, None]]:
-        """The process of transfering the crew from the equipment to the `System`
+        """The process of transfering the crew from the equipment to the ``System``
         for servicing using an uninterrupted weather window to ensure safe transfer.
 
         Parameters
@@ -818,11 +820,11 @@ class ServiceEquipment:
         Parameters
         ----------
         request : RepairRequest
-            The `Maintenance` or `Failure` receiving attention.
+            The ``Maintenance`` or ``Failure`` receiving attention.
         time_processed : Union[int, float], optional
             Time that has already been processed, by default 0.
         prior_operation_level : float, optional
-            The operating level of the `System` just before the repair has begun, by
+            The operating level of the ``System`` just before the repair has begun, by
             default -1.0.
 
         Yields
@@ -932,7 +934,7 @@ class ServiceEquipment:
 
             # If the delay is at the start, hours_to_process is 0, and a delay gets
             # processed, otherwise the crew works for the minimum of
-            # `hours_to_process` or maximum time that can be worked until the shift's
+            # ``hours_to_process`` or maximum time that can be worked until the shift's
             # end.
             if hours_to_process > 0:
                 hours_to_process = int(min(hours_available, hours_to_process))
