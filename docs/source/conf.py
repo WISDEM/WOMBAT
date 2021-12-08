@@ -85,7 +85,7 @@ source_suffix = {
 }
 
 # toggle this between auto/off to rerun full documentation build
-jupyter_execute_notebooks = "auto"
+jupyter_execute_notebooks = "off"
 execution_timeout = -1
 execution_allow_errors = True
 
