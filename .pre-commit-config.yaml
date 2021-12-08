@@ -19,6 +19,7 @@ repos:
     hooks:
     -   id: mypy
         entry: mypy --install-types --non-interactive
+        exclude: ^docs/
 
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.0.1
