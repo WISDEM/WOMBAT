@@ -21,7 +21,6 @@
 
 import pandas as pd
 from copy import deepcopy
-from pprint import pprint
 from time import perf_counter
 
 from wombat.core import Simulation

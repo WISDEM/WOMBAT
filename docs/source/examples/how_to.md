@@ -20,13 +20,11 @@ analyses.
 
 ```{code-cell} ipython3
 from time import perf_counter  # timing purposes only
-from pprint import pprint  # better print formatiting
-from pathlib import Path  # a better path management system
 
 import numpy as np
 import pandas as pd
 
-from wombat.core import Simulation, Configuration
+from wombat.core import Simulation
 from wombat.core.library import load_yaml, DINWOODIE
 
 # Seed the random variable for consistently randomized results

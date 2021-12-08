@@ -10,17 +10,13 @@
 # In[1]:
 
 
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
-from pathlib import Path
 from pprint import pprint
 
-from wombat.core import Metrics, Simulation
+from wombat.core import Simulation
 from wombat.core.library import load_yaml
 
 
-get_ipython().run_line_magic("matplotlib", "inline")
 pd.set_option("display.float_format", "{:,.2f}".format)
 pd.set_option("display.max_rows", 1000)
 pd.set_option("display.max_columns", 1000)
