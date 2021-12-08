@@ -1,5 +1,6 @@
-# Configuration file for the Sphinx documentation builder.
-#
+"""Configuration file for the Sphinx documentation builder."""
+
+
 # This file only contains a selection of the most common options. For a full
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
@@ -84,7 +85,7 @@ source_suffix = {
 }
 
 # toggle this between auto/off to rerun full documentation build
-jupyter_execute_notebooks = "off"
+jupyter_execute_notebooks = "auto"
 execution_timeout = -1
 execution_allow_errors = True
 
