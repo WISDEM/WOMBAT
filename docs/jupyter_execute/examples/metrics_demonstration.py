@@ -10,12 +10,11 @@
 # In[1]:
 
 
-from pathlib import Path
-from pprint import pprint
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from pathlib import Path
+from pprint import pprint
 
 from wombat.core import Metrics, Simulation
 

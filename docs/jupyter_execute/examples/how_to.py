@@ -13,12 +13,11 @@
 # In[1]:
 
 
+import numpy as np
+import pandas as pd
 from pathlib import Path  # a better path management system
 from pprint import pprint  # better print formatiting
 from time import perf_counter  # timing purposes only
-
-import numpy as np
-import pandas as pd
 
 from wombat.core import Configuration, Simulation
 from wombat.core.library import DINWOODIE, load_yaml
