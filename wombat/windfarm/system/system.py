@@ -3,8 +3,8 @@
 
 import numpy as np
 import pandas as pd
+from typing import List, Union, Callable  # type: ignore
 from functools import reduce
-from typing import Callable, List, Union  # type: ignore
 
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.utilities import IEC_power_curve

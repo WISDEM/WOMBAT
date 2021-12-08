@@ -2,25 +2,25 @@
 # TODO: NEED A SPECIFIC STARTUP METHODs
 
 
-import numpy as np  # type: ignore
 import os  # type: ignore
-from datetime import timedelta
+import numpy as np  # type: ignore
 from math import ceil
-from pandas.core.indexes.datetimes import DatetimeIndex
+from typing import List, Tuple, Union, Generator  # type: ignore
+from datetime import timedelta
 from simpy.events import Process, Timeout  # type: ignore
-from typing import Generator, List, Tuple, Union  # type: ignore
+from pandas.core.indexes.datetimes import DatetimeIndex
 
 from wombat.core import (
     Failure,
     Maintenance,
     RepairManager,
     RepairRequest,
-    ServiceEquipmentData,
     WombatEnvironment,
+    ServiceEquipmentData,
 )
-from wombat.core.library import load_yaml
-from wombat.utilities import hours_until_future_hour
 from wombat.windfarm import Windfarm
+from wombat.utilities import hours_until_future_hour
+from wombat.core.library import load_yaml
 from wombat.windfarm.system import System
 from wombat.windfarm.system.cable import Cable
 from wombat.windfarm.system.subassembly import Subassembly

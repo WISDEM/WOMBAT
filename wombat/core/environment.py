@@ -1,27 +1,32 @@
 """Provides the O&M Enviroment class; a subclass of simpy.Environment."""
 
 
-import logging  # type: ignore
+import os  # type: ignore
 import math  # type: ignore
 import numpy as np  # type: ignore
-import os  # type: ignore
-import pandas as pd  # type: ignore
 import simpy  # type: ignore
-from datetime import datetime, timedelta  # type: ignore
-from pandas.core.indexes.datetimes import DatetimeIndex
+import pandas as pd  # type: ignore
+import logging  # type: ignore
+from typing import Tuple, Union, Optional  # type: ignore
 from pathlib import Path  # type: ignore
+from datetime import datetime, timedelta  # type: ignore
 from simpy.events import Event  # type: ignore
-from typing import Optional, Tuple, Union  # type: ignore
+from pandas.core.indexes.datetimes import DatetimeIndex
 
 import wombat  # pylint: disable=W0611
 from wombat.utilities import (
-    format_events_log_message,
-    hours_until_future_hour,
     setup_logger,
+    hours_until_future_hour,
+    format_events_log_message,
 )
 
 
 class WombatEnvironment(simpy.Environment):
+    """The primary mechanism for powering an O&M simulation. This object has insight into
+    all other simulation objects, and controls the timing, date/time stamps, and weather
+    conditions.
+    """
+
     def __init__(
         self,
         data_dir: Union[Path, str],

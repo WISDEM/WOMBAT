@@ -2,19 +2,19 @@
 
 import attr
 import pandas as pd
+from typing import List, Union, Optional
 from pathlib import Path
 from simpy.events import Event  # type: ignore
-from typing import List, Optional, Union
 
 from wombat.core import (
-    FromDictMixin,
     Metrics,
+    FromDictMixin,
     RepairManager,
     ServiceEquipment,
     WombatEnvironment,
 )
-from wombat.core.library import library_map, load_yaml
 from wombat.windfarm import Windfarm
+from wombat.core.library import load_yaml, library_map
 
 
 def _library_mapper(file_path: Union[str, Path]) -> Path:

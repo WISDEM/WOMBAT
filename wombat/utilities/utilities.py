@@ -1,19 +1,19 @@
 """Provides various utility functions."""
 
 
-import datetime  # type: ignore
-import logging  # type: ignore
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
-from typing import Any, Callable, Union  # type: ignore
+import logging  # type: ignore
+import datetime  # type: ignore
+from typing import Any, Union, Callable  # type: ignore
 
 
-try:
+try:  # pylint: disable=duplicate-code
     from functools import cache  # type: ignore
-except ImportError:
-    from functools import lru_cache
+except ImportError:  # pylint: disable=duplicate-code
+    from functools import lru_cache  # pylint: disable=duplicate-code
 
-    cache = lru_cache(None)
+    cache = lru_cache(None)  # pylint: disable=duplicate-code
 
 
 def convert_dt_to_hours(diff: datetime.timedelta) -> float:

@@ -2,13 +2,13 @@
 
 
 import attr  # type: ignore
-import datetime  # type: ignore
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
 import typing  # type: ignore
+import datetime  # type: ignore
 from math import fsum  # type: ignore
+from typing import Any, Dict, List, Union, Callable, Optional, Sequence  # type: ignore
 from scipy.stats import weibull_min  # type: ignore
-from typing import Any, Callable, Dict, List, Optional, Sequence, Union  # type: ignore
 
 
 HOURS_IN_YEAR = 8760

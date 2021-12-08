@@ -5,25 +5,25 @@ from __future__ import annotations
 
 import attr
 import numpy as np
-from collections import Counter
-from itertools import chain
-from simpy.resources.store import FilterStore, FilterStoreGet  # type: ignore
 from typing import (  # type: ignore
     TYPE_CHECKING,
     Dict,
-    Iterator,
     List,
+    Union,
+    Iterator,
     Optional,
     Sequence,
-    Union,
 )
+from itertools import chain
+from collections import Counter
+from simpy.resources.store import FilterStore, FilterStoreGet  # type: ignore
 
 from wombat.core import Failure, Maintenance, RepairRequest, WombatEnvironment
 
 
 if TYPE_CHECKING:
-    from wombat.core.service_equipment import ServiceEquipment
     from wombat.windfarm import Windfarm
+    from wombat.core.service_equipment import ServiceEquipment
 
 
 @attr.s(auto_attribs=True)
@@ -341,7 +341,7 @@ class RepairManager(FilterStore):
             system_match = request.system_id == system_id
             subassembly_match = request.subassembly_id == subassembly_id
             if system_match and subassembly_match:
-                yield self.get(lambda x: x == request)
+                yield self.get(lambda x: x == request)  # pylint: disable=W0640
 
                 self.env.log_action(
                     system_id=request.system_id,

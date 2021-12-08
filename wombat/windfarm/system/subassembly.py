@@ -20,6 +20,8 @@ TIMEOUT = 24  # Wait time of 1 day for replacement to occur
 
 
 class Subassembly:
+    """A major system composes the turbine or substation objects."""
+
     def __init__(
         self,
         turbine,

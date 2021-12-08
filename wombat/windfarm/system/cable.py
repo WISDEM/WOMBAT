@@ -3,7 +3,7 @@
 
 import numpy as np  # type: ignore
 import simpy  # type: ignore
-from typing import Generator, List  # type: ignore
+from typing import List, Generator  # type: ignore
 
 from wombat.core import (
     Failure,

@@ -1,13 +1,13 @@
 """Creates the Windfarm class/model."""
 
+import os  # type: ignore
+import numpy as np
+import pandas as pd  # type: ignore
 import logging  # type: ignore
 import networkx as nx  # type: ignore
-import numpy as np
-import os  # type: ignore
-import pandas as pd  # type: ignore
+from math import fsum
 from geopy import distance  # type: ignore
 from itertools import chain, combinations
-from math import fsum
 
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.core.library import load_yaml
@@ -15,6 +15,11 @@ from wombat.windfarm.system import Cable, System
 
 
 class Windfarm:
+    """The primary class for operating on objects within a windfarm. The substations,
+    cables, and turbines are created as a network object to be more appropriately accessed
+    and controlled.
+    """
+
     def __init__(
         self,
         env: WombatEnvironment,
