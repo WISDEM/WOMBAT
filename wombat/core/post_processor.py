@@ -1049,6 +1049,7 @@ class Metrics:
             weather delays and shift-to-shift delays. In the future these will be
             disentangled.
 
+
         Parameters
         ----------
         frequency : str
