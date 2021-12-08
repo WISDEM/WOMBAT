@@ -1,6 +1,9 @@
-import codecs
+"""The package setup for installations."""
+
+
 import os
-from setuptools import find_packages, setup
+import codecs
+from setuptools import setup, find_packages
 
 
 def read(relative_path):
@@ -38,6 +41,7 @@ extra_package_requirements = {
         "pytest-xdist",
         "mypy",
         "types-attrs",
+        "types-PyYAML",
     ],
     "docs": [
         "sphinx",
