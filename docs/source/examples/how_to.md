@@ -454,8 +454,8 @@ sim.env.cleanup_log_files(log_only=True)
 
 # Option 2
 # Note here that a string "DINWOODIE" is passed because the Simulation class knows to
-# retrieve the appropriate path
-simulation_name = "example_dinwoodie"
+# retrieve the appropriate path, and that the simulation_name matches the configuration
+simulation_name = "dinwoodie_base"
 sim = Simulation(
     name=simulation_name,
     library_path="DINWOODIE",

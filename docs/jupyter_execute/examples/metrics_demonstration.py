@@ -17,6 +17,7 @@ from pathlib import Path
 from pprint import pprint
 
 from wombat.core import Metrics, Simulation
+from wombat.core.library import load_yaml
 
 
 get_ipython().run_line_magic("matplotlib", "inline")
@@ -33,7 +34,7 @@ pd.set_option("display.max_columns", 1000)
 # In[2]:
 
 
-simulation_name = "example_dinwoodie"
+simulation_name = "dinwoodie_base"
 
 sim = Simulation(simulation_name, "DINWOODIE", "base.yaml")
 sim.run()
@@ -581,7 +582,7 @@ metrics.power_production(frequency="month-year", by_turbine=False).head(24)
 # For a number of project financial metrics, the PySAM library is utilized.
 #
 # <div class="alert alert-block alert-warning">
-# <b>NOTE:</b> A PySAM file needs to be defined in your library's windfarm directory. This part of the analysis is highly dependent on the inputs provided, and there is not a validated input data sheet used, this is merely a functionality demonstration.
+# <b>NOTE:</b> If a "SAM_settings" file is not provided to the simulation, then the following metrics will not be able to be calculated and will raise a `NotImplementedError`.
 # </div>
 #
 # With the above warning in mind, the appropriate simulation outputs are provided as inputs to PySAM upon initialization to ensure all values are aligned.
@@ -591,8 +592,11 @@ metrics.power_production(frequency="month-year", by_turbine=False).head(24)
 # In[50]:
 
 
-npv = metrics.pysam_npv()
-print(f"NPV: ${npv:,.0f}")
+try:
+    npv = metrics.pysam_npv()
+    print(f"NPV: ${npv:,.0f}")
+except NotImplementedError as e:
+    print(e)
 
 
 # ### Real Levelized Cost of Energy (LCOE)
@@ -600,8 +604,11 @@ print(f"NPV: ${npv:,.0f}")
 # In[51]:
 
 
-lcoe = metrics.pysam_lcoe_real()
-print(f"Real LCOE: ${lcoe:,.2f}/kW")
+try:
+    lcoe = metrics.pysam_lcoe_real()
+    print(f"Real LCOE: ${lcoe:,.2f}/kW")
+except NotImplementedError as e:
+    print(e)
 
 
 # ### Nominal Levelized Cost of Energy (LCOE)
@@ -609,8 +616,11 @@ print(f"Real LCOE: ${lcoe:,.2f}/kW")
 # In[52]:
 
 
-lcoe = metrics.pysam_lcoe_nominal()
-print(f"Nominal LCOE: ${lcoe:,.2f}/kW")
+try:
+    lcoe = metrics.pysam_lcoe_nominal()
+    print(f"Nominal LCOE: ${lcoe:,.2f}/kW")
+except NotImplementedError as e:
+    print(e)
 
 
 # ### After-tax Internal Return Rate (IRR)
@@ -618,19 +628,32 @@ print(f"Nominal LCOE: ${lcoe:,.2f}/kW")
 # In[53]:
 
 
-npv = metrics.pysam_irr()
-print(f"IRR: {npv:,.1f}%")
+try:
+    npv = metrics.pysam_irr()
+    print(f"IRR: {npv:,.1f}%")
+except NotImplementedError as e:
+    print(e)
 
 
 # ### One Data Frame to Rule Them All
+#
+# For this demonstration we will manually load a PySAM settings file and trigger the setup for demonstration purposes, but it should be noted that this practice should be avoided.
 
 # In[54]:
+
+
+SAM_settings = "SAM_Singleowner_defaults.yaml"
+metrics.sam_settings = load_yaml(sim.env.data_dir / "windfarm", SAM_settings)
+metrics._setup_pysam()
+
+
+# In[55]:
 
 
 metrics.pysam_all_outputs()
 
 
-# In[55]:
+# In[56]:
 
 
 sim.env.cleanup_log_files(log_only=False)
