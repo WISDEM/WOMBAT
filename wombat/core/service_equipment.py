@@ -234,9 +234,8 @@ class ServiceEquipment:
                 repair.system_id, repair.subassembly_id
             )
         elif repair.details.operation_reduction == 0:
-            pass
+            subassembly.operating_level = starting_operating_level
         else:
-            subassembly.operating_level += starting_operating_level
             subassembly.operating_level /= 1 - repair.details.operation_reduction
 
     def wait_until_next_shift(self, **kwargs) -> Generator[Timeout, None, None]:
