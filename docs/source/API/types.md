@@ -30,11 +30,45 @@ simulation.
 .. autoclass:: wombat.core.data_classes.ServiceEquipmentData
    :members:
    :undoc-members:
+   :exclude-members: data_dict, strategy
+```
+
+
+## ServiceCrew
+```{eval-rst}
+.. autoclass:: wombat.core.data_classes.ServiceCrew
+   :members:
+   :undoc-members:
+   :exclude-members: n_day_rate, day_rate, n_hourly_rate, hourly_rate
+```
+
+
+## Scheduled Service Equipment
+```{eval-rst}
+.. autoclass:: wombat.core.data_classes.ScheduledServiceEquipmentData
+   :members:
+   :undoc-members:
    :exclude-members: name, equipment_rate, day_rate, n_day_rate, hourly_rate,
     n_hourly_rate, start_month, start_day, start_year, end_month, end_day, end_year,
     capability, mobilization_cost, mobilization_days, speed, max_windspeed_repair,
     max_windspeed_transport, max_waveheight_transport, max_waveheight_repair, onsite,
-    method, max_severity, operating_dates, create_date_range, workday_start, workday_end
+    method, max_severity, operating_dates, create_date_range, workday_start,
+    workday_end, crew, crew_transfer_time, n_crews, strategy
+```
+
+
+## Unscheduled Service Equipment
+```{eval-rst}
+.. autoclass:: wombat.core.data_classes.UnscheduledServiceEquipmentData
+   :members:
+   :undoc-members:
+   :exclude-members: name, equipment_rate, day_rate, n_day_rate, hourly_rate,
+    n_hourly_rate, start_month, start_day, start_year, end_month, end_day, end_year,
+    capability, mobilization_cost, mobilization_days, speed, max_windspeed_repair,
+    max_windspeed_transport, max_waveheight_transport, max_waveheight_repair, onsite,
+    method, max_severity, operating_dates, create_date_range, workday_start,
+    workday_end, crew, crew_transfer_time, n_crews, strategy, strategy_threshold,
+    charter_days
 ```
 
 

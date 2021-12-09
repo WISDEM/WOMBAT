@@ -1,7 +1,9 @@
-import codecs
-import os
+"""The package setup for installations."""
 
-from setuptools import find_packages, setup
+
+import os
+import codecs
+from setuptools import setup, find_packages
 
 
 def read(relative_path):
@@ -31,12 +33,15 @@ extra_package_requirements = {
         "pre-commit",
         "pylint",
         "flake8",
+        "flake8-docstrings",
         "black",
         "isort",
         "pytest",
         "pytest-cov",
         "pytest-xdist",
         "mypy",
+        "types-attrs",
+        "types-PyYAML",
     ],
     "docs": [
         "sphinx",

@@ -3,8 +3,8 @@
 
 import numpy as np
 import pandas as pd
+from typing import List, Union, Callable  # type: ignore
 from functools import reduce
-from typing import Callable, List, Union  # type: ignore
 
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.utilities import IEC_power_curve
@@ -175,8 +175,8 @@ class System:
         )
 
     def _initialize_power_curve(self, power_curve_dict: dict) -> None:
-        """Creates the power curve function based on the `power_curve` input in the
-        `subassembly_data` dictionary. If there is no valid input, then 0 will always
+        """Creates the power curve function based on the ``power_curve`` input in the
+        ``subassembly_data`` dictionary. If there is no valid input, then 0 will always
         be reutrned.
 
         Parameters

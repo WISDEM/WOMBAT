@@ -20,6 +20,8 @@ TIMEOUT = 24  # Wait time of 1 day for replacement to occur
 
 
 class Subassembly:
+    """A major system composes the turbine or substation objects."""
+
     def __init__(
         self,
         turbine,
@@ -38,7 +40,7 @@ class Subassembly:
         s_id : str
             A unique identifier for the subassembly within the turbine.
         subassembly_data : dict
-            A dictionary to be passed to `SubassemblyData` for creation and validation.
+            A dictionary to be passed to ``SubassemblyData`` for creation and validation.
         """
 
         self.env = env
@@ -87,7 +89,7 @@ class Subassembly:
                 pass
 
     def interrupt_all_subassembly_processes(self) -> None:
-        """Interrupts the running processes in all of the subassemblies within `turbine`.
+        """Interrupts the running processes in all of the subassemblies within ``turbine``.
 
         Parameters
         ----------

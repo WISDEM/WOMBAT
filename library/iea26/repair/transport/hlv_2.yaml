@@ -1,9 +1,5 @@
 name: Jack-up Vessel
 equipment_rate: 140000
-day_rate: 273.97  # 100000/yr
-n_day_rate: 0  # crew comes with the vessel
-hourly_rate: 0
-n_hourly_rate: 0
 start_month: 7
 start_day: 1
 end_month: 7
@@ -21,3 +17,11 @@ max_waveheight_transport: 2
 max_waveheight_repair: 2
 workday_start: 0
 workday_end: 24
+strategy: scheduled
+crew_transfer_time: 0.25
+n_crews: 1
+crew:
+  day_rate: 273.97  # 100000/yr
+  n_day_rate: 0  # crew comes with the vessel
+  hourly_rate: 0
+  n_hourly_rate: 0
