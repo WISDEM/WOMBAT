@@ -13,14 +13,11 @@
 # In[1]:
 
 
-from pathlib import Path  # a better path management system
-from pprint import pprint  # better print formatiting
-from time import perf_counter  # timing purposes only
-
 import numpy as np
 import pandas as pd
+from time import perf_counter  # timing purposes only
 
-from wombat.core import Configuration, Simulation
+from wombat.core import Simulation
 from wombat.core.library import DINWOODIE, load_yaml
 
 
@@ -362,7 +359,7 @@ pd.set_option("display.max_columns", 1000)
 # behaviors to that of an unscheduled maintenance model.
 #
 # For complete documentation of how the servicing equipment parameters are defined, please
-# see the [ServiceEquipment API documentation](../API/types.md#service-equipment)
+# see the [ServiceEquipmentData API documentation](../API/types.md#service-equipment)
 #
 # Below is an definition of the different equipment codes and their designations to show
 # the breadth of what can be simulated.
@@ -387,6 +384,21 @@ pd.set_option("display.max_columns", 1000)
 #
 # DSV
 # : diving support vessel
+#
+# In addition to a variety of servicing equipment types, there is support for
+# 3 different equipment-level dispatch strategies, as described below. For a set of
+# example scenarios, please see the [strategy demonstration](strategy_demonstration.ipynb).
+#
+# scheduled
+# : dispatch servicing equipment for a specified date range each year
+#
+# requests
+# : dispatch the servicing equipment once a `strategy_threshold` number of requests
+#   that the equipment can service has been reached
+#
+# downtime
+# : dispatch the servicing equipment once the windfarm's operating level reaches the
+#   `strategy_threshold` percent operating has been reached.
 #
 #
 # ## Set Up the Simulation
@@ -425,21 +437,21 @@ for k, v in config.items():
 
 # ## Instantiate the simulation
 #
-# There are two ways that this could be done, the first is to use the classmethod `Simulation.from_inputs()`, and the second is through a standard class initialization.
+# There are two ways that this could be done, the first is to use the classmethod `Simulation.from_config()`, which allows for the full path string, a dictionary, or ``Configuration`` object to passed as an input, and the second is through a standard class initialization.
 
 # In[4]:
 
 
 # Option 1
-sim = Simulation.from_inputs(**config)
+sim = Simulation.from_config(config)
 
 # Delete the .log files that get initialized
 sim.env.cleanup_log_files(log_only=True)
 
 # Option 2
 # Note here that a string "DINWOODIE" is passed because the Simulation class knows to
-# retrieve the appropriate path
-simulation_name = "example_dinwoodie"
+# retrieve the appropriate path, and that the simulation_name matches the configuration
+simulation_name = "dinwoodie_base"
 sim = Simulation(name=simulation_name, library_path="DINWOODIE", config="base.yaml")
 
 
@@ -455,7 +467,7 @@ sim = Simulation(name=simulation_name, library_path="DINWOODIE", config="base.ya
 # to results aggregation without any further code.
 #
 # ```{warning}
-# It should be noted at this stage that a run time that isn't divisible by 8760 (hours in a year), the run will fail at the end due to the `Metrics` class's reliance on PySAM at the initialization stage. This will be worked out in later iterations.
+# It should be noted at this stage that if a PySAM input file is specified AND a run time that isn't divisible by 8760 (hours in a year), the run will fail at the end due to PySAM's requirements. This will be worked out in later iterations to remove both leap years present in the data (currently available) and remainder hours to cap it to the correct number of hours (future feature).
 #
 # Users should also be careful of leap years because the PySAM model cannot handle them,
 # though if Feb 29 is provided, it will be a part of the analysis and stripped out before

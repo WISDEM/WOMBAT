@@ -1,7 +1,7 @@
 name: dinwoodie_historic_weather
 library: DINWOODIE
 weather: alpha_ventus_weather_2002_2014.csv
-service_equipment: [ctv1.yaml, ctv2.yaml, ctv3.yaml, fsv.yaml, hlv_1.yaml, hlv_2.yaml, hlv_3.yaml]
+service_equipment: [ctv1.yaml, ctv2.yaml, ctv3.yaml, fsv_scheduled.yaml, hlv_1_scheduled.yaml, hlv_2_scheduled.yaml, hlv_3_scheduled.yaml]
 layout: layout.csv
 inflation_rate: 0
 fixed_costs: fixed_costs.yaml

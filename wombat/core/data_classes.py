@@ -1,13 +1,13 @@
 """Turbine and turbine component shared utilities."""
 
 
-import datetime  # type: ignore
-from math import fsum  # type: ignore
-from typing import Callable, Dict, List, Sequence, Union  # type: ignore
-
 import attr  # type: ignore
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
+import typing  # type: ignore
+import datetime  # type: ignore
+from math import fsum  # type: ignore
+from typing import Any, Dict, List, Union, Callable, Optional, Sequence  # type: ignore
 from scipy.stats import weibull_min  # type: ignore
 
 
@@ -16,7 +16,8 @@ HOURS_IN_DAY = 24
 
 
 def convert_to_list(
-    value: Union[Sequence, Union[str, int, float]], manipulation: Callable = None
+    value: Union[Sequence, Union[str, int, float]],
+    manipulation: Optional[Union[Callable, None]] = None,
 ):
     """Converts an unknown element that could be a list or single, non-sequence element
     to a list of elements.
@@ -39,6 +40,54 @@ def convert_to_list(
     if manipulation is not None:
         return [manipulation(el) for el in value]
     return list(value)
+
+
+def str_lower(value: str) -> str:
+    """Converts a string to all lower case.
+
+    Parameters
+    ----------
+    value : str
+        The string to turn to lower case.
+
+    Returns
+    -------
+    str
+        The lower case string.
+    """
+    return value.lower()
+
+
+def str_upper(value: str) -> str:
+    """Converts a string to all upper case.
+
+    Parameters
+    ----------
+    value : str
+        The string to turn to upper case.
+
+    Returns
+    -------
+    str
+        The upper case string.
+    """
+    return value.upper()
+
+
+def clean_string_input(value: str) -> str:
+    """Converts a string to lower case and and removes leading and trailing white spaces.
+
+    Parameters
+    ----------
+    value: str
+        The user input string.
+
+    Returns
+    -------
+    str
+        value.lower().strip()
+    """
+    return value.lower().strip()
 
 
 def annual_date_range(
@@ -69,7 +118,7 @@ def annual_date_range(
     Yields
     -------
     np.ndarray
-        A `numpy.ndarray` of `datetime.date` objects.
+        A ``numpy.ndarray`` of ``datetime.date`` objects.
     """
     date_ranges = []
     if end_month >= start_month:
@@ -99,7 +148,7 @@ def convert_ratio_to_absolute(
     Parameters
     ----------
     ratio : Union[int, float]
-        The proportional materials cost for a `Maintenance` or `Failure`.
+        The proportional materials cost for a ``Maintenance`` or ``Failure``.
     total: Union[int, float]
         The turbine's replacement cost.
 
@@ -114,8 +163,116 @@ def convert_ratio_to_absolute(
     return ratio
 
 
+def valid_hour(
+    instance: Any, attribute: attr.Attribute, value: int  # pylint: disable=W0613
+) -> None:
+    """Validator that ensures that the input is a valid time or null value.
+
+    Parameters
+    ----------
+    instance : Any
+        A class object.
+    attribute : attr.Attribute
+        The attribute being validated.
+    value : int
+        A whole number, hour of the day or -1 (null).
+
+    Raises
+    ------
+    ValueError
+        Raised if ``value`` is not between -1 and 24, inclusive.
+    """
+    if not -1 <= value <= 24:
+        raise ValueError(f"Input {attribute.name} must be between 0 and 24, inclusive.")
+
+
+def check_capability(
+    instance: Any,  # pylint: disable=W0613
+    attribute: attr.Attribute,
+    value: Union[str, List[str]],
+) -> None:
+    """Validator that ensures capability has a valid input.
+
+    Parameters
+    ----------
+    instance : Any
+        A class object.
+    attribute : attr.Attribute
+        The attribute being validated.
+    value : Union[str, List[str]]
+        The servicing equipment's capability. Should be one of the following:
+         - CTV: crew transfer vehicle/vessel
+         - SCN: small crane
+         - LCN: large crane
+         - CAB: cabling equipment/vessel
+         - RMT: remote reset
+         - DRN: drone
+         - DSV: diving support vessel
+
+    Raises
+    ------
+    ValueError
+        Raised if the input is not of the valid inputs.
+    """
+    valid = set(("CTV", "SCN", "LCN", "CAB", "RMT", "DRN", "DSV"))
+    values = set(convert_to_list(value, str.upper))
+    invalid = values - valid
+    if invalid:
+        raise ValueError(f"Input {attribute.name} must be any combination of {valid}.")
+
+
+def check_method(
+    instance: Any, attribute: attr.Attribute, value: str  # pylint: disable=W0613
+) -> None:
+    """Validator that ensures that method is a valid input.
+
+    Parameters
+    ----------
+    instance : Any
+        A class object.
+    attribute : attr.Attribute
+        The attribute being validated.
+    value : str
+        The priority method for retreiving the next repair. Should be one of:
+         - turbine: get all repairs on a turbine/system first, regardless of severity.
+         - severity: move from highest to lowest priority, regardless of location.
+
+    Raises
+    ------
+    ValueError
+        Raised ``value`` is not one of valid inputs.
+    """
+    valid = ("turbine", "severity")
+    if value not in valid:
+        raise ValueError(f"Input {attribute.name} must be one of {valid}.")
+
+
+@attr.s(auto_attribs=True)
+class FromDictMixin:
+    """A Mixin class to allow for kwargs overloading when a data class doesn't
+    have a specific parameter definied. This allows passing of larger dictionaries
+    to a data class without throwing an error.
+    """
+
+    @classmethod
+    @typing.no_type_check
+    def from_dict(cls, data: dict):
+        """Maps a data dictionary to an ``attr``-defined class.
+
+        Args:
+            data : dict
+                The data dictionary to be mapped.
+        Returns:
+            cls
+                The ``attr``-defined class.
+        """
+        return cls(  # type: ignore
+            **{a.name: data[a.name] for a in cls.__attrs_attrs__ if a.name in data}
+        )
+
+
 @attr.s(frozen=True, auto_attribs=True)
-class Maintenance:
+class Maintenance(FromDictMixin):
     """Data class to store maintenance data used in subassembly and cable modeling.
 
     Parameters
@@ -127,7 +284,7 @@ class Maintenance:
     frequency : float
         Optimal number of days between performing maintenance, in days.
     service_equipment: Union[List[str], str]
-        Any combination of the `Equipment.capability` options.
+        Any combination of the ``Equipment.capability`` options.
          - RMT: remote (no actual equipment BUT no special implementation)
          - DRN: drone
          - CTV: crew transfer vessel/vehicle
@@ -144,12 +301,14 @@ class Maintenance:
     time: float
     materials: float
     frequency: float
-    service_equipment: Union[List[str], str]
+    service_equipment: List[str] = attr.ib(
+        converter=convert_to_list, validator=check_capability
+    )
     system_value: Union[int, float]
     description: str = "routine maintenance"
-    level: int = 0
     operation_reduction: float = 0.0
     request_id: str = attr.ib(init=False)
+    level: int = attr.ib(default=0, init=False)
 
     def __attrs_post_init__(self):
         """Convert frequency to hours (simulation time scale) and the equipment
@@ -173,13 +332,13 @@ class Maintenance:
         Parameters
         ----------
         request_id : str
-            The `wombat.core.RepairManager` generated identifier.
+            The ``wombat.core.RepairManager`` generated identifier.
         """
         object.__setattr__(self, "request_id", request_id)
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class Failure:
+class Failure(FromDictMixin):
     """Data class to store failure data used in subassembly and cable modeling.
 
     Parameters
@@ -195,10 +354,10 @@ class Failure:
     operation_reduction : float
         Performance reduction caused by the failure, between (0, 1].
     level : int, optional
-        Level of severity, will be generated in the `ComponentData.create_severities`
+        Level of severity, will be generated in the ``ComponentData.create_severities``
         method.
     service_equipment: Union[List[str], str]
-        Any combination of the `Equipment.capability` options.
+        Any combination of the ``Equipment.capability`` options.
          - RMT: remote (no actual equipment BUT no special implementation)
          - DRN: drone
          - CTV: crew transfer vessel/vehicle
@@ -218,7 +377,9 @@ class Failure:
     materials: float
     operation_reduction: float
     level: int
-    service_equipment: Union[List[str], str]
+    service_equipment: Union[List[str], str] = attr.ib(
+        converter=convert_to_list, validator=check_capability
+    )
     system_value: Union[int, float]
     description: str = "failure"
     weibull: weibull_min = attr.ib(init=False)
@@ -241,14 +402,14 @@ class Failure:
         )
 
     def hours_to_next_failure(self) -> Union[None, float]:
-        """Samples the next time to failure in a Weibull distribution. If the `scale`
-        and `shape` parameters are set to 0, then the model will return `None` to cause
+        """Samples the next time to failure in a Weibull distribution. If the ``scale``
+        and ``shape`` parameters are set to 0, then the model will return ``None`` to cause
         the subassembly to timeout to the end of the simulation.
 
         Returns
         -------
         Union[None, float]
-            Returns `None` for a non-modelled failure, or the time until the next
+            Returns ``None`` for a non-modelled failure, or the time until the next
             simulated failure.
         """
         if self.scale == self.shape == 0:
@@ -262,13 +423,13 @@ class Failure:
         Parameters
         ----------
         request_id : str
-            The `wombat.core.RepairManager` generated identifier.
+            The ``wombat.core.RepairManager`` generated identifier.
         """
         object.__setattr__(self, "request_id", request_id)
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class SubassemblyData:
+class SubassemblyData(FromDictMixin):
     """Data storage and validation class for the subassemblies.
 
     Parameters
@@ -277,10 +438,10 @@ class SubassemblyData:
         Name of the component/subassembly.
     maintenance : List[Dict[str, Union[float, str]]]
         List of the maintenance classification dictionaries. This will be converted
-        to a list of `Maintenance` objects in the post initialization hook.
+        to a list of ``Maintenance`` objects in the post initialization hook.
     failures : Dict[int, Dict[str, Union[float, str]]]
         Dictionary of failure classifications in a numerical (ordinal) categorization
-        order. This will be converted to a dictionary of `Failure` objects in the
+        order. This will be converted to a dictionary of ``Failure`` objects in the
         post initialization hook.
     system_value : Union[int, float]
         Turbine's cost of replacement. Used in case percentages of turbine cost are used
@@ -288,52 +449,51 @@ class SubassemblyData:
     """
 
     name: str
-    maintenance: List[Dict[str, Union[float, str]]]
-    failures: Dict[int, Dict[str, Union[float, str]]]
+    maintenance: List[Union[Maintenance, Dict[str, Union[float, str]]]]
+    failures: Dict[int, Union[Failure, Dict[str, Union[float, str]]]]
     system_value: Union[int, float]
 
     def __attrs_post_init__(self):
-        """Converts the maintenance and failure data to `Maintenance` and `Failure` objects, respectively."""
+        """Converts the maintenance and failure data to ``Maintenance`` and ``Failure`` objects, respectively."""
+        for kwargs in self.maintenance:
+            assert isinstance(kwargs, dict)
+            kwargs.update({"system_value": self.system_value})
         object.__setattr__(
-            self,
-            "maintenance",
-            [
-                Maintenance(**el, **{"system_value": self.system_value})
-                for el in self.maintenance
-            ],
+            self, "maintenance", [Maintenance.from_dict(kw) for kw in self.maintenance]
         )
+
+        for kwargs in self.failures.values():  # type: ignore
+            assert isinstance(kwargs, dict)
+            kwargs.update({"system_value": self.system_value})
         object.__setattr__(
             self,
             "failures",
-            {
-                level: Failure(**values, **{"system_value": self.system_value})
-                for level, values in self.failures.items()
-            },
+            {level: Failure.from_dict(kw) for level, kw in self.failures.items()},
         )
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class RepairRequest:
+class RepairRequest(FromDictMixin):
     """Repair/Maintenance request data class.
 
     Parameters
     ----------
     system_id : str
-        `System.id`.
+        ``System.id``.
     system_name : str
-        `System.name`.
+        ``System.name``.
     subassembly_id : str
-        `Subassembly.id`.
+        ``Subassembly.id``.
     subassembly_name : str
-        `Subassembly.name`.
+        ``Subassembly.name``.
     severity_level : int
-        `Maintenance.level` or `Failure.level`.
+        ``Maintenance.level`` or ``Failure.level``.
     details : Union[Failure, Maintenance]
         The actual data class.
     cable : bool
         Indicator that the request is for a cable, by default False.
     upstream_turbines : List[str]
-        The cable's upstream turbines, by default []. No need to use this if `cable` == False.
+        The cable's upstream turbines, by default []. No need to use this if ``cable`` == False.
     """
 
     system_id: str
@@ -352,15 +512,38 @@ class RepairRequest:
         Parameters
         ----------
         request_id : str
-            The `wombat.core.RepairManager` generated identifier.
+            The ``wombat.core.RepairManager`` generated identifier.
         """
         object.__setattr__(self, "request_id", request_id)
         self.details.assign_id(request_id)
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class ServiceEquipmentData:
-    """Crew data class.
+class ServiceCrew(FromDictMixin):
+    """An internal data class for the indivdual crew units that are on the servicing equipment.
+
+    Parameters
+    ----------
+    n_day_rate: int
+        Number of salaried workers.
+    day_rate: float
+        Day rate for salaried workers, in USD.
+    n_hourly_rate: int
+        Number of hourly/subcontractor workers.
+    hourly_rate: float
+        Hourly labor rate for subcontractors, in USD.
+    """
+
+    n_day_rate: int = attr.ib(converter=int)
+    day_rate: float = attr.ib(converter=float)
+    n_hourly_rate: int = attr.ib(converter=int)
+    hourly_rate: float = attr.ib(converter=float)
+
+
+@attr.s(frozen=True, auto_attribs=True)
+class ScheduledServiceEquipmentData(FromDictMixin):
+    """The data class specification for servicing equipment that will use a pre-scheduled
+    basis for returning to site.
 
     Parameters
     ----------
@@ -368,14 +551,12 @@ class ServiceEquipmentData:
         Name of the piece of servicing equipment.
     equipment_rate: float
         Day rate for the equipment/vessel, in USD.
-    day_rate: float
-        Day rate for salaried workers, in USD.
-    n_day_rate: int
-        Number of salaried workers.
-    hourly_rate: float
-        Hourly labor rate for subcontractors, in USD.
-    n_hourly_rate: int
-        Number of hourly/subcontractor workers.
+    n_crews : int
+        Number of crew units for the equipment.
+        .. note: the input to this does not matter yet, as multi-crew functionality
+        is not yet implemented.
+    crew : ServiceCrew
+        The crew details, see ``ServiceCrew`` for more information.
     start_month : int
         The day to start operations for the rig and crew.
     start_day : int
@@ -417,6 +598,10 @@ class ServiceEquipmentData:
         The starting hour of a workshift, in 24 hour time.
     workday_end : int
         The ending hour of a workshift, in 24 hour time.
+    crew_transfer_time : float
+        The number of hours it takes to transfer the crew from the equipment to the
+        system, e.g. how long does it take to transfer the crew from the CTV to the turbine,
+        default 0.
     onsite : bool
         Indicator for if the rig and crew are based onsite.
         ... note:: if the rig and crew are onsite be sure that the start and end dates
@@ -426,73 +611,42 @@ class ServiceEquipmentData:
         Determines if the ship will do all maximum severity repairs first or do all
         the repairs at one turbine before going to the next, by default severity.
         Should by one of "severity" or "turbine".
-    max_severity : int
-        Maximum severity failure that a crew can service, default None.
     """
 
-    name: str
-    equipment_rate: float
-    day_rate: float
-    n_day_rate: int
-    hourly_rate: float
-    n_hourly_rate: int
-    start_month: int
-    start_day: int
-    start_year: int
-    end_month: int
-    end_day: int
-    end_year: int
-    capability: Union[List[str], str] = attr.ib()
-    mobilization_cost: float
-    mobilization_days: int
-    speed: float
-    max_windspeed_transport: float
-    max_windspeed_repair: float
-    max_waveheight_transport: float = attr.ib(default=1000)
-    max_waveheight_repair: float = attr.ib(default=1000)
-    workday_start: int = attr.ib(default=-1)
-    workday_end: int = attr.ib(default=-1)
-    onsite: bool = attr.ib(default=False)
-    method: str = attr.ib(default="severity")
-    max_severity: int = attr.ib(default=None)
+    name: str = attr.ib(converter=str)
+    equipment_rate: float = attr.ib(converter=float)
+    n_crews: int = attr.ib(converter=int)
+    crew: ServiceCrew = attr.ib(converter=ServiceCrew.from_dict)  # type: ignore
+    start_month: int = attr.ib(converter=int)
+    start_day: int = attr.ib(converter=int)
+    start_year: int = attr.ib(converter=int)
+    end_month: int = attr.ib(converter=int)
+    end_day: int = attr.ib(converter=int)
+    end_year: int = attr.ib(converter=int)
+    capability: Union[List[str], str] = attr.ib(
+        converter=convert_to_list, validator=check_capability
+    )
+    mobilization_cost: float = attr.ib(converter=float)
+    mobilization_days: int = attr.ib(converter=int)
+    speed: float = attr.ib(converter=float)
+    max_windspeed_transport: float = attr.ib(converter=float)
+    max_windspeed_repair: float = attr.ib(converter=float)
+    max_waveheight_transport: float = attr.ib(default=1000.0, converter=float)
+    max_waveheight_repair: float = attr.ib(default=1000.0, converter=float)
+    workday_start: int = attr.ib(default=-1, converter=int, validator=valid_hour)
+    workday_end: int = attr.ib(default=-1, converter=int, validator=valid_hour)
+    crew_transfer_time: float = attr.ib(converter=float, default=0.0)
+    onsite: bool = attr.ib(default=False, converter=bool)
+    method: str = attr.ib(  # type: ignore
+        default="severity",
+        converter=[str, str_lower],  # type: ignore
+        validator=check_method,
+    )
     operating_dates: np.ndarray = attr.ib(init=False)
-
-    @workday_start.validator
-    def _check_workday_start(self, attribute, value) -> None:
-        """Ensures that the workday_start is a valid time."""
-        if not -1 <= value <= 24:
-            raise ValueError(
-                "Input 'workday_start' must be between 0 and 24, inclusive."
-            )
-
-    @workday_end.validator
-    def _check_workday_end(self, attribute, value) -> None:
-        """Ensures that the workday_end is a valid time."""
-        if value == -1:
-            return
-        if not 0 <= value <= 24 or value <= self.workday_start:
-            raise ValueError(
-                "Input 'workday_end' must be between 0 and 24, inclusive, and after workday_start"
-            )
-
-    @capability.validator
-    def _check_capability(self, attribute, value) -> None:
-        """Ensures that capability has a valid input."""
-        valid = set(("CTV", "SCN", "LCN", "CAB", "RMT", "DRN", "DSV"))
-        values = set(convert_to_list(value, str.upper))
-        invalid = values - valid
-        if invalid:
-            raise ValueError(f"Input 'capability' must be any combination of {valid}.")
-
-    @method.validator
-    def _check_method(self, attribute, value) -> None:
-        """Ensures that method is a valid input."""
-        valid = ("turbine", "severity")
-        if value.lower() not in valid:
-            raise ValueError(f"Input 'method' must be one of {valid}.")
+    strategy: str = attr.ib(default="scheduled")
 
     def create_date_range(self) -> np.ndarray:
-        """Creates an `np.ndarray` of valid operational dates for the service equipment."""
+        """Creates an ``np.ndarray`` of valid operational dates for the service equipment."""
         start_date = datetime.datetime(
             self.start_year, self.start_month, self.start_day
         )
@@ -511,7 +665,7 @@ class ServiceEquipmentData:
         return date_range
 
     def _set_environment_shift(self, start: int, end: int) -> None:
-        """Used to set the `workday_start` and `workday_end` to the environment's values.
+        """Used to set the ``workday_start`` and ``workday_end`` to the environment's values.
 
         Parameters
         ----------
@@ -527,12 +681,257 @@ class ServiceEquipmentData:
         object.__setattr__(
             self, "capability", convert_to_list(self.capability, str.upper)
         )
-        object.__setattr__(self, "method", self.method.lower())
         object.__setattr__(self, "operating_dates", self.create_date_range())
 
 
 @attr.s(frozen=True, auto_attribs=True)
-class FixedCosts:
+class UnscheduledServiceEquipmentData(FromDictMixin):
+    """The data class specification for servicing equipment that will use either a
+    basis of windfarm downtime or total number of requests serviceable by the equipment.
+
+    Parameters
+    ----------
+    name: str
+        Name of the piece of servicing equipment.
+    equipment_rate: float
+        Day rate for the equipment/vessel, in USD.
+    n_crews : int
+        Number of crew units for the equipment.
+        .. note: the input to this does not matter yet, as multi-crew functionality
+        is not yet implemented.
+    crew : ServiceCrew
+        The crew details, see ``ServiceCrew`` for more information.
+    charter_days : int
+        The number of days the servicing equipment can be chartered for.
+    capability : str
+        The type of capabilities the equipment contains. Must be one of:
+         - RMT: remote (no actual equipment BUT no special implementation)
+         - DRN: drone
+         - CTV: crew transfer vessel/vehicle
+         - SCN: small crane (i.e., field support vessel)
+         - LCN: large crane (i.e., heavy lift vessel)
+         - CAB: cabling vessel/vehicle
+         - DSV: diving support vessel
+    mobilization_cost : float
+        Cost to mobilize the rig and crew.
+    mobilization_days : int
+        Number of days it takes to mobilize the equipment.
+    speed : float
+        Maximum transit speed, km/hr.
+    max_windspeed_transport : float
+        Maximum windspeed for safe transport, m/s.
+    max_windspeed_repair : float
+        Maximum windspeed for safe operations, m/s.
+    max_waveheight_transport : float
+        Maximum waveheight for safe transport, m, default 1000 (land-based).
+    max_waveheight_repair : float
+        Maximum waveheight for safe operations, m, default 1000 (land-based).
+    strategy : str
+        For any unscheduled maintenance servicing equipment, this determines the
+        strategy for dispatching. Should be on of "downtime" or "requests".
+    strategy_threshold : str
+        For downtime-based scenarios, this is based on the operating level, and should
+        be in the range (0, 1). For reqest-based scenarios, this is the maximum number
+        of requests that are allowed to build up for any given type of unscheduled
+        servicing equipment, should be an integer >= 1.
+    workday_start : int
+        The starting hour of a workshift, in 24 hour time.
+    workday_end : int
+        The ending hour of a workshift, in 24 hour time.
+    crew_transfer_time : float
+        The number of hours it takes to transfer the crew from the equipment to the
+        system, e.g. how long does it take to transfer the crew from the CTV to the turbine,
+        default 0.
+    onsite : bool
+        Indicator for if the rig and crew are based onsite.
+        ... note:: if the rig and crew are onsite be sure that the start and end dates
+        represent the first and last day/month of the year, respectively, and the start
+        and end years represent the fist and last year in the weather file.
+    method : str
+        Determines if the ship will do all maximum severity repairs first or do all
+        the repairs at one turbine before going to the next, by default severity.
+        Should by one of "severity" or "turbine".
+    """
+
+    name: str = attr.ib(converter=str)
+    equipment_rate: float = attr.ib(converter=float)
+    n_crews: int = attr.ib(converter=int)
+    crew: ServiceCrew = attr.ib(converter=ServiceCrew.from_dict)  # type: ignore
+    charter_days: int = attr.ib(converter=int)
+    capability: Union[List[str], str] = attr.ib(
+        converter=convert_to_list, validator=check_capability
+    )
+    mobilization_cost: float = attr.ib(converter=float)
+    mobilization_days: int = attr.ib(converter=int)
+    speed: float = attr.ib(converter=float)
+    max_windspeed_transport: float = attr.ib(converter=float)
+    max_windspeed_repair: float = attr.ib(converter=float)
+    strategy: str = attr.ib(converter=clean_string_input)
+    strategy_threshold: Union[int, float] = attr.ib()
+    max_waveheight_transport: float = attr.ib(default=1000)
+    max_waveheight_repair: float = attr.ib(default=1000)
+    workday_start: int = attr.ib(default=-1, converter=int, validator=valid_hour)
+    workday_end: int = attr.ib(default=-1, converter=int, validator=valid_hour)
+    crew_transfer_time: float = attr.ib(converter=float, default=0.0)
+    onsite: bool = attr.ib(default=False)
+    method: str = attr.ib(  # type: ignore
+        default="severity",
+        converter=[str, str_lower],  # type: ignore
+        validator=check_method,
+    )
+
+    @strategy.validator  # type: ignore
+    def _validate_strategy(  # pylint: disable=R0201
+        self, attribute: attr.Attribute, value: str  # pylint: disable=W0613
+    ) -> None:
+        """Determines if the provided strategy is valid"""
+        valid = ("requests", "downtime")
+        if value not in valid:
+            raise ValueError(
+                "``strategy`` for unscheduled servicing equipment must be one of",
+                "'requests' or 'downtime'!",
+            )
+
+    @strategy_threshold.validator  # type: ignore
+    def _validate_threshold(
+        self,
+        attribute: attr.Attribute,  # pylint: disable=W0613
+        value: Union[int, float],
+    ) -> None:
+        """Ensures a valid threshold is provided for a given ``strategy``."""
+        if not isinstance(value, (int, float)):
+            raise TypeError("``strategy_threshold`` must be an ``int`` or ``float``!")
+
+        if self.strategy == "downtime":
+            if value <= 0 or value >= 1:
+                raise ValueError(
+                    "Downtime-based strategies must have a ``strategy_threshold``",
+                    "between 0 and 1, non-inclusive!",
+                )
+        if self.strategy == "requests":
+            if value <= 0:
+                raise ValueError(
+                    "Requests-based strategies must have a ``strategy_threshold``",
+                    "greater than 0!",
+                )
+
+    def _set_environment_shift(self, start: int, end: int) -> None:
+        """Used to set the ``workday_start`` and ``workday_end`` to the environment's values.
+
+        Parameters
+        ----------
+        start : int
+            Starting hour of a workshift.
+        end : int
+            Ending hour of a workshift.
+        """
+        object.__setattr__(self, "workday_start", start)
+        object.__setattr__(self, "workday_end", end)
+
+    def __attrs_post_init__(self) -> None:
+        object.__setattr__(
+            self, "capability", convert_to_list(self.capability, str.upper)
+        )
+
+
+@attr.s(frozen=True, auto_attribs=True)
+class ServiceEquipmentData(FromDictMixin):
+    """Helps to determine the type ServiceEquipment that should be used, based on the
+    repair strategy for its operation. See
+    :py:class:`~data_classes.ScheduledServiceEquipmentData` or
+    :py:class:`~data_classes.UnscheduledServiceEquipmentData` for more details on each
+    classifcation.
+
+    Parameters
+    ----------
+    data_dict : dict
+        The dictionary that will be used to create the appropriate ServiceEquipmentData.
+        This should contain a field called 'strategy' with either "scheduled" or
+        "unscheduled" as a value if strategy is not provided as a keyword argument.
+    strategy : str, optional
+        Should be one of "scheduled", "requests", "downtime". If nothing is provided,
+        the equipment configuration will be checked.
+
+    Raises
+    ------
+    ValueError
+        If ``strategy`` is not one of "scheduled" or "unscheduled" an error will be raised.
+
+    Examples
+    --------
+    The below workflow is how a new data :py:class:`~data_classes.ScheduledServiceEquipmentData`
+    object could be created via a generic/routinized creation method, and is how the
+    :py:class:`~service_equipment.ServiceEquipment`'s ``__init__`` method creates the
+    settings data.
+
+    >>> from wombat.core.data_classes import  ServiceEquipmentData
+    >>>
+    >>> data_dict = {
+    >>>     "name": "Crew Transfer Vessel 1",
+    >>>     "equipment_rate": 1750,
+    >>>     "start_month": 1,
+    >>>     "start_day": 1,
+    >>>     "end_month": 12,
+    >>>     "end_day": 31,
+    >>>     "start_year": 2002,
+    >>>     "end_year": 2014,
+    >>>     "onsite": True,
+    >>>     "capability": "CTV",
+    >>>     "max_severity": 10,
+    >>>     "mobilization_cost": 0,
+    >>>     "mobilization_days": 0,
+    >>>     "speed": 37.04,
+    >>>     "max_windspeed_transport": 99,
+    >>>     "max_windspeed_repair": 99,
+    >>>     "max_waveheight_transport": 1.5,
+    >>>     "max_waveheight_repair": 1.5,
+    >>>     "strategy": scheduled,
+    >>>     "crew_transfer_time": 0.25,
+    >>>     "n_crews": 1,
+    >>>     "crew": {
+    >>>         "day_rate": 0,
+    >>>         "n_day_rate": 0,
+    >>>         "hourly_rate": 0,
+    >>>         "n_hourly_rate": 0,
+    >>>     },
+    >>> }
+    >>> equipment = ServiceEquipmentData(data_dict).determine_type()
+    """
+
+    data_dict: dict
+    strategy: str = attr.ib(kw_only=True, default=None)
+
+    def __attrs_post_init__(self):
+        if self.strategy is None:
+            object.__setattr__(
+                self, "strategy", clean_string_input(self.data_dict["strategy"])
+            )
+        if self.strategy not in ("scheduled", "requests", "downtime"):
+            raise ValueError(
+                "ServiceEquipment strategy should be one of 'scheduled' or 'unscheduled'."
+            )
+
+    def determine_type(
+        self,
+    ) -> Union[ScheduledServiceEquipmentData, UnscheduledServiceEquipmentData]:
+        """Generates the appropriate ServiceEquipmentData variation.
+
+        Returns
+        -------
+        Union[ScheduledServiceEquipmentData, UnscheduledServiceEquipmentData]
+            The appropriate ``xxServiceEquipmentData`` schema depending on the strategy the
+            ``ServiceEquipment`` will use.
+        """
+        if self.strategy == "scheduled":
+            return ScheduledServiceEquipmentData.from_dict(self.data_dict)
+        elif self.strategy in ("requests", "downtime"):
+            return UnscheduledServiceEquipmentData.from_dict(self.data_dict)
+        else:
+            raise ValueError("Invalid strategy provided!")
+
+
+@attr.s(frozen=True, auto_attribs=True)
+class FixedCosts(FromDictMixin):
     """The fixed costs for operating a windfarm. All values are assumed to be in $/kW/yr.
 
     Parameters
@@ -549,7 +948,7 @@ class FixedCosts:
         and marine activities.
 
         This should only be used when not breaking down the cost into the following
-        categories: `project_management_administration`,
+        categories: ``project_management_administration``,
         ``operation_management_administration``, ``marine_management``, and/or
         ``weather_forecasting``
 

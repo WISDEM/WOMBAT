@@ -1,11 +1,13 @@
 """Creates the Windfarm class/model."""
 
-import logging  # type: ignore
 import os  # type: ignore
-
-import networkx as nx  # type: ignore
+import numpy as np
 import pandas as pd  # type: ignore
+import logging  # type: ignore
+import networkx as nx  # type: ignore
+from math import fsum
 from geopy import distance  # type: ignore
+from itertools import chain, combinations
 
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.core.library import load_yaml
@@ -13,6 +15,11 @@ from wombat.windfarm.system import Cable, System
 
 
 class Windfarm:
+    """The primary class for operating on objects within a windfarm. The substations,
+    cables, and turbines are created as a network object to be more appropriately accessed
+    and controlled.
+    """
+
     def __init__(
         self,
         env: WombatEnvironment,
@@ -29,6 +36,10 @@ class Windfarm:
         self._create_turbines_and_substations()
         self._create_cables()
         self.capacity = sum(self.node_system(turb).capacity for turb in self.turbine_id)
+        self._create_substation_turbine_map()
+        self.calculate_distance_matrix()
+
+        self.repair_manager._register_windfarm(self)
 
         self.env.process(self._log_operations())
 
@@ -59,8 +70,7 @@ class Windfarm:
         windfarm_layout : str
             Filename to use for reading in the windfarm layout; must be a csv file.
         """
-        layout_path = os.path.join(self.env.data_dir, "windfarm", windfarm_layout)
-
+        layout_path = str(self.env.data_dir / "windfarm" / windfarm_layout)
         layout = (
             pd.read_csv(layout_path)
             .sort_values(by=["string", "order"])
@@ -111,7 +121,7 @@ class Windfarm:
                 )
 
             subassembly_dict = load_yaml(
-                os.path.join(self.env.data_dir, "windfarm"), data["subassembly"]
+                self.env.data_dir / "windfarm", data["subassembly"]
             )
             self.graph.nodes[system_id]["system"] = System(
                 self.env,
@@ -125,16 +135,18 @@ class Windfarm:
     def _create_cables(self) -> None:
         for start_node, end_node, data in self.graph.edges(data=True):
 
-            # If the real distance/cable length is not input, then the geodesic distance is calculated
+            start_coordinates = (
+                self.graph.nodes[start_node]["latitude"],
+                self.graph.nodes[start_node]["longitude"],
+            )
+            end_coordinates = (
+                self.graph.nodes[end_node]["latitude"],
+                self.graph.nodes[end_node]["longitude"],
+            )
+
+            # If the real distance/cable length is not input, then the geodesic distance
+            # is calculated
             if data["length"] == 0:
-                start_coordinates = (
-                    self.graph.nodes[start_node]["latitude"],
-                    self.graph.nodes[start_node]["longitude"],
-                )
-                end_coordinates = (
-                    self.graph.nodes[end_node]["latitude"],
-                    self.graph.nodes[end_node]["longitude"],
-                )
                 data["length"] = distance.geodesic(
                     start_coordinates, end_coordinates, ellipsoid="WGS-84"
                 ).km
@@ -151,7 +163,57 @@ class Windfarm:
                 upstream_turbines,
                 cable_dict,
             )
-        pass
+
+            # Calaculate the geometric center point
+            end_points = np.array((start_coordinates, end_coordinates))
+            data["latitude"], data["longitude"] = end_points.mean(axis=0)
+
+    def calculate_distance_matrix(self) -> None:
+        """Calculates hte geodesic distance, in km, between all of the windfarm's nodes, e.g.,
+        substations and turbines, and cables.
+        """
+        ids = list(self.graph.nodes())
+        ids.extend([data["cable"].id for *_, data in self.graph.edges(data=True)])
+        coords = [
+            (data["latitude"], data["longitude"])
+            for *_, data in (*self.graph.nodes(data=True), *self.graph.edges(data=True))
+        ]
+
+        dist = [distance.geodesic(c1, c2).km for c1, c2 in combinations(coords, 2)]
+        dist_arr = np.ones((len(ids), len(ids)))
+        triangle_ix = np.triu_indices_from(dist_arr, 1)
+        dist_arr[triangle_ix] = dist_arr.T[triangle_ix] = dist
+
+        # Set the self distance to infinity, so that only one crew can be dropped off
+        # at a single point
+        np.fill_diagonal(dist_arr, np.inf)
+
+        self.distance_matrix = pd.DataFrame(dist_arr, index=ids, columns=ids)
+
+    def _create_substation_turbine_map(self) -> None:
+        """Creates ``substation_turbine_map``, a dictionary, that maps substation(s) to
+        the dependent turbines in the windfarm, and the weighting of each turbine in the
+        windfarm.
+        """
+        # Get all turbines dependent on each substation
+        s_t_map = {
+            s_id: list(
+                chain.from_iterable(nx.dfs_successors(self.graph, source=s_id).values())
+            )
+            for s_id in self.substation_id
+        }
+
+        # Reorient the mapping to have the turbine list and the capacity-based weighting
+        # of each turbine
+        s_t_map = {
+            s_id: dict(  # type: ignore
+                turbines=np.array(s_t_map[s_id]),
+                weights=np.array([self.node_system(t).capacity for t in s_t_map[s_id]])
+                / self.capacity,
+            )
+            for s_id in s_t_map
+        }
+        self.substation_turbine_map = s_t_map
 
     def _log_operations(self):
         """Logs the operational data for a simulation."""
@@ -167,12 +229,9 @@ class Windfarm:
 
         message = [self.env.simulation_time, self.env.now]
         message.extend(
-            [
-                self.graph.nodes[system]["system"].operating_level
-                for system in system_list
-            ]
+            [self.node_system(system).operating_level for system in system_list]
         )
-        message = " :: ".join((f"{m}" for m in message))
+        message = " :: ".join((f"{m}" for m in message))  # type: ignore
         self.env._operations_logger.info(message)
 
         HOURS = 1
@@ -181,7 +240,7 @@ class Windfarm:
             message = [self.env.simulation_time, self.env.now] + [
                 self.node_system(system).operating_level for system in system_list
             ]
-            message = " :: ".join(f"{m}" for m in message)
+            message = " :: ".join(f"{m}" for m in message)  # type: ignore
             self.env._operations_logger.info(message)
 
     def node_system(self, system_id: str) -> System:
@@ -190,11 +249,46 @@ class Windfarm:
         Parameters
         ----------
         system_id : str
-            The system's unique identifier, `wombat.windfarm.System.id`.
+            The system's unique identifier, ``wombat.windfarm.System.id``.
 
         Returns
         -------
         System
-            The `System` object.
+            The ``System`` object.
         """
         return self.graph.nodes[system_id]["system"]
+
+    @property
+    def current_availability(self) -> float:
+        """Calculates the product of all system ``operating_level`` variables across the
+        windfarm using the following forumation
+
+        .. math::
+            \sum{
+                OperatingLevel_{substation_{i}} *
+                \sum{OperatingLevel_{turbine_{j}} * Weight_{turbine_{j}}}
+            }
+
+        where the :math:``{OperatingLevel}`` is the product of the operating level
+        of each subassembly on a given system (substation or turbine), and the
+        :math:``{Weight}`` is the proportion of one turbine's capacity relative to
+        the whole windfarm.
+        """  # noqa: W605
+        operating_levels = {
+            s_id: [
+                self.node_system(t).operating_level
+                for t in self.substation_turbine_map[s_id]["turbines"]  # type: ignore
+            ]
+            for s_id in self.substation_turbine_map
+        }
+        availability = fsum(
+            [
+                self.node_system(s_id).operating_level
+                * fsum(
+                    operating_levels[s_id]
+                    * self.substation_turbine_map[s_id]["weights"]  # type: ignore
+                )
+                for s_id in self.substation_turbine_map
+            ]
+        )
+        return availability

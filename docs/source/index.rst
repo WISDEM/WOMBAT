@@ -71,6 +71,7 @@ Welcome
    team
 
 
+
 Using WOMBAT
 ------------
 
@@ -80,6 +81,7 @@ Using WOMBAT
 
    examples/index
    API/index
+   changelog
 
 
 License

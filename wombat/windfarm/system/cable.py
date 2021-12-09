@@ -1,10 +1,9 @@
 """"Creates the Cable class."""
 
 
-from typing import Generator, List  # type: ignore
-
 import numpy as np  # type: ignore
 import simpy  # type: ignore
+from typing import List, Generator  # type: ignore
 
 from wombat.core import (
     Failure,
@@ -26,16 +25,16 @@ class Cable:
 
     Parameters
     ----------
-    windfarm : `wombat.windfarm.Windfarm`
-        The `Windfarm` object.
+    windfarm : ``wombat.windfarm.Windfarm``
+        The ``Windfarm`` object.
     env : WombatEnvironment
         The simulation environment.
     cable_id : str
         The unique identifier for the cable.
     start_node : str
-        The starting point (`system.id`) (turbine or substation) of the cable segment.
+        The starting point (``system.id``) (turbine or substation) of the cable segment.
     upstream_nodes : List[str]
-        The list of upstream system ids (`system.id`) that rely on the cable segment.
+        The list of upstream system ids (``system.id``) that rely on the cable segment.
     cable_data : dict
         The dictionary defining the cable segment.
     """
@@ -49,20 +48,20 @@ class Cable:
         upstream_nodes: List[str],
         cable_data: dict,
     ) -> None:
-        """Initializes the `Cable` class.
+        """Initializes the ``Cable`` class.
 
         Parameters
         ----------
-        windfarm : `wombat.windfarm.Windfarm`
-            The `Windfarm` object.
+        windfarm : ``wombat.windfarm.Windfarm``
+            The ``Windfarm`` object.
         env : WombatEnvironment
             The simulation environment.
         cable_id : str
             The unique identifier for the cable.
         start_node : str
-            The starting point (`system.id`) (turbine or substation) of the cable segment.
+            The starting point (``system.id``) (turbine or substation) of the cable segment.
         upstream_nodes : List[str]
-            The list of upstream system ids (`system.id`) that rely on the cable segment.
+            The list of upstream system ids (``system.id``) that rely on the cable segment.
         cable_data : dict
             The dictionary defining the cable segment.
         """
@@ -77,7 +76,7 @@ class Cable:
         self.upstream_nodes = upstream_nodes
 
         cable_data = {**cable_data, "system_value": self.turbine.value}
-        self.data = SubassemblyData(**cable_data)
+        self.data = SubassemblyData.from_dict(cable_data)
         self.name = self.data.name
 
         self.downstream_failure = False
@@ -120,7 +119,7 @@ class Cable:
                 pass
 
     def interrupt_all_subassembly_processes(self) -> None:
-        """Interrupts the running processes in all of the subassemblies within `turbine`.
+        """Interrupts the running processes in all of the subassemblies within ``turbine``.
 
         Parameters
         ----------
@@ -132,12 +131,12 @@ class Cable:
 
     def stop_all_upstream_processes(self, failure: Failure) -> None:
         """Stops all upstream turbines from producing power by setting their
-        `System.cable_failure` to `True`.
+        ``System.cable_failure`` to ``True``.
 
         Parameters
         ----------
         failure : Failre
-            The `Failure` that is causing a string shutdown.
+            The ``Failure`` that is causing a string shutdown.
         """
         for i, system_id in enumerate(self.upstream_nodes):
             node = self.windfarm.graph.nodes[system_id]["system"]
@@ -153,8 +152,6 @@ class Cable:
 
                 upstream_cable.downstream_failure = True
                 self.env.log_action(
-                    system_id="",
-                    system_name="",
                     part_id=upstream_cable.id,
                     part_name=upstream_cable.name,
                     system_ol=np.nan,
@@ -163,7 +160,6 @@ class Cable:
                     action="repair request",
                     reason=failure.description,
                     additional="cable failure shutting off all upstream cables and turbines that are still operating",
-                    duration=0,
                     request_id=failure.request_id,
                 )
 
@@ -172,15 +168,12 @@ class Cable:
                 self.env.log_action(
                     system_id=system_id,
                     system_name=node.name,
-                    part_id="",
-                    part_name="",
                     system_ol=node.operating_level,
                     part_ol=np.nan,
                     agent=self.name,
                     action="repair request",
                     reason=failure.description,
                     additional="cable failure shutting off all upstream cables and turbines that are still operating",
-                    duration=0,
                     request_id=failure.request_id,
                 )
                 start_id: str = system_id  # noqa: F841
@@ -256,7 +249,6 @@ class Cable:
                         action="maintenance request",
                         reason=maintenance.description,
                         additional="request",
-                        duration=0,
                         request_id=repair_request.request_id,
                     )
 
@@ -351,7 +343,6 @@ class Cable:
                         action="repair request",
                         reason=failure.description,
                         additional=f"severity level {failure.level}",
-                        duration=0,
                         request_id=repair_request.request_id,
                     )
 

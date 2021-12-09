@@ -1,9 +1,5 @@
 name: Field Support Vessel
 equipment_rate: 9500
-day_rate: 0  # crew comes with the vessel
-n_day_rate: 0
-hourly_rate: 0
-n_hourly_rate: 0
 start_month: 6
 start_day: 1
 end_month: 6
@@ -19,3 +15,11 @@ max_windspeed_transport: 99
 max_windspeed_repair: 99
 max_waveheight_transport: 1.5
 max_waveheight_repair: 1.5
+strategy: scheduled
+crew_transfer_time: 0.5
+n_crews: 1
+crew:
+  day_rate: 0  # crew comes with vessel
+  n_day_rate: 0
+  hourly_rate: 0
+  n_hourly_rate: 0

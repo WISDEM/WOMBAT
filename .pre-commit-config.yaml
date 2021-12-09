@@ -1,13 +1,13 @@
 repos:
--   repo: https://github.com/timothycrosley/isort
-    rev: 4.3.21
+-   repo: https://github.com/pycqa/isort
+    rev: 5.10.1
     hooks:
         - id: isort
           name: isort
           stages: [commit]
 
 -   repo: https://github.com/psf/black
-    rev: stable
+    rev: 21.12b0
     hooks:
         - id: black
           name: black
@@ -15,12 +15,14 @@ repos:
           language_version: python3.7
 
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: ''  # Use the sha / tag you want to point at
+    rev: 'v0.910-1'  # Use the sha / tag you want to point at
     hooks:
     -   id: mypy
+        entry: mypy --install-types --non-interactive
+        exclude: ^docs/
 
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.3.0
+    rev: v4.0.1
     hooks:
     -   id: trailing-whitespace
     -   id: end-of-file-fixer
@@ -32,14 +34,17 @@ repos:
     -   id: mixed-line-ending
     -   id: pretty-format-json
         args: [--autofix]
+
+-   repo: https://github.com/pycqa/flake8
+    rev: '4.0.1'
+    hooks:
     -   id: flake8
-        exclude: ^tests/
 
 -   repo: https://github.com/pre-commit/mirrors-pylint
-    rev: v2.1.1
+    rev: v3.0.0a4
     hooks:
     -   id: pylint
-        exclude: ^tests/
+        exclude: ^(tests/|docs/)
 
 # -   repo: local
 #     hooks:

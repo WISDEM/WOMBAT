@@ -1,9 +1,8 @@
 """Provides the Subassembly class"""
 
 
-from typing import Generator  # type: ignore
-
 import simpy  # type: ignore
+from typing import Generator  # type: ignore
 
 from wombat.core import (
     Failure,
@@ -21,8 +20,14 @@ TIMEOUT = 24  # Wait time of 1 day for replacement to occur
 
 
 class Subassembly:
+    """A major system composes the turbine or substation objects."""
+
     def __init__(
-        self, turbine, env: WombatEnvironment, s_id: str, subassembly_data: dict,
+        self,
+        turbine,
+        env: WombatEnvironment,
+        s_id: str,
+        subassembly_data: dict,
     ) -> None:
         """Creates a subassembly object that models various maintenance and failure types.
 
@@ -35,7 +40,7 @@ class Subassembly:
         s_id : str
             A unique identifier for the subassembly within the turbine.
         subassembly_data : dict
-            A dictionary to be passed to `SubassemblyData` for creation and validation.
+            A dictionary to be passed to ``SubassemblyData`` for creation and validation.
         """
 
         self.env = env
@@ -43,7 +48,7 @@ class Subassembly:
         self.id = s_id
 
         subassembly_data = {**subassembly_data, "system_value": self.turbine.value}
-        self.data = SubassemblyData(**subassembly_data)
+        self.data = SubassemblyData.from_dict(subassembly_data)
         self.name = self.data.name
 
         self.broken = False
@@ -84,7 +89,7 @@ class Subassembly:
                 pass
 
     def interrupt_all_subassembly_processes(self) -> None:
-        """Interrupts the running processes in all of the subassemblies within `turbine`.
+        """Interrupts the running processes in all of the subassemblies within ``turbine``.
 
         Parameters
         ----------
@@ -142,12 +147,12 @@ class Subassembly:
 
                     # Automatically submit a repair request
                     repair_request = RepairRequest(
-                        self.turbine.id,
-                        self.turbine.name,
-                        self.id,
-                        self.name,
-                        0,
-                        maintenance,
+                        system_id=self.turbine.id,
+                        system_name=self.turbine.name,
+                        subassembly_id=self.id,
+                        subassembly_name=self.name,
+                        severity_level=0,
+                        details=maintenance,
                     )
                     repair_request = self.turbine.repair_manager.submit_request(
                         repair_request
@@ -163,7 +168,6 @@ class Subassembly:
                         action="maintenance request",
                         reason=maintenance.description,
                         additional="request",
-                        duration=0,
                         request_id=repair_request.request_id,
                     )
 
@@ -256,7 +260,6 @@ class Subassembly:
                             action="repair request",
                             reason=failure.description,
                             additional=f"severity level {failure.level}",
-                            duration=0,
                             request_id=repair_request.request_id,
                         )
 
