@@ -1,4 +1,4 @@
-## [Unreleased]
+## 0.3.5 (2021-December-9)
 
 - Downtime-based and requests-based unscheduled maintenance models have been added to
   servicing equipment.
