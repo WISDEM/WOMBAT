@@ -4,6 +4,7 @@
 
 
 def main():
+    """An undefined CLI"""
     pass
 
 
