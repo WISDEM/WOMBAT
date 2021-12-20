@@ -1,11 +1,13 @@
 """Provides various utility functions."""
 
 
+from __future__ import annotations
+
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
 import logging  # type: ignore
 import datetime  # type: ignore
-from typing import Any, Union, Callable  # type: ignore
+from typing import Any, Callable  # type: ignore
 
 
 try:  # pylint: disable=duplicate-code
@@ -66,7 +68,7 @@ def _mean(*args) -> float:
 
     Parameters
     ----------
-    args : Union[int, float]
+    args : int | float
         The values to compute the mean over
 
     Returns
@@ -111,18 +113,18 @@ def format_events_log_message(
     system_name: str,
     part_id: str,
     part_name: str,
-    system_ol: Union[float, str],
-    part_ol: Union[float, str],
+    system_ol: float | str,
+    part_ol: float | str,
     agent: str,
     action: str,
     reason: str,
     additional: str,
     duration: float,
     request_id: str,
-    materials_cost: Union[int, float] = 0,
-    hourly_labor_cost: Union[int, float] = 0,
-    salary_labor_cost: Union[int, float] = 0,
-    equipment_cost: Union[int, float] = 0,
+    materials_cost: int | float = 0,
+    hourly_labor_cost: int | float = 0,
+    salary_labor_cost: int | float = 0,
+    equipment_cost: int | float = 0,
 ) -> str:
     """Formats the logging messages into the expected format for logging.
 
@@ -140,9 +142,9 @@ def format_events_log_message(
         Subassembly, component, or cable ID, ``_.id``.
     part_name : str
         Subassembly, component, or cable name, ``_.name``.
-    system_ol : Union[float, str]
+    system_ol : int | float
         System operating level, ``System.operating_level``. Use an empty string for n/a.
-    part_ol : Union[float, str]
+    part_ol : int | float
         Subassembly, component, or cable operating level, ``_.operating_level``. Use an
         empty string for n/a.
     agent : str
@@ -157,13 +159,13 @@ def format_events_log_message(
         Length of time the action lasted.
     request_id : str
         The ``RepairRequest.request_id`` or "na".
-    materials_cost : Union[int, float], optional
+    materials_cost : int | float, optional
         Total cost of materials for action, in USD, by default 0.
-    hourly_labor_cost : Union[int, float], optional
+    hourly_labor_cost : int | float, optional
         Total cost of hourly labor for action, in USD, by default 0.
-    salary_labor_cost : Union[int, float], optional
+    salary_labor_cost : int | float, optional
         Total cost of salaried labor for action, in USD, by default 0.
-    equipment_cost : Union[int, float], optional
+    equipment_cost : int | float, optional
         Total cost of equipment for action, in USD, by default 0.
 
     Returns
@@ -176,48 +178,58 @@ def format_events_log_message(
     message = " :: ".join(
         (
             f"{simulation_time}",
-            f"{env_time}",
+            f"{env_time:f}",
             f"{system_id}",
             f"{system_name}",
             f"{part_id}",
             f"{part_name}",
-            f"{system_ol}",
-            f"{part_ol}",
+            f"{system_ol:f}",
+            f"{part_ol:f}",
             f"{agent}",
             f"{action}",
             f"{reason}",
             f"{additional}",
-            f"{duration}",
+            f"{duration:f}",
             f"{request_id}",
-            f"{materials_cost}",
-            f"{hourly_labor_cost}",
-            f"{salary_labor_cost}",
-            f"{equipment_cost}",
-            f"{total_labor_cost}",
-            f"{total_cost}",
+            f"{materials_cost:f}",
+            f"{hourly_labor_cost:f}",
+            f"{salary_labor_cost:f}",
+            f"{equipment_cost:f}",
+            f"{total_labor_cost:f}",
+            f"{total_cost:f}",
         )
     )
     return message
 
 
 def IEC_power_curve(
-    windspeed_column: pd.Series,
-    power_column: pd.Series,
+    windspeed_column: np.ndarray | pd.Series,
+    power_column: np.ndarray | pd.Series,
     bin_width: float = 0.5,
-    windspeed_start: float = 0,
+    windspeed_start: float = 0.0,
     windspeed_end: float = 30.0,
 ) -> Callable:
     """
-    Direct copy, plus bug fix from OpenOA: https://github.com/NREL/OpenOA/blob/main/operational_analysis/toolkits/power_curve/functions.py#L16-L57
+    Direct copyfrom OpenOA: https://github.com/NREL/OpenOA/blob/main/operational_analysis/toolkits/power_curve/functions.py#L16-L57
     Use IEC 61400-12-1-2 method for creating wind-speed binned power curve.
-    Args:
-        windspeed_column (:obj:``pandas.Series``): feature column
-        power_column (:obj:``pandas.Series``): response column
-        bin_width(:obj:``float``): width of windspeed bin, default is 0.5 m/s according to standard
-        windspeed_start(:obj:``float``): left edge of first windspeed bin
-        windspeed_end(:obj:``float``): right edge of last windspeed bin
+
+    Parameters
+    ----------
+        windspeed_column : np.ndarray | pandas.Series
+            The power curve's windspeed values, in m/s.
+        power_column : np.ndarray | pandas.Series
+            The power curve's output power values, in kW.
+        bin_width : float
+            Width of windspeed bin, default is 0.5 m/s according to standard, by default 0.5.
+        windspeed_start : float
+            Left edge of first windspeed bin, where all proceeding values will be 0.0, by default 0.0.
+        windspeed_end : float
+            Right edge of last windspeed bin, where all following values will be 0.0, by
+            default 30.0.
     Returns:
-        :obj:``function``: Python function of type (Array[float] -> Array[float]) implementing the power curve.
+        Callable
+            Python function of the power curve, of type (Array[float] -> Array[float]),
+            that maps input windspeed value(s) to ouptut power value(s).
     """
 
     # Set up evenly spaced bins of fixed width, with any value over the maximum getting np.inf
