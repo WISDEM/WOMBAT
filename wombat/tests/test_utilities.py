@@ -53,6 +53,18 @@ def test_hours_until_future_hour():
     diff = hours_until_future_hour(date, 7)
     assert pytest.approx(diff) == correct_hours  # floating point error at ~16th digit
 
+    # Test for next day, but using hours as 24 + 7 (same result as above)
+    correct_hours = 23.26
+    date = datetime.datetime(2021, 12, 20, 7, 44, 24)
+    diff = hours_until_future_hour(date, 31)
+    assert pytest.approx(diff) == correct_hours  # floating point error at ~16th digit
+
+    # Test for multiple days
+    correct_hours = 47.26
+    date = datetime.datetime(2021, 12, 20, 7, 44, 24)
+    diff = hours_until_future_hour(date, 55)
+    assert pytest.approx(diff) == correct_hours  # floating point error at ~16th digit
+
 
 def test_mean():
     """Tests `_mean`."""

@@ -55,7 +55,7 @@ def hours_until_future_hour(dt: datetime.datetime, hour: int) -> float:
     if hour >= 24:
         days, hour = divmod(hour, 24)
         new_dt = dt + datetime.timedelta(days=days)
-        new_dt = new_dt.replace(hour=0, minute=0, second=0)
+        new_dt = new_dt.replace(hour=7, minute=0, second=0)
     else:
         new_dt = dt.replace(hour=hour, minute=0, second=0)
     diff = new_dt - dt
@@ -231,6 +231,11 @@ def IEC_power_curve(
             Python function of the power curve, of type (Array[float] -> Array[float]),
             that maps input windspeed value(s) to ouptut power value(s).
     """
+
+    if not isinstance(windspeed_column, pd.Series):
+        windspeed_column = pd.Series(windspeed_column)
+    if not isinstance(power_column, pd.Series):
+        power_column = pd.Series(power_column)
 
     # Set up evenly spaced bins of fixed width, with any value over the maximum getting np.inf
     n_bins = int(np.ceil((windspeed_end - windspeed_start) / bin_width)) + 1
