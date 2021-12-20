@@ -12,7 +12,7 @@ DEFAULT_LIBRARY = ROOT / "library"
 DINWOODIE = DEFAULT_LIBRARY / "dinwoodie"
 IEA_26 = DEFAULT_LIBRARY / "iea26"
 
-library_map = {"DINWOODIE": DINWOODIE, "IEA_26": IEA_26}
+library_map = {"DINWOODIE": DINWOODIE, "IEA_26": IEA_26, "IEA26": IEA_26}
 
 # YAML loader that is able to read scientific notation
 custom_loader = yaml.SafeLoader
