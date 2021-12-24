@@ -1,13 +1,15 @@
 """Turbine and turbine component shared utilities."""
 
 
+from __future__ import annotations
+
 import attr  # type: ignore
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
-import typing  # type: ignore
 import datetime  # type: ignore
 from math import fsum  # type: ignore
-from typing import Any, Dict, List, Union, Callable, Optional, Sequence  # type: ignore
+from typing import Any, Callable, Sequence  # type: ignore
+from functools import partial, update_wrapper  # type: ignore
 from scipy.stats import weibull_min  # type: ignore
 
 
@@ -16,22 +18,22 @@ HOURS_IN_DAY = 24
 
 
 def convert_to_list(
-    value: Union[Sequence, Union[str, int, float]],
-    manipulation: Optional[Union[Callable, None]] = None,
-):
+    value: Sequence | str | int | float,
+    manipulation: Callable | None = None,
+) -> list:
     """Converts an unknown element that could be a list or single, non-sequence element
     to a list of elements.
 
     Parameters
     ----------
-    value : Union[Sequence, Union[str, int, float]]
+    value : Sequence | str | int | float
         The unknown element to be converted to a list of element(s).
-    manipulation: Callable
-        A function to be performed upon the individual elements
+    manipulation: Callable | None
+        A function to be performed upon the individual elements, by default None.
 
     Returns
     -------
-    List[Any]
+    list
         The new list of elements.
     """
 
@@ -42,36 +44,11 @@ def convert_to_list(
     return list(value)
 
 
-def str_lower(value: str) -> str:
-    """Converts a string to all lower case.
+convert_to_list_upper = partial(convert_to_list, manipulation=str.upper)
+update_wrapper(convert_to_list_upper, convert_to_list)
 
-    Parameters
-    ----------
-    value : str
-        The string to turn to lower case.
-
-    Returns
-    -------
-    str
-        The lower case string.
-    """
-    return value.lower()
-
-
-def str_upper(value: str) -> str:
-    """Converts a string to all upper case.
-
-    Parameters
-    ----------
-    value : str
-        The string to turn to upper case.
-
-    Returns
-    -------
-    str
-        The upper case string.
-    """
-    return value.upper()
+convert_to_list_lower = partial(convert_to_list, manipulation=str.lower)
+update_wrapper(convert_to_list_lower, convert_to_list)
 
 
 def clean_string_input(value: str) -> str:
@@ -140,21 +117,19 @@ def annual_date_range(
     return date_range
 
 
-def convert_ratio_to_absolute(
-    ratio: Union[int, float], total: Union[int, float]
-) -> Union[int, float]:
+def convert_ratio_to_absolute(ratio: int | float, total: int | float) -> int | float:
     """Converts a proportional cost to an absolute cost.
 
     Parameters
     ----------
-    ratio : Union[int, float]
+    ratio : int | float
         The proportional materials cost for a ``Maintenance`` or ``Failure``.
-    total: Union[int, float]
+    total: int | float
         The turbine's replacement cost.
 
     Returns
     -------
-    Union[int, float]
+    int | float
         The absolute cost of the materials.
     """
 
@@ -166,7 +141,7 @@ def convert_ratio_to_absolute(
 def valid_hour(
     instance: Any, attribute: attr.Attribute, value: int  # pylint: disable=W0613
 ) -> None:
-    """Validator that ensures that the input is a valid time or null value.
+    """Validator that ensures that the input is a valid time or null value (-1).
 
     Parameters
     ----------
@@ -175,21 +150,23 @@ def valid_hour(
     attribute : attr.Attribute
         The attribute being validated.
     value : int
-        A whole number, hour of the day or -1 (null).
+        A whole number, hour of the day or -1 (null), where 24 indicates end of the day.
 
     Raises
     ------
     ValueError
         Raised if ``value`` is not between -1 and 24, inclusive.
     """
-    if not -1 <= value <= 24:
+    if value == -1:
+        pass
+    elif value < 0 or value > 24:
         raise ValueError(f"Input {attribute.name} must be between 0 and 24, inclusive.")
 
 
 def check_capability(
     instance: Any,  # pylint: disable=W0613
     attribute: attr.Attribute,
-    value: Union[str, List[str]],
+    value: str | list[str],
 ) -> None:
     """Validator that ensures capability has a valid input.
 
@@ -199,7 +176,7 @@ def check_capability(
         A class object.
     attribute : attr.Attribute
         The attribute being validated.
-    value : Union[str, List[str]]
+    value : str | list[str]
         The servicing equipment's capability. Should be one of the following:
          - CTV: crew transfer vehicle/vessel
          - SCN: small crane
@@ -215,7 +192,7 @@ def check_capability(
         Raised if the input is not of the valid inputs.
     """
     valid = set(("CTV", "SCN", "LCN", "CAB", "RMT", "DRN", "DSV"))
-    values = set(convert_to_list(value, str.upper))
+    values = set(value)
     invalid = values - valid
     if invalid:
         raise ValueError(f"Input {attribute.name} must be any combination of {valid}.")
@@ -247,28 +224,48 @@ def check_method(
         raise ValueError(f"Input {attribute.name} must be one of {valid}.")
 
 
-@attr.s(auto_attribs=True)
+@attr.s
 class FromDictMixin:
     """A Mixin class to allow for kwargs overloading when a data class doesn't
     have a specific parameter definied. This allows passing of larger dictionaries
     to a data class without throwing an error.
+
+    Raises
+    ------
+    AttributeError
+        Raised if the required class inputs are not provided.
     """
 
     @classmethod
-    @typing.no_type_check
     def from_dict(cls, data: dict):
-        """Maps a data dictionary to an ``attr``-defined class.
-
+        """Maps a data dictionary to an `attr`-defined class.
+        TODO: Add an error to ensure that either none or all the parameters are passed in
         Args:
             data : dict
                 The data dictionary to be mapped.
         Returns:
             cls
-                The ``attr``-defined class.
+                The `attr`-defined class.
         """
-        return cls(  # type: ignore
-            **{a.name: data[a.name] for a in cls.__attrs_attrs__ if a.name in data}
-        )
+        # Get all parameters from the input dictionary that map to the class initialization
+        kwargs = {
+            a.name: data[a.name]
+            for a in cls.__attrs_attrs__  # type: ignore
+            if a.name in data and a.init
+        }
+
+        # Map the inputs must be provided: 1) must be initialized, 2) no default value defined
+        required_inputs = [
+            a.name
+            for a in cls.__attrs_attrs__  # type: ignore
+            if a.init and isinstance(a.default, attr._make._Nothing)  # type: ignore
+        ]
+        undefined = sorted(set(required_inputs) - set(kwargs))
+        if undefined:
+            raise AttributeError(
+                f"The class defintion for {cls.__name__} is missing the following inputs: {undefined}"
+            )
+        return cls(**kwargs)  # type: ignore
 
 
 @attr.s(frozen=True, auto_attribs=True)
@@ -298,15 +295,15 @@ class Maintenance(FromDictMixin):
         A short text description to be used for logging.
     """
 
-    time: float
-    materials: float
-    frequency: float
-    service_equipment: List[str] = attr.ib(
-        converter=convert_to_list, validator=check_capability
+    time: float = attr.ib(converter=float)
+    materials: float = attr.ib(converter=float)
+    frequency: float = attr.ib(converter=float)
+    service_equipment: list[str] = attr.ib(
+        converter=convert_to_list_upper, validator=check_capability  # type: ignore
     )
-    system_value: Union[int, float]
-    description: str = "routine maintenance"
-    operation_reduction: float = 0.0
+    system_value: int | float = attr.ib(converter=float)
+    description: str = attr.ib(default="routine maintenance", converter=str)
+    operation_reduction: float = attr.ib(default=0.0, converter=float)
     request_id: str = attr.ib(init=False)
     level: int = attr.ib(default=0, init=False)
 
@@ -315,11 +312,11 @@ class Maintenance(FromDictMixin):
         requirement to a list.
         """
         object.__setattr__(self, "frequency", self.frequency * HOURS_IN_DAY)
-        object.__setattr__(
-            self,
-            "service_equipment",
-            convert_to_list(self.service_equipment, str.upper),
-        )
+        # object.__setattr__(
+        #     self,
+        #     "service_equipment",
+        #     convert_to_list(self.service_equipment, str.upper),
+        # )
         object.__setattr__(
             self,
             "materials",
@@ -371,18 +368,18 @@ class Failure(FromDictMixin):
         A short text description to be used for logging.
     """
 
-    scale: float
-    shape: float
-    time: float
-    materials: float
-    operation_reduction: float
-    level: int
-    service_equipment: Union[List[str], str] = attr.ib(
-        converter=convert_to_list, validator=check_capability
+    scale: float = attr.ib(converter=float)
+    shape: float = attr.ib(converter=float)
+    time: float = attr.ib(converter=float)
+    materials: float = attr.ib(converter=float)
+    operation_reduction: float = attr.ib(converter=float)
+    level: int = attr.ib(converter=int)
+    service_equipment: list[str] | str = attr.ib(
+        converter=convert_to_list_upper, validator=check_capability  # type: ignore
     )
-    system_value: Union[int, float]
-    description: str = "failure"
-    weibull: weibull_min = attr.ib(init=False)
+    system_value: int | float = attr.ib(converter=float)
+    description: str = attr.ib(default="failure", converter=str)
+    weibull: weibull_min = attr.ib(init=False, eq=False)
     request_id: str = attr.ib(init=False)
 
     def __attrs_post_init__(self):
@@ -401,14 +398,14 @@ class Failure(FromDictMixin):
             convert_ratio_to_absolute(self.materials, self.system_value),
         )
 
-    def hours_to_next_failure(self) -> Union[None, float]:
+    def hours_to_next_failure(self) -> float | None:
         """Samples the next time to failure in a Weibull distribution. If the ``scale``
         and ``shape`` parameters are set to 0, then the model will return ``None`` to cause
         the subassembly to timeout to the end of the simulation.
 
         Returns
         -------
-        Union[None, float]
+        float | None
             Returns ``None`` for a non-modelled failure, or the time until the next
             simulated failure.
         """
@@ -436,22 +433,22 @@ class SubassemblyData(FromDictMixin):
     ----------
     name : str
         Name of the component/subassembly.
-    maintenance : List[Dict[str, Union[float, str]]]
+    maintenance : list[dict[str, float | str]]
         List of the maintenance classification dictionaries. This will be converted
         to a list of ``Maintenance`` objects in the post initialization hook.
-    failures : Dict[int, Dict[str, Union[float, str]]]
+    failures : fict[int, dict[str, float | str]]
         Dictionary of failure classifications in a numerical (ordinal) categorization
         order. This will be converted to a dictionary of ``Failure`` objects in the
         post initialization hook.
-    system_value : Union[int, float]
+    system_value : int | float
         Turbine's cost of replacement. Used in case percentages of turbine cost are used
         in place of an absolute cost.
     """
 
-    name: str
-    maintenance: List[Union[Maintenance, Dict[str, Union[float, str]]]]
-    failures: Dict[int, Union[Failure, Dict[str, Union[float, str]]]]
-    system_value: Union[int, float]
+    name: str = attr.ib(converter=str)
+    maintenance: list[Maintenance | dict[str, float | str]]
+    failures: dict[int, Failure | dict[str, float | str]]
+    system_value: int | float = attr.ib(converter=float)
 
     def __attrs_post_init__(self):
         """Converts the maintenance and failure data to ``Maintenance`` and ``Failure`` objects, respectively."""
@@ -459,7 +456,12 @@ class SubassemblyData(FromDictMixin):
             assert isinstance(kwargs, dict)
             kwargs.update({"system_value": self.system_value})
         object.__setattr__(
-            self, "maintenance", [Maintenance.from_dict(kw) for kw in self.maintenance]
+            self,
+            "maintenance",
+            [
+                Maintenance.from_dict(kw) if isinstance(kw, dict) else kw
+                for kw in self.maintenance
+            ],
         )
 
         for kwargs in self.failures.values():  # type: ignore
@@ -468,7 +470,10 @@ class SubassemblyData(FromDictMixin):
         object.__setattr__(
             self,
             "failures",
-            {level: Failure.from_dict(kw) for level, kw in self.failures.items()},
+            {
+                level: Failure.from_dict(kw) if isinstance(kw, dict) else kw
+                for level, kw in self.failures.items()
+            },
         )
 
 
@@ -488,23 +493,25 @@ class RepairRequest(FromDictMixin):
         ``Subassembly.name``.
     severity_level : int
         ``Maintenance.level`` or ``Failure.level``.
-    details : Union[Failure, Maintenance]
+    details : Failure | Maintenance
         The actual data class.
     cable : bool
         Indicator that the request is for a cable, by default False.
-    upstream_turbines : List[str]
+    upstream_turbines : list[str]
         The cable's upstream turbines, by default []. No need to use this if ``cable`` == False.
     """
 
-    system_id: str
-    system_name: str
-    subassembly_id: str
-    subassembly_name: str
-    severity_level: int
-    details: Union[Failure, Maintenance]
-    cable: bool = attr.ib(default=False)
-    upstream_turbines: List[str] = attr.Factory(list)
-    request_id: str = attr.ib(default="")
+    system_id: str = attr.ib(converter=str)
+    system_name: str = attr.ib(converter=str)
+    subassembly_id: str = attr.ib(converter=str)
+    subassembly_name: str = attr.ib(converter=str)
+    severity_level: int = attr.ib(converter=int)
+    details: Failure | Maintenance = attr.ib(
+        validator=attr.validators.instance_of((Failure, Maintenance))
+    )
+    cable: bool = attr.ib(default=False, converter=bool)
+    upstream_turbines: list[str] = attr.ib(default=attr.Factory(list))
+    request_id: str = attr.ib(init=False)
 
     def assign_id(self, request_id: str) -> None:
         """Assigns a unique identifier to the request.
@@ -623,8 +630,8 @@ class ScheduledServiceEquipmentData(FromDictMixin):
     end_month: int = attr.ib(converter=int)
     end_day: int = attr.ib(converter=int)
     end_year: int = attr.ib(converter=int)
-    capability: Union[List[str], str] = attr.ib(
-        converter=convert_to_list, validator=check_capability
+    capability: list[str] | str = attr.ib(
+        converter=convert_to_list_upper, validator=check_capability  # type: ignore
     )
     mobilization_cost: float = attr.ib(converter=float)
     mobilization_days: int = attr.ib(converter=int)
@@ -639,7 +646,7 @@ class ScheduledServiceEquipmentData(FromDictMixin):
     onsite: bool = attr.ib(default=False, converter=bool)
     method: str = attr.ib(  # type: ignore
         default="severity",
-        converter=[str, str_lower],  # type: ignore
+        converter=[str, str.lower],  # type: ignore
         validator=check_method,
     )
     operating_dates: np.ndarray = attr.ib(init=False)
@@ -758,8 +765,8 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
     n_crews: int = attr.ib(converter=int)
     crew: ServiceCrew = attr.ib(converter=ServiceCrew.from_dict)  # type: ignore
     charter_days: int = attr.ib(converter=int)
-    capability: Union[List[str], str] = attr.ib(
-        converter=convert_to_list, validator=check_capability
+    capability: list[str] | str = attr.ib(
+        converter=convert_to_list_upper, validator=check_capability  # type: ignore
     )
     mobilization_cost: float = attr.ib(converter=float)
     mobilization_days: int = attr.ib(converter=int)
@@ -767,7 +774,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
     max_windspeed_transport: float = attr.ib(converter=float)
     max_windspeed_repair: float = attr.ib(converter=float)
     strategy: str = attr.ib(converter=clean_string_input)
-    strategy_threshold: Union[int, float] = attr.ib()
+    strategy_threshold: int | float = attr.ib()
     max_waveheight_transport: float = attr.ib(default=1000)
     max_waveheight_repair: float = attr.ib(default=1000)
     workday_start: int = attr.ib(default=-1, converter=int, validator=valid_hour)
@@ -776,7 +783,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
     onsite: bool = attr.ib(default=False)
     method: str = attr.ib(  # type: ignore
         default="severity",
-        converter=[str, str_lower],  # type: ignore
+        converter=[str, str.lower],  # type: ignore
         validator=check_method,
     )
 
@@ -796,7 +803,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
     def _validate_threshold(
         self,
         attribute: attr.Attribute,  # pylint: disable=W0613
-        value: Union[int, float],
+        value: int | float,
     ) -> None:
         """Ensures a valid threshold is provided for a given ``strategy``."""
         if not isinstance(value, (int, float)):
@@ -913,7 +920,7 @@ class ServiceEquipmentData(FromDictMixin):
 
     def determine_type(
         self,
-    ) -> Union[ScheduledServiceEquipmentData, UnscheduledServiceEquipmentData]:
+    ) -> ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData:
         """Generates the appropriate ServiceEquipmentData variation.
 
         Returns
@@ -1049,7 +1056,7 @@ class FixedCosts(FromDictMixin):
     resolution: dict = attr.ib(init=False)
     hierarchy: dict = attr.ib(init=False)
 
-    def cost_category_validator(self, name: str, sub_names: List[str]):
+    def cost_category_validator(self, name: str, sub_names: list[str]):
         """Either updates the higher-level cost to be the sum of the category's
         lower-level costs or uses a supplied higher-level cost and zeros out the
         lower-level costs.
