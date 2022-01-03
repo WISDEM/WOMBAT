@@ -4,14 +4,12 @@ from __future__ import annotations
 
 import attr
 import numpy as np
-import pandas as pd
 import pytest
 import datetime
 import numpy.testing as npt
 from copy import deepcopy
-from _pytest.monkeypatch import V
 
-from wombat.tests.conftest import (
+from tests.conftest import (
     SCHEDULED_VESSEL,
     GENERATOR_SUBASSEMBLY,
     UNSCHEDULED_VESSEL_DOWNTIME,
@@ -66,7 +64,7 @@ def test_clean_string_input():
     assert clean_string_input(" THIS is a STATEMENT.    ") == correct
 
 
-def test_annual_date_range():
+def test_annual_date_range_good_endpoints():
     """Tests ``annual_date_range``."""
     correct_date_range = [
         datetime.date(2019, 12, 12),
@@ -82,6 +80,18 @@ def test_annual_date_range():
     correct_date_range = np.array(correct_date_range)
     date_range = annual_date_range(12, 14, 12, 12, 2019, 2021)
     npt.assert_equal(date_range, correct_date_range)
+
+    # Test that bad year endpoints fail
+    with pytest.raises(ValueError):
+        annual_date_range(12, 14, 12, 12, 2022, 2021)
+
+    # Test that bad month endpoints fail
+    with pytest.raises(ValueError):
+        annual_date_range(12, 14, 12, 1, 2019, 2021)
+
+    # Test that bad month and day endpoints fail
+    with pytest.raises(ValueError):
+        annual_date_range(14, 12, 12, 12, 2019, 2021)
 
 
 def test_convert_ratio_to_absolute():
@@ -566,23 +576,19 @@ def test_ServiceEquipmentData_determine_type():
     # Test for error with mismatched definitions. This is an AttributeError because
     # will be mismatched data encodings
     with pytest.raises(AttributeError):
-        vessel = ServiceEquipmentData(
-            SCHEDULED_VESSEL, strategy="requests"
-        ).determine_type()
+        ServiceEquipmentData(SCHEDULED_VESSEL, strategy="requests").determine_type()
 
     with pytest.raises(AttributeError):
-        vessel = ServiceEquipmentData(
-            SCHEDULED_VESSEL, strategy="downtime"
-        ).determine_type()
+        ServiceEquipmentData(SCHEDULED_VESSEL, strategy="downtime").determine_type()
 
     with pytest.raises(AttributeError):
-        vessel = ServiceEquipmentData(
+        ServiceEquipmentData(
             UNSCHEDULED_VESSEL_REQUESTS, strategy="scheduled"
         ).determine_type()
 
     # Test that an invalid strategy raises a ValueError
     with pytest.raises(ValueError):
-        vessel = ServiceEquipmentData(
+        ServiceEquipmentData(
             UNSCHEDULED_VESSEL_REQUESTS, strategy="invalid"
         ).determine_type()
 
@@ -657,6 +663,28 @@ def test_ScheduledServiceEquipmentData():
     vessel._set_environment_shift(start_shift, end_shift)
     assert vessel.workday_start == start_shift
     assert vessel.workday_end == end_shift
+
+    # Test the date range works for return visits
+    vessel_dict = deepcopy(SCHEDULED_VESSEL)
+    vessel_dict["onsite"] = False
+    vessel_dict["start_day"] = 10
+    vessel_dict["end_day"] = 11
+    vessel_dict["start_month"] = 2
+    vessel_dict["end_month"] = 2
+    vessel_dict["start_year"] = 2019
+    vessel_dict["end_year"] = 2021
+    correct_date_range = np.array(
+        [
+            datetime.date(2019, 2, 10),
+            datetime.date(2019, 2, 11),
+            datetime.date(2020, 2, 10),
+            datetime.date(2020, 2, 11),
+            datetime.date(2021, 2, 10),
+            datetime.date(2021, 2, 11),
+        ]
+    )
+    vessel = ScheduledServiceEquipmentData.from_dict(vessel_dict)
+    npt.assert_equal(vessel.operating_dates, correct_date_range)
 
 
 def test_UnscheduledServiceEquipmentData():
@@ -774,5 +802,121 @@ def test_UnscheduledServiceEquipmentData():
     assert vessel.workday_end == end_shift
 
 
-def test_FixedCosts():
-    pass
+def test_FixedCosts_operations_provided():
+    """Tests high resolution inptus go to 0 when `operations` is provided"""
+    high_res = FixedCosts(
+        operations=100,  # should be 100
+        operations_management_administration=100,
+        project_management_administration=100,
+        marine_management=111,
+        weather_forecasting=22,
+        condition_monitoring=47,
+        operating_facilities=25,
+        environmental_health_safety_monitoring=45,
+        insurance=100,
+        brokers_fee=44,
+        operations_all_risk=100,
+        business_interruption=76,
+        third_party_liability=82,
+        storm_coverage=98,
+        annual_leases_fees=100,
+        submerge_land_lease_costs=80,
+        transmission_charges_rights=90,
+        onshore_electrical_maintenance=60,
+        labor=100,
+    )
+
+    assert high_res.operations == 100
+    assert high_res.operations_management_administration == 0
+    assert high_res.project_management_administration == 0
+    assert high_res.marine_management == 0
+    assert high_res.weather_forecasting == 0
+    assert high_res.condition_monitoring == 0
+    assert high_res.operating_facilities == 0
+    assert high_res.environmental_health_safety_monitoring == 0
+    assert high_res.insurance == 0
+    assert high_res.brokers_fee == 0
+    assert high_res.operations_all_risk == 0
+    assert high_res.business_interruption == 0
+    assert high_res.third_party_liability == 0
+    assert high_res.storm_coverage == 0
+    assert high_res.annual_leases_fees == 0
+    assert high_res.submerge_land_lease_costs == 0
+    assert high_res.transmission_charges_rights == 0
+    assert high_res.onshore_electrical_maintenance == 0
+    assert high_res.labor == 0
+
+
+def test_FixedCosts_category_values_provided():
+    """Test that High resolution inputs get overwritten in the case of providing
+    category values.
+    """
+    high_res = FixedCosts(
+        operations=0,  # should be 530
+        operations_management_administration=100,
+        project_management_administration=100,
+        marine_management=111,
+        weather_forecasting=22,
+        condition_monitoring=47,
+        operating_facilities=25,  # independent
+        environmental_health_safety_monitoring=45,  # independent
+        insurance=100,
+        brokers_fee=44,
+        operations_all_risk=100,
+        business_interruption=76,
+        third_party_liability=82,
+        storm_coverage=98,
+        annual_leases_fees=100,
+        submerge_land_lease_costs=80,
+        transmission_charges_rights=90,
+        onshore_electrical_maintenance=60,  # independent
+        labor=100,  # independent
+    )
+    assert high_res.operations == 530
+    assert high_res.operations_management_administration == 100
+    assert high_res.project_management_administration == 0
+    assert high_res.marine_management == 0
+    assert high_res.weather_forecasting == 0
+    assert high_res.condition_monitoring == 0
+    assert high_res.operating_facilities == 25
+    assert high_res.environmental_health_safety_monitoring == 45
+    assert high_res.insurance == 100
+    assert high_res.brokers_fee == 0
+    assert high_res.operations_all_risk == 0
+    assert high_res.business_interruption == 0
+    assert high_res.third_party_liability == 0
+    assert high_res.storm_coverage == 0
+    assert high_res.annual_leases_fees == 100
+    assert high_res.submerge_land_lease_costs == 0
+    assert high_res.transmission_charges_rights == 0
+    assert high_res.onshore_electrical_maintenance == 60
+    assert high_res.labor == 100
+
+
+def test_FixedCosts_high_resolution_provided():
+    """Test that high resolution inputs work and categories sum correctly."""
+    high_res = FixedCosts(
+        operations=0,  # should be 1080
+        operations_management_administration=0,  # should be 280
+        project_management_administration=100,
+        marine_management=111,
+        weather_forecasting=22,
+        condition_monitoring=47,
+        operating_facilities=25,  # independent
+        environmental_health_safety_monitoring=45,  # independent
+        insurance=0,  # should be 400
+        brokers_fee=44,
+        operations_all_risk=100,
+        business_interruption=76,
+        third_party_liability=82,
+        storm_coverage=98,
+        annual_leases_fees=0,  # should be 170
+        submerge_land_lease_costs=80,
+        transmission_charges_rights=90,
+        onshore_electrical_maintenance=60,  # independent
+        labor=100,  # independent
+    )
+    assert high_res.operations == 1080
+    assert high_res.operations_management_administration == 280
+    assert high_res.insurance == 400
+    assert high_res.annual_leases_fees == 170

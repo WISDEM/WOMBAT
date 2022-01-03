@@ -51,7 +51,7 @@ convert_to_list_lower = partial(convert_to_list, manipulation=str.lower)
 update_wrapper(convert_to_list_lower, convert_to_list)
 
 
-def clean_string_input(value: str) -> str:
+def clean_string_input(value: str | None) -> str | None:
     """Converts a string to lower case and and removes leading and trailing white spaces.
 
     Parameters
@@ -64,6 +64,8 @@ def clean_string_input(value: str) -> str:
     str
         value.lower().strip()
     """
+    if value is None:
+        return value
     return value.lower().strip()
 
 
@@ -75,7 +77,10 @@ def annual_date_range(
     start_year: int,
     end_year: int,
 ) -> np.ndarray:
-    """Creates a series of date ranges across multiple years.
+    """Creates a series of date ranges across multiple years between the starting date
+    and ending date for each year from starting year to ending year. Will only work if
+    the end year is the same as the starting year or later, and the ending month, day
+    combinatoion is after the starting month, day combination.
 
     Parameters
     ----------
@@ -92,29 +97,41 @@ def annual_date_range(
     end_year : int
         Last year of the date range.
 
+    Raises
+    ------
+    ValueError: Raised if the ending month, day combination occur after the starting
+        month, day combination.
+    ValueError: Raised if the ending year is prior to the starting year.
+
     Yields
     -------
     np.ndarray
         A ``numpy.ndarray`` of ``datetime.date`` objects.
     """
-    date_ranges = []
-    if end_month >= start_month:
-        for year in range(start_year, end_year + 1):
-            start = datetime.datetime(year, start_month, start_day)
-            end = datetime.datetime(year, end_month, end_day)
-            date_ranges.extend(pd.date_range(start, end).date)
-    else:
-        for year in range(start_year, end_year + 1):
-            start1 = datetime.datetime(year, start_month, start_day)
-            end1 = datetime.datetime(year, 12, 31)
-            date_ranges.extend(pd.date_range(start1, end1).date)
-            if year != end_year:
-                start2 = datetime.datetime(year + 1, 1, 1)
-                end2 = datetime.datetime(year + 1, end_month, end_day)
-                date_ranges.extend(pd.date_range(start2, end2).date)
+    # Check the year bounds
+    if end_year < start_year:
+        raise ValueError(
+            f"The end_year ({start_year}) is later than the start_year ({end_year})."
+        )
 
-    date_range = np.array(date_ranges)
-    return date_range
+    # Check the month, date combination bounds
+    start = datetime.datetime(2022, start_month, start_day)
+    end = datetime.datetime(2022, end_month, end_day)
+    if end < start:
+        raise ValueError(
+            f"The starting month and day {start} is after the ending month and day {end}."
+        )
+
+    # Create a list of arrays of date ranges for each year
+    start = datetime.datetime(1, start_month, start_day)
+    end = datetime.datetime(1, end_month, end_day)
+    date_ranges = [
+        pd.date_range(start.replace(year=year), end.replace(year=year)).date
+        for year in range(start_year, end_year + 1)
+    ]
+
+    # Return a 1-D array
+    return np.array(date_ranges).flatten()
 
 
 def convert_ratio_to_absolute(ratio: int | float, total: int | float) -> int | float:
@@ -657,7 +674,11 @@ class ScheduledServiceEquipmentData(FromDictMixin):
         start_date = datetime.datetime(
             self.start_year, self.start_month, self.start_day
         )
-        if self.end_year - self.start_year <= 1 or self.onsite:
+
+        # If `onsite` is True, then create the range in one go because there should be
+        # no discrepancies in the range.
+        # Othewise, create a specified date range between two dates in the year range.
+        if self.onsite:
             end_date = datetime.datetime(self.end_year, self.end_month, self.end_day)
             date_range = pd.date_range(start_date, end_date).date
         else:
@@ -773,8 +794,8 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
     speed: float = attr.ib(converter=float)
     max_windspeed_transport: float = attr.ib(converter=float)
     max_windspeed_repair: float = attr.ib(converter=float)
-    strategy: str = attr.ib(converter=clean_string_input)
-    strategy_threshold: int | float = attr.ib()
+    strategy: str | None = attr.ib(converter=clean_string_input)
+    strategy_threshold: int | float = attr.ib(converter=float)
     max_waveheight_transport: float = attr.ib(default=1000)
     max_waveheight_repair: float = attr.ib(default=1000)
     workday_start: int = attr.ib(default=-1, converter=int, validator=valid_hour)
@@ -806,9 +827,6 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         value: int | float,
     ) -> None:
         """Ensures a valid threshold is provided for a given ``strategy``."""
-        if not isinstance(value, (int, float)):
-            raise TypeError("``strategy_threshold`` must be an ``int`` or ``float``!")
-
         if self.strategy == "downtime":
             if value <= 0 or value >= 1:
                 raise ValueError(
@@ -906,7 +924,9 @@ class ServiceEquipmentData(FromDictMixin):
     """
 
     data_dict: dict
-    strategy: str = attr.ib(kw_only=True, default=None)
+    strategy: str | None = attr.ib(
+        kw_only=True, default=None, converter=clean_string_input
+    )
 
     def __attrs_post_init__(self):
         if self.strategy is None:
@@ -915,7 +935,8 @@ class ServiceEquipmentData(FromDictMixin):
             )
         if self.strategy not in ("scheduled", "requests", "downtime"):
             raise ValueError(
-                "ServiceEquipment strategy should be one of 'scheduled' or 'unscheduled'."
+                "ServiceEquipment strategy should be one of 'scheduled' or 'requests',"
+                f" or 'downtime'; input: {self.strategy}."
             )
 
     def determine_type(
@@ -934,6 +955,7 @@ class ServiceEquipmentData(FromDictMixin):
         elif self.strategy in ("requests", "downtime"):
             return UnscheduledServiceEquipmentData.from_dict(self.data_dict)
         else:
+            # This should not be able to be reached
             raise ValueError("Invalid strategy provided!")
 
 

@@ -1,4 +1,8 @@
 """Unit tests configuration file."""
+from pathlib import Path
+
+
+TEST_DATA = Path(__file__).resolve().parent / "library"
 
 
 GENERATOR_SUBASSEMBLY = dict(
