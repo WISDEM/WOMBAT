@@ -6,6 +6,7 @@ import numpy as np  # type: ignore
 import simpy  # type: ignore
 import pandas as pd  # type: ignore
 import logging  # type: ignore
+import datetime as dt  # type: ignore
 from typing import Tuple, Union, Optional  # type: ignore
 from pathlib import Path  # type: ignore
 from datetime import datetime, timedelta  # type: ignore
@@ -88,7 +89,6 @@ class WombatEnvironment(simpy.Environment):
 
         self.weather = self._weather_setup(weather_file, start_year, end_year)
         self.max_run_time = self.weather.shape[0]
-        self._create_endpoints()
         self.shift_length = self.workday_end - self.workday_start
 
         self.simulation_name = simulation_name
@@ -232,13 +232,13 @@ class WombatEnvironment(simpy.Environment):
         """Timestamp for the current time as a datetime.datetime.strftime."""
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
 
-    def date_ix(self, date: datetime) -> int:
+    def date_ix(self, date: dt.datetime | dt.date) -> int:
         """The first index of a future date. This corresponds to the number of hours
         until this dates from the very beginning of the simulation.
 
         Parameters
         ----------
-        date : datetime.date
+        date : datetime.datetime | datetime.date
             A date within the environment's simulation range.
 
         Returns
@@ -246,6 +246,8 @@ class WombatEnvironment(simpy.Environment):
         int
             Index of the weather profile corresponds to the first hour of ``date``.
         """
+        if isinstance(date, dt.datetime):
+            date = date.date()
         return np.where(self.weather.index.date == date)[0][0]
 
     def _weather_setup(
@@ -266,8 +268,8 @@ class WombatEnvironment(simpy.Environment):
             Name of the weather file to be used by the environment. Should be contained
             within ``data_dir/weather``.
         start_year : Optional[int], optional
-            Custom starting year for the weather profile, by default None. If ``None`` or
-            less than the first year of the weather profile, this will be ignored.
+            Custom starting year for the weather profile, by default None. If ``None``
+            or less than the first year of the weather profile, this will be ignored.
         end_year : Optional[int], optional
             Custom ending year for the weather profile, by default None. If ``None`` or
             greater than the last year of the weather profile, this will be ignored.
@@ -284,8 +286,12 @@ class WombatEnvironment(simpy.Environment):
         weather = weather.fillna(0.0)
         weather = weather.resample("H").interpolate(limit_direction="both", limit=5)
 
-        self.start_year = weather.index.year.min()
-        self.end_year = weather.index.year.max()
+        # Create the start and end points
+        self.start_datetime = weather.index[0].to_pydatetime()
+        self.end_datetime = weather.index[-1].to_pydatetime()
+        self.start_year = self.start_datetime.year
+        self.end_year = self.end_datetime.year
+
         if start_year is None and end_year is None:
             return weather
 
@@ -299,7 +305,8 @@ class WombatEnvironment(simpy.Environment):
         else:
             # Filter for the provided, validated starting year and update the attribute
             weather = weather[weather.index.year >= start_year]
-            start_year = self.start_year = weather.index.year.min()
+            self.start_datetime = weather.index[0].to_pydatetime()
+            start_year = self.start_year = self.start_datetime.year
 
         if end_year is None:
             pass
@@ -317,11 +324,13 @@ class WombatEnvironment(simpy.Environment):
             else:
                 # Filter for the provided, validated ending year and update the attribute
                 weather = weather[weather.index.year <= end_year]
-                self.end_year = weather.index.year.max()
+                self.end_datetime = weather.index[-1].to_pydatetime()
+                self.end_year = self.end_datetime.year
         else:
             # Filter for the provided, validated ending year and update the attribute
             weather = weather[weather.index.year <= end_year]
-            self.end_year = weather.index.year.max()
+            self.end_datetime = weather.index[-1].to_pydatetime()
+            self.end_year = self.end_datetime.year
 
         return weather
 
@@ -334,7 +343,9 @@ class WombatEnvironment(simpy.Environment):
         Tuple[float, float]
             Wind and wave data for the current time.
         """
-        return self.weather.iloc[self.now].values
+        # Rounds down because we won't arrive at the next weather event until that hour
+        now = int(self.now)
+        return self.weather.iloc[now].values
 
     def weather_forecast(
         self, hours: Union[int, float]
