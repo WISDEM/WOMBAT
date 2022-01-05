@@ -2,9 +2,7 @@
 import numpy as np
 import pytest
 import numpy.testing as npt
-from pathlib import Path
 
-from wombat.core import RepairManager, WombatEnvironment
 from tests.conftest import (
     ENV,
     MANAGER,
@@ -14,8 +12,7 @@ from tests.conftest import (
     VESTAS_V90_1_SUBASSEMBLY,
     VESTAS_V90_NO_SUBASSEMBLY,
 )
-from wombat.core.library import load_yaml
-from wombat.windfarm.system import System, Subassembly
+from wombat.windfarm.system import System
 
 
 def test_turbine_initialization_complete_setup():
