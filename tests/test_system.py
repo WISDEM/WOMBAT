@@ -119,7 +119,7 @@ def test_turbine_initialization_minimal_setup():
 
 
 def test_substation_initialization():
-    """Tests a complete turbine setup."""
+    """Tests a complete substation setup."""
     substation_id = "OSS001"
     substation_name = "SUBSTATION - 001"
 
@@ -233,6 +233,41 @@ def test_initialization_error_cases():
             subassemblies=SUBSTATION,
             system="turbine",
         )
+
+
+def test_operating_level():
+    """Tests the ``operating_level`` method."""
+    turbine_id = "WTG001"
+    turbine_name = "Vestas V90 - 001"
+
+    system = System(
+        env=ENV,
+        repair_manager=MANAGER,
+        t_id=turbine_id,
+        name=turbine_name,
+        subassemblies=VESTAS_V90,
+        system="turbine",
+    )
+
+    # Test the starting operating level
+    assert system.operating_level == 1
+
+    # Test updating a single subassembly
+    system.generator.operating_level = 0.9
+    assert system.operating_level == 0.9
+
+    # Test updating another subassembly
+    system.electronic_control.operating_level = 0.9
+    assert system.operating_level == 0.9 * 0.9
+
+    # Test a cable failure
+    system.cable_failure = True
+    assert system.operating_level == 0.0
+    system.cable_failure = False
+
+    # Test a failed subassembly shuts down the turbine
+    system.generator.operating_level = 0.0
+    assert system.operating_level == 0.0
 
 
 # cleanup!

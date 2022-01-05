@@ -105,7 +105,20 @@ class System:
         Parameters
         ----------
         subassembly_data : dict
-            Dictionary
+            Dictionary providing the maintenance and failure definitions for at least
+            one of the following subassemblies:
+             - electrical_system
+             - electronic_control
+             - sensors
+             - hydraulic_system
+             - yaw_system
+             - rotor_blades
+             - mechanical_brake
+             - rotor_hub
+             - gearbox
+             - generator
+             - supporting_structure
+             - drive_train
         """
         subassembly_list = [
             "electrical_system",
@@ -286,7 +299,7 @@ class System:
         Parameters
         ----------
         subassembly_data : dict
-            Dictionary
+            Dictionary containing the transformer maintenance and failure configurations.
         """
         self.subassemblies = []
         try:
