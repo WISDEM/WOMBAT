@@ -1,9 +1,9 @@
 """Creates the Turbine class."""
-
+from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-from typing import List, Union, Callable  # type: ignore
+from typing import Callable  # type: ignore
 from functools import reduce
 
 from wombat.core import RepairManager, WombatEnvironment
@@ -107,65 +107,141 @@ class System:
         subassembly_data : dict
             Dictionary
         """
-        # define the subassemblies  source: http://www.ecs.umass.edu/~arwade/wind_reliability.pdf
-        self.electrical_system = Subassembly(
-            self, self.env, "electrical_system", subassembly_data["electrical_system"]
-        )
-        self.electronic_control = Subassembly(
-            self, self.env, "electronic_control", subassembly_data["electronic_control"]
-        )
-        self.sensors = Subassembly(
-            self, self.env, "sensors", subassembly_data["sensors"]
-        )
-        self.hydraulic_system = Subassembly(
-            self, self.env, "hydraulic_system", subassembly_data["hydraulic_system"]
-        )
-        self.yaw_system = Subassembly(
-            self, self.env, "yaw_system", subassembly_data["yaw_system"]
-        )
-        self.rotor_blades = Subassembly(
-            self, self.env, "rotor_blades", subassembly_data["rotor_blades"]
-        )
-        self.mechanical_brake = Subassembly(
-            self, self.env, "mechanical_brake", subassembly_data["mechanical_brake"]
-        )
-        self.rotor_hub = Subassembly(
-            self, self.env, "rotor_hub", subassembly_data["rotor_hub"]
-        )
-        self.gearbox = Subassembly(
-            self, self.env, "gearbox", subassembly_data["gearbox"]
-        )
-        self.generator = Subassembly(
-            self, self.env, "generator", subassembly_data["generator"]
-        )
-        self.supporting_structure = Subassembly(
-            self,
-            self.env,
+        subassembly_list = [
+            "electrical_system",
+            "electronic_control",
+            "sensors",
+            "hydraulic_system",
+            "yaw_system",
+            "rotor_blades",
+            "mechanical_brake",
+            "rotor_hub",
+            "gearbox",
+            "generator",
             "supporting_structure",
-            subassembly_data["supporting_structure"],
-        )
-        self.drive_train = Subassembly(
-            self, self.env, "drive_train", subassembly_data["drive_train"]
-        )
-
-        self.subassemblies = [
-            self.electrical_system,
-            self.electronic_control,
-            self.sensors,
-            self.hydraulic_system,
-            self.yaw_system,
-            self.rotor_blades,
-            self.mechanical_brake,
-            self.rotor_hub,
-            self.gearbox,
-            self.generator,
-            self.supporting_structure,
-            self.drive_train,
+            "drive_train",
         ]
+
+        # define the subassemblies  source: http://www.ecs.umass.edu/~arwade/wind_reliability.pdf
+        self.subassemblies: list[Subassembly] = []
+
+        # Check if the subassembly definition has been provided in the defintion
+        # file, and if not, then skip it and move to the next subassembly
+        try:
+            self.electrical_system = Subassembly(
+                self,
+                self.env,
+                "electrical_system",
+                subassembly_data["electrical_system"],
+            )
+            self.subassemblies.append(self.electrical_system)
+        except KeyError:
+            pass
+
+        try:
+            self.electronic_control = Subassembly(
+                self,
+                self.env,
+                "electronic_control",
+                subassembly_data["electronic_control"],
+            )
+            self.subassemblies.append(self.electronic_control)
+        except KeyError:
+            pass
+
+        try:
+            self.sensors = Subassembly(
+                self, self.env, "sensors", subassembly_data["sensors"]
+            )
+            self.subassemblies.append(self.sensors)
+        except KeyError:
+            pass
+
+        try:
+            self.hydraulic_system = Subassembly(
+                self, self.env, "hydraulic_system", subassembly_data["hydraulic_system"]
+            )
+            self.subassemblies.append(self.hydraulic_system)
+        except KeyError:
+            pass
+
+        try:
+            self.yaw_system = Subassembly(
+                self, self.env, "yaw_system", subassembly_data["yaw_system"]
+            )
+            self.subassemblies.append(self.yaw_system)
+        except KeyError:
+            pass
+
+        try:
+            self.rotor_blades = Subassembly(
+                self, self.env, "rotor_blades", subassembly_data["rotor_blades"]
+            )
+            self.subassemblies.append(self.rotor_blades)
+        except KeyError:
+            pass
+
+        try:
+            self.mechanical_brake = Subassembly(
+                self, self.env, "mechanical_brake", subassembly_data["mechanical_brake"]
+            )
+            self.subassemblies.append(self.mechanical_brake)
+        except KeyError:
+            pass
+
+        try:
+            self.rotor_hub = Subassembly(
+                self, self.env, "rotor_hub", subassembly_data["rotor_hub"]
+            )
+            self.subassemblies.append(self.rotor_hub)
+        except KeyError:
+            pass
+
+        try:
+            self.gearbox = Subassembly(
+                self, self.env, "gearbox", subassembly_data["gearbox"]
+            )
+            self.subassemblies.append(self.gearbox)
+        except KeyError:
+            pass
+
+        try:
+            self.generator = Subassembly(
+                self, self.env, "generator", subassembly_data["generator"]
+            )
+            self.subassemblies.append(self.generator)
+        except KeyError:
+            pass
+
+        try:
+            self.supporting_structure = Subassembly(
+                self,
+                self.env,
+                "supporting_structure",
+                subassembly_data["supporting_structure"],
+            )
+            self.subassemblies.append(self.supporting_structure)
+        except KeyError:
+            pass
+
+        try:
+            self.drive_train = Subassembly(
+                self, self.env, "drive_train", subassembly_data["drive_train"]
+            )
+            self.subassemblies.append(self.drive_train)
+        except KeyError:
+            pass
+
+        if self.subassemblies == []:
+            raise ValueError(
+                "No subassembly data provided in the turbine configuration. At least"
+                " defintion for the following subassemblies must be provided:"
+                f" {subassembly_list}"
+            )
 
         self.env.log_action(
             agent=self.name,
-            action="subassemblies created",
+            action=f"subassemblies created: {self.subassemblies}",
             reason="windfarm initialization",
             system_id=self.id,
             system_name=self.name,
@@ -212,12 +288,20 @@ class System:
         subassembly_data : dict
             Dictionary
         """
+        self.subassemblies = []
+        try:
+            self.transformer = Subassembly(
+                self, self.env, "transformer", subassembly_data["transformer"]
+            )
+            self.subassemblies = [self.transformer]
+        except KeyError:
+            pass
 
-        self.transformer = Subassembly(
-            self, self.env, "transformer", subassembly_data["transformer"]
-        )
-
-        self.subassemblies = [self.transformer]
+        if self.subassemblies == []:
+            raise ValueError(
+                "No subassembly data provided in the substation configuration; a"
+                " transformer definition must be provided."
+            )
 
         self.env.log_action(
             system_id=self.id,
@@ -244,12 +328,12 @@ class System:
         else:
             return reduce(_product, [sub.operating_level for sub in self.subassemblies])
 
-    def power(self, windspeed: Union[List[float], np.ndarray]) -> np.ndarray:
+    def power(self, windspeed: list[float] | np.ndarray) -> np.ndarray:
         """Generates the power output for an iterable of windspeed values.
 
         Parameters
         ----------
-        windspeed : Union[List[float], np.ndarray]
+        windspeed : list[float] | np.ndarrays
             Windspeed values, in m/s.
 
         Returns

@@ -1,8 +1,44 @@
 """Unit tests configuration file."""
+import pandas as pd
 from pathlib import Path
+
+from wombat.core import RepairManager, WombatEnvironment
+from wombat.core.library import load_yaml
+from wombat.utilities.utilities import IEC_power_curve
 
 
 TEST_DATA = Path(__file__).resolve().parent / "library"
+
+
+ENV = WombatEnvironment(
+    data_dir=TEST_DATA,
+    weather_file="test_weather_quick_load.csv",
+    workday_start=8,
+    workday_end=16,
+    simulation_name="testing_setup",
+)
+MANAGER = RepairManager(ENV)
+SUBSTATION = load_yaml(TEST_DATA / "windfarm", "offshore_substation.yaml")
+VESTAS_V90 = load_yaml(TEST_DATA / "windfarm", "vestas_v90.yaml")
+VESTAS_V90_1_SUBASSEMBLY = load_yaml(
+    TEST_DATA / "windfarm", "vestas_v90_single_subassembly.yaml"
+)
+VESTAS_V90_NO_SUBASSEMBLY = load_yaml(
+    TEST_DATA / "windfarm", "vestas_v90_no_subassemblies.yaml"
+)
+
+
+power_curve = TEST_DATA / "windfarm" / "vestas_v90_power_curve.csv"
+power_curve = pd.read_csv(f"{power_curve}")
+power_curve = power_curve.loc[power_curve.power_kw != 0].reset_index(drop=True)
+VESTAS_POWER_CURVE = IEC_power_curve(
+    power_curve.windspeed_ms,
+    power_curve.power_kw,
+    windspeed_start=4,
+    windspeed_end=25,
+    bin_width=0.5,
+)
+del power_curve
 
 
 GENERATOR_SUBASSEMBLY = dict(

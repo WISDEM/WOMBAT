@@ -5,7 +5,6 @@ import pandas as pd
 import pytest
 import datetime
 import numpy.testing as npt
-from copy import deepcopy
 from pathlib import Path
 from pandas.testing import assert_index_equal
 
@@ -25,7 +24,7 @@ def test_setup():
     with pytest.raises(FileNotFoundError):
         WombatEnvironment(
             data_dir="TEST_DATA",
-            weather_file="test_weather.csv",
+            weather_file="test_weather_quick_load.csv",
             workday_start=8,
             workday_end=18,
         )
@@ -34,7 +33,7 @@ def test_setup():
     with pytest.raises(ValueError):
         WombatEnvironment(
             data_dir=TEST_DATA,
-            weather_file="test_weather.csv",
+            weather_file="test_weather_quick_load.csv",
             workday_start=-1,
             workday_end=18,
         )
@@ -43,7 +42,7 @@ def test_setup():
     with pytest.raises(ValueError):
         WombatEnvironment(
             data_dir=TEST_DATA,
-            weather_file="test_weather.csv",
+            weather_file="test_weather_quick_load.csv",
             workday_start=24,
             workday_end=18,
         )
@@ -52,7 +51,7 @@ def test_setup():
     with pytest.raises(ValueError):
         WombatEnvironment(
             data_dir=TEST_DATA,
-            weather_file="test_weather.csv",
+            weather_file="test_weather_quick_load.csv",
             workday_start=8,
             workday_end=-1,
         )
@@ -61,7 +60,7 @@ def test_setup():
     with pytest.raises(ValueError):
         WombatEnvironment(
             data_dir=TEST_DATA,
-            weather_file="test_weather.csv",
+            weather_file="test_weather_quick_load.csv",
             workday_start=8,
             workday_end=3,
         )
@@ -70,7 +69,7 @@ def test_setup():
     with pytest.raises(ValueError):
         WombatEnvironment(
             data_dir=TEST_DATA,
-            weather_file="test_weather.csv",
+            weather_file="test_weather_quick_load.csv",
             workday_start=8,
             workday_end=8,
         )
