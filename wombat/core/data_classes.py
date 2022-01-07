@@ -8,6 +8,7 @@ from math import fsum  # type: ignore
 from typing import Any, Callable, Sequence  # type: ignore
 from functools import partial, update_wrapper  # type: ignore
 
+import attr
 import attrs
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
@@ -277,7 +278,7 @@ class FromDictMixin:
         required_inputs = [
             a.name
             for a in cls.__attrs_attrs__  # type: ignore
-            if a.init and isinstance(a.default, attrs._make._Nothing)  # type: ignore
+            if a.init and isinstance(a.default, attr._make._Nothing)  # type: ignore
         ]
         undefined = sorted(set(required_inputs) - set(kwargs))
         if undefined:

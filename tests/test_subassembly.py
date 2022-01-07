@@ -2,6 +2,7 @@
 
 
 import numpy as np
+import pytest
 
 from wombat.windfarm.system import System, Subassembly, subassembly
 from wombat.core.data_classes import Failure, Maintenance
@@ -185,3 +186,26 @@ def test_interruptions_and_request_submission(env_setup):
         assert process._target._delay == 24
     for process in TURBINE.gearbox.processes.values():
         assert process._target._delay == 24
+
+
+def test_timeouts_for_zeroed_out(env_setup):
+    """Tests that the timeouts for any zeroed out subassembly maintenance or failure
+    does not occur.
+    """
+    # Define the basic items
+    ENV = env_setup
+    MANAGER = RepairManager(ENV)
+    TURBINE = System(ENV, MANAGER, "WTG001", "Vestas V90 001", VESTAS_V90, "turbine")
+
+    # Run the simulation 1 timestep to get it started, then inspec the process timeouts
+    ENV.run(1)
+
+    # Only the generator should have timeouts not equal to max run time
+    for subassembly in TURBINE.subassemblies:
+        if subassembly.id == "generator":
+            continue
+        for process in subassembly.processes.values():
+            assert process._target._delay == ENV.max_run_time
+
+    # Catastrophic failure at 284508.82985483576
+    # TODO: Don't have a way to test that all update to max_run_time - failure time at the moment
