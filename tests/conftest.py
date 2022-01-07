@@ -1,5 +1,7 @@
 """Unit tests configuration file."""
+
 import pandas as pd
+import pytest
 from pathlib import Path
 
 from wombat.core import RepairManager, WombatEnvironment
@@ -10,14 +12,19 @@ from wombat.utilities.utilities import IEC_power_curve
 TEST_DATA = Path(__file__).resolve().parent / "library"
 
 
-ENV = WombatEnvironment(
-    data_dir=TEST_DATA,
-    weather_file="test_weather_quick_load.csv",
-    workday_start=8,
-    workday_end=16,
-    simulation_name="testing_setup",
-)
-MANAGER = RepairManager(ENV)
+@pytest.fixture
+def env_setup():
+    env = WombatEnvironment(
+        data_dir=TEST_DATA,
+        weather_file="test_weather_quick_load.csv",
+        workday_start=8,
+        workday_end=16,
+        simulation_name="testing_setup",
+    )
+    yield env
+    env.cleanup_log_files()
+
+
 SUBSTATION = load_yaml(TEST_DATA / "windfarm", "offshore_substation.yaml")
 VESTAS_V90 = load_yaml(TEST_DATA / "windfarm", "vestas_v90.yaml")
 VESTAS_V90_1_SUBASSEMBLY = load_yaml(
@@ -25,6 +32,9 @@ VESTAS_V90_1_SUBASSEMBLY = load_yaml(
 )
 VESTAS_V90_NO_SUBASSEMBLY = load_yaml(
     TEST_DATA / "windfarm", "vestas_v90_no_subassemblies.yaml"
+)
+VESTAS_V90_TEST_TIMEOUTS = load_yaml(
+    TEST_DATA / "windfarm", "vestas_v90_test_timeouts.yaml"
 )
 
 

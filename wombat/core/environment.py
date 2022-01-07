@@ -107,8 +107,8 @@ class WombatEnvironment(simpy.Environment):
         """
         if until is None:
             until = self.max_run_time
-        elif until < self.max_run_time:
-            self.max_run_time = until
+        elif until > self.max_run_time:
+            until = self.max_run_time
         super().run(until=until)
 
     def _logging_setup(self) -> None:

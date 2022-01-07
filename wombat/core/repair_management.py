@@ -3,17 +3,9 @@
 
 from __future__ import annotations
 
-import attr
 import numpy as np
-from typing import (  # type: ignore
-    TYPE_CHECKING,
-    Dict,
-    List,
-    Union,
-    Iterator,
-    Optional,
-    Sequence,
-)
+from attrs import field, define
+from typing import TYPE_CHECKING, Iterator, Optional, Sequence  # type: ignore
 from itertools import chain
 from collections import Counter
 from simpy.resources.store import FilterStore, FilterStoreGet  # type: ignore
@@ -26,28 +18,29 @@ if TYPE_CHECKING:
     from wombat.core.service_equipment import ServiceEquipment
 
 
-@attr.s(auto_attribs=True)
+@define(auto_attribs=True)
 class EquipmentMap:
     """Internal mapping for servicing equipment strategy information."""
 
-    strategy_threshold: Union[int, float] = attr.ib()
-    equipment: ServiceEquipment = attr.ib()
+    strategy_threshold: int | float
+    equipment: ServiceEquipment
 
 
-@attr.s(auto_attribs=True)
+@define(auto_attribs=True)
 class StrategyMap:
     """Internal mapping for equipment capabilities and their data."""
 
-    CTV: List[EquipmentMap] = attr.ib(factory=list)
-    SCN: List[EquipmentMap] = attr.ib(factory=list)
-    LCN: List[EquipmentMap] = attr.ib(factory=list)
-    CAB: List[EquipmentMap] = attr.ib(factory=list)
-    RMT: List[EquipmentMap] = attr.ib(factory=list)
-    DRN: List[EquipmentMap] = attr.ib(factory=list)
-    DSV: List[EquipmentMap] = attr.ib(factory=list)
+    CTV: list[EquipmentMap] = field(factory=list)
+    SCN: list[EquipmentMap] = field(factory=list)
+    LCN: list[EquipmentMap] = field(factory=list)
+    CAB: list[EquipmentMap] = field(factory=list)
+    RMT: list[EquipmentMap] = field(factory=list)
+    DRN: list[EquipmentMap] = field(factory=list)
+    DSV: list[EquipmentMap] = field(factory=list)
+    is_running: bool = field(default=False, init=False)
 
     def update(
-        self, capability: str, threshold: Union[int, float], equipment: ServiceEquipment
+        self, capability: str, threshold: int | float, equipment: ServiceEquipment
     ) -> None:
         """A method to update the strategy mapping between capability types and the
         available ``ServiceEquipment`` objects.
@@ -56,7 +49,7 @@ class StrategyMap:
         ----------
         capability : str
             The ``equipment``'s capability.
-        threshold : Union[int, float]
+        threshold : int | float
             The threshold for ``equipment``'s strategy.
         equipment : ServiceEquipment
             The actual ``ServiceEquipment`` object to be logged.
@@ -67,23 +60,25 @@ class StrategyMap:
             Raised if there is an invalid capability, though this shouldn't be able to
             be reached.
         """
+        # Using a mypy ignore because of an unpatched bug using data classes
         if capability == "CTV":
-            self.CTV.append(EquipmentMap(threshold, equipment))
+            self.CTV.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "SCN":
-            self.SCN.append(EquipmentMap(threshold, equipment))
+            self.SCN.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "LCN":
-            self.LCN.append(EquipmentMap(threshold, equipment))
+            self.LCN.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "CAB":
-            self.CAB.append(EquipmentMap(threshold, equipment))
+            self.CAB.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "RMT":
-            self.RMT.append(EquipmentMap(threshold, equipment))
+            self.RMT.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "DRN":
-            self.DRN.append(EquipmentMap(threshold, equipment))
+            self.DRN.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "DSV":
-            self.DSV.append(EquipmentMap(threshold, equipment))
+            self.DSV.append(EquipmentMap(threshold, equipment))  # type: ignore
         else:
             # This should not even be able to be reached
             raise ValueError("Invalid servicing equipment has been provided!")
+        self.is_running = True
 
 
 class RepairManager(FilterStore):
@@ -234,8 +229,10 @@ class RepairManager(FilterStore):
         request.assign_id(request_id)
         self.put(request)
 
-        self._run_equipment_downtime()
-        self._run_equipment_requests()
+        if self.downtime_based_equipment.is_running:
+            self._run_equipment_downtime()
+        if self.request_based_equipment.is_running:
+            self._run_equipment_requests()
 
         return request
 
@@ -249,7 +246,7 @@ class RepairManager(FilterStore):
 
         Parameters
         ----------
-        equipment_capability : List[str]
+        equipment_capability : list[str]
             The capability of the equipment requesting possible repairs to make.
         turbine_id : Optional[str], optional
             ID of the turbine; should correspond to ``Turbine.id``, by default None.
@@ -285,7 +282,7 @@ class RepairManager(FilterStore):
 
         Parameters
         ----------
-        equipment_capability : List[str]
+        equipment_capability : list[str]
             The capability of the equipment requesting possible repairs to make.
         severity_level : int
             Severity level of focus, default None.
@@ -362,7 +359,7 @@ class RepairManager(FilterStore):
         return None
 
     @property
-    def request_map(self) -> Dict[str, int]:
+    def request_map(self) -> dict[str, int]:
         """Creates an updated mapping between the servicing equipment capabilities and
         the number of requests that fall into each capability category (nonzero values only).
         """

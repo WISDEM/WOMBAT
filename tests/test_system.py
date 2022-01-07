@@ -3,20 +3,22 @@ import numpy as np
 import pytest
 import numpy.testing as npt
 
+from wombat.core import RepairManager
 from tests.conftest import (
-    ENV,
-    MANAGER,
     SUBSTATION,
     VESTAS_V90,
     VESTAS_POWER_CURVE,
     VESTAS_V90_1_SUBASSEMBLY,
     VESTAS_V90_NO_SUBASSEMBLY,
+    env_setup,
 )
 from wombat.windfarm.system import System
 
 
-def test_turbine_initialization_complete_setup():
+def test_turbine_initialization_complete_setup(env_setup):
     """Tests a complete turbine setup."""
+    ENV = env_setup
+    MANAGER = RepairManager(ENV)
     turbine_id = "WTG001"
     turbine_name = "Vestas V90 - 001"
 
@@ -63,8 +65,10 @@ def test_turbine_initialization_complete_setup():
     assert system.operating_level == 1.0
 
 
-def test_turbine_initialization_minimal_setup():
+def test_turbine_initialization_minimal_setup(env_setup):
     """Test an incomplete, or partial turbine defintion for correctness."""
+    ENV = env_setup
+    MANAGER = RepairManager(ENV)
     turbine_id = "WTG001"
     turbine_name = "Vestas V90 - 001"
 
@@ -115,8 +119,10 @@ def test_turbine_initialization_minimal_setup():
     assert system.operating_level == 1.0
 
 
-def test_substation_initialization():
+def test_substation_initialization(env_setup):
     """Tests a complete substation setup."""
+    ENV = env_setup
+    MANAGER = RepairManager(ENV)
     substation_id = "OSS001"
     substation_name = "SUBSTATION - 001"
 
@@ -160,8 +166,11 @@ def test_substation_initialization():
     assert system.operating_level == 1.0
 
 
-def test_initialization_error_cases():
+def test_initialization_error_cases(env_setup):
     """Tests the cases where a System definition should fail."""
+    ENV = env_setup
+    MANAGER = RepairManager(ENV)
+
     # No subassemblies provided
     turbine_id = "WTG001"
     turbine_name = "Vestas V90 - 001"
@@ -232,8 +241,10 @@ def test_initialization_error_cases():
         )
 
 
-def test_operating_level():
+def test_operating_level(env_setup):
     """Tests the ``operating_level`` method."""
+    ENV = env_setup
+    MANAGER = RepairManager(ENV)
     turbine_id = "WTG001"
     turbine_name = "Vestas V90 - 001"
 
@@ -265,7 +276,3 @@ def test_operating_level():
     # Test a failed subassembly shuts down the turbine
     system.generator.operating_level = 0.0
     assert system.operating_level == 0.0
-
-
-# cleanup!
-ENV.cleanup_log_files()

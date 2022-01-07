@@ -1,0 +1,47 @@
+capacity_kw: 3000
+capex_kw: 1300  # need an updated value
+generator:
+  name: generator
+  maintenance:
+  - description: test check
+    time: 1
+    materials: 10
+    service_equipment: CTV
+    frequency: 5
+  failures:
+    1:
+      scale: 0.03
+      shape: 1
+      time: 1
+      materials: 14
+      service_equipment: CTV
+      operation_reduction: 0.0
+      level: 1
+      description: test reset
+    10:
+      scale: 0.1
+      shape: 1
+      time: 1
+      materials: 14
+      service_equipment: CTV
+      operation_reduction: 1
+      level: 10
+      description: catastrophic failure
+gearbox:
+  name: gearbox
+  maintenance:
+  - description: test check
+    time: 1
+    materials: 10
+    service_equipment: CTV
+    frequency: 100
+  failures:
+    1:
+      scale: 1
+      shape: 1
+      time: 1
+      materials: 14
+      service_equipment: CTV
+      operation_reduction: 0.0
+      level: 1
+      description: test reset
