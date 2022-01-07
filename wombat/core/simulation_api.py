@@ -1,9 +1,10 @@
 """The main API for the ``wombat``."""
 
-import attr
-import pandas as pd
 from typing import List, Union, Optional
 from pathlib import Path
+
+import pandas as pd
+from attrs import Attribute, field, define
 from simpy.events import Event  # type: ignore
 
 from wombat.core import (
@@ -35,7 +36,7 @@ def _library_mapper(file_path: Union[str, Path]) -> Path:
     return Path(library_map.get(file_path, file_path)).resolve()  # type: ignore
 
 
-@attr.s(frozen=True, auto_attribs=True)
+@define(frozen=True, auto_attribs=True)
 class Configuration(FromDictMixin):
     """The ``Simulation`` configuration data class that provides all the necessary definitions.
 
@@ -77,7 +78,7 @@ class Configuration(FromDictMixin):
     """
 
     name: str
-    library: Path = attr.ib(converter=_library_mapper)
+    library: Path = field(converter=_library_mapper)
     layout: str
     service_equipment: Union[str, List[str]]
     weather: Union[str, pd.DataFrame]
@@ -86,16 +87,16 @@ class Configuration(FromDictMixin):
     inflation_rate: float
     fixed_costs: str
     project_capacity: Union[int, float]
-    start_year: int = attr.ib(default=None)
-    end_year: int = attr.ib(default=None)
-    SAM_settings: str = attr.ib(default=None)
+    start_year: int = field(default=None)
+    end_year: int = field(default=None)
+    SAM_settings: str = field(default=None)
 
     def __attrs_post_init__(self):
         if isinstance(self.service_equipment, str):
             object.__setattr__(self, "service_equipment", [self.service_equipment])
 
 
-@attr.s(auto_attribs=True)
+@define(auto_attribs=True)
 class Simulation(FromDictMixin):
     """The primary API to interact with the simulation methodologies.
 
@@ -109,16 +110,16 @@ class Simulation(FromDictMixin):
         The path to a configuration dictionary or the dictionary itself.
     """
 
-    name: str = attr.ib(converter=str)
-    library_path: Path = attr.ib(converter=_library_mapper)
-    config: Configuration = attr.ib()
+    name: str = field(converter=str)
+    library_path: Path = field(converter=_library_mapper)
+    config: Configuration = field()
 
     def __attrs_post_init__(self) -> None:
         self._setup_simulation()
 
     @config.validator  # type: ignore
     def _create_configuration(
-        self, attribute: attr.Attribute, value: Union[str, dict, Configuration]
+        self, attribute: Attribute, value: Union[str, dict, Configuration]
     ) -> None:
         """Validates the configuration object and creates the ``Configuration`` object
         for the simulation.Raises:
@@ -194,7 +195,8 @@ class Simulation(FromDictMixin):
                 "``config`` must be a dictionary or ``Configuration`` object!"
             )
         assert isinstance(config, Configuration)  # lets mypy know it's a Configuration
-        return cls(config.name, config.library, config)
+        # NOTE: mypy is not caught up with attrs yet :(
+        return cls(config.name, config.library, config)  # type: ignore
 
     def _setup_simulation(self):
         """Initializes the simulation objects."""

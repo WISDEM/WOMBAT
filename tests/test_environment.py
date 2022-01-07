@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+import datetime
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
-import datetime
 import numpy.testing as npt
-from pathlib import Path
 from pandas.testing import assert_index_equal
 
 from wombat.core import WombatEnvironment
+
 from tests.conftest import TEST_DATA
 
 

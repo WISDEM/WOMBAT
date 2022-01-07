@@ -1,8 +1,9 @@
 """Provides the Subassembly class"""
 
 
-import simpy  # type: ignore
 from typing import Generator  # type: ignore
+
+import simpy  # type: ignore
 
 from wombat.core import (
     Failure,
@@ -146,7 +147,8 @@ class Subassembly:
                     hours_to_next = 0
 
                     # Automatically submit a repair request
-                    repair_request = RepairRequest(
+                    # NOTE: mypy is not caught up with attrs yet :(
+                    repair_request = RepairRequest(  # type: ignore
                         system_id=self.turbine.id,
                         system_name=self.turbine.name,
                         subassembly_id=self.id,
@@ -237,7 +239,8 @@ class Subassembly:
                             )
 
                         # Automatically submit a repair request
-                        repair_request = RepairRequest(
+                        # NOTE: mypy is not caught up with attrs yet :(
+                        repair_request = RepairRequest(  # type: ignore
                             self.turbine.id,
                             self.turbine.name,
                             self.id,

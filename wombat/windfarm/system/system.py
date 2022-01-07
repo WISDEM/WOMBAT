@@ -1,10 +1,11 @@
 """Creates the Turbine class."""
 from __future__ import annotations
 
-import numpy as np
-import pandas as pd
 from typing import Callable  # type: ignore
 from functools import reduce
+
+import numpy as np
+import pandas as pd
 
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.utilities import IEC_power_curve

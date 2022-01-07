@@ -1,9 +1,10 @@
 """"Creates the Cable class."""
 
 
+from typing import List, Generator  # type: ignore
+
 import numpy as np  # type: ignore
 import simpy  # type: ignore
-from typing import List, Generator  # type: ignore
 
 from wombat.core import (
     Failure,
@@ -225,7 +226,8 @@ class Cable:
                     hours_to_next = 0
 
                     # Automatically submit a repair request
-                    repair_request = RepairRequest(
+                    # NOTE: mypy is not caught up with attrs yet :(
+                    repair_request = RepairRequest(  # type: ignore
                         self.turbine.id,
                         self.turbine.name,
                         self.id,
@@ -318,7 +320,8 @@ class Cable:
                         )
 
                     # Automatically submit a repair request
-                    repair_request = RepairRequest(
+                    # NOTE: mypy is not caught up with attrs yet :(
+                    repair_request = RepairRequest(  # type: ignore
                         self.turbine.id,
                         self.turbine.name,
                         self.id,

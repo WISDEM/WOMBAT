@@ -3,11 +3,12 @@
 
 from __future__ import annotations
 
-import numpy as np  # type: ignore
-import pandas as pd  # type: ignore
 import logging  # type: ignore
 import datetime  # type: ignore
 from typing import Any, Callable  # type: ignore
+
+import numpy as np  # type: ignore
+import pandas as pd  # type: ignore
 
 
 try:  # pylint: disable=duplicate-code

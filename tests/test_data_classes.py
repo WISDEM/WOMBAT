@@ -2,19 +2,14 @@
 
 from __future__ import annotations
 
+import datetime
+from copy import deepcopy
+
 import attr
 import numpy as np
 import pytest
-import datetime
 import numpy.testing as npt
-from copy import deepcopy
 
-from tests.conftest import (
-    SCHEDULED_VESSEL,
-    GENERATOR_SUBASSEMBLY,
-    UNSCHEDULED_VESSEL_DOWNTIME,
-    UNSCHEDULED_VESSEL_REQUESTS,
-)
 from wombat.core.data_classes import (
     Failure,
     FixedCosts,
@@ -35,6 +30,13 @@ from wombat.core.data_classes import (
     convert_to_list_lower,
     convert_to_list_upper,
     convert_ratio_to_absolute,
+)
+
+from tests.conftest import (
+    SCHEDULED_VESSEL,
+    GENERATOR_SUBASSEMBLY,
+    UNSCHEDULED_VESSEL_DOWNTIME,
+    UNSCHEDULED_VESSEL_REQUESTS,
 )
 
 

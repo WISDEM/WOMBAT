@@ -1,8 +1,9 @@
 """Unit tests configuration file."""
 
+from pathlib import Path
+
 import pandas as pd
 import pytest
-from pathlib import Path
 
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.core.library import load_yaml

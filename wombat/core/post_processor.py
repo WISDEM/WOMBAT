@@ -1,16 +1,17 @@
 """The postprocessing metric computation."""
 
 import os  # type: ignore
-import numpy as np  # type: ignore
-import PySAM
-import pandas as pd  # type: ignore
-import PySAM.PySSC as pssc  # type: ignore
-import PySAM.Singleowner as pysam_singleowner_financial_model  # type: ignore
 from copy import deepcopy  # type: ignore
 from typing import List, Tuple, Union  # type: ignore
 from pathlib import Path  # type: ignore
 from functools import partial  # type: ignore
 from itertools import product  # type: ignore
+
+import numpy as np  # type: ignore
+import PySAM
+import pandas as pd  # type: ignore
+import PySAM.PySSC as pssc  # type: ignore
+import PySAM.Singleowner as pysam_singleowner_financial_model  # type: ignore
 
 from wombat.core import FixedCosts
 from wombat.core.library import load_yaml

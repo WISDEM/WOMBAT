@@ -3,6 +3,10 @@
 
 import numpy as np
 
+from wombat.windfarm.system import System, Subassembly, subassembly
+from wombat.core.data_classes import Failure, Maintenance
+from wombat.core.repair_management import RepairManager
+
 from tests.conftest import (
     SUBSTATION,
     VESTAS_V90,
@@ -10,9 +14,6 @@ from tests.conftest import (
     VESTAS_V90_TEST_TIMEOUTS,
     env_setup,
 )
-from wombat.windfarm.system import System, Subassembly, subassembly
-from wombat.core.data_classes import Failure, Maintenance
-from wombat.core.repair_management import RepairManager
 
 
 np.random.seed(2022)  # for test_interruptions()

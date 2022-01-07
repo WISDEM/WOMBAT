@@ -3,10 +3,11 @@
 
 
 import os  # type: ignore
-import numpy as np  # type: ignore
 from math import ceil
 from typing import List, Tuple, Union, Generator  # type: ignore
 from datetime import timedelta
+
+import numpy as np  # type: ignore
 from simpy.events import Process, Timeout  # type: ignore
 from pandas.core.indexes.datetimes import DatetimeIndex
 
@@ -116,7 +117,8 @@ class ServiceEquipment:
             # Ignores for unscheduled maintenace equipment that would not have this input
             pass
 
-        self.settings = ServiceEquipmentData(data).determine_type()
+        # NOTE: mypy is not caught up with attrs yet :(
+        self.settings = ServiceEquipmentData(data).determine_type()  # type: ignore
         self._check_working_hours()
 
         # Register servicing equipment with the repair manager if it is using an

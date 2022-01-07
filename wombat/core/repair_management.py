@@ -3,11 +3,12 @@
 
 from __future__ import annotations
 
-import numpy as np
-from attrs import field, define
 from typing import TYPE_CHECKING, Iterator, Optional, Sequence  # type: ignore
 from itertools import chain
 from collections import Counter
+
+import numpy as np
+from attrs import field, define
 from simpy.resources.store import FilterStore, FilterStoreGet  # type: ignore
 
 from wombat.core import Failure, Maintenance, RepairRequest, WombatEnvironment

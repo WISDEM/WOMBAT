@@ -4,6 +4,8 @@ import pytest
 import numpy.testing as npt
 
 from wombat.core import RepairManager
+from wombat.windfarm.system import System
+
 from tests.conftest import (
     SUBSTATION,
     VESTAS_V90,
@@ -12,7 +14,6 @@ from tests.conftest import (
     VESTAS_V90_NO_SUBASSEMBLY,
     env_setup,
 )
-from wombat.windfarm.system import System
 
 
 def test_turbine_initialization_complete_setup(env_setup):

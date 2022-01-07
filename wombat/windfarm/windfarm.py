@@ -1,13 +1,14 @@
 """Creates the Windfarm class/model."""
 
 import os  # type: ignore
+import logging  # type: ignore
+from math import fsum
+from itertools import chain, combinations
+
 import numpy as np
 import pandas as pd  # type: ignore
-import logging  # type: ignore
 import networkx as nx  # type: ignore
-from math import fsum
 from geopy import distance  # type: ignore
-from itertools import chain, combinations
 
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.core.library import load_yaml

@@ -2,9 +2,10 @@
 
 import os
 import re
-import yaml  # type: ignore
 from typing import Any, Union
 from pathlib import Path
+
+import yaml  # type: ignore
 
 
 ROOT = Path(__file__).parents[2].resolve()

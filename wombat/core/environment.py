@@ -2,14 +2,15 @@
 from __future__ import annotations
 
 import math  # type: ignore
-import numpy as np  # type: ignore
-import simpy  # type: ignore
-import pandas as pd  # type: ignore
 import logging  # type: ignore
 import datetime as dt  # type: ignore
 from typing import Tuple, Union, Optional  # type: ignore
 from pathlib import Path  # type: ignore
 from datetime import datetime, timedelta  # type: ignore
+
+import numpy as np  # type: ignore
+import simpy  # type: ignore
+import pandas as pd  # type: ignore
 from simpy.events import Event  # type: ignore
 from pandas.core.indexes.datetimes import DatetimeIndex
 
