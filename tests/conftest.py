@@ -37,6 +37,8 @@ VESTAS_V90_NO_SUBASSEMBLY = load_yaml(
 VESTAS_V90_TEST_TIMEOUTS = load_yaml(
     TEST_DATA / "windfarm", "vestas_v90_test_timeouts.yaml"
 )
+ARRAY_33KV_240MM = load_yaml(TEST_DATA / "windfarm", "array_33kv_240mm.yaml")
+ARRAY_33KV_630MM = load_yaml(TEST_DATA / "windfarm", "array_33kv_630mm.yaml")
 
 
 power_curve = TEST_DATA / "windfarm" / "vestas_v90_power_curve.csv"
