@@ -1,6 +1,6 @@
 """Tests the Windfarm class."""
 
-from datetime import date
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -103,6 +103,7 @@ def test_windfarm_init(env_setup):
     # Basic init items
     assert windfarm.repair_manager == manager
     assert manager.windfarm == windfarm
+    assert Path(windfarm.env.operations_log_fname).is_file()
 
     # Windfarm layout checking: 6 turbines, 1 substation, and 6 cables
     assert windfarm.env == env
@@ -227,3 +228,21 @@ def test_windfarm_init(env_setup):
 
         # Rough check of the subassemblies and maintenance/failure creation
         assert cable.processes.keys() == correct_cable.processes.keys()
+
+
+def test_windfarm_failed_init(env_setup):
+    """Tests the failing cases for setup of ``Windfarm`` where no data is provided."""
+    env = env_setup
+    manager = RepairManager(env)
+
+    # Test for bad substation file
+    with pytest.raises(ValueError):
+        Windfarm(env, "layout_substation_invalid.csv", manager)
+
+    # Test for bad subassembly file
+    with pytest.raises(ValueError):
+        Windfarm(env, "layout_subassembly_invalid.csv", manager)
+
+    # Test for bad substation file
+    with pytest.raises(ValueError):
+        Windfarm(env, "layout_array_invalid.csv", manager)

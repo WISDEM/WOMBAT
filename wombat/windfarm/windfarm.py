@@ -1,7 +1,5 @@
 """Creates the Windfarm class/model."""
 
-import os  # type: ignore
-import logging  # type: ignore
 from math import fsum
 from itertools import chain, combinations
 
@@ -31,8 +29,7 @@ class Windfarm:
         self.env = env
         self.repair_manager = repair_manager
 
-        # self._logging_setup()
-
+        # Set up the layout and instantiate all windfarm objects
         self._create_graph_layout(windfarm_layout)
         self._create_turbines_and_substations()
         self._create_cables()
@@ -40,27 +37,19 @@ class Windfarm:
         self._create_substation_turbine_map()
         self.calculate_distance_matrix()
 
+        # Create the logging items
+        self.system_list = list(self.graph.nodes)
+        self._log_columns = [
+            "datetime",
+            "name",
+            "level",
+            "env_datetime",
+            "env_time",
+        ] + self.system_list
+
+        # Register the windfarm and start the logger
         self.repair_manager._register_windfarm(self)
-
         self.env.process(self._log_operations())
-
-    def _logging_setup(self) -> None:
-        """Completes the setup for logging data.
-
-        Parameters
-        ----------
-        which : str
-            One of "events" or "operations". For creating event logs or operational
-            status logs.
-        """
-
-        logging.basicConfig(
-            format="%(asctime)s :: %(name)s :: %(levelname)s :: %(message)s",
-            filename=self.env.operations_log_fname,
-            filemode="w",
-            level=logging.DEBUG,
-        )
-        self._operations_logger = logging.getLogger(__name__)
 
     def _create_graph_layout(self, windfarm_layout: str) -> None:
         """Creates a network layout of the windfarm start from the substation(s) to
@@ -78,6 +67,7 @@ class Windfarm:
             .reset_index(drop=True)
         )
         layout.subassembly = layout.subassembly.fillna("")
+        layout.upstream_cable = layout.upstream_cable.fillna("")
 
         windfarm = nx.DiGraph()
         windfarm.add_nodes_from(layout.id.values)
@@ -135,6 +125,12 @@ class Windfarm:
 
     def _create_cables(self) -> None:
         for start_node, end_node, data in self.graph.edges(data=True):
+            # Check that the cable data is provided
+            if data["cable"] == "":
+                raise ValueError(
+                    "A 'cable' file must be specified for all nodes in the windfarm layout!"
+                )
+            cable_dict = load_yaml(self.env.data_dir / "windfarm", data["cable"])
 
             start_coordinates = (
                 self.graph.nodes[start_node]["latitude"],
@@ -153,9 +149,7 @@ class Windfarm:
                 ).km
 
             upstream_turbines = nx.dfs_successors(self.graph, end_node)
-            cable_dict = load_yaml(
-                os.path.join(self.env.data_dir, "windfarm"), data["cable"]
-            )
+
             data["cable"] = Cable(
                 self,
                 self.env,
@@ -218,19 +212,11 @@ class Windfarm:
 
     def _log_operations(self):
         """Logs the operational data for a simulation."""
-        system_list = list(self.graph.nodes)
-        columns = [
-            "datetime",
-            "name",
-            "level",
-            "env_datetime",
-            "env_time",
-        ] + system_list
-        self.env._operations_logger.info(" :: ".join(columns))
+        self.env._operations_logger.info(" :: ".join(self._log_columns))
 
         message = [self.env.simulation_time, self.env.now]
         message.extend(
-            [self.node_system(system).operating_level for system in system_list]
+            [self.node_system(system).operating_level for system in self.system_list]
         )
         message = " :: ".join((f"{m}" for m in message))  # type: ignore
         self.env._operations_logger.info(message)
@@ -239,13 +225,14 @@ class Windfarm:
         while True:
             yield self.env.timeout(HOURS)
             message = [self.env.simulation_time, self.env.now] + [
-                self.node_system(system).operating_level for system in system_list
+                self.node_system(system).operating_level for system in self.system_list
             ]
             message = " :: ".join(f"{m}" for m in message)  # type: ignore
             self.env._operations_logger.info(message)
 
     def node_system(self, system_id: str) -> System:
-        """Returns the desired node in the windfarm.
+        """Convenience function to returns the desired `System` object for a turbine or
+        substation in the windfarm.
 
         Parameters
         ----------
