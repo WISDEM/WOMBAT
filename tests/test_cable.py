@@ -1,23 +1,10 @@
 """Test the Cable system and subassembly classes."""
-from pathlib import Path
-
-import numpy as np
-import pytest
-import networkx as nx
-import numpy.testing as npt
 
 from wombat.core import RepairManager
 from wombat.windfarm import Windfarm
-from wombat.windfarm.system import Cable, System
+from wombat.windfarm.system import Cable
 
-from tests.conftest import (
-    TEST_DATA,
-    SUBSTATION,
-    VESTAS_V90,
-    ARRAY_33KV_240MM,
-    ARRAY_33KV_630MM,
-    env_setup,
-)
+from tests.conftest import ARRAY_33KV_240MM, ARRAY_33KV_630MM, env_setup
 
 
 def test_cable_init(env_setup):

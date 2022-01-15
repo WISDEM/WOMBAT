@@ -1,10 +1,9 @@
 """Creates the ServiceEquipment class for simulating repairs."""
-# TODO: NEED A SPECIFIC STARTUP METHODs
+# TODO: NEED A SPECIFIC STARTUP METHOD
+from __future__ import annotations
 
-
-import os  # type: ignore
 from math import ceil
-from typing import List, Tuple, Union, Generator  # type: ignore
+from typing import Generator  # type: ignore
 from datetime import timedelta
 
 import numpy as np  # type: ignore
@@ -38,7 +37,7 @@ except ImportError:
 HOURS_IN_DAY = 24
 
 
-def consecutive_groups(data: np.ndarray, step_size: int = 1) -> List[np.ndarray]:
+def consecutive_groups(data: np.ndarray, step_size: int = 1) -> list[np.ndarray]:
     """Generates the subgroups of an array where the difference between two sequential
     elements is equal to the ``step_size``. The intent is to find the length of delays
     in a weather forecast
@@ -52,7 +51,7 @@ def consecutive_groups(data: np.ndarray, step_size: int = 1) -> List[np.ndarray]
 
     Returns
     -------
-    List[np.ndarray]
+    list[np.ndarray]
         A list of arrays of the consecutive elements of ``data``.
     """
     # Consecutive groups in delay
@@ -103,11 +102,9 @@ class ServiceEquipment:
         self.enroute = False
         self.at_system = False
         self.at_port = False
-        self.current_system = None  # type: Union[str, None]
+        self.current_system = None  # type: str | None
 
-        data = load_yaml(
-            os.path.join(env.data_dir, "repair", "transport"), equipment_data_file
-        )
+        data = load_yaml(env.data_dir / "repair" / "transport", equipment_data_file)
         try:
             if data["start_year"] < self.env.start_year:
                 data["start_year"] = self.env.start_year
@@ -145,12 +142,12 @@ class ServiceEquipment:
 
         self.settings._set_environment_shift(start, end)
 
-    def calculate_salary_cost(self, duration: Union[int, float]) -> float:
+    def calculate_salary_cost(self, duration: int | float) -> float:
         """The total salaried labor cost implications for a given action.
 
         Parameters
         ----------
-        duration : Union[int, float]
+        duration : int | float
             Number of hours to charge for the salaried labor.
 
         Returns
@@ -164,12 +161,12 @@ class ServiceEquipment:
             * self.settings.crew.n_day_rate
         )
 
-    def calculate_hourly_cost(self, duration: Union[int, float]) -> float:
+    def calculate_hourly_cost(self, duration: int | float) -> float:
         """The total hourly labor cost implications for a given action.
 
         Parameters
         ----------
-        duration : Union[int, float]
+        duration : int | float
             Number of hours to charge for the hourly labor.
 
         Returns
@@ -181,12 +178,12 @@ class ServiceEquipment:
             duration * self.settings.crew.hourly_rate * self.settings.crew.n_hourly_rate
         )
 
-    def calculate_equipment_cost(self, duration: Union[int, float]) -> float:
+    def calculate_equipment_cost(self, duration: int | float) -> float:
         """The total equipment cost implications for a given action.
 
         Parameters
         ----------
-        duration : Union[int, float]
+        duration : int | float
             Number of hours to charge for the equipment.
 
         Returns
@@ -198,7 +195,7 @@ class ServiceEquipment:
 
     def register_repair_with_subassembly(
         self,
-        subassembly: Union[Subassembly, Cable],
+        subassembly: Subassembly | Cable,
         repair: RepairRequest,
         starting_operating_level: float,
     ) -> None:
@@ -209,7 +206,7 @@ class ServiceEquipment:
 
         Parameters
         ----------
-        subassembly : Union[Subassembly, Cable]
+        subassembly : Subassembly | Cable
             The subassembly or cable that was repaired.
         repair : RepairRequest
             The request for repair that was submitted.
@@ -387,21 +384,19 @@ class ServiceEquipment:
             equipment_cost=self.settings.mobilization_cost,
         )
 
-    def _weather_forecast(
-        self, hours: Union[int, float]
-    ) -> Tuple[DatetimeIndex, np.ndarray]:
+    def _weather_forecast(self, hours: int | float) -> tuple[DatetimeIndex, np.ndarray]:
         """Retrieves the weather forecast from the simulation environment, and
         translates it to a boolean for satisfactory (True) and unsatisfactory (False)
         weather conditions.
 
         Parameters
         ----------
-        hours : Union[int, float]
+        hours : int | float
             The whole number of hours that should be pulled
 
         Returns
         -------
-        Tuple[DatetimeIndex, np.ndarray]
+        tuple[DatetimeIndex, np.ndarray]
             The pandas DatetimeIndex and the boolean array of where the weather
             conditions are within safe operating limits for the servicing equipment
             (True) or not (False).
@@ -430,8 +425,8 @@ class ServiceEquipment:
         return (start <= datetime_ix.hour) & (datetime_ix.hour <= end)
 
     def find_uninterrupted_weather_window(
-        self, hours_required: Union[int, float]
-    ) -> Tuple[Union[int, float], bool]:
+        self, hours_required: int | float
+    ) -> tuple[int | float, bool]:
         """Finds the delay required before starting on a process that won't be able to
         be interrupted by a weather delay.
 
@@ -440,12 +435,12 @@ class ServiceEquipment:
 
         Parameters
         ----------
-        hours_required : Union[int, float]
+        hours_required : int | float
             The number of uninterrupted of hours that a process requires for completion.
 
         Returns
         -------
-        Tuple[Union[int, float], bool]
+        tuple[int | float, bool]
             The number of hours in weather delays before a process can be completed, and
             an indicator for if the process has to be delayed until the next shift for
             a safe transfer.
@@ -481,8 +476,8 @@ class ServiceEquipment:
         return delay, False
 
     def find_interrupted_weather_window(
-        self, hours_required: Union[int, float]
-    ) -> Tuple[DatetimeIndex, np.ndarray, bool]:
+        self, hours_required: int | float
+    ) -> tuple[DatetimeIndex, np.ndarray, bool]:
         """Assesses at which points in the repair window, the wind (and wave)
         constraints for safe operation are met.
 
@@ -494,12 +489,12 @@ class ServiceEquipment:
 
         Parameters
         ----------
-        hours_required : Union[int, float]
+        hours_required : int | float
             The number of hours required to complete the repair.
 
         Returns
         -------
-        Tuple[DatetimeIndex, np.ndarray, bool]
+        tuple[DatetimeIndex, np.ndarray, bool]
             The pandas DatetimeIndex, and a corresponding boolean array for what points
             in the time window are safe to complete a maintenance task or repair.
         """
@@ -532,13 +527,13 @@ class ServiceEquipment:
             )
 
     def weather_delay(
-        self, hours: Union[int, float], **kwargs
-    ) -> Union[None, Generator[Union[Timeout, Process], None, None]]:
+        self, hours: int | float, **kwargs
+    ) -> None | Generator[Timeout | Process, None, None]:
         """Processes a weather delay of length ``hours`` hours.
 
         Parameters
         ----------
-        hours : Union[int, float]
+        hours : int | float
             The lenght, in hours, of the weather delay.
 
         Returns
@@ -548,7 +543,7 @@ class ServiceEquipment:
 
         Yields
         -------
-        Union[None, Generator[Union[Timeout, Process], None, None]]
+        None | Generator[Timeout | Process, None, None]
             If the delay is more than 0 hours, then a ``Timeout`` is yielded of length ``hours``.
         """
         if hours == 0:
@@ -570,22 +565,22 @@ class ServiceEquipment:
 
     def repair(
         self,
-        hours: Union[int, float],
-        request_details: Union[Maintenance, Failure],
+        hours: int | float,
+        request_details: Maintenance | Failure,
         **kwargs,
-    ) -> Union[None, Generator[Union[Timeout, Process], None, None]]:
+    ) -> None | Generator[Timeout | Process, None, None]:
         """[summary]
 
         Parameters
         ----------
-        hours : Union[int, float]
+        hours : int | float
             The lenght, in hours, of the repair or maintenance task.
-        request_details : Union[Maintenance, Failure]
+        request_details : Maintenance | Failure
             The deatils of the request, this is only being checked for the type.
 
         Yields
         -------
-        Union[None, Generator[Union[Timeout, Process], None, None]]
+        None | Generator[Timeout | Process, None, None]
             A ``Timeout`` is yielded of length ``hours``.
         """
         action = "repair" if isinstance(request_details, Failure) else "maintenance"
@@ -604,17 +599,15 @@ class ServiceEquipment:
         yield self.env.timeout(hours)
 
     @cache
-    def _calculate_intra_site_time(
-        self, start: Union[str, None], end: Union[str, None]
-    ) -> float:
+    def _calculate_intra_site_time(self, start: str | None, end: str | None) -> float:
         """Calculates the time it takes to travel between port and site or between
         systems on site.
 
         Parameters
         ----------
-        start : Union[str, None]
+        start : str | None
             The starting onsite location. If ``None``, then 0 is returned.
-        end : Union[str, None]
+        end : str | None
             The ending onsite location. If ``None``, then 0 is returned.
 
         Returns
@@ -635,8 +628,8 @@ class ServiceEquipment:
         return travel_time
 
     def travel(
-        self, start: str, end: str, set_current: Union[str, None] = None, **kwargs
-    ) -> Generator[Union[Timeout, Process], None, None]:
+        self, start: str, end: str, set_current: str | None = None, **kwargs
+    ) -> Generator[Timeout | Process, None, None]:
         """The process for traveling between port and site, or two systems onsite.
 
         Parameters
@@ -651,7 +644,7 @@ class ServiceEquipment:
 
         Yields
         -------
-        Generator[Union[Timeout, Process], None, None]
+        Generator[Timeout | Process, None, None]
             The timeout event for traveling.
 
         Raises
@@ -721,7 +714,7 @@ class ServiceEquipment:
         subassembly: Subassembly,
         request: RepairRequest,
         to_system: bool,
-    ) -> Union[None, Generator[Union[Timeout, Process], None, None]]:
+    ) -> None | Generator[Timeout | Process, None, None]:
         """The process of transfering the crew from the equipment to the ``System``
         for servicing using an uninterrupted weather window to ensure safe transfer.
 
@@ -745,7 +738,7 @@ class ServiceEquipment:
 
         Yields
         ------
-        Generator[Union[Timeout, Process], None, None]
+        Generator[Timeout | Process, None, None]
             Yields a timeout event for the crew transfer once an interrupted weather
             window can be found.
         """
@@ -813,16 +806,16 @@ class ServiceEquipment:
     def process_repair(
         self,
         request: RepairRequest,
-        time_processed: Union[int, float] = 0,
+        time_processed: int | float = 0,
         prior_operation_level: float = -1.0,
-    ) -> Generator[Union[Timeout, Process], None, None]:
+    ) -> Generator[Timeout | Process, None, None]:
         """Processes the repair including any weather and shift delays.
 
         Parameters
         ----------
         request : RepairRequest
             The ``Maintenance`` or ``Failure`` receiving attention.
-        time_processed : Union[int, float], optional
+        time_processed : int | float, optional
             Time that has already been processed, by default 0.
         prior_operation_level : float, optional
             The operating level of the ``System`` just before the repair has begun, by
@@ -830,7 +823,7 @@ class ServiceEquipment:
 
         Yields
         -------
-        Generator[Union[Timeout, Process], None, None]
+        Generator[Timeout | Process, None, None]
             Timeouts for the repair process.
         """
 
