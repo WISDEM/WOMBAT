@@ -245,8 +245,7 @@ class Simulation(FromDictMixin):
             inflation_rate=self.config.inflation_rate,
             project_capacity=self.config.project_capacity,
             turbine_capacities=[
-                self.windfarm.node_system(t_id).capacity
-                for t_id in self.windfarm.turbine_id
+                self.windfarm.system(t_id).capacity for t_id in self.windfarm.turbine_id
             ],
             fixed_costs=self.config.fixed_costs,
             substation_id=self.windfarm.substation_id.tolist(),

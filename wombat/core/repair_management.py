@@ -321,9 +321,9 @@ class RepairManager(FilterStore):
         Parameters
         ----------
         system_id : str
-            ``System.id``.
+            ``System.id`` or ``Cable.id``.
         subassembly_id : str
-            ``Subassembly.id``.
+            ``Subassembly.id`` or the ``Cable.id`` repeated for cables.
 
         Yields
         -------

@@ -8,13 +8,11 @@ import pytest
 import numpy.testing as npt
 from networkx.classes.digraph import DiGraph
 
-from wombat import windfarm
 from wombat.core import RepairManager
 from wombat.windfarm import Windfarm
-from wombat.windfarm.system import Cable, System, Subassembly
+from wombat.windfarm.system import Cable, System
 
 from tests.conftest import (
-    TEST_DATA,
     SUBSTATION,
     VESTAS_V90,
     ARRAY_33KV_240MM,
@@ -50,41 +48,33 @@ def test_windfarm_init(env_setup):
         Cable(
             windfarm,
             env,
-            "cable::OSS1::S00T1",
             "OSS1",
-            ["S00T1", "S00T2", "S00T3"],
-            ARRAY_33KV_630MM,
-        ),
-        Cable(
-            windfarm,
-            env,
-            "cable::S00T1::S00T2",
             "S00T1",
-            ["S00T2", "S00T3"],
-            ARRAY_33KV_240MM,
-        ),
-        Cable(
-            windfarm, env, "cable::S00T2::S00T3", "S00T2", ["S00T3"], ARRAY_33KV_240MM
-        ),
-        Cable(
-            windfarm,
-            env,
-            "cable::OSS1::S01T4",
-            "OSS1",
-            ["S01T4", "S01T5", "S01T6"],
             ARRAY_33KV_630MM,
         ),
         Cable(
             windfarm,
             env,
-            "cable::S01T4::S01T5",
-            "S01T4",
-            ["S01T5", "S01T6"],
+            "S00T1",
+            "S00T2",
             ARRAY_33KV_240MM,
         ),
+        Cable(windfarm, env, "S00T2", "S00T3", ARRAY_33KV_240MM),
         Cable(
-            windfarm, env, "cable::S01T5::S01T6", "S01T5", ["S01T6"], ARRAY_33KV_240MM
+            windfarm,
+            env,
+            "OSS1",
+            "S01T4",
+            ARRAY_33KV_630MM,
         ),
+        Cable(
+            windfarm,
+            env,
+            "S01T4",
+            "S01T5",
+            ARRAY_33KV_240MM,
+        ),
+        Cable(windfarm, env, "S01T5", "S01T6", ARRAY_33KV_240MM),
     ]
     correct_N_edges = 6
     correct_N_nodes = 7
@@ -212,7 +202,7 @@ def test_windfarm_init(env_setup):
         == correct_substation.transformer.processes.keys()
     )
 
-    # Check the cables
+    # Check the cable initialization
     for key, _id, correct_cable in zip(
         correct_edge_keys, correct_cable_ids, correct_cable_list
     ):

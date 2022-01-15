@@ -328,6 +328,10 @@ class System:
             additional="initialization",
         )
 
+    def interrupt_all_subassembly_processes(self) -> None:
+        """Interrupts the running processes in all of the system's subassemblies."""
+        [subassembly.interrupt_processes() for subassembly in self.subassemblies]  # type: ignore
+
     @property
     def operating_level(self) -> float:
         """The turbine's operating level, based on subassembly and cable performance.

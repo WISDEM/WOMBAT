@@ -15,6 +15,10 @@ TEST_DATA = Path(__file__).resolve().parent / "library"
 
 @pytest.fixture
 def env_setup():
+    """Ensures the proper setup and teardown of an environment so no logging
+    files can accumulate.
+    """
+
     env = WombatEnvironment(
         data_dir=TEST_DATA,
         weather_file="test_weather_quick_load.csv",

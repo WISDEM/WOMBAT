@@ -1,10 +1,12 @@
-""""Creates the Cable class."""
+""""Defines the Cable class and cable simulations."""
 
 
-from typing import List, Generator  # type: ignore
+from typing import Generator  # type: ignore
+from itertools import chain
 
 import numpy as np  # type: ignore
 import simpy  # type: ignore
+import networkx as nx
 
 from wombat.core import (
     Failure,
@@ -34,8 +36,6 @@ class Cable:
         The unique identifier for the cable.
     start_node : str
         The starting point (``system.id``) (turbine or substation) of the cable segment.
-    upstream_nodes : List[str]
-        The list of upstream system ids (``system.id``) that rely on the cable segment.
     cable_data : dict
         The dictionary defining the cable segment.
     """
@@ -44,9 +44,8 @@ class Cable:
         self,
         windfarm,
         env: WombatEnvironment,
-        cable_id: str,
         start_node: str,
-        upstream_nodes: List[str],
+        end_node: str,
         cable_data: dict,
     ) -> None:
         """Initializes the ``Cable`` class.
@@ -61,20 +60,26 @@ class Cable:
             The unique identifier for the cable.
         start_node : str
             The starting point (``system.id``) (turbine or substation) of the cable segment.
-        upstream_nodes : List[str]
-            The list of upstream system ids (``system.id``) that rely on the cable segment.
+        end_node : str
+            The ending point (``system.id``) (turbine or substation) of the cable segment.
         cable_data : dict
             The dictionary defining the cable segment.
         """
 
         self.env = env
         self.windfarm = windfarm
-        self.id = cable_id
+        self.start_node = start_node
+        self.end_node = end_node
+        self.id = f"cable::{start_node}::{end_node}"
         # TODO: need to be able to handle substations, which are not being modeled currently
         self.turbine = windfarm.graph.nodes(data=True)[start_node][
             "system"
         ]  # MAKE THIS START
-        self.upstream_nodes = upstream_nodes
+
+        # Map the upstream substations and turbines, and cables
+        upstream = nx.dfs_successors(self.windfarm.graph, end_node)
+        self.upstream_nodes = list(set(upstream).union(chain(*upstream.values())))
+        self.upstream_cables = list(nx.edge_dfs(self.windfarm.graph, end_node))
 
         cable_data = {**cable_data, "system_value": self.turbine.value}
         self.data = SubassemblyData.from_dict(cable_data)
@@ -102,8 +107,7 @@ class Cable:
         for i, maintenance in enumerate(self.data.maintenance):
             yield f"m{i}", self.env.process(self.run_single_maintenance(maintenance))
 
-    @staticmethod
-    def interrupt_subassembly_processes(subassembly) -> None:
+    def interrupt_processes(self) -> None:
         """Interrupts all of the running processes within the subassembly except for the
         process associated with failure that triggers the catastrophic failure.
 
@@ -112,23 +116,12 @@ class Cable:
         subassembly : Subassembly
             The subassembly that should have all processes interrupted.
         """
-        for _, process in subassembly.processes.items():
+        for _, process in self.processes.items():
             try:
                 process.interrupt()
             except RuntimeError:
                 # This error occurs for the process halting all other processes.
                 pass
-
-    def interrupt_all_subassembly_processes(self) -> None:
-        """Interrupts the running processes in all of the subassemblies within ``turbine``.
-
-        Parameters
-        ----------
-        failure : Failure
-            The failure that triggers the turbine shutting down.
-        """
-        for subassembly in self.turbine.subassemblies:
-            self.interrupt_subassembly_processes(subassembly)
 
     def stop_all_upstream_processes(self, failure: Failure) -> None:
         """Stops all upstream turbines from producing power by setting their
@@ -139,45 +132,79 @@ class Cable:
         failure : Failre
             The ``Failure`` that is causing a string shutdown.
         """
-        for i, system_id in enumerate(self.upstream_nodes):
-            node = self.windfarm.graph.nodes[system_id]["system"]
+        # Shut down all upstream objects and set the flag for an downstream cable failure
+        for node in self.upstream_nodes:
+            system = self.windfarm.system(node)
+            system.interrupt_all_subassembly_processes()
+            system.cable_failure = True
+            self.env.log_action(
+                system_id=node,
+                system_name=system.name,
+                system_ol=system.operating_level,
+                part_ol=np.nan,
+                agent=self.name,
+                action="repair request",
+                reason=failure.description,
+                additional="cable failure shutting off all upstream cables and turbines that are still operating",
+                request_id=failure.request_id,
+            )
 
-            # Check the cable to see if it's still operating first and break the
-            # loop if it's already not operating
-            if i > 0:
-                upstream_cable = self.windfarm.graph[start_id][system_id][  # noqa: F821
-                    "cable"
-                ]
-                if upstream_cable.downstream_failure:
-                    break
+        for edge in self.upstream_cables:
+            cable = self.windfarm.cable(edge)
+            cable.interrupt_processes()
+            cable.downstream_failure = True
+            self.env.log_action(
+                part_id=cable.id,
+                part_name=cable.name,
+                system_ol=np.nan,
+                part_ol=cable.operating_level,
+                agent=self.name,
+                action="repair request",
+                reason=failure.description,
+                additional="cable failure shutting off all upstream cables and turbines that are still operating",
+                request_id=failure.request_id,
+            )
 
-                upstream_cable.downstream_failure = True
-                self.env.log_action(
-                    part_id=upstream_cable.id,
-                    part_name=upstream_cable.name,
-                    system_ol=np.nan,
-                    part_ol=upstream_cable.operating_level,
-                    agent=self.name,
-                    action="repair request",
-                    reason=failure.description,
-                    additional="cable failure shutting off all upstream cables and turbines that are still operating",
-                    request_id=failure.request_id,
-                )
+        # TODO: DELETE ONCE CONFIRMED THE ALTERNATIVE WORKS
+        # for i, system_id in enumerate(self.upstream_nodes):
+        #     node = self.windfarm.system(system_id)
 
-            if not node.cable_failure or node.operating_level == 0:
-                node.cable_failure = True
-                self.env.log_action(
-                    system_id=system_id,
-                    system_name=node.name,
-                    system_ol=node.operating_level,
-                    part_ol=np.nan,
-                    agent=self.name,
-                    action="repair request",
-                    reason=failure.description,
-                    additional="cable failure shutting off all upstream cables and turbines that are still operating",
-                    request_id=failure.request_id,
-                )
-                start_id: str = system_id  # noqa: F841
+        #     # Check the cable to see if it's still operating first and break the
+        #     # loop if it's already not operating
+        #     if i > 0:
+        #         upstream_cable = self.windfarm.graph[start_id][system_id][  # noqa: F821
+        #             "cable"
+        #         ]
+        #         if upstream_cable.downstream_failure:
+        #             break
+
+        #         upstream_cable.downstream_failure = True
+        #         self.env.log_action(
+        #             part_id=upstream_cable.id,
+        #             part_name=upstream_cable.name,
+        #             system_ol=np.nan,
+        #             part_ol=upstream_cable.operating_level,
+        #             agent=self.name,
+        #             action="repair request",
+        #             reason=failure.description,
+        #             additional="cable failure shutting off all upstream cables and turbines that are still operating",
+        #             request_id=failure.request_id,
+        #         )
+
+        #     if not node.cable_failure or node.operating_level == 0:
+        #         node.cable_failure = True
+        #         self.env.log_action(
+        #             system_id=system_id,
+        #             system_name=node.name,
+        #             system_ol=node.operating_level,
+        #             part_ol=np.nan,
+        #             agent=self.name,
+        #             action="repair request",
+        #             reason=failure.description,
+        #             additional="cable failure shutting off all upstream cables and turbines that are still operating",
+        #             request_id=failure.request_id,
+        #         )
+        #         start_id: str = system_id  # noqa: F841
 
     def run_single_maintenance(self, maintenance: Maintenance) -> Generator:
         """Runs a process to trigger one type of maintenance request throughout the simulation.
@@ -217,7 +244,7 @@ class Cable:
             while hours_to_next > 0:
                 try:
                     # If the replacement has not been completed, then wait another minute
-                    if self.operating_level == 0 or self.downstream_failure:
+                    if self.broken or self.downstream_failure:
                         yield self.env.timeout(TIMEOUT)
                         continue
 
@@ -310,20 +337,11 @@ class Cable:
                     hours_to_next = 0
                     self.operating_level *= 1 - failure.operation_reduction
 
-                    if failure.operation_reduction == 1:
-                        self.broken = True
-                        self.interrupt_all_subassembly_processes()
-
-                        # Remove previously submitted requests as a replacement is required
-                        _ = self.turbine.repair_manager.purge_subassembly_requests(
-                            self.turbine.id, self.id
-                        )
-
                     # Automatically submit a repair request
                     # NOTE: mypy is not caught up with attrs yet :(
                     repair_request = RepairRequest(  # type: ignore
-                        self.turbine.id,
-                        self.turbine.name,
+                        self.id,
+                        self.name,
                         self.id,
                         self.name,
                         failure.level,
@@ -335,9 +353,19 @@ class Cable:
                         repair_request
                     )
 
+                    if failure.operation_reduction == 1:
+                        self.broken = True
+
+                        # Remove previously submitted requests as a replacement is required
+                        _ = self.turbine.repair_manager.purge_subassembly_requests(
+                            self.id, self.id
+                        )
+                        self.interrupt_processes()
+                        self.stop_all_upstream_processes(failure)
+
                     self.env.log_action(
-                        system_id=self.turbine.id,
-                        system_name=self.turbine.name,
+                        system_id=self.id,
+                        system_name=self.name,
                         part_id=self.id,
                         part_name=self.name,
                         system_ol=self.turbine.operating_level,

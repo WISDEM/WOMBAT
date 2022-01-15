@@ -596,7 +596,7 @@ class WombatEnvironment(simpy.Environment):
         windspeed = windspeed.loc[operations.env_datetime]
 
         potential = np.vstack(
-            ([windfarm.node_system(t_id).power(windspeed) for t_id in turbines])
+            ([windfarm.system(t_id).power(windspeed) for t_id in turbines])
         ).T
         potential_df = pd.DataFrame(
             [],

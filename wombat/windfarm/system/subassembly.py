@@ -72,8 +72,7 @@ class Subassembly:
         for i, maintenance in enumerate(self.data.maintenance):
             yield f"m{i}", self.env.process(self.run_single_maintenance(maintenance))
 
-    @staticmethod
-    def interrupt_subassembly_processes(subassembly) -> None:
+    def interrupt_processes(self) -> None:
         """Interrupts all of the running processes within the subassembly except for the
         process associated with failure that triggers the catastrophic failure.
 
@@ -82,7 +81,7 @@ class Subassembly:
         subassembly : Subassembly
             The subassembly that should have all processes interrupted.
         """
-        for _, process in subassembly.processes.items():
+        for _, process in self.processes.items():
             try:
                 process.interrupt()
             except RuntimeError:
@@ -90,15 +89,8 @@ class Subassembly:
                 pass
 
     def interrupt_all_subassembly_processes(self) -> None:
-        """Interrupts the running processes in all of the subassemblies within ``turbine``.
-
-        Parameters
-        ----------
-        failure : Failure
-            The failure that triggers the turbine shutting down.
-        """
-        for subassembly in self.turbine.subassemblies:
-            self.interrupt_subassembly_processes(subassembly)
+        """Thin wrapper for ``turbine.interrupt_all_subassembly_processes``."""
+        self.turbine.interrupt_all_subassembly_processes()
 
     def run_single_maintenance(self, maintenance: Maintenance) -> Generator:
         """Runs a process to trigger one type of maintenance request throughout the simulation.
