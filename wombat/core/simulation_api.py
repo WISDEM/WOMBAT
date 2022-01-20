@@ -225,7 +225,9 @@ class Simulation(FromDictMixin):
                 )
             )
 
-    def run(self, until: Optional[Union[int, float, Event]] = None):
+    def run(
+        self, until: Optional[int | float | Event] = None, create_metrics: bool = True
+    ):
         """Calls ``WombatEnvironment.run()`` and gathers the results for post-processing.
         See ``wombat.simulation.WombatEnvironment.run`` or ``simpy.Environment.run`` for more
         details.
@@ -235,9 +237,15 @@ class Simulation(FromDictMixin):
         until : Optional[Union[int, float, Event]], optional
             When to stop the simulation, by default None. See documentation on
             ``simpy.Environment.run`` for more details.
+        create_metrics : bool, optional
+            If True, the metrics object will be created, and not, if False, by default True.
         """
         self.env.run(until=until)
+        if create_metrics:
+            self.initialize_metrics()
 
+    def initialize_metrics(self) -> None:
+        """Instantiates the ``metrics`` attribute after the simulation is run."""
         operations, events = self.env.convert_logs_to_csv(return_df=True)
         power_potential, power_production = self.env.power_production_potential_to_csv(
             windfarm=self.windfarm, operations=operations, return_df=True
