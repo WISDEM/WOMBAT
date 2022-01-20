@@ -422,7 +422,8 @@ class ServiceEquipment:
         """
         start = self.settings.workday_start
         end = self.settings.workday_end
-        return (start <= datetime_ix.hour) & (datetime_ix.hour <= end)
+        hour = datetime_ix.hour
+        return (start <= hour) & (hour <= end)
 
     def find_uninterrupted_weather_window(
         self, hours_required: int | float
