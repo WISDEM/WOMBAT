@@ -13,6 +13,14 @@ from wombat.core.library import load_yaml
 from wombat.windfarm.system import Cable, System
 
 
+try:  # pylint: disable=duplicate-code
+    from functools import cache  # type: ignore
+except ImportError:  # pylint: disable=duplicate-code
+    from functools import lru_cache  # pylint: disable=duplicate-code
+
+    cache = lru_cache(None)  # pylint: disable=duplicate-code
+
+
 class Windfarm:
     """The primary class for operating on objects within a windfarm. The substations,
     cables, and turbines are created as a network object to be more appropriately accessed
@@ -221,12 +229,13 @@ class Windfarm:
         HOURS = 1
         while True:
             yield self.env.timeout(HOURS)
-            message = [self.env.simulation_time, self.env.now] + [
-                self.system(system).operating_level for system in self.system_list
+            message = [f"{self.env.simulation_time}", f"{self.env.now}"] + [
+                f"{self.system(system).operating_level}" for system in self.system_list
             ]
-            message = " :: ".join(f"{m}" for m in message)  # type: ignore
-            self.env._operations_logger.info(message)
+            message = " :: ".join(message)  # type: ignore
+            # self.env._operations_logger.info(message)
 
+    @cache
     def system(self, system_id: str) -> System:
         """Convenience function to returns the desired `System` object for a turbine or
         substation in the windfarm.
@@ -243,6 +252,7 @@ class Windfarm:
         """
         return self.graph.nodes[system_id]["system"]
 
+    @cache
     def cable(self, cable_id: str) -> Cable:
         """Convenience function to returns the desired `Cable` object for a cable in the
         windfarm.
