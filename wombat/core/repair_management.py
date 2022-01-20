@@ -78,7 +78,9 @@ class StrategyMap:
             self.DSV.append(EquipmentMap(threshold, equipment))  # type: ignore
         else:
             # This should not even be able to be reached
-            raise ValueError("Invalid servicing equipment has been provided!")
+            raise ValueError(
+                f"Invalid servicing equipment '{capability}' has been provided!"
+            )
         self.is_running = True
 
 
@@ -123,7 +125,6 @@ class RepairManager(FilterStore):
         """Updates ``equipment_map`` with a provided servicing equipment object."""
         capability = service_equipment.settings.capability
         strategy = service_equipment.settings.strategy
-        strategy_threshold = service_equipment.settings.strategy_threshold  # type: ignore
 
         if strategy == "downtime":
             mapping = self.downtime_based_equipment
@@ -133,6 +134,7 @@ class RepairManager(FilterStore):
             # Shouldn't be possible to get here!
             raise ValueError("Invalid servicing equipment!")
 
+        strategy_threshold = service_equipment.settings.strategy_threshold  # type: ignore
         if isinstance(capability, list):
             for c in capability:
                 mapping.update(c, strategy_threshold, service_equipment)
@@ -237,38 +239,43 @@ class RepairManager(FilterStore):
 
         return request
 
-    def get_request_by_turbine(
-        self, equipment_capability: Sequence[str], turbine_id: Optional[str] = None
+    def get_request_by_system(
+        self, equipment_capability: Sequence[str], system_id: Optional[str] = None
     ) -> Optional[FilterStoreGet]:
-        """Gets all repair requests for a certain turbine with maximum severity of ``severity_max``.
-
-        Note: For now, this will simply order the items by ``Turbine.id`` and
-        return the first turbine.
+        """Gets all repair requests for a certain turbine with given a sequence of
+        ``equipment_capability``.
 
         Parameters
         ----------
         equipment_capability : list[str]
-            The capability of the equipment requesting possible repairs to make.
-        turbine_id : Optional[str], optional
-            ID of the turbine; should correspond to ``Turbine.id``, by default None.
-            If None, then it will simply sort the list by ``Turbine.id`` and
-            return the first repair requested.
+            The capability of the servicing equipment requesting repairs to process.
+        system_id : Optional[str], optional
+            ID of the turbine or OSS; should correspond to ``System.id``, by default
+            None. If None, then it will simply sort the list by ``System.id`` and return
+            the first repair requested.
 
         Returns
         -------
         Optional[FilterStoreGet]
-            All of the repair requests for the focal turbine or None, if self.items
-            is empty.
+            The first repair request for the focal system or None, if self.items is
+            empty, or there is no matching system.
         """
         if not self.items:
             return None
 
         equipment_capability = set(equipment_capability)  # type: ignore
-        for request in sorted(self.items, key=lambda x: x.turbine_id):
-            capability_overlap = equipment_capability.intersection(request.equipment)  # type: ignore
-            valid_turbine = turbine_id is None or request.turbine_id == turbine_id
-            if valid_turbine and capability_overlap:
-                return self.get(lambda x: x == request)
+
+        # Filter the requests by system
+        requests = self.items
+        if system_id is not None:
+            requests = [el for el in self.items if el.system_id == system_id]
+        if requests == []:
+            return None
+
+        # Filter the requests by equipment capability and return the first valid request
+        for request in requests:
+            if equipment_capability.intersection(request.details.service_equipment):  # type: ignore
+                return self.get(lambda x: x == requests[0])
 
         # In case the loop above iterates all the way to the end, nothing was
         # found so return None. This is probably an error for which an error
@@ -297,13 +304,17 @@ class RepairManager(FilterStore):
             return None
 
         equipment_capability = set(equipment_capability)  # type: ignore
-        requests = sorted(self.items, key=lambda x: x.severity_level, reverse=True)
+
+        # Filter the requests by severity level
+        requests = self.items
+        if severity_level is not None:
+            requests = [el for el in self.items if el.severity_level == severity_level]
+        if requests == []:
+            return None
+
+        requests = sorted(requests, key=lambda x: x.severity_level, reverse=True)
         for request in requests:
-            capability_overlap = equipment_capability & set(  # type: ignore
-                request.details.service_equipment
-            )
-            requested_severity: bool = severity_level in (request.details.level, None)
-            if requested_severity and capability_overlap:
+            if equipment_capability.intersection(request.details.service_equipment):  # type: ignore
                 return self.get(lambda x: x == request)
 
         # This return statement ensures there is always a known return type,

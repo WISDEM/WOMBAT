@@ -520,7 +520,7 @@ class ServiceEquipment:
             The next ``RepairRequest`` to be processed.
         """
         if self.settings.method == "turbine":
-            return self.manager.get_request_by_turbine(self.settings.capability)
+            return self.manager.get_request_by_system(self.settings.capability)
         elif self.settings.method == "severity":
             return self.manager.get_next_highest_severity_request(
                 self.settings.capability
