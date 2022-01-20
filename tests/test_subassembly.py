@@ -92,8 +92,11 @@ def test_interruptions_and_request_submission(env_setup):
     #  3) a failure event with a Weibull of scale 5, shape 1, with frequencies at:
     #      11001.95 hours (not reached)
     #  4) a catastrophic failure event at 689.69 hours that turns everything off
-    correct_N_generator_failures = 4  # 3 resets and 1 catastrophic failure
-    correct_N_generator_maintenance = 5  # 5 prior to failure
+
+    # The resets and maintenance tasks will be removed from the record for the
+    # generator upon failure
+    correct_N_generator_failures = 1  # 3 resets and 1 catastrophic failure
+    correct_N_generator_maintenance = 0  # 5 prior to failure
     correct_N_gearbox_failures = 0  # none reached
     correct_N_gearbox_maintenance = 0  # none reached
 
@@ -109,6 +112,23 @@ def test_interruptions_and_request_submission(env_setup):
     """
 
     catastrophic_timeout = 690  # see notes above for catastrophic failure timing
+
+    # Test that all the failures that will get purged actually happen
+    ENV.run(catastrophic_timeout - 3)
+
+    requests = MANAGER.items
+    generator_requests = [el for el in requests if el.subassembly_id == "generator"]
+    generator_maintenance = [
+        el for el in generator_requests if isinstance(el.details, Maintenance)
+    ]
+    generator_failures = [
+        el for el in generator_requests if isinstance(el.details, Failure)
+    ]
+
+    assert len(generator_failures) == 3  # see notes above
+    assert len(generator_maintenance) == 5  # see notes above
+
+    # Test that the correct failures/tasks get purged and all the processes are timed out appropriately
     ENV.run(catastrophic_timeout)
 
     # Check that the generator is set to broken
@@ -141,13 +161,9 @@ def test_interruptions_and_request_submission(env_setup):
     gearbox_failures = [
         el for el in gearbox_requests if isinstance(el.details, Failure)
     ]
-    print(gearbox_requests)
 
     # Check the total number of request submitted from each subassembly is correct
-    assert (
-        len(generator_requests)
-        == correct_N_generator_failures + correct_N_generator_maintenance
-    )
+    assert len(generator_requests) == 1  # all others will have been purged
     assert (
         len(gearbox_requests)
         == correct_N_gearbox_failures + correct_N_gearbox_maintenance

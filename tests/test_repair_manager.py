@@ -3,9 +3,11 @@
 from re import M
 from copy import deepcopy
 
+import attrs
 import numpy as np
 import pytest
 
+from wombat import windfarm
 from wombat.core import repair_management, service_equipment
 from wombat.core.library import load_yaml
 from wombat.core.data_classes import (
@@ -396,6 +398,10 @@ def test_get_requests(env_setup):
     # Basic checks that the submissions are all there
     assert len(manager.items) == 6
 
+    # Test that the first submitted request is returned with no system filtering
+    request = manager.get_request_by_system(capability_list)
+    assert request.value == medium_repair1
+
     # Test that the major replacement is retrieved first when requesting by severity
     # level 5 and that other invalid requests return None
     request = manager.get_next_highest_severity_request(capability_list, 6)
@@ -424,11 +430,8 @@ def test_get_requests(env_setup):
     request = manager.get_request_by_system(capability_list, turbine2.id)
     assert request.value == minor_repair2
 
-    # With 2 requests left, ensure they're produced in the correct order and that
+    # With 1 requests left, ensure they're produced in the correct order and that
     # specifying incorrect severity levesls returns None
-    request = manager.get_next_highest_severity_request(capability_list)
-    assert request.value == medium_repair1
-
     request = manager.get_next_highest_severity_request(capability_list, 4)
     assert request is None
 
@@ -437,3 +440,222 @@ def test_get_requests(env_setup):
 
     request = manager.get_next_highest_severity_request(capability_list, 3)
     assert request.value == medium_repair3
+
+
+def test_purge_subassembly_requests(env_setup):
+    """Tests the ``RepairManager.purge_subassembly_requests`` method."""
+    env = env_setup
+    manager = RepairManager(env)
+    windfarm = Windfarm(env, "layout_with_gearboxes.csv", manager)
+    turbine1 = windfarm.system("S00T1")
+    turbine2 = windfarm.system("S00T2")
+    turbine3 = windfarm.system("S00T3")
+    generator1 = turbine1.generator
+    gearbox1 = turbine1.gearbox
+    generator2 = turbine2.generator
+    gearbox2 = turbine2.gearbox
+    generator3 = turbine3.generator
+    gearbox3 = turbine3.gearbox
+
+    # Check there are no submitted items
+    assert manager.items == []
+
+    # Check that None is returned when there are not items
+    response = manager.purge_subassembly_requests(turbine1.id, generator1.id)
+    assert response is None
+
+    # Submit a handful of requests with variables indicating what the request is and
+    # which turbine it is originating from
+    gen_medium_repair1 = generator1.data.failures[3]
+    gen_medium_repair1 = RepairRequest(
+        turbine1.id,
+        turbine1.name,
+        generator1.id,
+        generator1.name,
+        gen_medium_repair1.level,
+        gen_medium_repair1,
+    )
+    gen_medium_repair1 = turbine1.repair_manager.submit_request(gen_medium_repair1)
+
+    gen_major_repair1 = generator1.data.failures[4]
+    gen_major_repair1 = RepairRequest(
+        turbine1.id,
+        turbine1.name,
+        generator1.id,
+        generator1.name,
+        gen_major_repair1.level,
+        gen_major_repair1,
+    )
+    gen_major_repair1 = turbine1.repair_manager.submit_request(gen_major_repair1)
+
+    gbx_medium_repair1 = gearbox1.data.failures[3]
+    gbx_medium_repair1 = RepairRequest(
+        turbine1.id,
+        turbine1.name,
+        gearbox1.id,
+        gearbox1.name,
+        gbx_medium_repair1.level,
+        gbx_medium_repair1,
+    )
+    gbx_medium_repair1 = turbine1.repair_manager.submit_request(gbx_medium_repair1)
+
+    gen_medium_repair2 = generator2.data.failures[3]
+    gen_medium_repair2 = RepairRequest(
+        turbine2.id,
+        turbine2.name,
+        generator2.id,
+        generator2.name,
+        gen_medium_repair2.level,
+        gen_medium_repair2,
+    )
+    gen_medium_repair2 = turbine2.repair_manager.submit_request(gen_medium_repair2)
+
+    gen_major_repair2 = generator2.data.failures[4]
+    gen_major_repair2 = RepairRequest(
+        turbine2.id,
+        turbine2.name,
+        generator2.id,
+        generator2.name,
+        gen_major_repair2.level,
+        gen_major_repair2,
+    )
+    gen_major_repair2 = turbine2.repair_manager.submit_request(gen_major_repair2)
+
+    gbx_medium_repair2 = gearbox2.data.failures[3]
+    gbx_medium_repair2 = RepairRequest(
+        turbine2.id,
+        turbine2.name,
+        gearbox2.id,
+        gearbox2.name,
+        gbx_medium_repair2.level,
+        gbx_medium_repair2,
+    )
+    gbx_medium_repair2 = turbine2.repair_manager.submit_request(gbx_medium_repair2)
+
+    gen_medium_repair3 = generator3.data.failures[3]
+    gen_medium_repair3 = RepairRequest(
+        turbine3.id,
+        turbine3.name,
+        generator3.id,
+        generator3.name,
+        gen_medium_repair3.level,
+        gen_medium_repair3,
+    )
+    gen_medium_repair3 = turbine3.repair_manager.submit_request(gen_medium_repair3)
+
+    gen_major_repair3 = generator3.data.failures[4]
+    gen_major_repair3 = RepairRequest(
+        turbine3.id,
+        turbine3.name,
+        generator3.id,
+        generator3.name,
+        gen_major_repair3.level,
+        gen_major_repair3,
+    )
+    gen_major_repair3 = turbine3.repair_manager.submit_request(gen_major_repair3)
+
+    gbx_medium_repair3 = gearbox3.data.failures[3]
+    gbx_medium_repair3 = RepairRequest(
+        turbine3.id,
+        turbine3.name,
+        gearbox3.id,
+        gearbox3.name,
+        gbx_medium_repair3.level,
+        gbx_medium_repair3,
+    )
+    gbx_medium_repair3 = turbine3.repair_manager.submit_request(gbx_medium_repair3)
+
+    # Check for the correct number of submissions
+    assert len(manager.items) == 9
+
+    # Check that mismatched identifiers don't delete results
+    for subassembly in turbine1.subassemblies:
+        if subassembly.id in ("generator", "gearbox"):
+            continue
+        response = manager.purge_subassembly_requests(
+            system_id=turbine1.id, subassembly_id=subassembly.id
+        )
+        assert response is None
+        assert len(manager.items) == 9
+
+    for subassembly in turbine2.subassemblies:
+        if subassembly.id in ("generator", "gearbox"):
+            continue
+        response = manager.purge_subassembly_requests(
+            system_id=turbine2.id, subassembly_id=subassembly.id
+        )
+        assert response is None
+        assert len(manager.items) == 9
+
+    for subassembly in turbine3.subassemblies:
+        if subassembly.id in ("generator", "gearbox"):
+            continue
+        response = manager.purge_subassembly_requests(
+            system_id=turbine3.id, subassembly_id=subassembly.id
+        )
+        assert response is None
+        assert len(manager.items) == 9
+
+    # Check that only the 1 gearbox submission for turbine 1 is all that is removed
+    response = manager.purge_subassembly_requests(
+        system_id=turbine1.id, subassembly_id=gearbox1.id
+    )
+    assert len(response) == 1
+    assert response[0] == gbx_medium_repair1
+    assert len(manager.items) == 8
+
+    # Check that only the turbine 1 medium repair submission is removed
+    response = manager.purge_subassembly_requests(
+        system_id=turbine1.id,
+        subassembly_id=generator1.id,
+        exclude=[gen_major_repair1.request_id],
+    )
+    response = list(response)
+    assert len(response) == 1
+    assert response[0] == gen_medium_repair1
+    assert len(manager.items) == 7
+
+    # Check that only the turbine 1 major repair submission is removed
+    response = manager.purge_subassembly_requests(
+        system_id=turbine1.id, subassembly_id=generator1.id
+    )
+    response = list(response)
+    assert len(response) == 1
+    assert response[0] == gen_major_repair1
+    assert len(manager.items) == 6
+
+    # Check that the turbine 2 generator submissions are removed
+    response = manager.purge_subassembly_requests(
+        system_id=turbine2.id, subassembly_id=generator2.id
+    )
+    response = list(response)
+    assert len(response) == 2
+    assert response[0] == gen_medium_repair2
+    assert response[1] == gen_major_repair2
+    assert len(manager.items) == 4
+
+    # Check that only the 1 gearbox submission for turbine 2 is all that is removed
+    response = manager.purge_subassembly_requests(
+        system_id=turbine2.id, subassembly_id=gearbox2.id
+    )
+    assert len(response) == 1
+    assert response[0] == gbx_medium_repair2
+    assert len(manager.items) == 3
+
+    # Check that the turbine 3 generator submissions are removed
+    response = manager.purge_subassembly_requests(
+        system_id=turbine3.id, subassembly_id=generator3.id
+    )
+    response = list(response)
+    assert len(response) == 2
+    assert response[0] == gen_medium_repair3
+    assert response[1] == gen_major_repair3
+    assert len(manager.items) == 1
+
+    # Check that only the 1 gearbox submission for turbine 3 is all that is removed
+    response = manager.purge_subassembly_requests(
+        system_id=turbine3.id, subassembly_id=gearbox3.id
+    )
+    assert len(response) == 1
+    assert response[0] == gbx_medium_repair3
+    assert len(manager.items) == 0
