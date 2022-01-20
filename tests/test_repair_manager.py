@@ -424,9 +424,16 @@ def test_get_requests(env_setup):
     request = manager.get_request_by_system(capability_list, turbine2.id)
     assert request.value == minor_repair2
 
-    # With 2 requests left, ensure they're produced in the correct order
-    request = manager.get_next_highest_severity_request(capability_list, 3)
+    # With 2 requests left, ensure they're produced in the correct order and that
+    # specifying incorrect severity levesls returns None
+    request = manager.get_next_highest_severity_request(capability_list)
     assert request.value == medium_repair1
+
+    request = manager.get_next_highest_severity_request(capability_list, 4)
+    assert request is None
+
+    request = manager.get_next_highest_severity_request(capability_list, 2)
+    assert request is None
 
     request = manager.get_next_highest_severity_request(capability_list, 3)
     assert request.value == medium_repair3
