@@ -1,10 +1,10 @@
-name: Remote Reset
+name: Drone
 equipment_rate: 0
 charter_days: 1
 start_year: 1996
 end_year: 2015
 onsite: false
-capability: RMT
+capability: DRN
 mobilization_cost: 0
 mobilization_days: 0
 speed: 0
@@ -15,7 +15,7 @@ max_waveheight_repair: 99
 strategy: requests
 strategy_threshold: 1
 crew_transfer_time: 0
-n_crews: 1
+n_crews: 0
 crew:
   day_rate: 0
   n_day_rate: 0

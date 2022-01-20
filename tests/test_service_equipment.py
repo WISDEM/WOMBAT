@@ -41,7 +41,7 @@ def test_service_equipment_init(env_setup):
     # TEST 1
     # Check that a basic CTV initialization looks good
 
-    ctv = ServiceEquipment(env, windfarm, manager, "ctv.yaml")
+    ctv = ServiceEquipment(env, windfarm, manager, "ctv_quick_load.yaml")
     ctv_dict = load_yaml(env.data_dir / "repair" / "transport", "ctv_quick_load.yaml")
 
     # Check the basic attribute assignments
