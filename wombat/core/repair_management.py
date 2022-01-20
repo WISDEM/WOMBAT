@@ -346,6 +346,8 @@ class RepairManager(FilterStore):
         if not self.items:
             return None
 
+        system = self.windfarm.system(system_id)
+        subassembly = [s for s in system.subassemblies if s.id == subassembly_id][0]
         for request in self.items:
             system_match = request.system_id == system_id
             subassembly_match = request.subassembly_id == subassembly_id
@@ -357,8 +359,8 @@ class RepairManager(FilterStore):
                     system_name=request.system_name,
                     part_id=request.system_name,
                     part_name=request.part_name,
-                    system_ol="n/a",
-                    part_ol="n/a",
+                    system_ol=system.operating_level,
+                    part_ol=subassembly.operating_level,
                     agent="RepairManager",
                     action="request canceled",
                     reason="replacement required",

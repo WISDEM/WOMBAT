@@ -381,8 +381,8 @@ class WombatEnvironment(simpy.Environment):
         system_name: str = "",
         part_id: str = "",
         part_name: str = "",
-        system_ol: Union[float, str] = "",
-        part_ol: Union[float, str] = "",
+        system_ol: float | int = 0,
+        part_ol: float | int = 0,
         duration: float = 0,
         request_id: str = "na",
         materials_cost: Union[int, float] = 0,
@@ -410,11 +410,11 @@ class WombatEnvironment(simpy.Environment):
             Subassembly, component, or cable ID, ``_.id``, by default "".
         part_name : str
             Subassembly, component, or cable name, ``_.name``, by default "".
-        system_ol : Union[float, str]
-            Turbine operating level, ``System.operating_level``. Use an empty string for n/a, by default "".
-        part_ol : Union[float, str]
+        system_ol : float | int
+            Turbine operating level, ``System.operating_level``. Use an empty string for n/a, by default 0.
+        part_ol : float | int
             Subassembly, component, or cable operating level, ``_.operating_level``. Use
-            an empty string for n/a, by default "".
+            an empty string for n/a, by default 0.
         request_id : str
             The ``RepairManager`` assigned request_id found in ``RepairRequest.request_id``, by default "na".
         duration : float

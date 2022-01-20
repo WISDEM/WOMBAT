@@ -1,4 +1,5 @@
 """The main API for the ``wombat``."""
+from __future__ import annotations
 
 from typing import List, Union, Optional
 from pathlib import Path
@@ -102,17 +103,24 @@ class Simulation(FromDictMixin):
 
     Parameters
     ----------
-    name: str
-        Name of the simulation. Used for logging files.
     library_path : str
         The path to the main data library.
-    config : Union[str, dict]
-        The path to a configuration dictionary or the dictionary itself.
+    config : Configuration | dict | str
+        One of the following:
+         - A pre-loaded ``Configuration`` object
+         - A dictionary ready to be converted to a ``Configuration`` object
+         - The name of the configuration file to be loaded, that will be located at:
+           ``library_path`` / config / ``config``
     """
 
-    name: str = field(converter=str)
     library_path: Path = field(converter=_library_mapper)
     config: Configuration = field()
+
+    metrics: Metrics = field(init=False)
+    windfarm: Windfarm = field(init=False)
+    env: WombatEnvironment = field(init=False)
+    repair_manager: RepairManager = field(init=False)
+    service_equipment: list[ServiceEquipment] = field(init=False)
 
     def __attrs_post_init__(self) -> None:
         self._setup_simulation()
@@ -150,8 +158,6 @@ class Simulation(FromDictMixin):
                 "dictionary, or ``Configuration`` object!",
             )
 
-        if self.config.name != self.name:
-            raise ValueError("``name`` and the name in ``config`` do not match!")
         if self.config.library != self.library_path:
             raise ValueError(
                 "``library_path`` and the library in ``config`` do not match!"
