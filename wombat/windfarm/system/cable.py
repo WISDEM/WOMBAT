@@ -358,7 +358,7 @@ class Cable:
 
                         # Remove previously submitted requests as a replacement is required
                         _ = self.turbine.repair_manager.purge_subassembly_requests(
-                            self.id, self.id
+                            self.id, self.id, exclude=[repair_request.request_id]
                         )
                         self.interrupt_processes()
                         self.stop_all_upstream_processes(failure)
