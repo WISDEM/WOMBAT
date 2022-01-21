@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterator, Optional, Sequence  # type: ignore
+from typing import TYPE_CHECKING, Optional, Sequence  # type: ignore
 from itertools import chain
 from collections import Counter
 
@@ -174,6 +174,7 @@ class RepairManager(FilterStore):
         elif isinstance(request.details, Maintenance):
             prefix = "MNT"
         else:
+            # Note this is a safety, and shouldn't be able to be reached
             raise ValueError("A valid ``RepairRequest`` must be submitted")
 
         request_id = f"{prefix}{str(self._current_id).zfill(8)}"
@@ -324,8 +325,8 @@ class RepairManager(FilterStore):
         return None
 
     def purge_subassembly_requests(
-        self, system_id: str, subassembly_id: str
-    ) -> Optional[Iterator]:
+        self, system_id: str, subassembly_id: str, exclude: list[str] = []
+    ) -> Optional[list[RepairRequest]]:
         """Yields all the requests for a system/subassembly combination. This is intended
         to be used to remove erroneous requests after a subassembly has been replaced.
 
@@ -335,10 +336,14 @@ class RepairManager(FilterStore):
             ``System.id`` or ``Cable.id``.
         subassembly_id : str
             ``Subassembly.id`` or the ``Cable.id`` repeated for cables.
+        exclude : list[str]
+            A list of ``request_id``s to exclude from the purge. This is a specific use
+            case for the combined cable system/subassembly, but can be to exclude
+            certain requests from the purge.
 
         Yields
         -------
-        Optional[Iterator]
+        Optional[list[RepairRequest]]
             All requests made to the repair manager for the provided system/subassembly
             combination. Returns None if self.items is empty or the loop terminates
             without finding what it is looking for.
@@ -346,31 +351,33 @@ class RepairManager(FilterStore):
         if not self.items:
             return None
 
-        system = self.windfarm.system(system_id)
-        subassembly = [s for s in system.subassemblies if s.id == subassembly_id][0]
-        for request in self.items:
-            system_match = request.system_id == system_id
-            subassembly_match = request.subassembly_id == subassembly_id
-            if system_match and subassembly_match:
-                yield self.get(lambda x: x == request)  # pylint: disable=W0640
+        requests = [
+            request
+            for request in self.items
+            if (
+                request.system_id == system_id
+                and request.subassembly_id == subassembly_id
+                and request.request_id not in exclude
+            )
+        ]
+        if requests == []:
+            return None
 
-                self.env.log_action(
-                    system_id=request.system_id,
-                    system_name=request.system_name,
-                    part_id=request.system_name,
-                    part_name=request.part_name,
-                    system_ol=system.operating_level,
-                    part_ol=subassembly.operating_level,
-                    agent="RepairManager",
-                    action="request canceled",
-                    reason="replacement required",
-                    request_id=request.request_id,
-                )
-
-        # This is here to ensure there is always an explicit return value,
-        # but you may want to consider raising an error here.
-
-        return None
+        for request in requests:
+            self.env.log_action(
+                system_id=request.system_id,
+                system_name=request.system_name,
+                part_id=request.subassembly_id,
+                part_name=request.subassembly_name,
+                system_ol=float("nan"),
+                part_ol=float("nan"),
+                agent="RepairManager",
+                action="request canceled",
+                reason="replacement required",
+                request_id=request.request_id,
+            )
+            _ = self.get(lambda x: x == request)  # pylint: disable=W0640
+        return requests
 
     @property
     def request_map(self) -> dict[str, int]:
