@@ -1,0 +1,30 @@
+capacity_kw: 3000
+capex_kw: 1300  # need an updated value
+generator:
+  name: generator
+  maintenance:
+  - description: ctv call
+    time: 1
+    materials: 10
+    service_equipment: CTV
+    frequency: 15
+  - description: fsv call
+    time: 2
+    materials: 10
+    service_equipment: SCN
+    frequency: 25
+  - description: hlv call
+    time: 3
+    materials: 10
+    service_equipment: LCN
+    frequency: 50
+  failures:
+    10:
+      scale: 1000  # don't want to hit this
+      shape: 1
+      time: 1
+      materials: 14
+      service_equipment: CTV
+      operation_reduction: 1
+      level: 10
+      description: catastrophic failure
