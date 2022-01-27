@@ -110,19 +110,20 @@ class Subassembly:
             if hours_to_next == 0:
                 remainder = self.env.max_run_time - self.env.now
                 try:
-                    self.env.log_action(
-                        system_id=self.turbine.id,
-                        system_name=self.turbine.name,
-                        part_id=self.id,
-                        part_name=self.name,
-                        system_ol=self.turbine.operating_level,
-                        part_ol=self.operating_level,
-                        agent=self.name,
-                        action="none",
-                        reason=f"{self.name} is not modeled",
-                        additional="no maintenance will be modeled for select subassembly",
-                        duration=remainder,
-                    )
+                    # TODO: determine if this logging is really needed
+                    # self.env.log_action(
+                    #     system_id=self.turbine.id,
+                    #     system_name=self.turbine.name,
+                    #     part_id=self.id,
+                    #     part_name=self.name,
+                    #     system_ol=self.turbine.operating_level,
+                    #     part_ol=self.operating_level,
+                    #     agent=self.name,
+                    #     action="none",
+                    #     reason=f"{self.name} is not modeled",
+                    #     additional="no maintenance will be modeled for select subassembly",
+                    #     duration=remainder,
+                    # )
                     yield self.env.timeout(remainder)
                 except simpy.Interrupt:
                     remainder -= self.env.now
@@ -193,19 +194,20 @@ class Subassembly:
             if hours_to_next is None:
                 remainder = self.env.max_run_time - self.env.now
                 try:
-                    self.env.log_action(
-                        system_id=self.turbine.id,
-                        system_name=self.turbine.name,
-                        part_id=self.id,
-                        part_name=self.name,
-                        system_ol=self.turbine.operating_level,
-                        part_ol=self.operating_level,
-                        agent=self.name,
-                        action="none",
-                        reason=f"{self.name} is not modeled",
-                        additional="no failures will be modeled for select subassembly",
-                        duration=remainder,
-                    )
+                    # TODO: determine if this logging is really needed
+                    # self.env.log_action(
+                    #     system_id=self.turbine.id,
+                    #     system_name=self.turbine.name,
+                    #     part_id=self.id,
+                    #     part_name=self.name,
+                    #     system_ol=self.turbine.operating_level,
+                    #     part_ol=self.operating_level,
+                    #     agent=self.name,
+                    #     action="none",
+                    #     reason=f"{self.name} is not modeled",
+                    #     additional="no failures will be modeled for select subassembly",
+                    #     duration=remainder,
+                    # )
                     yield self.env.timeout(remainder)
                 except simpy.Interrupt:
                     remainder -= self.env.now

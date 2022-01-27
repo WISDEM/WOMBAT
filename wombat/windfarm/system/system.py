@@ -264,7 +264,7 @@ class System:
 
         self.env.log_action(
             agent=self.name,
-            action=f"subassemblies created: {self.subassemblies}",
+            action=f"subassemblies created: {[s.id for s in self.subassemblies]}",
             reason="windfarm initialization",
             system_id=self.id,
             system_name=self.name,
