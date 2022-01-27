@@ -391,38 +391,54 @@ def test_weather_forecast():
     # Starts at hour 1, and ends with the 5th hour following
     env.run(until=0.1)
     correct_index = pd.DatetimeIndex(
-        pd.date_range("1/1/2002 01:00:00", "1/1/2002 05:00:00", freq="1H"),
+        pd.date_range("1/1/2002 00:00:00", "1/1/2002 05:00:00", freq="1H"),
         name="datetime",
     )
     correct_wind = np.array(
-        [10.41321252, 8.959270788, 9.10014808, 9.945059601, 11.50807971]
+        [11.75561096, 10.41321252, 8.959270788, 9.10014808, 9.945059601, 11.50807971]
     )
     correct_wave = np.array(
-        [1.586584315, 1.725690828, 1.680982063, 1.552232138, 1.335083363]
+        [1.281772405, 1.586584315, 1.725690828, 1.680982063, 1.552232138, 1.335083363]
     )
 
     ix, wind, wave = env.weather_forecast(hours=5)
-    assert ix.size == wind.size == wave.size == 5
+    assert ix.size == wind.size == wave.size == 6
     assert_index_equal(ix, correct_index)
     npt.assert_equal(wind, correct_wind)
     npt.assert_equal(wave, correct_wave)
 
     # Test for 5.5 hours at an uneven start time increment
-    # Starts at hour 1, and ends at the 6th hour following
-    env.run(until=0.7)
+    # Starts at hour 1, and ends at the 7th hour following
+    env.run(until=1.2)
     correct_index = pd.DatetimeIndex(
-        pd.date_range("1/1/2002 01:00:00", "1/1/2002 06:00:00", freq="1H"),
+        pd.date_range("1/1/2002 01:00:00", "1/1/2002 07:00:00", freq="1H"),
         name="datetime",
     )
     correct_wind = np.array(
-        [10.41321252, 8.959270788, 9.10014808, 9.945059601, 11.50807971, 12.44757098]
+        [
+            10.41321252,
+            8.959270788,
+            9.10014808,
+            9.945059601,
+            11.50807971,
+            12.44757098,
+            13.33747206,
+        ]
     )
     correct_wave = np.array(
-        [1.586584315, 1.725690828, 1.680982063, 1.552232138, 1.335083363, 1.294392727]
+        [
+            1.586584315,
+            1.725690828,
+            1.680982063,
+            1.552232138,
+            1.335083363,
+            1.294392727,
+            1.187261471,
+        ]
     )
 
-    ix, wind, wave = env.weather_forecast(hours=6)
-    assert ix.size == wind.size == wave.size == 6
+    ix, wind, wave = env.weather_forecast(hours=5.5)
+    assert ix.size == wind.size == wave.size == 7
     assert_index_equal(ix, correct_index)
     npt.assert_equal(wind, correct_wind)
     npt.assert_equal(wave, correct_wave)
