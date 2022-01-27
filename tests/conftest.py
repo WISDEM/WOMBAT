@@ -2,10 +2,11 @@
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pytest
 
-from wombat.core import RepairManager, WombatEnvironment
+from wombat.core import WombatEnvironment
 from wombat.core.library import load_yaml
 from wombat.utilities.utilities import IEC_power_curve
 
@@ -18,10 +19,25 @@ def env_setup():
     """Ensures the proper setup and teardown of an environment so no logging
     files can accumulate.
     """
-
+    np.random.seed(2022)
     env = WombatEnvironment(
         data_dir=TEST_DATA,
         weather_file="test_weather_quick_load.csv",
+        workday_start=8,
+        workday_end=16,
+        simulation_name="testing_setup",
+    )
+    yield env
+    env.cleanup_log_files()
+
+
+@pytest.fixture
+def env_setup_full_profile():
+    """Creates a full weather profile environment with proper teardown."""
+    np.random.seed(2022)
+    env = WombatEnvironment(
+        data_dir=TEST_DATA,
+        weather_file="test_weather.csv",
         workday_start=8,
         workday_end=16,
         simulation_name="testing_setup",
@@ -224,3 +240,39 @@ SCHEDULED_VESSEL = dict(
         n_hourly_rate=0,
     ),
 )
+
+
+def pytest_addoption(parser):
+    """Adds the ``run-category`` flag as a workaround to not being able to run some of
+    the individual test modules due to issues with consistent random seeding.
+
+    TODO: This is not working as anitcipated to collect tests in a specific order to see
+    the randomness correctly, so this issue remains unresolved
+    """
+    parser.addoption(
+        "--run-category",
+        type=str,
+        nargs="*",
+        action="store",
+        default="all",
+        choices=["all", "subassembly", "cable", "service_equipment"],
+        metavar="which",
+        help="only run a specific subset of tests, takes one of 'subassembly', 'cable', 'service_equipment', and 'simulation'.",
+    )
+
+
+def pytest_configure(config):
+    """Registers the ``cat`` marker."""
+    config.addinivalue_line(
+        "markers", "cat(which): mark test to run only on named environment"
+    )
+
+
+def pytest_runtest_setup(item):
+    """Determines which tests will get run depending on if they overlap with the
+    user-passed category.
+    """
+    test_level = next(item.iter_markers(name="cat")).args
+    req_level = item.config.getoption("--run-category")
+    if all(tl not in req_level for tl in test_level):
+        pytest.skip(f"Only tests in the category: {req_level}, were requested")
