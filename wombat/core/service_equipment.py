@@ -394,7 +394,7 @@ class ServiceEquipment:
         Parameters
         ----------
         hours : int | float
-            The whole number of hours that should be pulled
+            The number of hours of weather data that should be retrieved.
 
         Returns
         -------
@@ -468,10 +468,17 @@ class ServiceEquipment:
         if all([window < hours_required for window in window_lengths]):
             return max_hours, True
 
-        # Return the number of hours until the first adequate operating window
+        # Find the length of the delay
         delay = safe_operating_windows[
             np.where(window_lengths >= hours_required)[0][0]
         ][0]
+
+        # If there is no delay, simply return 0 and the shift delay indicator
+        if delay == 0:
+            return delay, False
+
+        # If the delay is non-zero, ensure we get the correct hour difference from now
+        # until the top of the first available hour
         delay = hours_until_future_hour(current, current.hour + delay)
         return delay, False
 
@@ -792,7 +799,7 @@ class ServiceEquipment:
             )
             return
 
-        self.weather_delay(delay, **shared_logging)
+        yield self.env.process(self.weather_delay(delay, **shared_logging))
 
         if to_system:
             additional = f"transferring crew from {self.settings.name} to {system.id}"
@@ -974,13 +981,12 @@ class ServiceEquipment:
                 if hours_available <= hours_to_process:
                     hours_to_process = hours_available
                 else:
+                    current = self.env.simulation_time
                     hours_to_process = hours_until_future_hour(
                         current, current.hour + int(hours_to_process)
                     )
                 if hours_required < hours_to_process:
                     hours_to_process = hours_required
-                current = self.env.simulation_time
-
                 # Ensure this gets the correct float hours to the start of the target
                 # hour, unless the hours to process is between (0, 1]
                 yield self.env.process(
@@ -992,7 +998,7 @@ class ServiceEquipment:
 
             # If a delay is the first part of the process or a delay occurs after the
             # some work is performed, then that delay is processed here.
-            if delay > 0:
+            if delay > 0 and hours_required > 0:
                 current = self.env.simulation_time
                 hours_to_process = hours_until_future_hour(
                     current, current.hour + delay

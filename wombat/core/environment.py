@@ -351,7 +351,8 @@ class WombatEnvironment(simpy.Environment):
     def weather_forecast(
         self, hours: Union[int, float]
     ) -> Tuple[DatetimeIndex, np.ndarray, np.ndarray]:
-        """Returns the wind and wave data for the next ``hours`` hours.
+        """Returns the wind and wave data for the next ``hours`` hours, starting from
+        the current hour's weather.
 
         Parameters
         ----------
@@ -362,10 +363,14 @@ class WombatEnvironment(simpy.Environment):
         -------
         Tuple[DatetimeIndex, np.ndarray, np.ndarray]
             The pandas DatetimeIndex, windspeed array, and waveheight array for the
-            hours requested.
+            hours requested, each with shape (``hours`` + 1).
         """
-        start = math.ceil(self.now)
+        start = math.floor(self.now)
         end = start + math.ceil(hours)
+
+        # If it's not on the hour, ensure we're looking ``hours`` hours into the future
+        if self.now % 1:
+            end += 1
 
         weather = self.weather.iloc[start:end]
         return (weather.index, weather.windspeed.values, weather.waveheight.values)
