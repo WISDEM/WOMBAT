@@ -22,6 +22,7 @@ from wombat.windfarm import Windfarm
 from wombat.utilities import hours_until_future_hour
 from wombat.core.library import load_yaml
 from wombat.windfarm.system import System
+from wombat.core.data_classes import ScheduledServiceEquipmentData
 from wombat.windfarm.system.cable import Cable
 from wombat.windfarm.system.subassembly import Subassembly
 
@@ -100,8 +101,9 @@ class ServiceEquipment:
         self.manager = repair_manager
         self.onsite = False
         self.enroute = False
-        self.at_system = False
         self.at_port = False
+        self.at_system = False
+        self.transferring_crew = False
         self.current_system = None  # type: str | None
 
         data = load_yaml(env.data_dir / "repair" / "transport", equipment_data_file)
@@ -446,9 +448,6 @@ class ServiceEquipment:
             an indicator for if the process has to be delayed until the next shift for
             a safe transfer.
         """
-        if not isinstance(hours_required, int):
-            hours_required = ceil(hours_required)
-
         current = self.env.simulation_time
 
         # If the time required for a transfer is longer than the time left in the shift,
@@ -500,7 +499,7 @@ class ServiceEquipment:
             in the time window are safe to complete a maintenance task or repair.
         """
         window_found = False
-        hours_required = np.ceil(hours_required).astype(int)
+        hours_required = ceil(hours_required)
 
         for i in range(10):  # no more than 10 attempts to find a window
             dt_ix, weather = self._weather_forecast(hours_required + (i * 24))
@@ -700,7 +699,13 @@ class ServiceEquipment:
             **kwargs,
         )
         yield self.env.timeout(hours)
-        self.at_port = True if end == "port" else False
+
+        if end == "port":
+            self.at_port = True
+            self.onsite = False
+        else:
+            self.at_port = False
+            self.onsite = True
         self.at_system = True if set_current is not None else False
         self.current_system = set_current
         self.env.log_action(
@@ -761,13 +766,16 @@ class ServiceEquipment:
         )
 
         delay, shift_delay = self.find_uninterrupted_weather_window(hours_to_process)
-
         # If there is a shift delay, then travel to port, wait, and travel back, and finally try again.
         if shift_delay:
-            yield self.env.process(self.weather_delay(delay, **shared_logging))
+            travel_time = self.env.now
             yield self.env.process(
                 self.travel(start="site", end="port", **shared_logging)
             )
+            travel_time -= self.env.now  # will be negative value, but is flipped
+            delay -= abs(travel_time)  # decrement the delay by the travel time
+            if delay > 0:
+                yield self.env.process(self.weather_delay(delay, **shared_logging))
             yield self.env.process(
                 self.wait_until_next_shift(
                     **shared_logging,
@@ -799,7 +807,14 @@ class ServiceEquipment:
             equipment_cost=equipment_cost,
             **shared_logging,
         )
+        self.transferring_crew = True
         yield self.env.timeout(hours_to_process)
+        self.transferring_crew = False
+        if to_system:
+            self.current_system = system.id
+        else:
+            self.current_system = None
+            self.at_system = False
         self.env.log_action(
             action="complete transfer", additional="complete", **shared_logging
         )
@@ -864,6 +879,32 @@ class ServiceEquipment:
             request_id=request.request_id,
         )
 
+        # Ensure there is enough time to transfer the crew back and forth with a buffer
+        # of twice the travel time or travel back to port and try again the next shift
+        start_shift = self.settings.workday_start
+        end_shift = self.settings.workday_end
+        current = self.env.simulation_time
+        hours_required = hours_available = request.details.time - time_processed
+        if not (start_shift == 0 and end_shift == 24):
+            hours_available = hours_until_future_hour(current, end_shift)
+
+        if hours_available <= self.settings.crew_transfer_time * 4:
+            yield self.env.process(
+                self.travel(
+                    start="site",
+                    end="port",
+                    **shared_logging,
+                )
+            )
+            yield self.env.process(self.wait_until_next_shift(**shared_logging))
+
+            yield self.env.process(
+                self.process_repair(
+                    request, prior_operation_level=starting_operational_level
+                )
+            )
+            return
+
         # Travel to site or the next system on site
         if not self.at_system and self.at_port:
             yield self.env.process(
@@ -889,16 +930,14 @@ class ServiceEquipment:
         else:
             raise RuntimeError(f"{self.settings.name} is lost!")
 
-        hours_required = hours_available = request.details.time - time_processed
-        start_shift = self.settings.workday_start
-        end_shift = self.settings.workday_end
         current = self.env.simulation_time
 
         # If the hours required is longer than the shift time, then reset the available
-        # number of hours and the appropriate weather forecast, otherwise get an
-        # adequate weather window, allowing for interruptions
+        # number of hours and the appropriate weather forecast, accounting for crew
+        # transfer, otherwise get an adequate weather window, allowing for interruptions
         if not (start_shift == 0 and end_shift == 24):
             hours_available = hours_until_future_hour(current, end_shift)
+            hours_available -= self.settings.crew_transfer_time
             _, weather_forecast = self._weather_forecast(hours_available)
         else:
             _, weather_forecast, _ = self.find_interrupted_weather_window(
@@ -930,19 +969,26 @@ class ServiceEquipment:
             # If the delay is at the start, hours_to_process is 0, and a delay gets
             # processed, otherwise the crew works for the minimum of
             # ``hours_to_process`` or maximum time that can be worked until the shift's
-            # end.
+            # end, and maxed out by the hours required for the actual repair.
             if hours_to_process > 0:
-                hours_to_process = int(min(hours_available, hours_to_process))
+                if hours_available <= hours_to_process:
+                    hours_to_process = hours_available
+                else:
+                    hours_to_process = hours_until_future_hour(
+                        current, current.hour + int(hours_to_process)
+                    )
+                if hours_required < hours_to_process:
+                    hours_to_process = hours_required
                 current = self.env.simulation_time
-                hours_to_process = hours_until_future_hour(
-                    current, current.hour + hours_to_process
-                )
 
+                # Ensure this gets the correct float hours to the start of the target
+                # hour, unless the hours to process is between (0, 1]
                 yield self.env.process(
                     self.repair(hours_to_process, request.details, **shared_logging)
                 )
                 hours_processed += hours_to_process
                 hours_available -= hours_to_process
+                hours_required -= hours_to_process
 
             # If a delay is the first part of the process or a delay occurs after the
             # some work is performed, then that delay is processed here.
@@ -997,6 +1043,12 @@ class ServiceEquipment:
             request_id=request.request_id,
         )
 
+        # If this is the end of the shift, ensure that we're traveling back to port
+        if not self.env.is_workshift():
+            yield self.env.process(
+                self.travel(start="site", end="port", **shared_logging)
+            )
+
     def run_scheduled(self) -> Generator[Process, None, None]:
         """Runs the simulation.
 
@@ -1005,10 +1057,14 @@ class ServiceEquipment:
         Generator[Process, None, None]
             The simulation.
         """
+        # If the starting operation date is the same as the simulations, set to be onsite
+        assert isinstance(self.settings, ScheduledServiceEquipmentData)  # mypy controls
+        if self.settings.operating_dates[0] == self.env.simulation_time.date():
+            self.onsite = True
+
         while True:
             # Wait for a valid operational period to start
             if self.env.simulation_time.date() not in self.settings.operating_dates:  # type: ignore
-
                 yield self.env.process(self.mobilize_scheduled())
 
             # Wait for next shift to start
