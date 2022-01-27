@@ -1,5 +1,7 @@
 """Test the Cable system and subassembly classes."""
 
+import pytest
+
 from wombat.core import RepairManager
 from wombat.windfarm import Windfarm
 from wombat.windfarm.system import Cable
@@ -7,6 +9,17 @@ from wombat.windfarm.system import Cable
 from tests.conftest import ARRAY_33KV_240MM, ARRAY_33KV_630MM, env_setup
 
 
+@pytest.fixture()
+def category(pytestconfig):
+    return pytestconfig.getoption("run_category")
+
+
+@pytest.mark.cat("all", "subassembly", "cable", "service_equipment")
+def test_pass():
+    pass
+
+
+@pytest.mark.cat("all", "cable")
 def test_cable_init(env_setup):
     """Tests the initialization of a `Cable` object. Much of this exists in the windfarm
     tests, but is repeated here for the sake of redundnacy and clarity that tests exist.
@@ -75,7 +88,8 @@ def test_cable_init(env_setup):
         assert cable.processes.keys() == correct_cable.processes.keys()
 
 
-def test_cable_failures(env_setup):
+@pytest.mark.cat("all", "cable")
+def test_cable_failures(category, env_setup):
     """Test that failing cable disable upstream turbines"""
     env = env_setup
     manager = RepairManager(env)
@@ -106,6 +120,8 @@ def test_cable_failures(env_setup):
 
     # Assert that all items are timed out for a day until the next check or
     # until the end of the simulation
+    for p in cable.processes.values():
+        print(p._target._delay)
     assert all(
         p._target._delay in (24, 1402.148783264902) for p in cable.processes.values()
     )

@@ -25,6 +25,12 @@ from wombat.windfarm.system.subassembly import Subassembly
 from tests.conftest import VESTAS_V90, GENERATOR_SUBASSEMBLY, env_setup
 
 
+@pytest.mark.cat("all", "subassembly", "cable", "service_equipment")
+def test_pass():
+    pass
+
+
+@pytest.mark.cat("all")
 def test_equipment_map(env_setup):
     """Tests the ``EquipmentMap`` class."""
     env = env_setup
@@ -46,6 +52,7 @@ def test_equipment_map(env_setup):
     assert mapping.strategy_threshold == hlv.strategy_threshold
 
 
+@pytest.mark.cat("all")
 def test_strategy_map(env_setup):
     """Tests the ``StrategyMap`` class."""
     env = env_setup
@@ -126,7 +133,7 @@ def test_strategy_map(env_setup):
     assert mapping.is_running
 
     # Crew tranfer
-    ctv = load_yaml(env.data_dir / "repair" / "transport", "ctv.yaml")
+    ctv = load_yaml(env.data_dir / "repair" / "transport", "ctv_requests.yaml")
     ctv = ServiceEquipmentData(ctv).determine_type()
     for capability in ctv.capability:
         mapping.update(capability, ctv.strategy_threshold, ctv)
@@ -144,6 +151,7 @@ def test_strategy_map(env_setup):
     assert mapping.is_running
 
 
+@pytest.mark.cat("all")
 def test_repair_manager_init(env_setup):
     env = env_setup
 
@@ -219,6 +227,7 @@ def test_repair_manager_init(env_setup):
         manager._register_equipment(ctv)
 
 
+@pytest.mark.cat("all")
 def test_submit_request_and_get_request(env_setup):
     """Tests the ``RepairManager.submit_request`` method."""
 
@@ -278,6 +287,7 @@ def test_submit_request_and_get_request(env_setup):
     assert manager.items == []
 
 
+@pytest.mark.cat("all")
 def test_request_map(env_setup):
     """Tests the ``RepairManager.request_map`` property."""
 
@@ -302,6 +312,7 @@ def test_request_map(env_setup):
     assert manager.request_map == correct_request_map
 
 
+@pytest.mark.cat("all")
 def test_get_requests(env_setup):
     """Tests the ``RepairManager.get_request_by_system`` and
     ``RepairManager.get_next_highest_severity_request`` methods.
@@ -442,6 +453,7 @@ def test_get_requests(env_setup):
     assert request.value == medium_repair3
 
 
+@pytest.mark.cat("all")
 def test_purge_subassembly_requests(env_setup):
     """Tests the ``RepairManager.purge_subassembly_requests`` method."""
     env = env_setup

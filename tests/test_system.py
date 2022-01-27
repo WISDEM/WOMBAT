@@ -16,6 +16,12 @@ from tests.conftest import (
 )
 
 
+@pytest.mark.cat("all", "subassembly", "cable", "service_equipment")
+def test_pass():
+    pass
+
+
+@pytest.mark.cat("all")
 def test_turbine_initialization_complete_setup(env_setup):
     """Tests a complete turbine setup."""
     ENV = env_setup
@@ -66,6 +72,7 @@ def test_turbine_initialization_complete_setup(env_setup):
     assert system.operating_level == 1.0
 
 
+@pytest.mark.cat("all")
 def test_turbine_initialization_minimal_setup(env_setup):
     """Test an incomplete, or partial turbine defintion for correctness."""
     ENV = env_setup
@@ -120,6 +127,7 @@ def test_turbine_initialization_minimal_setup(env_setup):
     assert system.operating_level == 1.0
 
 
+@pytest.mark.cat("all")
 def test_substation_initialization(env_setup):
     """Tests a complete substation setup."""
     ENV = env_setup
@@ -167,6 +175,7 @@ def test_substation_initialization(env_setup):
     assert system.operating_level == 1.0
 
 
+@pytest.mark.cat("all")
 def test_initialization_error_cases(env_setup):
     """Tests the cases where a System definition should fail."""
     ENV = env_setup
@@ -242,6 +251,7 @@ def test_initialization_error_cases(env_setup):
         )
 
 
+@pytest.mark.cat("all")
 def test_operating_level(env_setup):
     """Tests the ``operating_level`` method."""
     ENV = env_setup
