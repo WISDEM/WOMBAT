@@ -38,7 +38,6 @@ def test_consecutive_groups():
     )
     windows = consecutive_groups(np.where(all_clear)[0])
     correct_windows = [np.array([0, 1]), np.array([3, 4, 5]), np.array([7, 8, 9, 10])]
-    print(windows)
     assert len(windows) == len(correct_windows)
     for window, correct_window in zip(windows, correct_windows):
         npt.assert_equal(window, correct_window)
@@ -47,7 +46,6 @@ def test_consecutive_groups():
     all_clear = ~all_clear
     windows = consecutive_groups(np.where(all_clear)[0])
     correct_windows = [np.array([2]), np.array([6]), np.array([11])]
-    print(windows)
     assert len(windows) == len(correct_windows)
     for window, correct_window in zip(windows, correct_windows):
         npt.assert_equal(window, correct_window)
@@ -1038,7 +1036,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Repair 6, S01T6 with no weather or shift delays
 
     # Crew is transferred to the next turbine
-    timeout += 14 / 60
+    timeout += 15 / 60
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
     assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
@@ -1046,7 +1044,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     assert len(get_items_by_description(manager, "hlv call")) == 6
 
     # After a crew transfer, and 3 hour repair, the crew is being transferred back
-    timeout += 3 + 14 / 60
+    timeout += 3 + 15 / 60
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
     assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
@@ -1056,17 +1054,284 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Repair 7 will start on the next day due to time constraints for ensuring a safe
     # window for crew transfer, then will complete without delay on the next day
 
-    # Crew is transferring to the turbine  TODO
-    timeout += 15 / 60
+    # Crew is transferred, and the HLV is back at port waiting to start on 5/6 8AM
+    timeout += 2 / 60
     env.run(timeout)
-    print(env.simulation_time)
+    assert hlv.at_port
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.current_system is None
+    assert len(get_items_by_description(manager, "hlv call")) == 5
+
+    # Timeout to 5/6 at 8:01AM for crew transferring to the turbine
+    timeout += 1 + 16  # 1 hour left in shift + 16 hours overnight
+    env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
     assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
     assert hlv.current_system == "S00T1"
     assert len(get_items_by_description(manager, "hlv call")) == 5
 
+    # Crew is transferring back to the vessel after a completed repair
+    timeout += 3 + 15 / 60
+    env.run(timeout)
+    assert hlv.at_port is hlv.enroute is False
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.current_system == "S00T1"
+    assert len(get_items_by_description(manager, "hlv call")) == 5
+
+    # Repair 8, S00T2 has no weather or shift delays
+
+    # Crew is transferring back to the vessel after a completed repair
+    timeout += 15 / 60
+    env.run(timeout)
+    assert hlv.at_port is hlv.enroute is False
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.current_system == "S00T2"
+    assert len(get_items_by_description(manager, "hlv call")) == 4
+
+    # Crew is transferring back to the vessel after a completed repair
+    timeout += 3 + 15 / 60
+    env.run(timeout)
+    assert hlv.at_port is hlv.enroute is False
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.current_system == "S00T2"
+    assert len(get_items_by_description(manager, "hlv call")) == 4
+
+    # Repair 9, S00T3 will start the next day due to the safety buffer and be processed
+    # without delays
+
+    # Crew is back at port
+    timeout += 15 / 60
+    env.run(timeout)
+    assert hlv.at_port
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.current_system is None
+    assert len(get_items_by_description(manager, "hlv call")) == 3
+
+    # Crew is still at port just before the start of the shift
+    timeout += 1 + 16 - 2 / 60  # 1 hour remainder + overnight: 5/8 at 7:59AM
+    env.run(timeout)
+    assert hlv.at_port
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.current_system is None
+    assert len(get_items_by_description(manager, "hlv call")) == 3
+
+    # Crew is transferring to the turbine
+    timeout += 15 / 60
+    env.run(timeout)
+    assert hlv.at_port is hlv.enroute is False
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.current_system == "S00T3"
+    assert len(get_items_by_description(manager, "hlv call")) == 3
+
+    # Crew is transferring back to the HLV
+    timeout += 3 + 2 / 60
+    env.run(timeout)
+    assert hlv.at_port is hlv.enroute is False
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.current_system == "S00T3"
+    assert len(get_items_by_description(manager, "hlv call")) == 3
+
+    # Repair 10, S01T4 will process without delays
+
+    # Crew is transferring to the turbine
+    timeout += 15 / 60
+    env.run(timeout)
+    assert hlv.at_port is hlv.enroute is False
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.current_system == "S01T4"
+    assert len(get_items_by_description(manager, "hlv call")) == 2
+
+    # Crew is still at the turbine
+    timeout += 3
+    env.run(timeout)
+    assert hlv.at_system is hlv.onsite is True
+    assert hlv.at_port is hlv.enroute is hlv.transferring_crew is False
+    assert hlv.current_system == "S01T4"
+    assert len(get_items_by_description(manager, "hlv call")) == 2
+
+    # Crew is transferring to the HLV
+    timeout += 15 / 60
+    env.run(timeout)
+    assert hlv.at_port is hlv.enroute is False
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.current_system == "S01T4"
+    assert len(get_items_by_description(manager, "hlv call")) == 2
+
+    # Repair 11, S01T5 is delayed to start until the next day because of the safety,
+    # but is unable to transfer the crew safely until 5/10 at 13:00 so is effectively
+    # stuck at port
+
+    # HLV goes back to port due to the safety buffer
+    timeout += 15 / 60
+    env.run(timeout)
+    assert hlv.at_port
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.current_system is None
+    assert len(get_items_by_description(manager, "hlv call")) == 1
+
+    # HLV is at port after the delay still due to inclimate weather
+    timeout += 1 + 16  # 1 hour remainder + 16 hours overnight
+    env.run(timeout)
+    assert hlv.at_port
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.current_system is None
+    assert len(get_items_by_description(manager, "hlv call")) == 1
+
+    # HLV travels to site, but is unable to transfer crew just yet
+    timeout += 24
+    env.run(timeout)
+    assert hlv.at_system is hlv.onsite is True
+    assert hlv.at_port is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.current_system == "S01T5"
+    assert len(get_items_by_description(manager, "hlv call")) == 1
+
+    # HLV is transferring crew to the turbine after a 5 hour delay
+    timeout += 5
+    env.run(timeout)
+    assert hlv.at_port is hlv.enroute is False
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.current_system == "S01T5"
+
+    # There is now an additional submitted request by this time
+    assert len(get_items_by_description(manager, "hlv call")) == 2
+
+    # HLV is transferring crew back to the HLV after processing 2.75 hours of the repair
+    timeout += 2.75
+    env.run(timeout)
+    assert hlv.at_port is hlv.enroute is False
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.current_system == "S01T5"
+    assert len(get_items_by_description(manager, "hlv call")) == 2
+
+    # The HLV is back at port
+    timeout += 15 / 60
+    env.run(timeout)
+    assert hlv.at_port
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.current_system is None
+    assert len(get_items_by_description(manager, "hlv call")) == 2
+
+    # Check that the Field Support Vessel has been deployed
+    timeout += 16
+    env.run(timeout)
+    assert fsv.enroute
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is fsv.at_port is False
+
+    # The HLV is transferring the crew to the turbine
+    assert hlv.at_port is hlv.enroute is False
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.current_system == "S01T5"
+    assert len(get_items_by_description(manager, "hlv call")) == 2
+
+    # The HLV is transferring the crew back to the HLV
+    # 15 minutes transfer + 45 minutes to finish the repair - 2 to be before it finishs
+    timeout += (13 + 45) / 60
+    env.run(timeout)
+    assert hlv.at_port is hlv.enroute is False
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.current_system == "S01T5"
+    assert len(get_items_by_description(manager, "hlv call")) == 2
+
+    # Repair 12 S01T6 runs without delays
+
+    # The HLV is transferring the crew to the turbine
+    timeout += 15 / 60
+    env.run(timeout)
+    assert hlv.at_port is hlv.enroute is False
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.current_system == "S01T6"
+    assert len(get_items_by_description(manager, "hlv call")) == 1
+
+    # The crew is transferring back to the HLV
+    timeout += 3 + 15 / 60
+    env.run(timeout)
+    assert hlv.at_port is hlv.enroute is False
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.current_system == "S01T6"
+    assert len(get_items_by_description(manager, "hlv call")) == 1
+
+    # Repair 13 S01T4 will finish without delalys
+
+    # The crew is transferring to the turbine
+    timeout += 15 / 60
+    env.run(timeout)
+    assert hlv.at_port is hlv.enroute is False
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.current_system == "S01T4"
+    assert len(get_items_by_description(manager, "hlv call")) == 0
+
+    # The crew is transferring back to the HLV
+    timeout += 3 + 2 / 60
+    env.run(timeout)
+    assert hlv.at_port is hlv.enroute is False
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.current_system == "S01T4"
+    assert len(get_items_by_description(manager, "hlv call")) == 0
+
+    # The HLV is back at port
+    timeout += 15 / 60
+    env.run(timeout)
+    assert hlv.at_port
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.current_system is None
+    assert len(get_items_by_description(manager, "hlv call")) == 0
+
+    # The HLV will have no more repairs for the remainder of its visit, so check the
+    # start of each remaining shift
+
+    # Move to 8:01 AM
+    timeout += 16
+    env.run(timeout)
+    assert hlv.at_port
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.current_system is None
+    assert len(get_items_by_description(manager, "hlv call")) == 0
+
+    # The HLV will remain at port
+    timeout += 24
+    env.run(timeout)
+    assert hlv.at_port
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.current_system is None
+    assert len(get_items_by_description(manager, "hlv call")) == 0
+
+    # The HLV will remain at port
+    timeout += 24
+    env.run(timeout)
+    assert hlv.at_port
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.current_system is None
+    assert len(get_items_by_description(manager, "hlv call")) == 0
+
+    # The HLV will remain at port
+    timeout += 24
+    env.run(timeout)
+    assert hlv.at_port
+    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.current_system is None
+    assert len(get_items_by_description(manager, "hlv call")) == 0
+
+    # The HLV will no longer be available and is off to another charter
+    # It is enroute because it's technically be chartered, but not
+    timeout += 24
+    env.run(timeout)
+    assert (
+        hlv.at_system
+        is hlv.onsite
+        is hlv.transferring_crew
+        is hlv.at_port
+        is hlv.enroute
+        is False
+    )
+    assert hlv.current_system is None
+    assert len(get_items_by_description(manager, "hlv call")) == 0
+
+    # Field Support Vessel Checks
+    # This is going to only check in on some processes due to the extensive timing
+    # checks performed above, which cover numerous edge cases for timing
+
     # print(env.simulation_time)
-    # for k, v in hlv.__dict__.items():
+    # for k, v in fsv.__dict__.items():
     #     if k == "settings":
     #         continue
     #     print(k, v)
