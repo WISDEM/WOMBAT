@@ -304,6 +304,11 @@ class ServiceEquipment:
         else:
             additional = "no more return visits will be made"
 
+        # Ensures that the statuses are correct
+        self.at_port = False
+        self.enroute = False
+        self.onsite = False
+
         self.env.log_action(
             agent=self.settings.name,
             action="delay",
@@ -638,6 +643,8 @@ class ServiceEquipment:
         self, start: str, end: str, set_current: str | None = None, **kwargs
     ) -> Generator[Timeout | Process, None, None]:
         """The process for traveling between port and site, or two systems onsite.
+
+        NOTE: This does not currently take the weather conditions into account.
 
         Parameters
         ----------
