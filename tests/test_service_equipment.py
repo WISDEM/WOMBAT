@@ -1211,20 +1211,25 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     assert hlv.current_system is None
     assert len(get_items_by_description(manager, "hlv call")) == 2
 
-    # Check that the Field Support Vessel has been deployed
-    timeout += 16
+    # Check that the Field Support Vessel has been deployed at midnight to arrive for
+    # the start of its first workshift
+    timeout += 8
     env.run(timeout)
     assert fsv.enroute
     assert fsv.at_system is fsv.onsite is fsv.transferring_crew is fsv.at_port is False
+    # Repairs cause a delay in the timeouts, so this won't be 30 yet
+    assert len(get_items_by_description(manager, "fsv call")) == 29
 
     # The HLV is transferring the crew to the turbine
+    timeout += 8
+    env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
     assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
     assert hlv.current_system == "S01T5"
     assert len(get_items_by_description(manager, "hlv call")) == 2
 
     # The HLV is transferring the crew back to the HLV
-    # 15 minutes transfer + 45 minutes to finish the repair - 2 to be before it finishs
+    # 15 minutes transfer + 45 minutes to finish the repair
     timeout += (13 + 45) / 60
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
@@ -1327,8 +1332,475 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     assert len(get_items_by_description(manager, "hlv call")) == 0
 
     # Field Support Vessel Checks
-    # This is going to only check in on some processes due to the extensive timing
-    # checks performed above, which cover numerous edge cases for timing
+    # This is going to only check in on the first day and last day of processes
+    # due to the extensive timing checks performed above for the HLV, which cover
+    # numerous edge cases for repair timing, and so we mostly care about the continuous
+    # shift timing checks. In addition because the FSV only has a waveheight restriction,
+    # the on ly weather delays should occur on 6/28 when there are waves >= 1.5m.
+
+    # The FSV be traveling still
+    assert fsv.enroute
+    assert fsv.at_port is fsv.at_system is fsv.onsite is fsv.transferring_crew is False
+    assert fsv.current_system is None
+
+    # This is not 30 due to delays in the timing caused by repairs when the maintenance
+    # timeout clock is not ticking
+    assert len(get_items_by_description(manager, "fsv call")) == 29
+
+    # The FSV should not have arrived on 5/31 at 23:59
+    timeout += 16 * 24 - 8 - 2 / 60
+    env.run(timeout)
+    assert fsv.enroute
+    assert fsv.at_port is fsv.at_system is fsv.onsite is fsv.transferring_crew is False
+    assert fsv.current_system is None
+    # The previously missing request should now be filed
+    assert len(get_items_by_description(manager, "fsv call")) == 30
+
+    # The FSV should now be on site for its first request and tranferring the crew
+    timeout += 2 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S00T1"
+    assert len(get_items_by_description(manager, "fsv call")) == 29
+
+    # The FSV should be starting the repair after its 30 minute transfer
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
+    assert fsv.current_system == "S00T1"
+    assert len(get_items_by_description(manager, "fsv call")) == 29
+
+    # Tranferring the crew back to the FSV
+    timeout += 2
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S00T1"
+    assert len(get_items_by_description(manager, "fsv call")) == 29
+
+    # Transferring crew to the next turbine
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S00T2"
+    assert len(get_items_by_description(manager, "fsv call")) == 28
+
+    # Maintenance
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
+    assert fsv.current_system == "S00T2"
+    assert len(get_items_by_description(manager, "fsv call")) == 28
+
+    # Tranferring the crew back to the FSV
+    timeout += 2
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S00T2"
+    assert len(get_items_by_description(manager, "fsv call")) == 28
+
+    # Transferring crew to the next turbine
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S00T3"
+    assert len(get_items_by_description(manager, "fsv call")) == 27
+
+    # Maintenance
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
+    assert fsv.current_system == "S00T3"
+    assert len(get_items_by_description(manager, "fsv call")) == 27
+
+    # Tranferring the crew back to the FSV
+    timeout += 2
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S00T3"
+    assert len(get_items_by_description(manager, "fsv call")) == 27
+
+    # Transferring crew to the next turbine
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S01T4"
+    assert len(get_items_by_description(manager, "fsv call")) == 26
+
+    # Maintenance
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
+    assert fsv.current_system == "S01T4"
+    assert len(get_items_by_description(manager, "fsv call")) == 26
+
+    # Tranferring the crew back to the FSV
+    timeout += 2
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S01T4"
+    assert len(get_items_by_description(manager, "fsv call")) == 26
+
+    # Transferring crew to the next turbine
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S01T5"
+    assert len(get_items_by_description(manager, "fsv call")) == 25
+
+    # Maintenance
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
+    assert fsv.current_system == "S01T5"
+    assert len(get_items_by_description(manager, "fsv call")) == 25
+
+    # Tranferring the crew back to the FSV
+    timeout += 2
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S01T5"
+    assert len(get_items_by_description(manager, "fsv call")) == 25
+
+    # Transferring crew to the next turbine
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S01T6"
+    assert len(get_items_by_description(manager, "fsv call")) == 24
+
+    # Maintenance
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
+    assert fsv.current_system == "S01T6"
+    assert len(get_items_by_description(manager, "fsv call")) == 24
+
+    # Tranferring the crew back to the FSV
+    timeout += 2
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S01T6"
+    assert len(get_items_by_description(manager, "fsv call")) == 24
+
+    # Transferring crew to the next turbine
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S00T1"
+    assert len(get_items_by_description(manager, "fsv call")) == 23
+
+    # Maintenance
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
+    assert fsv.current_system == "S00T1"
+    assert len(get_items_by_description(manager, "fsv call")) == 23
+
+    # Tranferring the crew back to the FSV
+    timeout += 2
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S00T1"
+    assert len(get_items_by_description(manager, "fsv call")) == 23
+
+    # Transferring crew to the next turbine
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S00T2"
+    assert len(get_items_by_description(manager, "fsv call")) == 22
+
+    # Maintenance
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
+    assert fsv.current_system == "S00T2"
+    assert len(get_items_by_description(manager, "fsv call")) == 22
+
+    # Tranferring the crew back to the FSV
+    timeout += 2
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S00T2"
+    assert len(get_items_by_description(manager, "fsv call")) == 22
+
+    # Transferring crew to the next turbine
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S00T3"
+    assert len(get_items_by_description(manager, "fsv call")) == 21
+
+    # Maintenance
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
+    assert fsv.current_system == "S00T3"
+    assert len(get_items_by_description(manager, "fsv call")) == 21
+
+    # Tranferring the crew back to the FSV
+    timeout += 2
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S00T3"
+    assert len(get_items_by_description(manager, "fsv call")) == 21
+
+    # Transferring crew to the next turbine
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S01T4"
+    assert len(get_items_by_description(manager, "fsv call")) == 20
+
+    # Maintenance
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
+    assert fsv.current_system == "S01T4"
+    assert len(get_items_by_description(manager, "fsv call")) == 20
+
+    # Tranferring the crew back to the FSV
+    timeout += 2
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S01T4"
+    assert len(get_items_by_description(manager, "fsv call")) == 20
+
+    # Transferring crew to the next turbine
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S01T5"
+    assert len(get_items_by_description(manager, "fsv call")) == 19
+
+    # Maintenance
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
+    assert fsv.current_system == "S01T5"
+    assert len(get_items_by_description(manager, "fsv call")) == 19
+
+    # Tranferring the crew back to the FSV
+    timeout += 2
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S01T5"
+    assert len(get_items_by_description(manager, "fsv call")) == 19
+
+    # Transferring crew to the next turbine
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S01T6"
+    assert len(get_items_by_description(manager, "fsv call")) == 18
+
+    # Maintenance
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
+    assert fsv.current_system == "S01T6"
+    assert len(get_items_by_description(manager, "fsv call")) == 18
+
+    # Tranferring the crew back to the FSV
+    timeout += 2
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S01T6"
+    assert len(get_items_by_description(manager, "fsv call")) == 18
+
+    # Transferring crew to the next turbine
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S00T1"
+    assert len(get_items_by_description(manager, "fsv call")) == 17
+
+    # Maintenance
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
+    assert fsv.current_system == "S00T1"
+    assert len(get_items_by_description(manager, "fsv call")) == 17
+
+    # Tranferring the crew back to the FSV
+    timeout += 2
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S00T1"
+    assert len(get_items_by_description(manager, "fsv call")) == 17
+
+    # Transferring crew to the next turbine
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S00T2"
+    assert len(get_items_by_description(manager, "fsv call")) == 16
+
+    # Maintenance
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
+    assert fsv.current_system == "S00T2"
+    assert len(get_items_by_description(manager, "fsv call")) == 16
+
+    # Tranferring the crew back to the FSV
+    timeout += 2
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S00T2"
+    assert len(get_items_by_description(manager, "fsv call")) == 16
+
+    # Transferring crew to the next turbine
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S00T3"
+    assert len(get_items_by_description(manager, "fsv call")) == 15
+
+    # Maintenance
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
+    assert fsv.current_system == "S00T3"
+    assert len(get_items_by_description(manager, "fsv call")) == 15
+
+    # Tranferring the crew back to the FSV
+    timeout += 2
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S00T3"
+    assert len(get_items_by_description(manager, "fsv call")) == 15
+
+    # Transferring crew to the next turbine
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S01T4"
+    assert len(get_items_by_description(manager, "fsv call")) == 14
+
+    # Maintenance
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
+    assert fsv.current_system == "S01T4"
+    assert len(get_items_by_description(manager, "fsv call")) == 14
+
+    # Tranferring the crew back to the FSV
+    timeout += 2
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S01T4"
+    assert len(get_items_by_description(manager, "fsv call")) == 14
+
+    # Transferring crew to the next turbine
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S01T5"
+    assert len(get_items_by_description(manager, "fsv call")) == 13
+
+    # Maintenance
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
+    assert fsv.current_system == "S01T5"
+    assert len(get_items_by_description(manager, "fsv call")) == 13
+
+    # Tranferring the crew back to the FSV
+    timeout += 2
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S01T5"
+    assert len(get_items_by_description(manager, "fsv call")) == 13
+
+    # Transferring crew to the next turbine
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S01T6"
+    assert len(get_items_by_description(manager, "fsv call")) == 12
+
+    # Maintenance
+    timeout += 30 / 60
+    env.run(timeout)
+    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
+    assert fsv.current_system == "S01T6"
+    assert len(get_items_by_description(manager, "fsv call")) == 12
+
+    # Now that the timing continued overnight, let's ensure the last day looks good too
+    timeout += 25 * 24 - (3 + 30 / 60)
+    env.run(timeout)
+    assert fsv.onsite
+    assert fsv.at_system is fsv.at_port is fsv.enroute is fsv.transferring_crew is False
+    assert fsv.current_system is None
+    assert len(get_items_by_description(manager, "fsv call")) == 0
+
+    # Now check that the FSV has left
+    timeout += 24
+    env.run(timeout)
+    assert (
+        fsv.at_system
+        is fsv.at_port
+        is fsv.enroute
+        is fsv.transferring_crew
+        is fsv.onsite
+        is False
+    )
+    assert fsv.current_system is None
+    assert len(get_items_by_description(manager, "fsv call")) == 0
 
     # print(env.simulation_time)
     # for k, v in fsv.__dict__.items():
