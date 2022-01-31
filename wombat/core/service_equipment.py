@@ -292,7 +292,7 @@ class ServiceEquipment:
             hours_to_next_shift = (
                 self.env.date_ix(next_operating_date)
                 - self.env.now
-                + self.env.workday_start
+                + self.settings.workday_start
                 - less_mobilization_hours
             )
         else:
@@ -898,9 +898,8 @@ class ServiceEquipment:
         start_shift = self.settings.workday_start
         end_shift = self.settings.workday_end
         current = self.env.simulation_time
-        hours_required = hours_available = request.details.time - time_processed
-        if not (start_shift == 0 and end_shift == 24):
-            hours_available = hours_until_future_hour(current, end_shift)
+        hours_required = request.details.time - time_processed
+        hours_available = hours_until_future_hour(current, end_shift)
 
         if hours_available <= self.settings.crew_transfer_time * 4:
             yield self.env.process(
@@ -955,7 +954,7 @@ class ServiceEquipment:
             _, weather_forecast = self._weather_forecast(hours_available)
         else:
             _, weather_forecast, _ = self.find_interrupted_weather_window(
-                hours_available
+                hours_required
             )
 
         # Check that all times are within the windfarm's working hours and cut off any
