@@ -131,7 +131,7 @@ class Subassembly:
             while hours_to_next > 0:
                 try:
                     # If the replacement has not been completed, then wait another minute
-                    if self.turbine.operating_level == 0:
+                    if self.turbine.operating_level == 0 or self.turbine.servicing:
                         yield self.env.timeout(TIMEOUT)
                         continue
 
@@ -215,7 +215,7 @@ class Subassembly:
             else:
                 while hours_to_next > 0:  # type: ignore
                     try:
-                        if self.turbine.operating_level == 0:
+                        if self.turbine.operating_level == 0 or self.turbine.servicing:
                             yield self.env.timeout(TIMEOUT)
                             continue
 

@@ -304,3 +304,39 @@ class Windfarm:
             ]
         )
         return availability
+
+    @property
+    def current_availability_wo_servicing(self) -> float:
+        """Calculates the product of all system ``operating_level`` variables across the
+        windfarm using the following forumation, ignoring 0 operating level due to ongoing
+        servicing.
+
+        .. math::
+            \sum{
+                OperatingLevel_{substation_{i}} *
+                \sum{OperatingLevel_{turbine_{j}} * Weight_{turbine_{j}}}
+            }
+
+        where the :math:``{OperatingLevel}`` is the product of the operating level
+        of each subassembly on a given system (substation or turbine), and the
+        :math:``{Weight}`` is the proportion of one turbine's capacity relative to
+        the whole windfarm.
+        """  # noqa: W605
+        operating_levels = {
+            s_id: [
+                self.system(t).operating_level_wo_servicing
+                for t in self.substation_turbine_map[s_id]["turbines"]  # type: ignore
+            ]
+            for s_id in self.substation_turbine_map
+        }
+        availability = fsum(
+            [
+                self.system(s_id).operating_level_wo_servicing
+                * fsum(
+                    operating_levels[s_id]
+                    * self.substation_turbine_map[s_id]["weights"]  # type: ignore
+                )
+                for s_id in self.substation_turbine_map
+            ]
+        )
+        return availability

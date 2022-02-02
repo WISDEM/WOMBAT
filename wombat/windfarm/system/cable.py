@@ -87,6 +87,7 @@ class Cable:
 
         self.downstream_failure = False
         self.operating_level = 1.0
+        self.servicing = False
         self.broken = False
 
         # TODO: need to get the time scale of a distribution like this
@@ -245,7 +246,7 @@ class Cable:
             while hours_to_next > 0:
                 try:
                     # If the replacement has not been completed, then wait another minute
-                    if self.broken or self.downstream_failure:
+                    if self.broken or self.downstream_failure or self.servicing:
                         yield self.env.timeout(TIMEOUT)
                         continue
 

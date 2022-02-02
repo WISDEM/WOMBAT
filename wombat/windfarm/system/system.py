@@ -83,6 +83,7 @@ class System:
         self.repair_manager = repair_manager
         self.id = t_id
         self.name = name
+        self.servicing = False
         self.cable_failure = False
         self.capacity = subassemblies["capacity_kw"]
 
@@ -344,6 +345,21 @@ class System:
     @property
     def operating_level(self) -> float:
         """The turbine's operating level, based on subassembly and cable performance.
+
+        Returns
+        -------
+        float
+            Operating level of the turbine.
+        """
+        if self.cable_failure or self.servicing:
+            return 0.0
+        else:
+            return reduce(_product, [sub.operating_level for sub in self.subassemblies])
+
+    @property
+    def operating_level_wo_servicing(self) -> float:
+        """The turbine's operating level, based on subassembly and cable performance,
+        without accounting for servicing status.
 
         Returns
         -------

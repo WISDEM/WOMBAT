@@ -185,7 +185,7 @@ class RepairManager(FilterStore):
         """Run any equipment that has a pending request where the current windfarm
         operating capacity is less than or equal to the servicing equipment's threshold.
         """
-        operating_capacity = self.windfarm.current_availability
+        operating_capacity = self.windfarm.current_availability_wo_servicing
         for capability in self.request_map:
             equipment_mapping = getattr(self.downtime_based_equipment, capability)
             for equipment in equipment_mapping:
@@ -194,7 +194,6 @@ class RepairManager(FilterStore):
                 if equipment.equipment.onsite or equipment.equipment.enroute:
                     continue
                 self.env.process(equipment.equipment.run_unscheduled())
-                break
 
     def _run_equipment_requests(self) -> None:
         """Run the first piece of equipment (if none are onsite) for each equipment
@@ -204,7 +203,7 @@ class RepairManager(FilterStore):
         for capability, n_requests in self.request_map.items():
             equipment_mapping = getattr(self.request_based_equipment, capability)
             for i, equipment in enumerate(equipment_mapping):
-                if n_requests > equipment.strategy_threshold:
+                if n_requests < equipment.strategy_threshold:
                     continue
                 # Run only the first piece of equipment in the mapping list, but ensure
                 # that it moves to the back of the line after being used
