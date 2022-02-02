@@ -174,7 +174,15 @@ class WombatEnvironment(simpy.Environment):
             True if it's valid working hours, False otherwise.
         """
         if -1 in (workday_start, workday_end):
+            # Return true if the shift is around the clock
+            if self.workday_start == 0 and self.workday_end == 24:
+                return True
             return self.workday_start <= self.simulation_time.hour < self.workday_end
+
+        # Return true if the shift is around the clock
+        if workday_start == 0 and workday_end == 24:
+            return True
+
         return workday_start <= self.simulation_time.hour < workday_end
 
     def hour_in_shift(
