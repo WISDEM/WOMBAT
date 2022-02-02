@@ -56,7 +56,7 @@ def hours_until_future_hour(dt: datetime.datetime, hour: int) -> float:
     if hour >= 24:
         days, hour = divmod(hour, 24)
         new_dt = dt + datetime.timedelta(days=days)
-        new_dt = new_dt.replace(hour=7, minute=0, second=0)
+        new_dt = new_dt.replace(hour=hour, minute=0, second=0)
     else:
         new_dt = dt.replace(hour=hour, minute=0, second=0)
     diff = new_dt - dt
