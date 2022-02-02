@@ -88,23 +88,23 @@ def test_interruptions_and_request_submission(env_setup):
     )
 
     # Timeout turbine will have (randomness controlled by random seed at the top):
-    #  1) a maintenance event every 5 days (120 hours/time steps)
-    #  2) a failure event with a Weibull of scale 0.5, shape 1, with frequencies at:
-    #      242.62, 144.82, 272.83, and 151.25 hours (last one not reached)
-    #  3) a failure event with a Weibull of scale 5, shape 1, with frequencies at:
-    #      11001.95 hours (not reached)
-    #  4) a catastrophic failure event at 689.69 hours that turns everything off
+    #  1) a generator maintenance event every 5 days (120 hours/time steps)
+    #  2) a generator failure event with a Weibull of scale 0.5, shape 1, with frequencies at:
+    #      181.66, 303.92, and 175.41 hours (last one not reached)
+    #  3) a gearbox failure event with a Weibull of scale 5, shape 1, with frequencies at:
+    #      82.37, and 449.09 hours (last one not reached)
+    #  4) a generator catastrophic failure event at 527.1 hours that turns everything off
 
     # The resets and maintenance tasks will be removed from the record for the
     # generator upon failure
-    correct_N_generator_failures = 1  # 3 resets and 1 catastrophic failure
-    correct_N_generator_maintenance = 0  # 5 prior to failure
-    correct_N_gearbox_failures = 0  # none reached
+    correct_N_generator_failures = 2  # 2 resets reached prior to catastrophic failure
+    correct_N_generator_maintenance = 4  # 4 prior to failure
+    correct_N_gearbox_failures = 1  # none reached
     correct_N_gearbox_maintenance = 0  # none reached
 
-    """
     # PROCESS FOR DETERMINING ACTUAL EVENTS IN CASE OF CHANGE OF RANDOM BEHAVIOR FROM PYTEST
-    ENV.run(242.62 + 144.82 + 272.83 + 151.25 + 1)
+    """
+    ENV.run(1 + 181.66 + 303.92)
     for key, process in TURBINE.generator.processes.items():
         print(key, process.__dict__)
     for key, process in TURBINE.gearbox.processes.items():
@@ -113,27 +113,35 @@ def test_interruptions_and_request_submission(env_setup):
     assert False
     """
 
-    catastrophic_timeout = 690  # see notes above for catastrophic failure timing
+    catastrophic_timeout = 527.1  # see notes above for catastrophic failure timing
 
     # Test that all the failures that will get purged actually happen
-    ENV.run(catastrophic_timeout - 3)
+    ENV.run(catastrophic_timeout - 1)
 
     requests = MANAGER.items
     generator_requests = [el for el in requests if el.subassembly_id == "generator"]
+    gearbox_requests = [el for el in requests if el.subassembly_id == "gearbox"]
     generator_maintenance = [
         el for el in generator_requests if isinstance(el.details, Maintenance)
     ]
     generator_failures = [
         el for el in generator_requests if isinstance(el.details, Failure)
     ]
+    gearbox_maintenance = [
+        el for el in gearbox_requests if isinstance(el.details, Maintenance)
+    ]
+    gearbox_failures = [
+        el for el in gearbox_requests if isinstance(el.details, Failure)
+    ]
 
-    # TODO: timing is off and needs to be double checked before release
-    # Somehow the new timing is: 79.857062 so this must be a product of adding new tests
-    # assert len(generator_failures) == 3  # see notes above
-    # assert len(generator_maintenance) == 5  # see notes above
+    # See the notes above for timing
+    assert len(generator_failures) == correct_N_generator_failures
+    assert len(generator_maintenance) == correct_N_generator_maintenance
+    assert len(gearbox_failures) == correct_N_gearbox_failures
+    assert len(gearbox_maintenance) == correct_N_gearbox_maintenance
 
     # Test that the correct failures/tasks get purged and all the processes are timed out appropriately
-    ENV.run(catastrophic_timeout)
+    ENV.run(catastrophic_timeout + 1)
 
     # Check that the generator is set to broken
     assert TURBINE.generator.broken == True
@@ -176,8 +184,8 @@ def test_interruptions_and_request_submission(env_setup):
     # Check the number of maintenance and failure requests submitted for each subassembly
     assert len(gearbox_failures) == correct_N_gearbox_failures
     assert len(gearbox_maintenance) == correct_N_gearbox_maintenance
-    assert len(generator_failures) == correct_N_generator_failures
-    assert len(generator_maintenance) == correct_N_generator_maintenance
+    assert len(generator_failures) == 1  # all but catastrophic failure removed
+    assert len(generator_maintenance) == 0  # all removed
 
     # Run for another 24 hours to ensure nothing has changed
     ENV.run(catastrophic_timeout + 24)

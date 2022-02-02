@@ -19,7 +19,7 @@ generator:
       level: 1
       description: test reset
     10:
-      scale: 0.1
+      scale: 0.5
       shape: 1
       time: 1
       materials: 14
