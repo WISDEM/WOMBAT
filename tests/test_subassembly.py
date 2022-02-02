@@ -20,12 +20,7 @@ from tests.conftest import (
 np.random.seed(2022)  # for test_interruptions()
 
 
-@pytest.mark.cat("all", "subassembly", "cable", "service_equipment")
-def test_pass():
-    pass
-
-
-@pytest.mark.cat("all", "subassembly")
+# @pytest.mark.cat("all", "subassembly")
 def test_subassembly_initialization(env_setup):
     """Test the initialization of a subassembly."""
     # Define the basic items
@@ -74,7 +69,7 @@ def test_subassembly_initialization(env_setup):
     assert N_failures == correct_N_failures
 
 
-@pytest.mark.cat("all", "subassembly")
+# @pytest.mark.cat("all", "subassembly")
 def test_interruptions_and_request_submission(env_setup):
     """
     Test the initialization of a subassembly.
@@ -213,7 +208,7 @@ def test_interruptions_and_request_submission(env_setup):
         assert process._target._delay == 24
 
 
-@pytest.mark.cat("all", "subassembly")
+# @pytest.mark.cat("all", "subassembly")
 def test_timeouts_for_zeroed_out(env_setup):
     """Tests that the timeouts for any zeroed out subassembly maintenance or failure
     does not occur.

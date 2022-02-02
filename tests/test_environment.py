@@ -14,18 +14,13 @@ from wombat.core import WombatEnvironment
 from tests.conftest import TEST_DATA
 
 
-@pytest.mark.cat("all", "subassembly", "cable", "service_equipment")
-def test_pass():
-    pass
-
-
-@pytest.mark.cat("all")
+# @pytest.mark.cat("all")
 def test_data_dir():
     relative_library = Path(__file__).resolve().parent / "library"
     assert TEST_DATA == relative_library
 
 
-@pytest.mark.cat("all")
+# @pytest.mark.cat("all")
 def test_setup():
     """Tests the setup of the `WombatEnvironment` and logging infrastructure."""
 
@@ -173,7 +168,7 @@ def test_setup():
     env.cleanup_log_files()  # delete the logged data
 
 
-@pytest.mark.cat("all")
+# @pytest.mark.cat("all")
 def test_timing():
     """Test basic movements and time coordination for `WombatEnvironment`.
 
@@ -237,7 +232,7 @@ def test_timing():
     env.cleanup_log_files()  # delete the logged data
 
 
-@pytest.mark.cat("all")
+# @pytest.mark.cat("all")
 def test_is_workshift():
     """Tests the ``is_workshift`` method for a variety of inputs."""
     # Setup a basic environment
@@ -275,7 +270,7 @@ def test_is_workshift():
     env.cleanup_log_files()  # delete the logged data
 
 
-@pytest.mark.cat("all")
+# @pytest.mark.cat("all")
 def test_hour_in_shift():
     """Tests the ``hour_in_shift`` method for a variety of inputs."""
     # Setup a basic environment
@@ -319,7 +314,7 @@ def test_hour_in_shift():
     env.cleanup_log_files()  # delete the logged data
 
 
-@pytest.mark.cat("all")
+# @pytest.mark.cat("all")
 def test_hours_to_next_shift():
     """Tests the ``hours_to_next_shift`` method for a variety of inputs."""
     # Setup a basic environment
@@ -356,7 +351,7 @@ def test_hours_to_next_shift():
     env.cleanup_log_files()  # delete the logged data
 
 
-@pytest.mark.cat("all")
+# @pytest.mark.cat("all")
 def test_weather_forecast():
     """Tests the ``weather_forecast`` method for a variety of inputs."""
     # Setup a basic environment

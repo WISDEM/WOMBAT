@@ -21,12 +21,7 @@ from tests.conftest import (
 )
 
 
-@pytest.mark.cat("all", "subassembly", "cable", "service_equipment")
-def test_pass():
-    pass
-
-
-@pytest.mark.cat("all")
+# @pytest.mark.cat("all")
 def test_windfarm_init(env_setup):
     """Tests the setup of ``Windfarm``."""
     env = env_setup
@@ -226,7 +221,7 @@ def test_windfarm_init(env_setup):
         assert cable.processes.keys() == correct_cable.processes.keys()
 
 
-@pytest.mark.cat("all")
+# @pytest.mark.cat("all")
 def test_windfarm_failed_init(env_setup):
     """Tests the failing cases for setup of ``Windfarm`` where no data is provided."""
     env = env_setup

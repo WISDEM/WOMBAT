@@ -25,12 +25,7 @@ def get_items_by_description(
     return [el for el in manager.items if el.details.description == description]
 
 
-@pytest.mark.cat("all", "subassembly", "cable", "service_equipment")
-def test_pass():
-    pass
-
-
-@pytest.mark.cat("all", "service_equipment")
+# @pytest.mark.cat("all", "service_equipment")
 def test_consecutive_groups():
     """Tests the ``consecutive_groups`` function in a similar way that this would be used."""
     all_clear = np.array(
@@ -51,7 +46,7 @@ def test_consecutive_groups():
         npt.assert_equal(window, correct_window)
 
 
-@pytest.mark.cat("all", "service_equipment")
+# @pytest.mark.cat("all", "service_equipment")
 def test_service_equipment_init(env_setup):
     env = env_setup
     manager = RepairManager(env)
@@ -162,7 +157,7 @@ def test_service_equipment_init(env_setup):
         assert getattr(manager.request_based_equipment, capability) == []
 
 
-@pytest.mark.cat("all", "service_equipment")
+# @pytest.mark.cat("all", "service_equipment")
 def test_calculate_salary_cost(env_setup):
     """Tests the ``calculate_salary_cost`` method."""
     env = env_setup
@@ -183,7 +178,7 @@ def test_calculate_salary_cost(env_setup):
     assert cost == n_hours / 24 * ctv_crew["day_rate"] * ctv_crew["n_day_rate"]
 
 
-@pytest.mark.cat("all", "service_equipment")
+# @pytest.mark.cat("all", "service_equipment")
 def test_calculate_hourly_cost(env_setup):
     """Tests the ``calculate_hourly_cost`` method."""
     env = env_setup
@@ -202,7 +197,7 @@ def test_calculate_hourly_cost(env_setup):
     assert cost == n_hours * ctv_crew["hourly_rate"] * ctv_crew["n_hourly_rate"]
 
 
-@pytest.mark.cat("all", "service_equipment")
+# @pytest.mark.cat("all", "service_equipment")
 def test_calculate_equipment_cost(env_setup):
     """Tests the ``calculate_equipment_cost`` method."""
     env = env_setup
@@ -220,7 +215,7 @@ def test_calculate_equipment_cost(env_setup):
     assert cost == n_hours / 24 * ctv_dict["equipment_rate"]
 
 
-@pytest.mark.cat("all", "service_equipment")
+# @pytest.mark.cat("all", "service_equipment")
 def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     """ "Test the simulation logic of a scheduled CTV."""
     env = env_setup_full_profile
@@ -647,6 +642,8 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     # more events will be checked as this process is considered "vetted".
     timeout += 2 / 60
     env.run(timeout)
+    print(env.simulation_time)
+    print(ctv.at_port, ctv.onsite, ctv.transferring_crew, ctv.enroute, ctv.at_system)
     assert ctv.at_port
     assert ctv.current_system is None
     assert ctv.onsite is ctv.transferring_crew is ctv.enroute is ctv.at_system is False
@@ -659,7 +656,7 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     assert current.minute == 1
 
 
-@pytest.mark.cat("all", "service_equipment")
+# @pytest.mark.cat("all", "service_equipment")
 def test_scheduled_equipment_logic(env_setup_full_profile):
     """ "Test the simulation logic of a scheduled HLV."""
     env = env_setup_full_profile
@@ -1801,6 +1798,117 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     )
     assert fsv.current_system is None
     assert len(get_items_by_description(manager, "fsv call")) == 0
+
+
+# @pytest.mark.cat("all", "service_equipment")
+def test_unscheduled_service_equipment_call(env_setup_full_profile):
+    """Tests the calling of downtime-based and requests-based service equipment. This
+    test will only consider that the equipment is mobilized when required, arrives at
+    site, and leaves as the previous tests will cover repair logics.
+    """
+    env = env_setup_full_profile
+    manager = RepairManager(env)
+    windfarm = Windfarm(env, "layout_simulation.csv", manager)
+
+    # ctv = ServiceEquipment(env, windfarm, manager, "ctv.yaml")
+    fsv = ServiceEquipment(env, windfarm, manager, "fsv_requests.yaml")
+    hlv = ServiceEquipment(env, windfarm, manager, "hlv_downtime.yaml")
+
+    # Start the simulation to ensure everything is in place as required
+    env.run(1)
+    assert (
+        fsv.at_port
+        is fsv.at_system
+        is fsv.transferring_crew
+        is fsv.enroute
+        is fsv.onsite
+        is False
+    )
+    assert (
+        hlv.at_port
+        is hlv.at_system
+        is hlv.transferring_crew
+        is hlv.enroute
+        is hlv.onsite
+        is False
+    )
+
+    for turb in windfarm.turbine_id:
+        turb = windfarm.system(turb)
+        for k, proc in turb.generator.processes.items():
+            if k == 10:
+                print(turb.id, proc._target._delay)
+
+    # The FSV has a 10 request threshold, with a request being submitted simultaneously
+    # by each turbine every 25 days, so at day 50, the FSV will be mobilized
+    timeout = 50 * 24 + 1 / 60
+    env.run(timeout)
+    assert fsv.enroute
+    assert fsv.transferring_crew is fsv.at_system is fsv.onsite is fsv.at_port is False
+    assert fsv.current_system is None
+
+    # After 21 days the FSV will arrive at site, but have to wait until the start of the
+    # work shift before repairs can happen
+    timeout += 21 * 24
+    env.run(timeout)
+    assert fsv.onsite
+    assert fsv.transferring_crew is fsv.at_system is fsv.at_port is fsv.enroute is False
+    assert fsv.current_system is None
+
+    # Check that the FSV is working at the start of the work shift
+    timeout += 8
+    env.run(timeout)
+    assert fsv.onsite is fsv.transferring_crew is fsv.at_system is True
+    assert fsv.at_port is fsv.enroute is False
+    assert fsv.current_system == "S00T1"
+
+    # The FSV should no longer be on site after 28 days, plus the time to finish the
+    # repair that it's started
+    timeout += 28 * 24 + 2 + 1  # 28 days + 2 hour repair + 1 hour in crew transfer
+    env.run(timeout)
+    assert (
+        fsv.transferring_crew
+        is fsv.at_system
+        is fsv.onsite
+        is fsv.at_port
+        is fsv.enroute
+        is False
+    )
+    assert fsv.current_system is None
+
+    # The first HLV call is at 4118.374184568947 hours when S00T1's generator has a
+    # catastrophic failure putting the windfarm at 83.3% operations, which is less than
+    # the 90% threshold. However, because the timing will be delayed during repairs,
+    # realized timeout will be at 4166.374185 hours
+    timeout = 4166.374185
+    env.run(timeout + 1)
+    print(env.simulation_time)
+    assert hlv.enroute
+    assert hlv.transferring_crew is hlv.at_system is hlv.onsite is hlv.at_port is False
+    assert hlv.current_system is None
+
+    # Test that the HLV was successfully mobilized
+    timeout += 60 * 24
+    env.run(timeout)
+    print(env.simulation_time)
+    assert hlv.transferring_crew is hlv.at_system is hlv.onsite is True
+    assert hlv.enroute is hlv.at_port is False
+    assert hlv.current_system == "S00T1"
+
+    timeout += 40 * 24
+    env.run(timeout)
+    print(env.simulation_time)
+    assert False
+
+    # Ensure it's still here at the end
+    timeout += 30 * 24 - 1 / 60
+    env.run(timeout)
+    print(env.simulation_time)
+    assert hlv.onsite
+    assert hlv.transferring_crew is hlv.at_system is hlv.at_port is hlv.enroute is False
+    assert hlv.current_system is None
+
+    # INFO     events_log:environment.py:436 2002-08-22 19:22:28 :: 5611.374185 :: S00T2 :: WTG002 :: generator :: generator :: 1.000000 :: 1.000000 :: Heavy Lift Vessel :: complete travel :: hlv call :: arrived at port :: 0.000000 :: MNT00000025 :: 0.000000 :: 0.000000 :: 0.000000 :: 0.000000 :: 0.000000 :: 0.000000
 
     # print(env.simulation_time)
     # for k, v in fsv.__dict__.items():

@@ -20,11 +20,11 @@ generator:
     frequency: 50
   failures:
     10:
-      scale: 1000  # don't want to hit this
+      scale: 50  # don't want to hit this
       shape: 1
       time: 1
       materials: 14
-      service_equipment: CTV
+      service_equipment: LCN
       operation_reduction: 1
       level: 10
       description: catastrophic failure

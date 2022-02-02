@@ -241,38 +241,38 @@ SCHEDULED_VESSEL = dict(
     ),
 )
 
+# NOTE: This seems kind of useful, so I'm leaving it as a reference in case of later use
+# def pytest_addoption(parser):
+#     """Adds the ``run-category`` flag as a workaround to not being able to run some of
+#     the individual test modules due to issues with consistent random seeding.
 
-def pytest_addoption(parser):
-    """Adds the ``run-category`` flag as a workaround to not being able to run some of
-    the individual test modules due to issues with consistent random seeding.
-
-    TODO: This is not working as anitcipated to collect tests in a specific order to see
-    the randomness correctly, so this issue remains unresolved
-    """
-    parser.addoption(
-        "--run-category",
-        type=str,
-        nargs="*",
-        action="store",
-        default="all",
-        choices=["all", "subassembly", "cable", "service_equipment"],
-        metavar="which",
-        help="only run a specific subset of tests, takes one of 'subassembly', 'cable', 'service_equipment', and 'simulation'.",
-    )
-
-
-def pytest_configure(config):
-    """Registers the ``cat`` marker."""
-    config.addinivalue_line(
-        "markers", "cat(which): mark test to run only on named environment"
-    )
+#     TODO: This is not working as anitcipated to collect tests in a specific order to see
+#     the randomness correctly, so this issue remains unresolved
+#     """
+#     parser.addoption(
+#         "--run-category",
+#         type=str,
+#         nargs="*",
+#         action="store",
+#         default="all",
+#         choices=["all", "subassembly", "cable", "service_equipment"],
+#         metavar="which",
+#         help="only run a specific subset of tests, takes one of 'subassembly', 'cable', 'service_equipment', and 'simulation'.",
+#     )
 
 
-def pytest_runtest_setup(item):
-    """Determines which tests will get run depending on if they overlap with the
-    user-passed category.
-    """
-    test_level = next(item.iter_markers(name="cat")).args
-    req_level = item.config.getoption("--run-category")
-    if all(tl not in req_level for tl in test_level):
-        pytest.skip(f"Only tests in the category: {req_level}, were requested")
+# def pytest_configure(config):
+#     """Registers the ``cat`` marker."""
+#     config.addinivalue_line(
+#         "markers", "cat(which): mark test to run only on named environment"
+#     )
+
+
+# def pytest_runtest_setup(item):
+#     """Determines which tests will get run depending on if they overlap with the
+#     user-passed category.
+#     """
+#     test_level = next(item.iter_markers(name="cat")).args
+#     req_level = item.config.getoption("--run-category")
+#     if all(tl not in req_level for tl in test_level):
+#         pytest.skip(f"Only tests in the category: {req_level}, were requested")

@@ -16,12 +16,7 @@ from wombat.utilities.utilities import (
 )
 
 
-@pytest.mark.cat("all", "subassembly", "cable", "service_equipment")
-def test_pass():
-    pass
-
-
-@pytest.mark.cat("all")
+# @pytest.mark.cat("all")
 def test_convert_dt_to_hours():
     """Tests `convert_dt_to_hours`."""
     # Test for a clean number of hours
@@ -40,7 +35,7 @@ def test_convert_dt_to_hours():
     assert diff == correct_hours
 
 
-@pytest.mark.cat("all")
+# @pytest.mark.cat("all")
 def test_hours_until_future_hour():
     """Tests `hours_until_future_hour`."""
     # Test for a time later in the day, with an exact number of hours
@@ -74,7 +69,7 @@ def test_hours_until_future_hour():
     assert pytest.approx(diff) == correct_hours  # floating point error at ~16th digit
 
 
-@pytest.mark.cat("all")
+# @pytest.mark.cat("all")
 def test_mean():
     """Tests `_mean`."""
     correct_mean = 2.0
@@ -87,7 +82,7 @@ def test_mean():
     assert _mean(*args) == correct_mean
 
 
-@pytest.mark.cat("all")
+# @pytest.mark.cat("all")
 def test_format_events_log_message():
     """Tests `format_events_log_message`."""
     # Test that any floating point value gets updated for to be printed as a float,
@@ -122,7 +117,7 @@ def test_format_events_log_message():
     assert message == correct_message
 
 
-@pytest.mark.cat("all")
+# @pytest.mark.cat("all")
 def test_IEC_power_curve():
     """Tests `IEC_power_curve`."""
     # tests are built from the same as OpenOA
