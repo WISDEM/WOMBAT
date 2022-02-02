@@ -300,6 +300,8 @@ class ServiceEquipment:
             hours_to_next_shift = self.env.max_run_time - self.env.now
 
         if still_in_operation:
+            # TODO: This message needs to account for unscheduled equipment as well, but
+            # the post processor filtering needs to be updated as well
             additional = "will return next year"
         else:
             additional = "no more return visits will be made"
@@ -871,7 +873,7 @@ class ServiceEquipment:
         """
         shift_delay = False
 
-        system = self.windfarm.graph.nodes[request.system_id]["system"]
+        system = self.windfarm.system(request.system_id)
         if request.cable:
             cable = request.subassembly_id.split("::")[1:]
             subassembly = self.windfarm.graph.edges[cable]["cable"]
@@ -925,6 +927,10 @@ class ServiceEquipment:
                     start="port", end="site", set_current=system.id, **shared_logging
                 )
             )
+            # First turn off the turbine, then proceed with the servicing so the
+            # turbine is not registered as operating when the turbine is being worked on
+            system.servicing = True
+            subassembly.interrupt_all_subassembly_processes()
             yield self.env.process(
                 self.crew_transfer(system, subassembly, request, to_system=True)
             )
@@ -961,11 +967,6 @@ class ServiceEquipment:
         # time points that fall outside of the work shifts
         if hours_required > hours_available:
             shift_delay = True
-
-        # First turn off the turbine, then proceed with the repair or maintenance so the
-        # turbine is not registered as operating when the turbine is being worked on
-        subassembly.operating_level = 0
-        subassembly.interrupt_all_subassembly_processes()
 
         hours_processed = 0
         weather_delay_groups = consecutive_groups(np.where(~weather_forecast)[0])
@@ -1019,7 +1020,6 @@ class ServiceEquipment:
         yield self.env.process(
             self.crew_transfer(system, subassembly, request, to_system=False)
         )
-
         if shift_delay:
             yield self.env.process(
                 self.travel(start="site", end="port", **shared_logging)
@@ -1036,6 +1036,7 @@ class ServiceEquipment:
             return
 
         # Register the repair
+        system.servicing = False
         self.register_repair_with_subassembly(
             subassembly, request, starting_operational_level
         )
@@ -1056,7 +1057,7 @@ class ServiceEquipment:
         )
 
         # If this is the end of the shift, ensure that we're traveling back to port
-        if not self.env.is_workshift():
+        if not self.env.is_workshift(start_shift, end_shift):
             yield self.env.process(
                 self.travel(start="site", end="port", **shared_logging)
             )
@@ -1097,12 +1098,20 @@ class ServiceEquipment:
 
             request = self.get_next_request()
             if request is None:
+                if not self.at_port:
+                    yield self.env.process(
+                        self.travel(
+                            start="site",
+                            end="port",
+                            **dict(reason="no requests", agent=self.settings.name),
+                        )
+                    )
                 yield self.env.process(
                     self.wait_until_next_shift(
                         **dict(
                             agent=self.settings.name,
                             reason="no requests",
-                            additional="no work requests submitted by start of shift",
+                            additional="no work requests, waiting until the next shift",
                         )
                     )
                 )
