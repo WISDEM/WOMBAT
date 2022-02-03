@@ -748,9 +748,6 @@ class Metrics:
         simulation  as the ratio of total number of days each of the servicing
         equipment is in operation over the total number of days in the simulation.
 
-        Notes
-        -----
-
         Parameters
         ----------
         frequency : str
