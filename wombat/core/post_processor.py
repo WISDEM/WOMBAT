@@ -745,7 +745,11 @@ class Metrics:
 
     def service_equipment_utilization(self, frequency: str) -> pd.DataFrame:
         """Calculates the utilization rate for each of the service equipment in the
-        simulation.
+        simulation  as the ratio of total number of days each of the servicing
+        equipment is in operation over the total number of days in the simulation.
+
+        Notes
+        -----
 
         Parameters
         ----------
@@ -766,53 +770,53 @@ class Metrics:
         if frequency not in ("project", "annual"):
             raise ValueError('``frequency`` must be one of "project" or "annual".')
 
-        no_requests = []
+        operation_days = []
         total_days = []
-        no_request_filter = self.events.reason == "no requests"
+        operating_filter = self.events.action.isin(["repair", "maintenance"])
         return_filter = self.events.action == "delay"
         return_filter &= self.events.reason == "work is complete"
         return_filter &= self.events.additional == "will return next year"
         for name in self.service_equipment_names:
             equipment_filter = self.events.agent == name
-            _events = self.events[equipment_filter & no_request_filter]
-            _events = _events.groupby("year").count()[["agent"]]
-            no_requests.append(_events.rename(columns={"agent": name}))
+            _events = self.events[equipment_filter & operating_filter]
+            _events = _events.groupby(["year", "month", "day"]).size()
+            _events = _events.reset_index().groupby("year").count()[["day"]]
+            operation_days.append(_events.rename(columns={"day": name}))
 
             ix_filter = equipment_filter & ~return_filter
             total = self.events[ix_filter].groupby(["year", "month", "day"]).size()
             total = total.reset_index().groupby("year").count()[["day"]]
             total_days.append(total.rename(columns={"day": name}))
 
+        operating_df = pd.DataFrame(operation_days[0])
+        total_df = pd.DataFrame(total_days[0])
         if len(self.service_equipment_names) > 1:
-            no_requests_df = no_requests[0].join(no_requests[1:]).fillna(0)
-            total_df = total_days[0].join(total_days[1:]).fillna(1)
-        else:
-            no_requests_df = pd.DataFrame(no_requests[0])
-            total_df = pd.DataFrame(total_days[0])
+            operating_df = operating_df.join(operation_days[1:]).fillna(0)
+            total_df = total_df.join(total_days[1:]).fillna(1)
 
         for year in self.events.year.unique():
-            if year not in no_requests_df.index:
+            if year not in operating_df.index:
                 missing = pd.DataFrame(
-                    np.zeros((1, no_requests_df.shape[1])),
+                    np.zeros((1, operating_df.shape[1])),
                     index=[year],
-                    columns=no_requests_df.columns,
+                    columns=operating_df.columns,
                 )
-                no_requests_df = no_requests_df.append(missing).sort_index()
+                operating_df = operating_df.append(missing).sort_index()
             if year not in total_df.index:
                 missing = pd.DataFrame(
                     np.ones((1, total_df.shape[1])),
                     index=[year],
-                    columns=no_requests_df.columns,
+                    columns=operating_df.columns,
                 )
                 total_df = total_df.append(missing).sort_index()
 
         if frequency == "project":
-            no_requests_df = no_requests_df.reset_index().sum()[
+            operating_df = operating_df.reset_index().sum()[
                 self.service_equipment_names
             ]
             total_df = total_df.reset_index().sum()[self.service_equipment_names]
-            return pd.DataFrame((total_df - no_requests_df) / total_df).T
-        return (total_df - no_requests_df) / total_df
+            return pd.DataFrame(operating_df / total_df).T
+        return operating_df / total_df
 
     def labor_costs(
         self, frequency: str, by_type: bool = False
