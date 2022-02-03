@@ -690,13 +690,22 @@ class ServiceEquipment:
 
         # If the the equipment will arive after the shift is over, then it must travel
         # back to port (if needed), and wait for the next shift
-        if not self._is_workshift(self.env.simulation_time + timedelta(hours=hours)):
-            if not self.at_port:
-                kw = {
-                    "additional": "insufficient time to complete travel before end of the shift"
-                }
-                kw.update(kwargs)
-                yield self.env.process(self.travel(start="site", end="port", **kw))
+        is_shift = self._is_workshift(self.env.simulation_time + timedelta(hours=hours))
+        if not is_shift and end != "port" and not self.at_port:
+            kw = {
+                "additional": "insufficient time to complete travel before end of the shift"
+            }
+            kw.update(kwargs)
+            yield self.env.process(self.travel(start=start, end="port", **kw))
+            yield self.env.process(self.wait_until_next_shift(**kwargs))
+            yield self.env.process(
+                self.travel(start=start, end=end, set_current=set_current, **kwargs)
+            )
+        elif not is_shift and self.at_port:
+            kw = {
+                "additional": "insufficient time to complete travel before end of the shift"
+            }
+            kw.update(kwargs)
             yield self.env.process(self.wait_until_next_shift(**kwargs))
             yield self.env.process(
                 self.travel(start=start, end=end, set_current=set_current, **kwargs)
@@ -1040,7 +1049,6 @@ class ServiceEquipment:
         self.register_repair_with_subassembly(
             subassembly, request, starting_operational_level
         )
-
         action = "maintenance" if isinstance(request.details, Maintenance) else "repair"
         self.env.log_action(
             system_id=system.id,
@@ -1070,8 +1078,9 @@ class ServiceEquipment:
         Generator[Process, None, None]
             The simulation.
         """
-        # If the starting operation date is the same as the simulations, set to be onsite
         assert isinstance(self.settings, ScheduledServiceEquipmentData)  # mypy controls
+
+        # If the starting operation date is the same as the simulations, set to be onsite
         if self.settings.operating_dates[0] == self.env.simulation_time.date():
             self.onsite = True
 
