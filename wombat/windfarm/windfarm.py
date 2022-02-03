@@ -233,7 +233,7 @@ class Windfarm:
                 f"{self.system(system).operating_level}" for system in self.system_list
             ]
             message = " :: ".join(message)  # type: ignore
-            # self.env._operations_logger.info(message)
+            self.env._operations_logger.info(message)
 
     @cache
     def system(self, system_id: str) -> System:
