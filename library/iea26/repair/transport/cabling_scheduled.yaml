@@ -18,6 +18,7 @@ max_windspeed_repair: 99
 max_waveheight_transport: 1
 max_waveheight_repair: 1
 strategy: scheduled
+n_crews: 1
 crew:
   day_rate: 0  # cabling vessels include the technicians
   n_day_rate: 0
