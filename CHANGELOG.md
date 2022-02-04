@@ -6,6 +6,9 @@
   `list[str] | str`.
 - Unused imports have been further cleaned up.
 - Better caching of commonly computed values for faster simulations
+- Simulation metrics are now able to be saved for later reloading and use.
+- Minor documentation updates, mostly in the examples section for changed API usage.
+- Validation cases have been re-run for the most up-to-date version.
 
 - `wombat.windfarm.system.System` no longer requires every subassembly model to be
   defined for increased flexibility and ease of definition of turbine simulations
@@ -21,6 +24,8 @@
 - `wombat.core.simulation_api.Simulation.run` now has a `create_metrics` flag that defaults to `True`
   to indicate if the metrics suite should be created, so that `False` can be used if numerous
   analyses will be run and post-processed after the fact.
+- `wombat.core.simulation_api.Simulation.save_metrics_inputs` added to allow for saving
+  the elements required to recreate a `Metrics` object at a later point in time.
 
 - `wombat.core.environment.WombatEnvironment.workday_start` and
   `wombat.core.environment.WombatEnvironment.workday_end` are better validated for edge cases.
@@ -37,6 +42,9 @@
   of the shift gets stuck and has to wait until the next shift despite ample time to transfer.
 - `wombat.core.environment.WombatEnvironment.is_workshift` correctly accounts for around the clock
   shifts.
+
+- `wombat.core.data_classes.annual_date_range` now uses `numpy.hstack` to construct 1-D
+  multiple year date ranges to ensure there is no nesting of data.
 
 - `wombat.core.repair_management.RepairManager.submit_request` will only attempt to deploy servicing
   equipment for strategies that have been initialized to reduce unnecessarily running code.
@@ -79,16 +87,21 @@
     not the environment's to ensure the proper operating parameters are used.
   - The control flow for if there isn't enough time to perform teh repair is updated to accurately
     account for when and where the equipment needs to travel
+  - Cables are no longer retrieved through system and causing an error when processing their repairs.
+- `wombat.core.service_equipment.ServiceEquipment._calculate_intra_site_time` now accounts for a
+  speed of 0 km/hr so that function will not error out when there is a travel distance, but no speed.
 
 - `wombat.core.service_equipment.ServiceEquipment.run_scheduled` now sets the `onsite` variable
   for equipment that are always on site for more consistent handling of the onsite attribute.
 - `wombat.core.service_equipment.ServiceEquipment.wait_until_next_operational_period` now resets
   the equipment's location attributes so its location can't incorrectly persist from the last step.
 
-- `wombat.core.post_processor.service_equipment_utilization` has a new methodolgy that uses the
+- `wombat.core.post_processor.Metrics.service_equipment_utilization` has a new methodolgy that uses the
   acual number of days in operation instead of a backwards computation that consistently and
   accurately accounts for the days where the servicing equipment is in operation. Additionally, the
   filtering is updated to match the filter for total days, which also improves accuracy of results.
+- `wombat.core.post_processor.Metrics.from_simulation_outputs` classmethod was added to easily load
+  simulation data for after-the-fact analyses.
 
 - `wombat.windfarm.Windfarm` operations logging message generation routines were optimized.
 - `wombat.windfarm.Windfarm.system` was created in place of `wombat.windfarm.Windfarm.node_system`

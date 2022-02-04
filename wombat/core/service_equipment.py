@@ -891,11 +891,12 @@ class ServiceEquipment:
         """
         shift_delay = False
 
-        system = self.windfarm.system(request.system_id)
         if request.cable:
+            system = self.windfarm.cable(request.system_id)
             cable = request.subassembly_id.split("::")[1:]
             subassembly = self.windfarm.graph.edges[cable]["cable"]
         else:
+            system = self.windfarm.system(request.system_id)
             subassembly = getattr(system, request.subassembly_id)
 
         starting_operational_level = max(
