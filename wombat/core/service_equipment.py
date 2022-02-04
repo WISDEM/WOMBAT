@@ -630,11 +630,15 @@ class ServiceEquipment:
             The travel time between two locations.
         """
         distance = 0  # setting for invalid cases to have no traveling
+        travel_time = 0.0
         valid_sys = self.windfarm.distance_matrix.columns
         intra_site = start in valid_sys and end in valid_sys
         if intra_site:
             distance = self.windfarm.distance_matrix.loc[start, end]
-        travel_time = distance / self.settings.speed
+
+        # if no speed is set, then there is no traveling time
+        if self.settings.speed > 0:
+            travel_time = distance / self.settings.speed
 
         # Infinity is the result of "traveling" between a system twice in a row
         if travel_time == float("inf"):

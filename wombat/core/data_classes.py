@@ -128,13 +128,15 @@ def annual_date_range(
     # Create a list of arrays of date ranges for each year
     start = datetime.datetime(1, start_month, start_day)
     end = datetime.datetime(1, end_month, end_day)
-    date_ranges = [
-        pd.date_range(start.replace(year=year), end.replace(year=year)).date
-        for year in range(start_year, end_year + 1)
-    ]
+    date_ranges = np.hstack(
+        [
+            pd.date_range(start.replace(year=year), end.replace(year=year)).date
+            for year in range(start_year, end_year + 1)
+        ]
+    )
 
     # Return a 1-D array
-    return np.array(date_ranges).flatten()
+    return date_ranges
 
 
 def convert_ratio_to_absolute(ratio: int | float, total: int | float) -> int | float:
