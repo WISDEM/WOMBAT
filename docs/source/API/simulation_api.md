@@ -14,7 +14,8 @@
 .. autoclass:: wombat.core.simulation_api.Simulation
    :members:
    :undoc-members:
-   :exclude-members: setup_simulation
+   :exclude-members: setup_simulation, config, env, initialize_metrics, library_path,
+    metrics, repair_manager, service_equipment, windfarm
 ```
 
 
