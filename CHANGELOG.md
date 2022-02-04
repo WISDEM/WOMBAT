@@ -77,11 +77,18 @@
     so the timing is not arbitrarily capped, which also reduces the number of steps in the simulation.
   - The workshift indicator check now accounts for the equipment's specific workshift settings, and
     not the environment's to ensure the proper operating parameters are used.
+  - The control flow for if there isn't enough time to perform teh repair is updated to accurately
+    account for when and where the equipment needs to travel
 
 - `wombat.core.service_equipment.ServiceEquipment.run_scheduled` now sets the `onsite` variable
   for equipment that are always on site for more consistent handling of the onsite attribute.
 - `wombat.core.service_equipment.ServiceEquipment.wait_until_next_operational_period` now resets
   the equipment's location attributes so its location can't incorrectly persist from the last step.
+
+- `wombat.core.post_processor.service_equipment_utilization` has a new methodolgy that uses the
+  acual number of days in operation instead of a backwards computation that consistently and
+  accurately accounts for the days where the servicing equipment is in operation. Additionally, the
+  filtering is updated to match the filter for total days, which also improves accuracy of results.
 
 - `wombat.windfarm.Windfarm` operations logging message generation routines were optimized.
 - `wombat.windfarm.Windfarm.system` was created in place of `wombat.windfarm.Windfarm.node_system`
