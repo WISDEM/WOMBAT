@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import List, Union, Optional
 from pathlib import Path
 
+import yaml
 import pandas as pd
 from attrs import Attribute, field, define
 from simpy.events import Event  # type: ignore
@@ -202,7 +203,7 @@ class Simulation(FromDictMixin):
             )
         assert isinstance(config, Configuration)  # lets mypy know it's a Configuration
         # NOTE: mypy is not caught up with attrs yet :(
-        return cls(config.name, config.library, config)  # type: ignore
+        return cls(config.library, config)  # type: ignore
 
     def _setup_simulation(self):
         """Initializes the simulation objects."""
@@ -226,7 +227,10 @@ class Simulation(FromDictMixin):
             )
 
     def run(
-        self, until: Optional[int | float | Event] = None, create_metrics: bool = True
+        self,
+        until: Optional[int | float | Event] = None,
+        create_metrics: bool = True,
+        save_metrics_inputs: bool = True,
     ):
         """Calls ``WombatEnvironment.run()`` and gathers the results for post-processing.
         See ``wombat.simulation.WombatEnvironment.run`` or ``simpy.Environment.run`` for more
@@ -239,8 +243,14 @@ class Simulation(FromDictMixin):
             ``simpy.Environment.run`` for more details.
         create_metrics : bool, optional
             If True, the metrics object will be created, and not, if False, by default True.
+        save_metrics_inputs : bool, optional
+            If True, the metrics inputs data will be saved to a yaml file, with file
+            references to any larger data structures that can be reloaded later. If
+            False, the data will not be saved, by default True.
         """
         self.env.run(until=until)
+        if save_metrics_inputs:
+            self.save_metrics_inputs()
         if create_metrics:
             self.initialize_metrics()
 
@@ -267,3 +277,37 @@ class Simulation(FromDictMixin):
             service_equipment_names=[el.settings.name for el in self.service_equipment],
             SAM_settings=self.config.SAM_settings,
         )
+
+    def save_metrics_inputs(self) -> None:
+        """Saves the inputs for the `Metrics` initialization with either a direct
+        copy of the data or a file reference that can be loaded later.
+        """
+        data = dict(
+            data_dir=str(self.config.library),
+            events=self.env.events_log_fname.replace(".log", ".csv"),
+            operations=self.env.operations_log_fname.replace(".log", ".csv"),
+            potential=self.env.power_potential_fname,
+            production=self.env.power_production_fname,
+            inflation_rate=self.config.inflation_rate,
+            project_capacity=self.config.project_capacity,
+            turbine_capacities=[
+                self.windfarm.system(t_id).capacity for t_id in self.windfarm.turbine_id
+            ],
+            fixed_costs=self.config.fixed_costs,
+            substation_id=self.windfarm.substation_id.tolist(),
+            turbine_id=self.windfarm.turbine_id.tolist(),
+            service_equipment_names=[el.settings.name for el in self.service_equipment],
+            SAM_settings=self.config.SAM_settings,
+        )
+
+        # Get the filename and rename it apporpriately
+        events_fname = Path(self.env.events_log_fname)
+        fname = events_fname.name
+        fname = fname.replace("_events.log", "_metrics_inputs.yaml")
+
+        # Get the path and move it 1 level up to <data_dir>/outputs/
+        fpath = events_fname.parents[1]
+
+        fname = fpath / fname  # type: ignore
+        with open(fname, "w") as f:
+            yaml.dump(data, f, default_flow_style=False, sort_keys=False)
