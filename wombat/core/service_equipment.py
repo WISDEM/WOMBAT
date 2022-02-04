@@ -455,6 +455,11 @@ class ServiceEquipment:
             an indicator for if the process has to be delayed until the next shift for
             a safe transfer.
         """
+        # If the hours required for the window is 0, then return 0 and indicate there is
+        # no shift delay to be processed
+        if hours_required == 0:
+            return 0, False
+
         current = self.env.simulation_time
 
         # If the time required for a transfer is longer than the time left in the shift,
