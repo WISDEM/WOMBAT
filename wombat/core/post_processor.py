@@ -1,24 +1,24 @@
 """The postprocessing metric computation."""
+from __future__ import annotations
 
-import os  # type: ignore
+from copy import deepcopy  # type: ignore
+from pathlib import Path  # type: ignore
+from functools import partial  # type: ignore
+from itertools import product  # type: ignore
+
 import numpy as np  # type: ignore
 import PySAM
 import pandas as pd  # type: ignore
 import PySAM.PySSC as pssc  # type: ignore
 import PySAM.Singleowner as pysam_singleowner_financial_model  # type: ignore
-from copy import deepcopy  # type: ignore
-from typing import List, Tuple, Union  # type: ignore
-from pathlib import Path  # type: ignore
-from functools import partial  # type: ignore
-from itertools import product  # type: ignore
 
 from wombat.core import FixedCosts
 from wombat.core.library import load_yaml
 
 
 def _calculate_time_availability(
-    availability: np.ndarray, by_turbine=False
-) -> Union[float, np.ndarray]:
+    availability: np.ndarray, by_turbine: bool = False
+) -> float | np.ndarray:
     """Calculates the availability ratio of the whole timeseries or the whole timeseries, by turbine.
 
     Parameters
@@ -30,7 +30,7 @@ def _calculate_time_availability(
 
     Returns
     -------
-    Union[float, np.ndarray]
+    float | np.ndarray
         Availability ratio across the whole timeseries, or broken out by column (turbine).
     """
     availability = availability > 0
@@ -41,7 +41,7 @@ def _calculate_time_availability(
 
 def _process_single(
     events: pd.DataFrame, request_filter: np.ndarray
-) -> Tuple[str, float, float, float, int]:
+) -> tuple[str, float, float, float, int]:
     """Computes the timing values for a single ``request_id``.
 
     Parameters
@@ -53,7 +53,7 @@ def _process_single(
 
     Returns
     -------
-    Tuple[str, float, float, float, int]
+    tuple[str, float, float, float, int]
         The timing values. See ``process_times``.
     """
     request = events.iloc[request_filter]
@@ -89,34 +89,34 @@ class Metrics:
 
     def __init__(
         self,
-        data_dir: Union[str, Path],
-        events: Union[str, pd.DataFrame],
-        operations: Union[str, pd.DataFrame],
-        potential: Union[str, pd.DataFrame],
-        production: Union[str, pd.DataFrame],
+        data_dir: str | Path,
+        events: str | pd.DataFrame,
+        operations: str | pd.DataFrame,
+        potential: str | pd.DataFrame,
+        production: str | pd.DataFrame,
         inflation_rate: float,
         project_capacity: float,
-        turbine_capacities: List[float],
-        fixed_costs: str,
-        substation_id: Union[str, List[str]],
-        turbine_id: Union[str, List[str]],
-        service_equipment_names: Union[str, List[str]],
-        SAM_settings: Union[str, None] = None,
+        turbine_capacities: list[float],
+        substation_id: str | list[str],
+        turbine_id: str | list[str],
+        service_equipment_names: str | list[str],
+        fixed_costs: str | None = None,
+        SAM_settings: str | None = None,
     ) -> None:
         """Initializes the Metrics class.
 
         Parameters
         ----------
-        data_dir : Union[str, Path]
+        data_dir : str | Path
             This should be the same as was used for running the analysis.
-        events : Union[str, pd.DataFrame]
+        events : str | pd.DataFrame
             Either a pandas ``DataFrame`` or filename to be used to read the csv log data.
-        operations : Union[str, pd.DataFrame]
+        operations : str | pd.DataFrame
             Either a pandas ``DataFrame`` or filename to be used to read the csv log data.
-        potential : Union[str, pd.DataFrame]
+        potential : str | pd.DataFrame
             Either a pandas ``DataFrame`` or a filename to be used to read the csv
             potential power production data.
-        production : Union[str, pd.DataFrame]
+        production : str | pd.DataFrame
             Either a pandas ``DataFrame`` or a filename to be used to read the csv power
             production data.
         inflation_rate : float
@@ -126,31 +126,35 @@ class Metrics:
             The project's rated capacity, in MW.
         turbine_capacities : Union[float, List[float]]
             The capacity of each individual turbine corresponding to ``turbine_id``, in kW.
-        fixed_costs : str
-            The filename of the project's fixed costs.
-        substation_id : Union[str, List[str]]
+        substation_id : str | list[str]
             The substation id(s).
-        turbine_id : Union[str, List[str]]
+        turbine_id : str | list[str]
             The turbine id(s).
-        service_equipment_names : Union[str, List[str]]
+        service_equipment_names : str | list[str]
             The names of the servicing equipment, corresponding to
             ``ServiceEquipment.settings.name`` for each ``ServiceEquipment`` in the
             simulation.
-        SAM_settings : Union[str, None]
+        fixed_costs : str | None
+            The filename of the project's fixed costs.
+        SAM_settings : str | None
             The SAM settings YAML file located in <data_dir>/windfarm/<SAM_settings>
             that should end in ".yaml". If no input is provided, then the model will
             raise a ``NotImplementedError`` when the SAM-powered metrics are attempted to
             be accessed.
         """
         self.data_dir = Path(data_dir)
-        if not os.path.isdir(self.data_dir):
+        if not self.data_dir.is_dir():
             raise FileNotFoundError(f"{self.data_dir} does not exist")
 
         self.inflation_rate = 1 + inflation_rate
         self.project_capacity = project_capacity
 
-        fixed_costs = load_yaml(self.data_dir / "windfarm", fixed_costs)
-        self.fixed_costs = FixedCosts(**fixed_costs)  # type: ignore
+        if fixed_costs is None:
+            # Create a zero-cost FixedCosts object
+            self.fixed_costs = FixedCosts.from_dict({"operations": 0})  # type: ignore
+        else:
+            fixed_costs = load_yaml(self.data_dir / "windfarm", fixed_costs)
+            self.fixed_costs = FixedCosts.from_dict(fixed_costs)  # type: ignore
 
         if isinstance(substation_id, str):
             substation_id = [substation_id]
@@ -310,7 +314,7 @@ class Metrics:
 
     def time_based_availability(  # type: ignore
         self, frequency: str, by: str
-    ) -> Union[float, pd.DataFrame]:
+    ) -> float | pd.DataFrame:
         """Calculates the time-based availabiliy over a project's lifetime as a single
         value, annual average, or monthly average for the whole windfarm or by turbine.
 
@@ -326,7 +330,7 @@ class Metrics:
 
         Returns
         -------
-        Union[float, pd.DataFrame]
+        float | pd.DataFrame
             The time-based availability at the desired aggregation level.
         """
         frequency = frequency.lower().strip()
@@ -397,7 +401,7 @@ class Metrics:
 
     def production_based_availability(  # type: ignore
         self, frequency: str, by: str
-    ) -> Union[float, pd.DataFrame]:
+    ) -> float | pd.DataFrame:
         """Calculates the production-based availabiliy over a project's lifetime as a
         single value, annual average, or monthly average for the whole windfarm or by
         turbine.
@@ -414,7 +418,7 @@ class Metrics:
 
         Returns
         -------
-        Union[float, pd.DataFrame]
+        float | pd.DataFrame
             The production-based availability at the desired aggregation level.
         """
         frequency = frequency.lower().strip()
@@ -476,7 +480,7 @@ class Metrics:
 
     def capacity_factor(  # type: ignore
         self, which: str, frequency: str, by: str
-    ) -> Union[float, pd.DataFrame]:
+    ) -> float | pd.DataFrame:
         """Calculates the capacity factor over a project's lifetime as a single value,
         annual average, or monthly average for the whole windfarm or by turbine.
 
@@ -495,7 +499,7 @@ class Metrics:
 
         Returns
         -------
-        Union[float, pd.DataFrame]
+        float | pd.DataFrame
             The capacity factor at the desired aggregation level.
         """
         which = which.lower().strip()
@@ -556,9 +560,7 @@ class Metrics:
             columns = [by]
         return pd.DataFrame(production / 1000 / potential, columns=columns)
 
-    def task_completion_rate(
-        self, which: str, frequency: str
-    ) -> Union[float, pd.DataFrame]:
+    def task_completion_rate(self, which: str, frequency: str) -> float | pd.DataFrame:
         """Calculates the task completion rate over a project's lifetime as a single value,
         annual average, or monthly average for the whole windfarm or by turbine.
 
@@ -574,7 +576,7 @@ class Metrics:
 
         Returns
         -------
-        Union[float, pd.DataFrame]
+        float | pd.DataFrame
             The task completion rate at the desired aggregation level.
         """
         which = which.lower().strip()
@@ -656,7 +658,7 @@ class Metrics:
 
     def equipment_costs(
         self, frequency: str, by_equipment: bool = False
-    ) -> Union[float, pd.DataFrame]:
+    ) -> float | pd.DataFrame:
         """Calculates the equipment costs for the simulation at a project, annual, or
         monthly level with (or without) respect to equipment utilized in the simulation.
 
@@ -670,7 +672,7 @@ class Metrics:
 
         Returns
         -------
-        Union[float, pd.DataFrame]
+        float | pd.DataFrame
             Returns either a float for whole project-level costs or a pandas ``DataFrame``
             with columns:
                 - year (if appropriate for frequency)
@@ -743,7 +745,8 @@ class Metrics:
 
     def service_equipment_utilization(self, frequency: str) -> pd.DataFrame:
         """Calculates the utilization rate for each of the service equipment in the
-        simulation.
+        simulation  as the ratio of total number of days each of the servicing
+        equipment is in operation over the total number of days in the simulation.
 
         Parameters
         ----------
@@ -764,57 +767,57 @@ class Metrics:
         if frequency not in ("project", "annual"):
             raise ValueError('``frequency`` must be one of "project" or "annual".')
 
-        no_requests = []
+        operation_days = []
         total_days = []
-        no_request_filter = self.events.reason == "no requests"
+        operating_filter = self.events.action.isin(["repair", "maintenance"])
         return_filter = self.events.action == "delay"
         return_filter &= self.events.reason == "work is complete"
         return_filter &= self.events.additional == "will return next year"
         for name in self.service_equipment_names:
             equipment_filter = self.events.agent == name
-            _events = self.events[equipment_filter & no_request_filter]
-            _events = _events.groupby("year").count()[["agent"]]
-            no_requests.append(_events.rename(columns={"agent": name}))
+            _events = self.events[equipment_filter & operating_filter]
+            _events = _events.groupby(["year", "month", "day"]).size()
+            _events = _events.reset_index().groupby("year").count()[["day"]]
+            operation_days.append(_events.rename(columns={"day": name}))
 
             ix_filter = equipment_filter & ~return_filter
             total = self.events[ix_filter].groupby(["year", "month", "day"]).size()
             total = total.reset_index().groupby("year").count()[["day"]]
             total_days.append(total.rename(columns={"day": name}))
 
+        operating_df = pd.DataFrame(operation_days[0])
+        total_df = pd.DataFrame(total_days[0])
         if len(self.service_equipment_names) > 1:
-            no_requests_df = no_requests[0].join(no_requests[1:]).fillna(0)
-            total_df = total_days[0].join(total_days[1:]).fillna(1)
-        else:
-            no_requests_df = pd.DataFrame(no_requests[0])
-            total_df = pd.DataFrame(total_days[0])
+            operating_df = operating_df.join(operation_days[1:]).fillna(0)
+            total_df = total_df.join(total_days[1:]).fillna(1)
 
         for year in self.events.year.unique():
-            if year not in no_requests_df.index:
+            if year not in operating_df.index:
                 missing = pd.DataFrame(
-                    np.zeros((1, no_requests_df.shape[1])),
+                    np.zeros((1, operating_df.shape[1])),
                     index=[year],
-                    columns=no_requests_df.columns,
+                    columns=operating_df.columns,
                 )
-                no_requests_df = no_requests_df.append(missing).sort_index()
+                operating_df = operating_df.append(missing).sort_index()
             if year not in total_df.index:
                 missing = pd.DataFrame(
                     np.ones((1, total_df.shape[1])),
                     index=[year],
-                    columns=no_requests_df.columns,
+                    columns=operating_df.columns,
                 )
                 total_df = total_df.append(missing).sort_index()
 
         if frequency == "project":
-            no_requests_df = no_requests_df.reset_index().sum()[
+            operating_df = operating_df.reset_index().sum()[
                 self.service_equipment_names
             ]
             total_df = total_df.reset_index().sum()[self.service_equipment_names]
-            return pd.DataFrame((total_df - no_requests_df) / total_df).T
-        return (total_df - no_requests_df) / total_df
+            return pd.DataFrame(operating_df / total_df).T
+        return operating_df / total_df
 
     def labor_costs(
         self, frequency: str, by_type: bool = False
-    ) -> Union[float, pd.DataFrame]:
+    ) -> float | pd.DataFrame:
         """Calculates the labor costs for the simulation at a project, annual, or
         monthly level that can be broken out by hourly and salary labor costs.
 
@@ -828,7 +831,7 @@ class Metrics:
 
         Returns
         -------
-        Union[float, pd.DataFrame]
+        float | pd.DataFrame
             Returns either a float for whole project-level costs or a pandas ``DataFrame``
             with columns:
 
@@ -1064,7 +1067,7 @@ class Metrics:
 
         Returns
         -------
-        Union[float, pd.DataFrame]
+        float | pd.DataFrame
             Returns either a float for whole project-level costs or a pandas ``DataFrame``
             with columns:
                 - year (if appropriate for frequency)
@@ -1286,7 +1289,7 @@ class Metrics:
 
     def power_production(
         self, frequency: str, by_turbine: bool = False
-    ) -> Union[float, pd.DataFrame]:
+    ) -> float | pd.DataFrame:
         """Calculates the power production for the simulation at a project, annual, or
         monthly level that can be broken out by hourly and salary labor costs.
 
@@ -1300,7 +1303,7 @@ class Metrics:
 
         Returns
         -------
-        Union[float, pd.DataFrame]
+        float | pd.DataFrame
             Returns either a float for whole project-level costs or a pandas ``DataFrame``
             with columns:
 
@@ -1348,7 +1351,7 @@ class Metrics:
 
     # Windfarm Financials
 
-    def pysam_npv(self) -> Union[float, pd.DataFrame]:
+    def pysam_npv(self) -> float | pd.DataFrame:
         """Returns the project-level after-tax net present values (NPV).
 
         See here for more: https://nrel-pysam.readthedocs.io/en/master/modules/Singleowner.html#PySAM.Singleowner.Singleowner.Outputs.cf_project_return_aftertax_npv
