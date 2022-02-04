@@ -1,9 +1,11 @@
 """The main API for the ``wombat``."""
+from __future__ import annotations
 
-import attr
-import pandas as pd
 from typing import List, Union, Optional
 from pathlib import Path
+
+import pandas as pd
+from attrs import Attribute, field, define
 from simpy.events import Event  # type: ignore
 
 from wombat.core import (
@@ -35,7 +37,7 @@ def _library_mapper(file_path: Union[str, Path]) -> Path:
     return Path(library_map.get(file_path, file_path)).resolve()  # type: ignore
 
 
-@attr.s(frozen=True, auto_attribs=True)
+@define(frozen=True, auto_attribs=True)
 class Configuration(FromDictMixin):
     """The ``Simulation`` configuration data class that provides all the necessary definitions.
 
@@ -77,7 +79,7 @@ class Configuration(FromDictMixin):
     """
 
     name: str
-    library: Path = attr.ib(converter=_library_mapper)
+    library: Path = field(converter=_library_mapper)
     layout: str
     service_equipment: Union[str, List[str]]
     weather: Union[str, pd.DataFrame]
@@ -86,39 +88,46 @@ class Configuration(FromDictMixin):
     inflation_rate: float
     fixed_costs: str
     project_capacity: Union[int, float]
-    start_year: int = attr.ib(default=None)
-    end_year: int = attr.ib(default=None)
-    SAM_settings: str = attr.ib(default=None)
+    start_year: int = field(default=None)
+    end_year: int = field(default=None)
+    SAM_settings: str = field(default=None)
 
     def __attrs_post_init__(self):
         if isinstance(self.service_equipment, str):
             object.__setattr__(self, "service_equipment", [self.service_equipment])
 
 
-@attr.s(auto_attribs=True)
+@define(auto_attribs=True)
 class Simulation(FromDictMixin):
     """The primary API to interact with the simulation methodologies.
 
     Parameters
     ----------
-    name: str
-        Name of the simulation. Used for logging files.
     library_path : str
         The path to the main data library.
-    config : Union[str, dict]
-        The path to a configuration dictionary or the dictionary itself.
+    config : Configuration | dict | str
+        One of the following:
+         - A pre-loaded ``Configuration`` object
+         - A dictionary ready to be converted to a ``Configuration`` object
+         - The name of the configuration file to be loaded, that will be located at:
+           ``library_path`` / config / ``config``
     """
 
-    name: str = attr.ib(converter=str)
-    library_path: Path = attr.ib(converter=_library_mapper)
-    config: Configuration = attr.ib()
+    library_path: Path = field(converter=_library_mapper)
+    config: Configuration = field()
+
+    metrics: Metrics = field(init=False)
+    windfarm: Windfarm = field(init=False)
+    env: WombatEnvironment = field(init=False)
+    repair_manager: RepairManager = field(init=False)
+    service_equipment: list[ServiceEquipment] = field(init=False)
 
     def __attrs_post_init__(self) -> None:
         self._setup_simulation()
 
     @config.validator  # type: ignore
     def _create_configuration(
-        self, attribute: attr.Attribute, value: Union[str, dict, Configuration]
+        self, attribute: Attribute, value: Union[str, dict, Configuration]
     ) -> None:
         """Validates the configuration object and creates the ``Configuration`` object
         for the simulation.Raises:
@@ -149,8 +158,6 @@ class Simulation(FromDictMixin):
                 "dictionary, or ``Configuration`` object!",
             )
 
-        if self.config.name != self.name:
-            raise ValueError("``name`` and the name in ``config`` do not match!")
         if self.config.library != self.library_path:
             raise ValueError(
                 "``library_path`` and the library in ``config`` do not match!"
@@ -194,7 +201,8 @@ class Simulation(FromDictMixin):
                 "``config`` must be a dictionary or ``Configuration`` object!"
             )
         assert isinstance(config, Configuration)  # lets mypy know it's a Configuration
-        return cls(config.name, config.library, config)
+        # NOTE: mypy is not caught up with attrs yet :(
+        return cls(config.name, config.library, config)  # type: ignore
 
     def _setup_simulation(self):
         """Initializes the simulation objects."""
@@ -217,7 +225,9 @@ class Simulation(FromDictMixin):
                 )
             )
 
-    def run(self, until: Optional[Union[int, float, Event]] = None):
+    def run(
+        self, until: Optional[int | float | Event] = None, create_metrics: bool = True
+    ):
         """Calls ``WombatEnvironment.run()`` and gathers the results for post-processing.
         See ``wombat.simulation.WombatEnvironment.run`` or ``simpy.Environment.run`` for more
         details.
@@ -227,9 +237,15 @@ class Simulation(FromDictMixin):
         until : Optional[Union[int, float, Event]], optional
             When to stop the simulation, by default None. See documentation on
             ``simpy.Environment.run`` for more details.
+        create_metrics : bool, optional
+            If True, the metrics object will be created, and not, if False, by default True.
         """
         self.env.run(until=until)
+        if create_metrics:
+            self.initialize_metrics()
 
+    def initialize_metrics(self) -> None:
+        """Instantiates the ``metrics`` attribute after the simulation is run."""
         operations, events = self.env.convert_logs_to_csv(return_df=True)
         power_potential, power_production = self.env.power_production_potential_to_csv(
             windfarm=self.windfarm, operations=operations, return_df=True
@@ -243,8 +259,7 @@ class Simulation(FromDictMixin):
             inflation_rate=self.config.inflation_rate,
             project_capacity=self.config.project_capacity,
             turbine_capacities=[
-                self.windfarm.node_system(t_id).capacity
-                for t_id in self.windfarm.turbine_id
+                self.windfarm.system(t_id).capacity for t_id in self.windfarm.turbine_id
             ],
             fixed_costs=self.config.fixed_costs,
             substation_id=self.windfarm.substation_id.tolist(),

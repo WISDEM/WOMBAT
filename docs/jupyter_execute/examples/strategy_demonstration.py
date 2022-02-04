@@ -19,9 +19,10 @@
 # In[1]:
 
 
-import pandas as pd
 from copy import deepcopy
 from time import perf_counter
+
+import pandas as pd
 
 from wombat.core import Simulation
 from wombat.core.library import DINWOODIE

@@ -1,0 +1,25 @@
+name: Heavy Lift Vessel
+equipment_rate: 150000
+charter_days: 30
+strategy: requests
+strategy_threshold: 10
+start_year: 2002
+end_year: 2014
+onsite: false
+capability: LCN
+mobilization_cost: 500000
+mobilization_days: 60
+speed: 12.66
+max_windspeed_transport: 10
+max_windspeed_repair: 10
+max_waveheight_transport: 2
+max_waveheight_repair: 2
+workday_start: 0
+workday_end: 24
+crew_transfer_time: 0.25
+n_crews: 1
+crew:
+  day_rate: 0  # crew comes with vessel
+  n_day_rate: 0
+  hourly_rate: 0
+  n_hourly_rate: 0

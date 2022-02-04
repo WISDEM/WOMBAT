@@ -1,15 +1,16 @@
 """Provides the O&M Enviroment class; a subclass of simpy.Environment."""
+from __future__ import annotations
 
-
-import os  # type: ignore
 import math  # type: ignore
-import numpy as np  # type: ignore
-import simpy  # type: ignore
-import pandas as pd  # type: ignore
 import logging  # type: ignore
+import datetime as dt  # type: ignore
 from typing import Tuple, Union, Optional  # type: ignore
 from pathlib import Path  # type: ignore
 from datetime import datetime, timedelta  # type: ignore
+
+import numpy as np  # type: ignore
+import simpy  # type: ignore
+import pandas as pd  # type: ignore
 from simpy.events import Event  # type: ignore
 from pandas.core.indexes.datetimes import DatetimeIndex
 
@@ -29,21 +30,19 @@ class WombatEnvironment(simpy.Environment):
 
     def __init__(
         self,
-        data_dir: Union[Path, str],
+        data_dir: Path | str,
         weather_file: str,
         workday_start: int,
         workday_end: int,
-        simulation_name: Optional[str] = None,
-        start_year: Optional[int] = None,
-        end_year: Optional[int] = None,
+        simulation_name: str | None = None,
+        start_year: int | None = None,
+        end_year: int | None = None,
     ) -> None:
         """Initialization.
 
         Parameters
         ----------
-        simpy : [type]
-            [description]
-        data_dir : str
+        data_dir : pathlib.Path | str
             Directory where the inputs are stored and where to save outputs.
         weather_file : str
             Name of the weather file. Should be contained within ``data_dir``/weather/.
@@ -55,16 +54,16 @@ class WombatEnvironment(simpy.Environment):
             Ending time for the repair crew, in 24 hour local time. This can be
             overridden by an ``ServiceEquipmentData`` object that operates outside of the "typical"
             working hours.
-        simulation_name : Optional[str], optional
+        simulation_name : str | None, optional
             Name of the simulation; will be used for naming the log file, by default ``None``.
             If ``None``, then the current time will be used. Will always save to
             ``data_dir``/outputs/logs/``simulation_name``.log.
             ... note: spaces (" ") will be replaced with underscores ("_"), for example:
             "my example analysis" becomes "my_example_analysis".
-        start_year : Optional[int], optional
+        start_year : int | None, optional
             Custom starting year for the weather profile, by default None. If ``None`` or
             less than the first year of the weather profile, this will be ignored.
-        end_year : Optional[int], optional
+        end_year : int | None, optional
             Custom ending year for the weather profile, by default None. If ``None`` or
             greater than the last year of the weather profile, this will be ignored.
 
@@ -78,20 +77,19 @@ class WombatEnvironment(simpy.Environment):
         if not self.data_dir.is_dir():
             raise FileNotFoundError(f"{self.data_dir} does not exist")
 
-        self.workday_start = workday_start
-        self.workday_end = workday_end
+        self.workday_start = int(workday_start)
+        self.workday_end = int(workday_end)
         if not 0 <= self.workday_start < 24:
             raise ValueError("workday_start must be a valid 24hr time before midnight!")
-        if self.workday_end > 24:
-            raise ValueError("Work shifts must end before midnight")
-        if 0 < self.workday_end <= self.workday_start:
+        if not 0 <= self.workday_end < 24:
+            raise ValueError("workday_end must be a valid 24hr time before midnight!")
+        if self.workday_end <= self.workday_start:
             raise ValueError(
                 "Work shifts must end after they start ({self.workday_start}hrs)."
             )
 
         self.weather = self._weather_setup(weather_file, start_year, end_year)
         self.max_run_time = self.weather.shape[0]
-        self._create_endpoints()
         self.shift_length = self.workday_end - self.workday_start
 
         self.simulation_name = simulation_name
@@ -110,14 +108,14 @@ class WombatEnvironment(simpy.Environment):
         """
         if until is None:
             until = self.max_run_time
-        elif until < self.max_run_time:
-            self.max_run_time = until
+        elif until > self.max_run_time:
+            until = self.max_run_time
         super().run(until=until)
 
     def _logging_setup(self) -> None:
         """Completes the setup for logging data."""
         if self.simulation_name is None:
-            simulation = "wombat"
+            self.simulation_name = simulation = "wombat"
         else:
             simulation = self.simulation_name.replace(" ", "_")
         dt_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S.%f")
@@ -141,16 +139,8 @@ class WombatEnvironment(simpy.Environment):
         )
 
         _dir = self.data_dir / "outputs" / "logs"
-        if not os.path.isdir(str(_dir)):
-            os.makedirs(_dir)
-
-        # logging.basicConfig(
-        #     format="%(asctime)s :: %(name)s :: %(levelname)s :: %(message)s",
-        #     filename=self.events_log_fname,
-        #     filemode="w",
-        #     level=logging.DEBUG,
-        # )
-        # self._events_logger = logging.getLogger(__name__)
+        if not _dir.is_dir():
+            _dir.mkdir()
 
         setup_logger("events_log", self.events_log_fname)
         setup_logger("operations_log", self.operations_log_fname)
@@ -184,7 +174,15 @@ class WombatEnvironment(simpy.Environment):
             True if it's valid working hours, False otherwise.
         """
         if -1 in (workday_start, workday_end):
+            # Return true if the shift is around the clock
+            if self.workday_start == 0 and self.workday_end == 24:
+                return True
             return self.workday_start <= self.simulation_time.hour < self.workday_end
+
+        # Return true if the shift is around the clock
+        if workday_start == 0 and workday_end == 24:
+            return True
+
         return workday_start <= self.simulation_time.hour < workday_end
 
     def hour_in_shift(
@@ -243,13 +241,13 @@ class WombatEnvironment(simpy.Environment):
         """Timestamp for the current time as a datetime.datetime.strftime."""
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
 
-    def date_ix(self, date: datetime) -> int:
+    def date_ix(self, date: dt.datetime | dt.date) -> int:
         """The first index of a future date. This corresponds to the number of hours
         until this dates from the very beginning of the simulation.
 
         Parameters
         ----------
-        date : datetime.date
+        date : datetime.datetime | datetime.date
             A date within the environment's simulation range.
 
         Returns
@@ -257,6 +255,8 @@ class WombatEnvironment(simpy.Environment):
         int
             Index of the weather profile corresponds to the first hour of ``date``.
         """
+        if isinstance(date, dt.datetime):
+            date = date.date()
         return np.where(self.weather.index.date == date)[0][0]
 
     def _weather_setup(
@@ -265,7 +265,8 @@ class WombatEnvironment(simpy.Environment):
         start_year: Optional[int] = None,
         end_year: Optional[int] = None,
     ) -> pd.DataFrame:
-        """Reads the weather data from the "<inputs>/weather" directory.
+        """Reads the weather data from the "<inputs>/weather" directory, and creates the
+        ``start_date`` and ``end_date`` time stamps for the simulation.
 
         This also fills any missing data with zeros and interpolates the values of any
         missing datetime entries.
@@ -276,8 +277,8 @@ class WombatEnvironment(simpy.Environment):
             Name of the weather file to be used by the environment. Should be contained
             within ``data_dir/weather``.
         start_year : Optional[int], optional
-            Custom starting year for the weather profile, by default None. If ``None`` or
-            less than the first year of the weather profile, this will be ignored.
+            Custom starting year for the weather profile, by default None. If ``None``
+            or less than the first year of the weather profile, this will be ignored.
         end_year : Optional[int], optional
             Custom ending year for the weather profile, by default None. If ``None`` or
             greater than the last year of the weather profile, this will be ignored.
@@ -287,27 +288,60 @@ class WombatEnvironment(simpy.Environment):
         pd.DataFrame
             The wind (and  wave) timeseries.
         """
-        weather_path = os.path.join(self.data_dir, "weather", weather_file)
+        weather_path = self.data_dir / "weather" / weather_file
         weather = pd.read_csv(
             weather_path, parse_dates=["datetime"], index_col="datetime"
         )
         weather = weather.fillna(0.0)
         weather = weather.resample("H").interpolate(limit_direction="both", limit=5)
 
-        if start_year is not None:
-            weather = weather[weather.index.year >= start_year]
-        if end_year is not None:
-            weather = weather[weather.index.year <= end_year]
+        # Create the start and end points
+        self.start_datetime = weather.index[0].to_pydatetime()
+        self.end_datetime = weather.index[-1].to_pydatetime()
+        self.start_year = self.start_datetime.year
+        self.end_year = self.end_datetime.year
 
-        self.start_year = weather.index.year.min()
-        self.end_year = weather.index.year.max()
+        if start_year is None and end_year is None:
+            return weather
+
+        if start_year is None:
+            pass
+        elif start_year > self.end_year:
+            raise ValueError(
+                f"'stary_year' ({start_year}) occurs after the last available year"
+                f" in the weather data (range: {self.end_year})"
+            )
+        else:
+            # Filter for the provided, validated starting year and update the attribute
+            weather = weather[weather.index.year >= start_year]
+            self.start_datetime = weather.index[0].to_pydatetime()
+            start_year = self.start_year = self.start_datetime.year
+
+        if end_year is None:
+            pass
+        elif start_year is None and end_year < self.start_year:
+            raise ValueError(
+                f"The provided 'end_year' ({end_year}) is before the start_year"
+                f" ({self.start_year})"
+            )
+        elif start_year is not None:
+            if end_year < start_year:
+                raise ValueError(
+                    f"The provided 'end_year' ({end_year}) is before the start_year"
+                    f" ({start_year})"
+                )
+            else:
+                # Filter for the provided, validated ending year and update the attribute
+                weather = weather[weather.index.year <= end_year]
+                self.end_datetime = weather.index[-1].to_pydatetime()
+                self.end_year = self.end_datetime.year
+        else:
+            # Filter for the provided, validated ending year and update the attribute
+            weather = weather[weather.index.year <= end_year]
+            self.end_datetime = weather.index[-1].to_pydatetime()
+            self.end_year = self.end_datetime.year
 
         return weather
-
-    def _create_endpoints(self) -> None:
-        """Creates the ``start_date`` and ``end_date`` time stamps for the simulation."""
-        self.start_datetime = self.weather.index[0].to_pydatetime()
-        self.end_datetime = self.weather.index[-1].to_pydatetime()
 
     @property
     def weather_now(self) -> Tuple[float, float]:
@@ -318,12 +352,15 @@ class WombatEnvironment(simpy.Environment):
         Tuple[float, float]
             Wind and wave data for the current time.
         """
-        return self.weather.iloc[self.now].values
+        # Rounds down because we won't arrive at the next weather event until that hour
+        now = int(self.now)
+        return self.weather.iloc[now].values
 
     def weather_forecast(
         self, hours: Union[int, float]
     ) -> Tuple[DatetimeIndex, np.ndarray, np.ndarray]:
-        """Returns the wind and wave data for the next ``hours`` hours.
+        """Returns the wind and wave data for the next ``hours`` hours, starting from
+        the current hour's weather.
 
         Parameters
         ----------
@@ -334,10 +371,14 @@ class WombatEnvironment(simpy.Environment):
         -------
         Tuple[DatetimeIndex, np.ndarray, np.ndarray]
             The pandas DatetimeIndex, windspeed array, and waveheight array for the
-            hours requested.
+            hours requested, each with shape (``hours`` + 1).
         """
-        start = math.ceil(self.now)
+        start = math.floor(self.now)
         end = start + math.ceil(hours)
+
+        # If it's not on the hour, ensure we're looking ``hours`` hours into the future
+        if self.now % 1:
+            end += 1
 
         weather = self.weather.iloc[start:end]
         return (weather.index, weather.windspeed.values, weather.waveheight.values)
@@ -353,8 +394,8 @@ class WombatEnvironment(simpy.Environment):
         system_name: str = "",
         part_id: str = "",
         part_name: str = "",
-        system_ol: Union[float, str] = "",
-        part_ol: Union[float, str] = "",
+        system_ol: float | int = 0,
+        part_ol: float | int = 0,
         duration: float = 0,
         request_id: str = "na",
         materials_cost: Union[int, float] = 0,
@@ -382,11 +423,11 @@ class WombatEnvironment(simpy.Environment):
             Subassembly, component, or cable ID, ``_.id``, by default "".
         part_name : str
             Subassembly, component, or cable name, ``_.name``, by default "".
-        system_ol : Union[float, str]
-            Turbine operating level, ``System.operating_level``. Use an empty string for n/a, by default "".
-        part_ol : Union[float, str]
+        system_ol : float | int
+            Turbine operating level, ``System.operating_level``. Use an empty string for n/a, by default 0.
+        part_ol : float | int
             Subassembly, component, or cable operating level, ``_.operating_level``. Use
-            an empty string for n/a, by default "".
+            an empty string for n/a, by default 0.
         request_id : str
             The ``RepairManager`` assigned request_id found in ``RepairRequest.request_id``, by default "na".
         duration : float
@@ -531,8 +572,8 @@ class WombatEnvironment(simpy.Environment):
         operations.to_csv(operations_fname, index=False)
 
         if delete_original:
-            os.remove(self.operations_log_fname)
-            os.remove(self.events_log_fname)
+            Path(self.operations_log_fname).unlink()
+            Path(self.events_log_fname).unlink()
 
         if return_df:
             return operations, events
@@ -568,7 +609,7 @@ class WombatEnvironment(simpy.Environment):
         windspeed = windspeed.loc[operations.env_datetime]
 
         potential = np.vstack(
-            ([windfarm.node_system(t_id).power(windspeed) for t_id in turbines])
+            ([windfarm.system(t_id).power(windspeed) for t_id in turbines])
         ).T
         potential_df = pd.DataFrame(
             [],
@@ -603,11 +644,26 @@ class WombatEnvironment(simpy.Environment):
             logging files are all deleted, by default False
         """
 
-        os.remove(self.events_log_fname)
-        os.remove(self.operations_log_fname)
+        Path(self.events_log_fname).unlink()
+        Path(self.operations_log_fname).unlink()
         if not log_only:
-            os.remove(self.events_log_fname.replace(".log", ".csv"))
-            os.remove(self.operations_log_fname.replace(".log", ".csv"))
+            # Don't fail if any of the following files were not created
+            try:
+                Path(self.events_log_fname.replace(".log", ".csv")).unlink()
+            except FileNotFoundError:
+                pass
 
-            os.remove(self.power_potential_fname)
-            os.remove(self.power_production_fname)
+            try:
+                Path(self.operations_log_fname.replace(".log", ".csv")).unlink()
+            except FileNotFoundError:
+                pass
+
+            try:
+                Path(self.power_potential_fname).unlink()
+            except FileNotFoundError:
+                pass
+
+            try:
+                Path(self.power_production_fname).unlink()
+            except FileNotFoundError:
+                pass

@@ -13,9 +13,10 @@
 # In[1]:
 
 
+from time import perf_counter  # timing purposes only
+
 import numpy as np
 import pandas as pd
-from time import perf_counter  # timing purposes only
 
 from wombat.core import Simulation
 from wombat.core.library import DINWOODIE, load_yaml

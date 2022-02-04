@@ -2,9 +2,10 @@
 
 import os
 import re
-import yaml  # type: ignore
 from typing import Any, Union
 from pathlib import Path
+
+import yaml  # type: ignore
 
 
 ROOT = Path(__file__).parents[2].resolve()
@@ -12,7 +13,7 @@ DEFAULT_LIBRARY = ROOT / "library"
 DINWOODIE = DEFAULT_LIBRARY / "dinwoodie"
 IEA_26 = DEFAULT_LIBRARY / "iea26"
 
-library_map = {"DINWOODIE": DINWOODIE, "IEA_26": IEA_26}
+library_map = {"DINWOODIE": DINWOODIE, "IEA_26": IEA_26, "IEA26": IEA_26}
 
 # YAML loader that is able to read scientific notation
 custom_loader = yaml.SafeLoader

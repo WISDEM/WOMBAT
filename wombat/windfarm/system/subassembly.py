@@ -1,8 +1,9 @@
 """Provides the Subassembly class"""
 
 
-import simpy  # type: ignore
 from typing import Generator  # type: ignore
+
+import simpy  # type: ignore
 
 from wombat.core import (
     Failure,
@@ -71,8 +72,7 @@ class Subassembly:
         for i, maintenance in enumerate(self.data.maintenance):
             yield f"m{i}", self.env.process(self.run_single_maintenance(maintenance))
 
-    @staticmethod
-    def interrupt_subassembly_processes(subassembly) -> None:
+    def interrupt_processes(self) -> None:
         """Interrupts all of the running processes within the subassembly except for the
         process associated with failure that triggers the catastrophic failure.
 
@@ -81,7 +81,7 @@ class Subassembly:
         subassembly : Subassembly
             The subassembly that should have all processes interrupted.
         """
-        for _, process in subassembly.processes.items():
+        for _, process in self.processes.items():
             try:
                 process.interrupt()
             except RuntimeError:
@@ -89,15 +89,8 @@ class Subassembly:
                 pass
 
     def interrupt_all_subassembly_processes(self) -> None:
-        """Interrupts the running processes in all of the subassemblies within ``turbine``.
-
-        Parameters
-        ----------
-        failure : Failure
-            The failure that triggers the turbine shutting down.
-        """
-        for subassembly in self.turbine.subassemblies:
-            self.interrupt_subassembly_processes(subassembly)
+        """Thin wrapper for ``turbine.interrupt_all_subassembly_processes``."""
+        self.turbine.interrupt_all_subassembly_processes()
 
     def run_single_maintenance(self, maintenance: Maintenance) -> Generator:
         """Runs a process to trigger one type of maintenance request throughout the simulation.
@@ -117,19 +110,20 @@ class Subassembly:
             if hours_to_next == 0:
                 remainder = self.env.max_run_time - self.env.now
                 try:
-                    self.env.log_action(
-                        system_id=self.turbine.id,
-                        system_name=self.turbine.name,
-                        part_id=self.id,
-                        part_name=self.name,
-                        system_ol=self.turbine.operating_level,
-                        part_ol=self.operating_level,
-                        agent=self.name,
-                        action="none",
-                        reason=f"{self.name} is not modeled",
-                        additional="no maintenance will be modeled for select subassembly",
-                        duration=remainder,
-                    )
+                    # TODO: determine if this logging is really needed
+                    # self.env.log_action(
+                    #     system_id=self.turbine.id,
+                    #     system_name=self.turbine.name,
+                    #     part_id=self.id,
+                    #     part_name=self.name,
+                    #     system_ol=self.turbine.operating_level,
+                    #     part_ol=self.operating_level,
+                    #     agent=self.name,
+                    #     action="none",
+                    #     reason=f"{self.name} is not modeled",
+                    #     additional="no maintenance will be modeled for select subassembly",
+                    #     duration=remainder,
+                    # )
                     yield self.env.timeout(remainder)
                 except simpy.Interrupt:
                     remainder -= self.env.now
@@ -137,7 +131,7 @@ class Subassembly:
             while hours_to_next > 0:
                 try:
                     # If the replacement has not been completed, then wait another minute
-                    if self.turbine.operating_level == 0:
+                    if self.turbine.operating_level == 0 or self.turbine.servicing:
                         yield self.env.timeout(TIMEOUT)
                         continue
 
@@ -146,7 +140,8 @@ class Subassembly:
                     hours_to_next = 0
 
                     # Automatically submit a repair request
-                    repair_request = RepairRequest(
+                    # NOTE: mypy is not caught up with attrs yet :(
+                    repair_request = RepairRequest(  # type: ignore
                         system_id=self.turbine.id,
                         system_name=self.turbine.name,
                         subassembly_id=self.id,
@@ -199,19 +194,20 @@ class Subassembly:
             if hours_to_next is None:
                 remainder = self.env.max_run_time - self.env.now
                 try:
-                    self.env.log_action(
-                        system_id=self.turbine.id,
-                        system_name=self.turbine.name,
-                        part_id=self.id,
-                        part_name=self.name,
-                        system_ol=self.turbine.operating_level,
-                        part_ol=self.operating_level,
-                        agent=self.name,
-                        action="none",
-                        reason=f"{self.name} is not modeled",
-                        additional="no failures will be modeled for select subassembly",
-                        duration=remainder,
-                    )
+                    # TODO: determine if this logging is really needed
+                    # self.env.log_action(
+                    #     system_id=self.turbine.id,
+                    #     system_name=self.turbine.name,
+                    #     part_id=self.id,
+                    #     part_name=self.name,
+                    #     system_ol=self.turbine.operating_level,
+                    #     part_ol=self.operating_level,
+                    #     agent=self.name,
+                    #     action="none",
+                    #     reason=f"{self.name} is not modeled",
+                    #     additional="no failures will be modeled for select subassembly",
+                    #     duration=remainder,
+                    # )
                     yield self.env.timeout(remainder)
                 except simpy.Interrupt:
                     remainder -= self.env.now
@@ -219,7 +215,7 @@ class Subassembly:
             else:
                 while hours_to_next > 0:  # type: ignore
                     try:
-                        if self.turbine.operating_level == 0:
+                        if self.turbine.operating_level == 0 or self.turbine.servicing:
                             yield self.env.timeout(TIMEOUT)
                             continue
 
@@ -237,7 +233,8 @@ class Subassembly:
                             )
 
                         # Automatically submit a repair request
-                        repair_request = RepairRequest(
+                        # NOTE: mypy is not caught up with attrs yet :(
+                        repair_request = RepairRequest(  # type: ignore
                             self.turbine.id,
                             self.turbine.name,
                             self.id,
