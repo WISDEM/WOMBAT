@@ -1,4 +1,4 @@
-## [UNRELEASES]
+## 0.4.0 (2022-February-4)
 - Testing now included!
 - `pathlib.Path` is used in place of `os` throughout for easier to read file manuevering.
 - `attrs.define` and `attrs.field` have been adopted in place of `attr.s` and `attr.ib`, respectively.
@@ -90,11 +90,12 @@
   - Cables are no longer retrieved through system and causing an error when processing their repairs.
 - `wombat.core.service_equipment.ServiceEquipment._calculate_intra_site_time` now accounts for a
   speed of 0 km/hr so that function will not error out when there is a travel distance, but no speed.
-
 - `wombat.core.service_equipment.ServiceEquipment.run_scheduled` now sets the `onsite` variable
   for equipment that are always on site for more consistent handling of the onsite attribute.
 - `wombat.core.service_equipment.ServiceEquipment.wait_until_next_operational_period` now resets
   the equipment's location attributes so its location can't incorrectly persist from the last step.
+- `wombat.core.service_equipment.ServiceEquipment.register_repair_with_subassembly` correctly
+  retrieves the cable information for upstream cables to be reset.
 
 - `wombat.core.post_processor.Metrics.service_equipment_utilization` has a new methodolgy that uses the
   acual number of days in operation instead of a backwards computation that consistently and
@@ -123,6 +124,8 @@
   to ensure similar functionality between system and subassembly methods for use in the simulations.
 - `wombat.windfarm.system.cable.Cable` logging now properly records itself as the target of repais
   and maintenance tasks instead of its starting node.
+- `wombat.windfarm.system.cable.Cable.upstream_nodes` has been updated to be in the correct order
+  the nodes sit on the string
 
 - `wombat.windfarm.system.subassembly.Subassembly.interrupt_subassembly_processes` is now
   `interrupt_processes` and only interrupts the cable's own maintenance and failure simulation processes.
