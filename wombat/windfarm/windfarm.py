@@ -274,7 +274,10 @@ class Windfarm:
             edge_id = tuple(cable_id.split("::")[1:])
         else:
             edge_id = cable_id
-        return self.graph.edges[edge_id]["cable"]
+        try:
+            return self.graph.edges[edge_id]["cable"]
+        except KeyError:
+            raise KeyError(f"Edge {edge_id} is invalid.")
 
     @property
     def current_availability(self) -> float:
