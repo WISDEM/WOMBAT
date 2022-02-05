@@ -1,5 +1,5 @@
 name: iea_26_one_mobilization_100pct_reduction
-library: IEA_26/
+library: IEA_26
 weather: hornsrev3_weather_1996_2015.csv
 service_equipment: [ctv1.yaml, ctv2.yaml, dsv.yaml, cabling_scheduled.yaml, hlv_2.yaml, rmt.yaml]
 layout: layout_100pct_reduction.csv

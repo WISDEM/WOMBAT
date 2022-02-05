@@ -411,6 +411,11 @@ pd.set_option("display.max_columns", 1000)
 #
 # The set library enables WOMBAT to easily access and store data files in a consistent
 # manner. Here the `DINWOODIE` reference is going to be used again.
+#
+# ```{note}
+# If a custom library is being used, the `library_path` must be the full path name to the
+# location of the folder where the configuration data is contained.
+# ```
 
 # In[2]:
 
@@ -453,7 +458,7 @@ sim.env.cleanup_log_files(log_only=True)
 # Note here that a string "DINWOODIE" is passed because the Simulation class knows to
 # retrieve the appropriate path, and that the simulation_name matches the configuration
 simulation_name = "dinwoodie_base"
-sim = Simulation(name=simulation_name, library_path="DINWOODIE", config="base.yaml")
+sim = Simulation(library_path="DINWOODIE", config="base.yaml")
 
 
 # ```{note}

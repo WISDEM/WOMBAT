@@ -196,6 +196,28 @@ class Metrics:
             self.sam_settings = None
             self.financial_model = None
 
+    @classmethod
+    def from_simulation_outputs(cls, fpath: Path | str, fname: str) -> Metrics:
+        """Creates the Metrics class from the saved outputs of a simulation for ease of
+        revisiting the calculated metrics.
+
+        Parameters
+        ----------
+        fpath : Path | str
+            The full path to the file where the data was saved.
+        fname : Path | str
+            The filename for where the data was saved, which should be a direct
+            dictionary mapping for the Metrics initialization.
+
+        Returns
+        -------
+        Metrics
+            The class object.
+        """
+        data = load_yaml(fpath, fname)
+        metrics = cls(**data)
+        return metrics
+
     def _tidy_data(self, data: pd.DataFrame, kind: str) -> pd.DataFrame:
         """Tidies the "raw" csv-converted data to be able to be used among the ``Metrics``
         class.
