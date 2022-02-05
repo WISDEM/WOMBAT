@@ -124,6 +124,10 @@ class Cable:
                 # This error occurs for the process halting all other processes.
                 pass
 
+    def interrupt_all_subassembly_processes(self) -> None:
+        """Thin wrapper for ``interrupt_processes`` to keep usage the same as systems."""
+        self.interrupt_processes()
+
     def stop_all_upstream_processes(self, failure: Failure) -> None:
         """Stops all upstream turbines from producing power by setting their
         ``System.cable_failure`` to ``True``.
