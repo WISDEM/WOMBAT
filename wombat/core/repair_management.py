@@ -3,19 +3,12 @@
 
 from __future__ import annotations
 
-import attr
-import numpy as np
-from typing import (  # type: ignore
-    TYPE_CHECKING,
-    Dict,
-    List,
-    Union,
-    Iterator,
-    Optional,
-    Sequence,
-)
+from typing import TYPE_CHECKING, Optional, Sequence  # type: ignore
 from itertools import chain
 from collections import Counter
+
+import numpy as np
+from attrs import field, define
 from simpy.resources.store import FilterStore, FilterStoreGet  # type: ignore
 
 from wombat.core import Failure, Maintenance, RepairRequest, WombatEnvironment
@@ -26,28 +19,29 @@ if TYPE_CHECKING:
     from wombat.core.service_equipment import ServiceEquipment
 
 
-@attr.s(auto_attribs=True)
+@define(auto_attribs=True)
 class EquipmentMap:
     """Internal mapping for servicing equipment strategy information."""
 
-    strategy_threshold: Union[int, float] = attr.ib()
-    equipment: ServiceEquipment = attr.ib()
+    strategy_threshold: int | float
+    equipment: ServiceEquipment
 
 
-@attr.s(auto_attribs=True)
+@define(auto_attribs=True)
 class StrategyMap:
     """Internal mapping for equipment capabilities and their data."""
 
-    CTV: List[EquipmentMap] = attr.ib(factory=list)
-    SCN: List[EquipmentMap] = attr.ib(factory=list)
-    LCN: List[EquipmentMap] = attr.ib(factory=list)
-    CAB: List[EquipmentMap] = attr.ib(factory=list)
-    RMT: List[EquipmentMap] = attr.ib(factory=list)
-    DRN: List[EquipmentMap] = attr.ib(factory=list)
-    DSV: List[EquipmentMap] = attr.ib(factory=list)
+    CTV: list[EquipmentMap] = field(factory=list)
+    SCN: list[EquipmentMap] = field(factory=list)
+    LCN: list[EquipmentMap] = field(factory=list)
+    CAB: list[EquipmentMap] = field(factory=list)
+    RMT: list[EquipmentMap] = field(factory=list)
+    DRN: list[EquipmentMap] = field(factory=list)
+    DSV: list[EquipmentMap] = field(factory=list)
+    is_running: bool = field(default=False, init=False)
 
     def update(
-        self, capability: str, threshold: Union[int, float], equipment: ServiceEquipment
+        self, capability: str, threshold: int | float, equipment: ServiceEquipment
     ) -> None:
         """A method to update the strategy mapping between capability types and the
         available ``ServiceEquipment`` objects.
@@ -56,7 +50,7 @@ class StrategyMap:
         ----------
         capability : str
             The ``equipment``'s capability.
-        threshold : Union[int, float]
+        threshold : int | float
             The threshold for ``equipment``'s strategy.
         equipment : ServiceEquipment
             The actual ``ServiceEquipment`` object to be logged.
@@ -67,23 +61,27 @@ class StrategyMap:
             Raised if there is an invalid capability, though this shouldn't be able to
             be reached.
         """
+        # Using a mypy ignore because of an unpatched bug using data classes
         if capability == "CTV":
-            self.CTV.append(EquipmentMap(threshold, equipment))
+            self.CTV.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "SCN":
-            self.SCN.append(EquipmentMap(threshold, equipment))
+            self.SCN.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "LCN":
-            self.LCN.append(EquipmentMap(threshold, equipment))
+            self.LCN.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "CAB":
-            self.CAB.append(EquipmentMap(threshold, equipment))
+            self.CAB.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "RMT":
-            self.RMT.append(EquipmentMap(threshold, equipment))
+            self.RMT.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "DRN":
-            self.DRN.append(EquipmentMap(threshold, equipment))
+            self.DRN.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "DSV":
-            self.DSV.append(EquipmentMap(threshold, equipment))
+            self.DSV.append(EquipmentMap(threshold, equipment))  # type: ignore
         else:
             # This should not even be able to be reached
-            raise ValueError("Invalid servicing equipment has been provided!")
+            raise ValueError(
+                f"Invalid servicing equipment '{capability}' has been provided!"
+            )
+        self.is_running = True
 
 
 class RepairManager(FilterStore):
@@ -127,7 +125,6 @@ class RepairManager(FilterStore):
         """Updates ``equipment_map`` with a provided servicing equipment object."""
         capability = service_equipment.settings.capability
         strategy = service_equipment.settings.strategy
-        strategy_threshold = service_equipment.settings.strategy_threshold  # type: ignore
 
         if strategy == "downtime":
             mapping = self.downtime_based_equipment
@@ -137,6 +134,7 @@ class RepairManager(FilterStore):
             # Shouldn't be possible to get here!
             raise ValueError("Invalid servicing equipment!")
 
+        strategy_threshold = service_equipment.settings.strategy_threshold  # type: ignore
         if isinstance(capability, list):
             for c in capability:
                 mapping.update(c, strategy_threshold, service_equipment)
@@ -176,6 +174,7 @@ class RepairManager(FilterStore):
         elif isinstance(request.details, Maintenance):
             prefix = "MNT"
         else:
+            # Note this is a safety, and shouldn't be able to be reached
             raise ValueError("A valid ``RepairRequest`` must be submitted")
 
         request_id = f"{prefix}{str(self._current_id).zfill(8)}"
@@ -186,7 +185,7 @@ class RepairManager(FilterStore):
         """Run any equipment that has a pending request where the current windfarm
         operating capacity is less than or equal to the servicing equipment's threshold.
         """
-        operating_capacity = self.windfarm.current_availability
+        operating_capacity = self.windfarm.current_availability_wo_servicing
         for capability in self.request_map:
             equipment_mapping = getattr(self.downtime_based_equipment, capability)
             for equipment in equipment_mapping:
@@ -195,7 +194,6 @@ class RepairManager(FilterStore):
                 if equipment.equipment.onsite or equipment.equipment.enroute:
                     continue
                 self.env.process(equipment.equipment.run_unscheduled())
-                break
 
     def _run_equipment_requests(self) -> None:
         """Run the first piece of equipment (if none are onsite) for each equipment
@@ -205,7 +203,7 @@ class RepairManager(FilterStore):
         for capability, n_requests in self.request_map.items():
             equipment_mapping = getattr(self.request_based_equipment, capability)
             for i, equipment in enumerate(equipment_mapping):
-                if n_requests > equipment.strategy_threshold:
+                if n_requests < equipment.strategy_threshold:
                     continue
                 # Run only the first piece of equipment in the mapping list, but ensure
                 # that it moves to the back of the line after being used
@@ -234,43 +232,50 @@ class RepairManager(FilterStore):
         request.assign_id(request_id)
         self.put(request)
 
-        self._run_equipment_downtime()
-        self._run_equipment_requests()
+        if self.downtime_based_equipment.is_running:
+            self._run_equipment_downtime()
+        if self.request_based_equipment.is_running:
+            self._run_equipment_requests()
 
         return request
 
-    def get_request_by_turbine(
-        self, equipment_capability: Sequence[str], turbine_id: Optional[str] = None
+    def get_request_by_system(
+        self, equipment_capability: Sequence[str], system_id: Optional[str] = None
     ) -> Optional[FilterStoreGet]:
-        """Gets all repair requests for a certain turbine with maximum severity of ``severity_max``.
-
-        Note: For now, this will simply order the items by ``Turbine.id`` and
-        return the first turbine.
+        """Gets all repair requests for a certain turbine with given a sequence of
+        ``equipment_capability``.
 
         Parameters
         ----------
-        equipment_capability : List[str]
-            The capability of the equipment requesting possible repairs to make.
-        turbine_id : Optional[str], optional
-            ID of the turbine; should correspond to ``Turbine.id``, by default None.
-            If None, then it will simply sort the list by ``Turbine.id`` and
-            return the first repair requested.
+        equipment_capability : list[str]
+            The capability of the servicing equipment requesting repairs to process.
+        system_id : Optional[str], optional
+            ID of the turbine or OSS; should correspond to ``System.id``, by default
+            None. If None, then it will simply sort the list by ``System.id`` and return
+            the first repair requested.
 
         Returns
         -------
         Optional[FilterStoreGet]
-            All of the repair requests for the focal turbine or None, if self.items
-            is empty.
+            The first repair request for the focal system or None, if self.items is
+            empty, or there is no matching system.
         """
         if not self.items:
             return None
 
         equipment_capability = set(equipment_capability)  # type: ignore
-        for request in sorted(self.items, key=lambda x: x.turbine_id):
-            capability_overlap = equipment_capability.intersection(request.equipment)  # type: ignore
-            valid_turbine = turbine_id is None or request.turbine_id == turbine_id
-            if valid_turbine and capability_overlap:
-                return self.get(lambda x: x == request)
+
+        # Filter the requests by system
+        requests = self.items
+        if system_id is not None:
+            requests = [el for el in self.items if el.system_id == system_id]
+        if requests == []:
+            return None
+
+        # Filter the requests by equipment capability and return the first valid request
+        for request in requests:
+            if equipment_capability.intersection(request.details.service_equipment):  # type: ignore
+                return self.get(lambda x: x == requests[0])
 
         # In case the loop above iterates all the way to the end, nothing was
         # found so return None. This is probably an error for which an error
@@ -285,7 +290,7 @@ class RepairManager(FilterStore):
 
         Parameters
         ----------
-        equipment_capability : List[str]
+        equipment_capability : list[str]
             The capability of the equipment requesting possible repairs to make.
         severity_level : int
             Severity level of focus, default None.
@@ -299,13 +304,17 @@ class RepairManager(FilterStore):
             return None
 
         equipment_capability = set(equipment_capability)  # type: ignore
-        requests = sorted(self.items, key=lambda x: x.severity_level, reverse=True)
+
+        # Filter the requests by severity level
+        requests = self.items
+        if severity_level is not None:
+            requests = [el for el in self.items if el.severity_level == severity_level]
+        if requests == []:
+            return None
+
+        requests = sorted(requests, key=lambda x: x.severity_level, reverse=True)
         for request in requests:
-            capability_overlap = equipment_capability & set(  # type: ignore
-                request.details.service_equipment
-            )
-            requested_severity: bool = severity_level in (request.details.level, None)
-            if requested_severity and capability_overlap:
+            if equipment_capability.intersection(request.details.service_equipment):  # type: ignore
                 return self.get(lambda x: x == request)
 
         # This return statement ensures there is always a known return type,
@@ -315,21 +324,25 @@ class RepairManager(FilterStore):
         return None
 
     def purge_subassembly_requests(
-        self, system_id: str, subassembly_id: str
-    ) -> Optional[Iterator]:
+        self, system_id: str, subassembly_id: str, exclude: list[str] = []
+    ) -> Optional[list[RepairRequest]]:
         """Yields all the requests for a system/subassembly combination. This is intended
         to be used to remove erroneous requests after a subassembly has been replaced.
 
         Parameters
         ----------
         system_id : str
-            ``System.id``.
+            ``System.id`` or ``Cable.id``.
         subassembly_id : str
-            ``Subassembly.id``.
+            ``Subassembly.id`` or the ``Cable.id`` repeated for cables.
+        exclude : list[str]
+            A list of ``request_id``s to exclude from the purge. This is a specific use
+            case for the combined cable system/subassembly, but can be to exclude
+            certain requests from the purge.
 
         Yields
         -------
-        Optional[Iterator]
+        Optional[list[RepairRequest]]
             All requests made to the repair manager for the provided system/subassembly
             combination. Returns None if self.items is empty or the loop terminates
             without finding what it is looking for.
@@ -337,32 +350,36 @@ class RepairManager(FilterStore):
         if not self.items:
             return None
 
-        for request in self.items:
-            system_match = request.system_id == system_id
-            subassembly_match = request.subassembly_id == subassembly_id
-            if system_match and subassembly_match:
-                yield self.get(lambda x: x == request)  # pylint: disable=W0640
+        requests = [
+            request
+            for request in self.items
+            if (
+                request.system_id == system_id
+                and request.subassembly_id == subassembly_id
+                and request.request_id not in exclude
+            )
+        ]
+        if requests == []:
+            return None
 
-                self.env.log_action(
-                    system_id=request.system_id,
-                    system_name=request.system_name,
-                    part_id=request.system_name,
-                    part_name=request.part_name,
-                    system_ol="n/a",
-                    part_ol="n/a",
-                    agent="RepairManager",
-                    action="request canceled",
-                    reason="replacement required",
-                    request_id=request.request_id,
-                )
-
-        # This is here to ensure there is always an explicit return value,
-        # but you may want to consider raising an error here.
-
-        return None
+        for request in requests:
+            self.env.log_action(
+                system_id=request.system_id,
+                system_name=request.system_name,
+                part_id=request.subassembly_id,
+                part_name=request.subassembly_name,
+                system_ol=float("nan"),
+                part_ol=float("nan"),
+                agent="RepairManager",
+                action="request canceled",
+                reason="replacement required",
+                request_id=request.request_id,
+            )
+            _ = self.get(lambda x: x == request)  # pylint: disable=W0640
+        return requests
 
     @property
-    def request_map(self) -> Dict[str, int]:
+    def request_map(self) -> dict[str, int]:
         """Creates an updated mapping between the servicing equipment capabilities and
         the number of requests that fall into each capability category (nonzero values only).
         """

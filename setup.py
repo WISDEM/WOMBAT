@@ -3,6 +3,7 @@
 
 import os
 import codecs
+
 from setuptools import setup, find_packages
 
 
@@ -40,8 +41,6 @@ extra_package_requirements = {
         "pytest-cov",
         "pytest-xdist",
         "mypy",
-        "types-attrs",
-        "types-PyYAML",
     ],
     "docs": [
         "sphinx",
@@ -84,8 +83,8 @@ setup(
     include_package_data=True,
     package_data={"": ["*.yaml", "*.csv"]},
     install_requires=[
-        "attr",
-        "numpy",
+        "attrs>=21",
+        "numpy>=1.21",
         "scipy",
         "pandas",
         "jupyterlab",
@@ -93,8 +92,11 @@ setup(
         "pyyaml",
         "geopy",
         "networkx",
-        "matplotlib",
+        "matplotlib>=3.3",
         "nrel-pysam",
+        # required for pre-commit CI
+        "types-attrs",
+        "types-PyYAML",
     ],
     python_requires=">=3.7",
     extras_require=extra_package_requirements,

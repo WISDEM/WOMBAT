@@ -1,17 +1,25 @@
 """Creates the Windfarm class/model."""
+from __future__ import annotations
 
-import os  # type: ignore
+from math import fsum
+from itertools import chain, combinations
+
 import numpy as np
 import pandas as pd  # type: ignore
-import logging  # type: ignore
 import networkx as nx  # type: ignore
-from math import fsum
 from geopy import distance  # type: ignore
-from itertools import chain, combinations
 
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.core.library import load_yaml
 from wombat.windfarm.system import Cable, System
+
+
+try:  # pylint: disable=duplicate-code
+    from functools import cache  # type: ignore
+except ImportError:  # pylint: disable=duplicate-code
+    from functools import lru_cache  # pylint: disable=duplicate-code
+
+    cache = lru_cache(None)  # pylint: disable=duplicate-code
 
 
 class Windfarm:
@@ -30,36 +38,27 @@ class Windfarm:
         self.env = env
         self.repair_manager = repair_manager
 
-        # self._logging_setup()
-
+        # Set up the layout and instantiate all windfarm objects
         self._create_graph_layout(windfarm_layout)
         self._create_turbines_and_substations()
         self._create_cables()
-        self.capacity = sum(self.node_system(turb).capacity for turb in self.turbine_id)
+        self.capacity = sum(self.system(turb).capacity for turb in self.turbine_id)
         self._create_substation_turbine_map()
         self.calculate_distance_matrix()
 
+        # Create the logging items
+        self.system_list = list(self.graph.nodes)
+        self._log_columns = [
+            "datetime",
+            "name",
+            "level",
+            "env_datetime",
+            "env_time",
+        ] + self.system_list
+
+        # Register the windfarm and start the logger
         self.repair_manager._register_windfarm(self)
-
         self.env.process(self._log_operations())
-
-    def _logging_setup(self) -> None:
-        """Completes the setup for logging data.
-
-        Parameters
-        ----------
-        which : str
-            One of "events" or "operations". For creating event logs or operational
-            status logs.
-        """
-
-        logging.basicConfig(
-            format="%(asctime)s :: %(name)s :: %(levelname)s :: %(message)s",
-            filename=self.env.operations_log_fname,
-            filemode="w",
-            level=logging.DEBUG,
-        )
-        self._operations_logger = logging.getLogger(__name__)
 
     def _create_graph_layout(self, windfarm_layout: str) -> None:
         """Creates a network layout of the windfarm start from the substation(s) to
@@ -77,6 +76,7 @@ class Windfarm:
             .reset_index(drop=True)
         )
         layout.subassembly = layout.subassembly.fillna("")
+        layout.upstream_cable = layout.upstream_cable.fillna("")
 
         windfarm = nx.DiGraph()
         windfarm.add_nodes_from(layout.id.values)
@@ -134,6 +134,12 @@ class Windfarm:
 
     def _create_cables(self) -> None:
         for start_node, end_node, data in self.graph.edges(data=True):
+            # Check that the cable data is provided
+            if data["cable"] == "":
+                raise ValueError(
+                    "A 'cable' file must be specified for all nodes in the windfarm layout!"
+                )
+            cable_dict = load_yaml(self.env.data_dir / "windfarm", data["cable"])
 
             start_coordinates = (
                 self.graph.nodes[start_node]["latitude"],
@@ -151,16 +157,11 @@ class Windfarm:
                     start_coordinates, end_coordinates, ellipsoid="WGS-84"
                 ).km
 
-            upstream_turbines = nx.dfs_successors(self.graph, end_node)
-            cable_dict = load_yaml(
-                os.path.join(self.env.data_dir, "windfarm"), data["cable"]
-            )
             data["cable"] = Cable(
                 self,
                 self.env,
-                f"cable::{start_node}::{end_node}",
                 start_node,
-                upstream_turbines,
+                end_node,
                 cable_dict,
             )
 
@@ -208,7 +209,7 @@ class Windfarm:
         s_t_map = {
             s_id: dict(  # type: ignore
                 turbines=np.array(s_t_map[s_id]),
-                weights=np.array([self.node_system(t).capacity for t in s_t_map[s_id]])
+                weights=np.array([self.system(t).capacity for t in s_t_map[s_id]])
                 / self.capacity,
             )
             for s_id in s_t_map
@@ -217,19 +218,11 @@ class Windfarm:
 
     def _log_operations(self):
         """Logs the operational data for a simulation."""
-        system_list = list(self.graph.nodes)
-        columns = [
-            "datetime",
-            "name",
-            "level",
-            "env_datetime",
-            "env_time",
-        ] + system_list
-        self.env._operations_logger.info(" :: ".join(columns))
+        self.env._operations_logger.info(" :: ".join(self._log_columns))
 
         message = [self.env.simulation_time, self.env.now]
         message.extend(
-            [self.node_system(system).operating_level for system in system_list]
+            [self.system(system).operating_level for system in self.system_list]
         )
         message = " :: ".join((f"{m}" for m in message))  # type: ignore
         self.env._operations_logger.info(message)
@@ -237,14 +230,16 @@ class Windfarm:
         HOURS = 1
         while True:
             yield self.env.timeout(HOURS)
-            message = [self.env.simulation_time, self.env.now] + [
-                self.node_system(system).operating_level for system in system_list
+            message = [f"{self.env.simulation_time}", f"{self.env.now}"] + [
+                f"{self.system(system).operating_level}" for system in self.system_list
             ]
-            message = " :: ".join(f"{m}" for m in message)  # type: ignore
+            message = " :: ".join(message)  # type: ignore
             self.env._operations_logger.info(message)
 
-    def node_system(self, system_id: str) -> System:
-        """Returns the desired node in the windfarm.
+    @cache
+    def system(self, system_id: str) -> System:
+        """Convenience function to returns the desired `System` object for a turbine or
+        substation in the windfarm.
 
         Parameters
         ----------
@@ -257,6 +252,32 @@ class Windfarm:
             The ``System`` object.
         """
         return self.graph.nodes[system_id]["system"]
+
+    @cache
+    def cable(self, cable_id: tuple[str, str] | str) -> Cable:
+        """Convenience function to returns the desired `Cable` object for a cable in the
+        windfarm.
+
+        Parameters
+        ----------
+        cable_id : tuple[str, str] | str
+            The cable's unique identifier, of the form: (``wombat.windfarm.System.id``,
+            ``wombat.windfarm.System.id``), for the (downstream node id, upstream node id),
+            or the ``Cable.id``.
+
+        Returns
+        -------
+        Cable
+            The ``Cable`` object.
+        """
+        if isinstance(cable_id, str):
+            edge_id = tuple(cable_id.split("::")[1:])
+        else:
+            edge_id = cable_id
+        try:
+            return self.graph.edges[edge_id]["cable"]
+        except KeyError:
+            raise KeyError(f"Edge {edge_id} is invalid.")
 
     @property
     def current_availability(self) -> float:
@@ -276,14 +297,50 @@ class Windfarm:
         """  # noqa: W605
         operating_levels = {
             s_id: [
-                self.node_system(t).operating_level
+                self.system(t).operating_level
                 for t in self.substation_turbine_map[s_id]["turbines"]  # type: ignore
             ]
             for s_id in self.substation_turbine_map
         }
         availability = fsum(
             [
-                self.node_system(s_id).operating_level
+                self.system(s_id).operating_level
+                * fsum(
+                    operating_levels[s_id]
+                    * self.substation_turbine_map[s_id]["weights"]  # type: ignore
+                )
+                for s_id in self.substation_turbine_map
+            ]
+        )
+        return availability
+
+    @property
+    def current_availability_wo_servicing(self) -> float:
+        """Calculates the product of all system ``operating_level`` variables across the
+        windfarm using the following forumation, ignoring 0 operating level due to ongoing
+        servicing.
+
+        .. math::
+            \sum{
+                OperatingLevel_{substation_{i}} *
+                \sum{OperatingLevel_{turbine_{j}} * Weight_{turbine_{j}}}
+            }
+
+        where the :math:``{OperatingLevel}`` is the product of the operating level
+        of each subassembly on a given system (substation or turbine), and the
+        :math:``{Weight}`` is the proportion of one turbine's capacity relative to
+        the whole windfarm.
+        """  # noqa: W605
+        operating_levels = {
+            s_id: [
+                self.system(t).operating_level_wo_servicing
+                for t in self.substation_turbine_map[s_id]["turbines"]  # type: ignore
+            ]
+            for s_id in self.substation_turbine_map
+        }
+        availability = fsum(
+            [
+                self.system(s_id).operating_level_wo_servicing
                 * fsum(
                     operating_levels[s_id]
                     * self.substation_turbine_map[s_id]["weights"]  # type: ignore

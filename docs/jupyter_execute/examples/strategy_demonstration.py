@@ -19,9 +19,10 @@
 # In[1]:
 
 
-import pandas as pd
 from copy import deepcopy
 from time import perf_counter
+
+import pandas as pd
 
 from wombat.core import Simulation
 from wombat.core.library import DINWOODIE
@@ -70,7 +71,7 @@ for config in configs:
 
     # Load the simulation
     start = perf_counter()
-    sim = Simulation.from_config(DINWOODIE / "config" / f"{config}.yaml")
+    sim = Simulation(DINWOODIE, f"{config}.yaml")
     end = perf_counter()
     print(f"{(end - start) / 60:5.2f} m", end=" | ")
 

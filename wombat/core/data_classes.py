@@ -1,13 +1,18 @@
 """Turbine and turbine component shared utilities."""
 
 
-import attr  # type: ignore
-import numpy as np  # type: ignore
-import pandas as pd  # type: ignore
-import typing  # type: ignore
+from __future__ import annotations
+
 import datetime  # type: ignore
 from math import fsum  # type: ignore
-from typing import Any, Dict, List, Union, Callable, Optional, Sequence  # type: ignore
+from typing import Any, Callable, Sequence  # type: ignore
+from functools import partial, update_wrapper  # type: ignore
+
+import attr
+import attrs
+import numpy as np  # type: ignore
+import pandas as pd  # type: ignore
+from attrs import Factory, Attribute, field, define  # type: ignore
 from scipy.stats import weibull_min  # type: ignore
 
 
@@ -16,22 +21,22 @@ HOURS_IN_DAY = 24
 
 
 def convert_to_list(
-    value: Union[Sequence, Union[str, int, float]],
-    manipulation: Optional[Union[Callable, None]] = None,
-):
+    value: Sequence | str | int | float,
+    manipulation: Callable | None = None,
+) -> list:
     """Converts an unknown element that could be a list or single, non-sequence element
     to a list of elements.
 
     Parameters
     ----------
-    value : Union[Sequence, Union[str, int, float]]
+    value : Sequence | str | int | float
         The unknown element to be converted to a list of element(s).
-    manipulation: Callable
-        A function to be performed upon the individual elements
+    manipulation: Callable | None
+        A function to be performed upon the individual elements, by default None.
 
     Returns
     -------
-    List[Any]
+    list
         The new list of elements.
     """
 
@@ -42,39 +47,14 @@ def convert_to_list(
     return list(value)
 
 
-def str_lower(value: str) -> str:
-    """Converts a string to all lower case.
+convert_to_list_upper = partial(convert_to_list, manipulation=str.upper)
+update_wrapper(convert_to_list_upper, convert_to_list)
 
-    Parameters
-    ----------
-    value : str
-        The string to turn to lower case.
-
-    Returns
-    -------
-    str
-        The lower case string.
-    """
-    return value.lower()
+convert_to_list_lower = partial(convert_to_list, manipulation=str.lower)
+update_wrapper(convert_to_list_lower, convert_to_list)
 
 
-def str_upper(value: str) -> str:
-    """Converts a string to all upper case.
-
-    Parameters
-    ----------
-    value : str
-        The string to turn to upper case.
-
-    Returns
-    -------
-    str
-        The upper case string.
-    """
-    return value.upper()
-
-
-def clean_string_input(value: str) -> str:
+def clean_string_input(value: str | None) -> str | None:
     """Converts a string to lower case and and removes leading and trailing white spaces.
 
     Parameters
@@ -87,6 +67,8 @@ def clean_string_input(value: str) -> str:
     str
         value.lower().strip()
     """
+    if value is None:
+        return value
     return value.lower().strip()
 
 
@@ -98,7 +80,10 @@ def annual_date_range(
     start_year: int,
     end_year: int,
 ) -> np.ndarray:
-    """Creates a series of date ranges across multiple years.
+    """Creates a series of date ranges across multiple years between the starting date
+    and ending date for each year from starting year to ending year. Will only work if
+    the end year is the same as the starting year or later, and the ending month, day
+    combinatoion is after the starting month, day combination.
 
     Parameters
     ----------
@@ -115,46 +100,58 @@ def annual_date_range(
     end_year : int
         Last year of the date range.
 
+    Raises
+    ------
+    ValueError: Raised if the ending month, day combination occur after the starting
+        month, day combination.
+    ValueError: Raised if the ending year is prior to the starting year.
+
     Yields
     -------
     np.ndarray
         A ``numpy.ndarray`` of ``datetime.date`` objects.
     """
-    date_ranges = []
-    if end_month >= start_month:
-        for year in range(start_year, end_year + 1):
-            start = datetime.datetime(year, start_month, start_day)
-            end = datetime.datetime(year, end_month, end_day)
-            date_ranges.extend(pd.date_range(start, end).date)
-    else:
-        for year in range(start_year, end_year + 1):
-            start1 = datetime.datetime(year, start_month, start_day)
-            end1 = datetime.datetime(year, 12, 31)
-            date_ranges.extend(pd.date_range(start1, end1).date)
-            if year != end_year:
-                start2 = datetime.datetime(year + 1, 1, 1)
-                end2 = datetime.datetime(year + 1, end_month, end_day)
-                date_ranges.extend(pd.date_range(start2, end2).date)
+    # Check the year bounds
+    if end_year < start_year:
+        raise ValueError(
+            f"The end_year ({start_year}) is later than the start_year ({end_year})."
+        )
 
-    date_range = np.array(date_ranges)
-    return date_range
+    # Check the month, date combination bounds
+    start = datetime.datetime(2022, start_month, start_day)
+    end = datetime.datetime(2022, end_month, end_day)
+    if end < start:
+        raise ValueError(
+            f"The starting month and day {start} is after the ending month and day {end}."
+        )
+
+    # Create a list of arrays of date ranges for each year
+    start = datetime.datetime(1, start_month, start_day)
+    end = datetime.datetime(1, end_month, end_day)
+    date_ranges = np.hstack(
+        [
+            pd.date_range(start.replace(year=year), end.replace(year=year)).date
+            for year in range(start_year, end_year + 1)
+        ]
+    )
+
+    # Return a 1-D array
+    return date_ranges
 
 
-def convert_ratio_to_absolute(
-    ratio: Union[int, float], total: Union[int, float]
-) -> Union[int, float]:
+def convert_ratio_to_absolute(ratio: int | float, total: int | float) -> int | float:
     """Converts a proportional cost to an absolute cost.
 
     Parameters
     ----------
-    ratio : Union[int, float]
+    ratio : int | float
         The proportional materials cost for a ``Maintenance`` or ``Failure``.
-    total: Union[int, float]
+    total: int | float
         The turbine's replacement cost.
 
     Returns
     -------
-    Union[int, float]
+    int | float
         The absolute cost of the materials.
     """
 
@@ -164,32 +161,34 @@ def convert_ratio_to_absolute(
 
 
 def valid_hour(
-    instance: Any, attribute: attr.Attribute, value: int  # pylint: disable=W0613
+    instance: Any, attribute: Attribute, value: int  # pylint: disable=W0613
 ) -> None:
-    """Validator that ensures that the input is a valid time or null value.
+    """Validator that ensures that the input is a valid time or null value (-1).
 
     Parameters
     ----------
     instance : Any
         A class object.
-    attribute : attr.Attribute
+    attribute : Attribute
         The attribute being validated.
     value : int
-        A whole number, hour of the day or -1 (null).
+        A whole number, hour of the day or -1 (null), where 24 indicates end of the day.
 
     Raises
     ------
     ValueError
         Raised if ``value`` is not between -1 and 24, inclusive.
     """
-    if not -1 <= value <= 24:
+    if value == -1:
+        pass
+    elif value < 0 or value > 24:
         raise ValueError(f"Input {attribute.name} must be between 0 and 24, inclusive.")
 
 
 def check_capability(
     instance: Any,  # pylint: disable=W0613
-    attribute: attr.Attribute,
-    value: Union[str, List[str]],
+    attribute: Attribute,
+    value: str | list[str],
 ) -> None:
     """Validator that ensures capability has a valid input.
 
@@ -197,9 +196,9 @@ def check_capability(
     ----------
     instance : Any
         A class object.
-    attribute : attr.Attribute
+    attribute : Attribute
         The attribute being validated.
-    value : Union[str, List[str]]
+    value : str | list[str]
         The servicing equipment's capability. Should be one of the following:
          - CTV: crew transfer vehicle/vessel
          - SCN: small crane
@@ -215,14 +214,14 @@ def check_capability(
         Raised if the input is not of the valid inputs.
     """
     valid = set(("CTV", "SCN", "LCN", "CAB", "RMT", "DRN", "DSV"))
-    values = set(convert_to_list(value, str.upper))
+    values = set(value)
     invalid = values - valid
     if invalid:
         raise ValueError(f"Input {attribute.name} must be any combination of {valid}.")
 
 
 def check_method(
-    instance: Any, attribute: attr.Attribute, value: str  # pylint: disable=W0613
+    instance: Any, attribute: Attribute, value: str  # pylint: disable=W0613
 ) -> None:
     """Validator that ensures that method is a valid input.
 
@@ -230,7 +229,7 @@ def check_method(
     ----------
     instance : Any
         A class object.
-    attribute : attr.Attribute
+    attribute : Attribute
         The attribute being validated.
     value : str
         The priority method for retreiving the next repair. Should be one of:
@@ -247,31 +246,51 @@ def check_method(
         raise ValueError(f"Input {attribute.name} must be one of {valid}.")
 
 
-@attr.s(auto_attribs=True)
+@define
 class FromDictMixin:
     """A Mixin class to allow for kwargs overloading when a data class doesn't
     have a specific parameter definied. This allows passing of larger dictionaries
     to a data class without throwing an error.
+
+    Raises
+    ------
+    AttributeError
+        Raised if the required class inputs are not provided.
     """
 
     @classmethod
-    @typing.no_type_check
     def from_dict(cls, data: dict):
-        """Maps a data dictionary to an ``attr``-defined class.
-
+        """Maps a data dictionary to an `attrs`-defined class.
+        TODO: Add an error to ensure that either none or all the parameters are passed in
         Args:
             data : dict
                 The data dictionary to be mapped.
         Returns:
             cls
-                The ``attr``-defined class.
+                The `attrs`-defined class.
         """
-        return cls(  # type: ignore
-            **{a.name: data[a.name] for a in cls.__attrs_attrs__ if a.name in data}
-        )
+        # Get all parameters from the input dictionary that map to the class initialization
+        kwargs = {
+            a.name: data[a.name]
+            for a in cls.__attrs_attrs__  # type: ignore
+            if a.name in data and a.init
+        }
+
+        # Map the inputs must be provided: 1) must be initialized, 2) no default value defined
+        required_inputs = [
+            a.name
+            for a in cls.__attrs_attrs__  # type: ignore
+            if a.init and isinstance(a.default, attr._make._Nothing)  # type: ignore
+        ]
+        undefined = sorted(set(required_inputs) - set(kwargs))
+        if undefined:
+            raise AttributeError(
+                f"The class defintion for {cls.__name__} is missing the following inputs: {undefined}"
+            )
+        return cls(**kwargs)  # type: ignore
 
 
-@attr.s(frozen=True, auto_attribs=True)
+@define(frozen=True, auto_attribs=True)
 class Maintenance(FromDictMixin):
     """Data class to store maintenance data used in subassembly and cable modeling.
 
@@ -298,28 +317,28 @@ class Maintenance(FromDictMixin):
         A short text description to be used for logging.
     """
 
-    time: float
-    materials: float
-    frequency: float
-    service_equipment: List[str] = attr.ib(
-        converter=convert_to_list, validator=check_capability
+    time: float = field(converter=float)
+    materials: float = field(converter=float)
+    frequency: float = field(converter=float)
+    service_equipment: list[str] = field(
+        converter=convert_to_list_upper, validator=check_capability  # type: ignore
     )
-    system_value: Union[int, float]
-    description: str = "routine maintenance"
-    operation_reduction: float = 0.0
-    request_id: str = attr.ib(init=False)
-    level: int = attr.ib(default=0, init=False)
+    system_value: int | float = field(converter=float)
+    description: str = field(default="routine maintenance", converter=str)
+    operation_reduction: float = field(default=0.0, converter=float)
+    request_id: str = field(init=False)
+    level: int = field(default=0, init=False)
 
     def __attrs_post_init__(self):
         """Convert frequency to hours (simulation time scale) and the equipment
         requirement to a list.
         """
         object.__setattr__(self, "frequency", self.frequency * HOURS_IN_DAY)
-        object.__setattr__(
-            self,
-            "service_equipment",
-            convert_to_list(self.service_equipment, str.upper),
-        )
+        # object.__setattr__(
+        #     self,
+        #     "service_equipment",
+        #     convert_to_list(self.service_equipment, str.upper),
+        # )
         object.__setattr__(
             self,
             "materials",
@@ -337,7 +356,7 @@ class Maintenance(FromDictMixin):
         object.__setattr__(self, "request_id", request_id)
 
 
-@attr.s(frozen=True, auto_attribs=True)
+@define(frozen=True, auto_attribs=True)
 class Failure(FromDictMixin):
     """Data class to store failure data used in subassembly and cable modeling.
 
@@ -371,19 +390,19 @@ class Failure(FromDictMixin):
         A short text description to be used for logging.
     """
 
-    scale: float
-    shape: float
-    time: float
-    materials: float
-    operation_reduction: float
-    level: int
-    service_equipment: Union[List[str], str] = attr.ib(
-        converter=convert_to_list, validator=check_capability
+    scale: float = field(converter=float)
+    shape: float = field(converter=float)
+    time: float = field(converter=float)
+    materials: float = field(converter=float)
+    operation_reduction: float = field(converter=float)
+    level: int = field(converter=int)
+    service_equipment: list[str] | str = field(
+        converter=convert_to_list_upper, validator=check_capability  # type: ignore
     )
-    system_value: Union[int, float]
-    description: str = "failure"
-    weibull: weibull_min = attr.ib(init=False)
-    request_id: str = attr.ib(init=False)
+    system_value: int | float = field(converter=float)
+    description: str = field(default="failure", converter=str)
+    weibull: weibull_min = field(init=False, eq=False)
+    request_id: str = field(init=False)
 
     def __attrs_post_init__(self):
         """Creates the actual Weibull distribution and converts equipment requirements
@@ -401,14 +420,14 @@ class Failure(FromDictMixin):
             convert_ratio_to_absolute(self.materials, self.system_value),
         )
 
-    def hours_to_next_failure(self) -> Union[None, float]:
+    def hours_to_next_failure(self) -> float | None:
         """Samples the next time to failure in a Weibull distribution. If the ``scale``
         and ``shape`` parameters are set to 0, then the model will return ``None`` to cause
         the subassembly to timeout to the end of the simulation.
 
         Returns
         -------
-        Union[None, float]
+        float | None
             Returns ``None`` for a non-modelled failure, or the time until the next
             simulated failure.
         """
@@ -428,7 +447,7 @@ class Failure(FromDictMixin):
         object.__setattr__(self, "request_id", request_id)
 
 
-@attr.s(frozen=True, auto_attribs=True)
+@define(frozen=True, auto_attribs=True)
 class SubassemblyData(FromDictMixin):
     """Data storage and validation class for the subassemblies.
 
@@ -436,22 +455,22 @@ class SubassemblyData(FromDictMixin):
     ----------
     name : str
         Name of the component/subassembly.
-    maintenance : List[Dict[str, Union[float, str]]]
+    maintenance : list[dict[str, float | str]]
         List of the maintenance classification dictionaries. This will be converted
         to a list of ``Maintenance`` objects in the post initialization hook.
-    failures : Dict[int, Dict[str, Union[float, str]]]
+    failures : fict[int, dict[str, float | str]]
         Dictionary of failure classifications in a numerical (ordinal) categorization
         order. This will be converted to a dictionary of ``Failure`` objects in the
         post initialization hook.
-    system_value : Union[int, float]
+    system_value : int | float
         Turbine's cost of replacement. Used in case percentages of turbine cost are used
         in place of an absolute cost.
     """
 
-    name: str
-    maintenance: List[Union[Maintenance, Dict[str, Union[float, str]]]]
-    failures: Dict[int, Union[Failure, Dict[str, Union[float, str]]]]
-    system_value: Union[int, float]
+    name: str = field(converter=str)
+    maintenance: list[Maintenance | dict[str, float | str]]
+    failures: dict[int, Failure | dict[str, float | str]]
+    system_value: int | float = field(converter=float)
 
     def __attrs_post_init__(self):
         """Converts the maintenance and failure data to ``Maintenance`` and ``Failure`` objects, respectively."""
@@ -459,7 +478,12 @@ class SubassemblyData(FromDictMixin):
             assert isinstance(kwargs, dict)
             kwargs.update({"system_value": self.system_value})
         object.__setattr__(
-            self, "maintenance", [Maintenance.from_dict(kw) for kw in self.maintenance]
+            self,
+            "maintenance",
+            [
+                Maintenance.from_dict(kw) if isinstance(kw, dict) else kw
+                for kw in self.maintenance
+            ],
         )
 
         for kwargs in self.failures.values():  # type: ignore
@@ -468,11 +492,14 @@ class SubassemblyData(FromDictMixin):
         object.__setattr__(
             self,
             "failures",
-            {level: Failure.from_dict(kw) for level, kw in self.failures.items()},
+            {
+                level: Failure.from_dict(kw) if isinstance(kw, dict) else kw
+                for level, kw in self.failures.items()
+            },
         )
 
 
-@attr.s(frozen=True, auto_attribs=True)
+@define(frozen=True, auto_attribs=True)
 class RepairRequest(FromDictMixin):
     """Repair/Maintenance request data class.
 
@@ -488,23 +515,25 @@ class RepairRequest(FromDictMixin):
         ``Subassembly.name``.
     severity_level : int
         ``Maintenance.level`` or ``Failure.level``.
-    details : Union[Failure, Maintenance]
+    details : Failure | Maintenance
         The actual data class.
     cable : bool
         Indicator that the request is for a cable, by default False.
-    upstream_turbines : List[str]
+    upstream_turbines : list[str]
         The cable's upstream turbines, by default []. No need to use this if ``cable`` == False.
     """
 
-    system_id: str
-    system_name: str
-    subassembly_id: str
-    subassembly_name: str
-    severity_level: int
-    details: Union[Failure, Maintenance]
-    cable: bool = attr.ib(default=False)
-    upstream_turbines: List[str] = attr.Factory(list)
-    request_id: str = attr.ib(default="")
+    system_id: str = field(converter=str)
+    system_name: str = field(converter=str)
+    subassembly_id: str = field(converter=str)
+    subassembly_name: str = field(converter=str)
+    severity_level: int = field(converter=int)
+    details: Failure | Maintenance = field(
+        validator=attrs.validators.instance_of((Failure, Maintenance))
+    )
+    cable: bool = field(default=False, converter=bool, kw_only=True)
+    upstream_turbines: list[str] = field(default=Factory(list), kw_only=True)
+    request_id: str = field(init=False)
 
     def assign_id(self, request_id: str) -> None:
         """Assigns a unique identifier to the request.
@@ -518,7 +547,7 @@ class RepairRequest(FromDictMixin):
         self.details.assign_id(request_id)
 
 
-@attr.s(frozen=True, auto_attribs=True)
+@define(frozen=True, auto_attribs=True)
 class ServiceCrew(FromDictMixin):
     """An internal data class for the indivdual crew units that are on the servicing equipment.
 
@@ -534,13 +563,13 @@ class ServiceCrew(FromDictMixin):
         Hourly labor rate for subcontractors, in USD.
     """
 
-    n_day_rate: int = attr.ib(converter=int)
-    day_rate: float = attr.ib(converter=float)
-    n_hourly_rate: int = attr.ib(converter=int)
-    hourly_rate: float = attr.ib(converter=float)
+    n_day_rate: int = field(converter=int)
+    day_rate: float = field(converter=float)
+    n_hourly_rate: int = field(converter=int)
+    hourly_rate: float = field(converter=float)
 
 
-@attr.s(frozen=True, auto_attribs=True)
+@define(frozen=True, auto_attribs=True)
 class ScheduledServiceEquipmentData(FromDictMixin):
     """The data class specification for servicing equipment that will use a pre-scheduled
     basis for returning to site.
@@ -613,44 +642,48 @@ class ScheduledServiceEquipmentData(FromDictMixin):
         Should by one of "severity" or "turbine".
     """
 
-    name: str = attr.ib(converter=str)
-    equipment_rate: float = attr.ib(converter=float)
-    n_crews: int = attr.ib(converter=int)
-    crew: ServiceCrew = attr.ib(converter=ServiceCrew.from_dict)  # type: ignore
-    start_month: int = attr.ib(converter=int)
-    start_day: int = attr.ib(converter=int)
-    start_year: int = attr.ib(converter=int)
-    end_month: int = attr.ib(converter=int)
-    end_day: int = attr.ib(converter=int)
-    end_year: int = attr.ib(converter=int)
-    capability: Union[List[str], str] = attr.ib(
-        converter=convert_to_list, validator=check_capability
+    name: str = field(converter=str)
+    equipment_rate: float = field(converter=float)
+    n_crews: int = field(converter=int)
+    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
+    start_month: int = field(converter=int)
+    start_day: int = field(converter=int)
+    start_year: int = field(converter=int)
+    end_month: int = field(converter=int)
+    end_day: int = field(converter=int)
+    end_year: int = field(converter=int)
+    capability: list[str] | str = field(
+        converter=convert_to_list_upper, validator=check_capability  # type: ignore
     )
-    mobilization_cost: float = attr.ib(converter=float)
-    mobilization_days: int = attr.ib(converter=int)
-    speed: float = attr.ib(converter=float)
-    max_windspeed_transport: float = attr.ib(converter=float)
-    max_windspeed_repair: float = attr.ib(converter=float)
-    max_waveheight_transport: float = attr.ib(default=1000.0, converter=float)
-    max_waveheight_repair: float = attr.ib(default=1000.0, converter=float)
-    workday_start: int = attr.ib(default=-1, converter=int, validator=valid_hour)
-    workday_end: int = attr.ib(default=-1, converter=int, validator=valid_hour)
-    crew_transfer_time: float = attr.ib(converter=float, default=0.0)
-    onsite: bool = attr.ib(default=False, converter=bool)
-    method: str = attr.ib(  # type: ignore
+    mobilization_cost: float = field(converter=float)
+    mobilization_days: int = field(converter=int)
+    speed: float = field(converter=float)
+    max_windspeed_transport: float = field(converter=float)
+    max_windspeed_repair: float = field(converter=float)
+    max_waveheight_transport: float = field(default=1000.0, converter=float)
+    max_waveheight_repair: float = field(default=1000.0, converter=float)
+    workday_start: int = field(default=-1, converter=int, validator=valid_hour)
+    workday_end: int = field(default=-1, converter=int, validator=valid_hour)
+    crew_transfer_time: float = field(converter=float, default=0.0)
+    onsite: bool = field(default=False, converter=bool)
+    method: str = field(  # type: ignore
         default="severity",
-        converter=[str, str_lower],  # type: ignore
+        converter=[str, str.lower],  # type: ignore
         validator=check_method,
     )
-    operating_dates: np.ndarray = attr.ib(init=False)
-    strategy: str = attr.ib(default="scheduled")
+    operating_dates: np.ndarray = field(init=False)
+    strategy: str = field(default="scheduled")
 
     def create_date_range(self) -> np.ndarray:
         """Creates an ``np.ndarray`` of valid operational dates for the service equipment."""
         start_date = datetime.datetime(
             self.start_year, self.start_month, self.start_day
         )
-        if self.end_year - self.start_year <= 1 or self.onsite:
+
+        # If `onsite` is True, then create the range in one go because there should be
+        # no discrepancies in the range.
+        # Othewise, create a specified date range between two dates in the year range.
+        if self.onsite:
             end_date = datetime.datetime(self.end_year, self.end_month, self.end_day)
             date_range = pd.date_range(start_date, end_date).date
         else:
@@ -684,7 +717,7 @@ class ScheduledServiceEquipmentData(FromDictMixin):
         object.__setattr__(self, "operating_dates", self.create_date_range())
 
 
-@attr.s(frozen=True, auto_attribs=True)
+@define(frozen=True, auto_attribs=True)
 class UnscheduledServiceEquipmentData(FromDictMixin):
     """The data class specification for servicing equipment that will use either a
     basis of windfarm downtime or total number of requests serviceable by the equipment.
@@ -753,36 +786,36 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         Should by one of "severity" or "turbine".
     """
 
-    name: str = attr.ib(converter=str)
-    equipment_rate: float = attr.ib(converter=float)
-    n_crews: int = attr.ib(converter=int)
-    crew: ServiceCrew = attr.ib(converter=ServiceCrew.from_dict)  # type: ignore
-    charter_days: int = attr.ib(converter=int)
-    capability: Union[List[str], str] = attr.ib(
-        converter=convert_to_list, validator=check_capability
+    name: str = field(converter=str)
+    equipment_rate: float = field(converter=float)
+    n_crews: int = field(converter=int)
+    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
+    charter_days: int = field(converter=int)
+    capability: list[str] | str = field(
+        converter=convert_to_list_upper, validator=check_capability  # type: ignore
     )
-    mobilization_cost: float = attr.ib(converter=float)
-    mobilization_days: int = attr.ib(converter=int)
-    speed: float = attr.ib(converter=float)
-    max_windspeed_transport: float = attr.ib(converter=float)
-    max_windspeed_repair: float = attr.ib(converter=float)
-    strategy: str = attr.ib(converter=clean_string_input)
-    strategy_threshold: Union[int, float] = attr.ib()
-    max_waveheight_transport: float = attr.ib(default=1000)
-    max_waveheight_repair: float = attr.ib(default=1000)
-    workday_start: int = attr.ib(default=-1, converter=int, validator=valid_hour)
-    workday_end: int = attr.ib(default=-1, converter=int, validator=valid_hour)
-    crew_transfer_time: float = attr.ib(converter=float, default=0.0)
-    onsite: bool = attr.ib(default=False)
-    method: str = attr.ib(  # type: ignore
+    mobilization_cost: float = field(converter=float)
+    mobilization_days: int = field(converter=int)
+    speed: float = field(converter=float)
+    max_windspeed_transport: float = field(converter=float)
+    max_windspeed_repair: float = field(converter=float)
+    strategy: str | None = field(converter=clean_string_input)
+    strategy_threshold: int | float = field(converter=float)
+    max_waveheight_transport: float = field(default=1000)
+    max_waveheight_repair: float = field(default=1000)
+    workday_start: int = field(default=-1, converter=int, validator=valid_hour)
+    workday_end: int = field(default=-1, converter=int, validator=valid_hour)
+    crew_transfer_time: float = field(converter=float, default=0.0)
+    onsite: bool = field(default=False)
+    method: str = field(  # type: ignore
         default="severity",
-        converter=[str, str_lower],  # type: ignore
+        converter=[str, str.lower],  # type: ignore
         validator=check_method,
     )
 
     @strategy.validator  # type: ignore
     def _validate_strategy(  # pylint: disable=R0201
-        self, attribute: attr.Attribute, value: str  # pylint: disable=W0613
+        self, attribute: Attribute, value: str  # pylint: disable=W0613
     ) -> None:
         """Determines if the provided strategy is valid"""
         valid = ("requests", "downtime")
@@ -795,13 +828,10 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
     @strategy_threshold.validator  # type: ignore
     def _validate_threshold(
         self,
-        attribute: attr.Attribute,  # pylint: disable=W0613
-        value: Union[int, float],
+        attribute: Attribute,  # pylint: disable=W0613
+        value: int | float,
     ) -> None:
         """Ensures a valid threshold is provided for a given ``strategy``."""
-        if not isinstance(value, (int, float)):
-            raise TypeError("``strategy_threshold`` must be an ``int`` or ``float``!")
-
         if self.strategy == "downtime":
             if value <= 0 or value >= 1:
                 raise ValueError(
@@ -834,7 +864,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         )
 
 
-@attr.s(frozen=True, auto_attribs=True)
+@define(frozen=True, auto_attribs=True)
 class ServiceEquipmentData(FromDictMixin):
     """Helps to determine the type ServiceEquipment that should be used, based on the
     repair strategy for its operation. See
@@ -899,7 +929,9 @@ class ServiceEquipmentData(FromDictMixin):
     """
 
     data_dict: dict
-    strategy: str = attr.ib(kw_only=True, default=None)
+    strategy: str | None = field(
+        kw_only=True, default=None, converter=clean_string_input
+    )
 
     def __attrs_post_init__(self):
         if self.strategy is None:
@@ -908,12 +940,13 @@ class ServiceEquipmentData(FromDictMixin):
             )
         if self.strategy not in ("scheduled", "requests", "downtime"):
             raise ValueError(
-                "ServiceEquipment strategy should be one of 'scheduled' or 'unscheduled'."
+                "ServiceEquipment strategy should be one of 'scheduled' or 'requests',"
+                f" or 'downtime'; input: {self.strategy}."
             )
 
     def determine_type(
         self,
-    ) -> Union[ScheduledServiceEquipmentData, UnscheduledServiceEquipmentData]:
+    ) -> ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData:
         """Generates the appropriate ServiceEquipmentData variation.
 
         Returns
@@ -927,10 +960,11 @@ class ServiceEquipmentData(FromDictMixin):
         elif self.strategy in ("requests", "downtime"):
             return UnscheduledServiceEquipmentData.from_dict(self.data_dict)
         else:
+            # This should not be able to be reached
             raise ValueError("Invalid strategy provided!")
 
 
-@attr.s(frozen=True, auto_attribs=True)
+@define(frozen=True, auto_attribs=True)
 class FixedCosts(FromDictMixin):
     """The fixed costs for operating a windfarm. All values are assumed to be in $/kW/yr.
 
@@ -1017,39 +1051,39 @@ class FixedCosts(FromDictMixin):
     """
 
     # Total Cost
-    operations: float = attr.ib(default=0)
+    operations: float = field(default=0)
 
     # Operations, Management, and General Administration
-    operations_management_administration: float = attr.ib(default=0)
-    project_management_administration: float = attr.ib(default=0)
-    marine_management: float = attr.ib(default=0)
-    weather_forecasting: float = attr.ib(default=0)
-    condition_monitoring: float = attr.ib(default=0)
+    operations_management_administration: float = field(default=0)
+    project_management_administration: float = field(default=0)
+    marine_management: float = field(default=0)
+    weather_forecasting: float = field(default=0)
+    condition_monitoring: float = field(default=0)
 
-    operating_facilities: float = attr.ib(default=0)
-    environmental_health_safety_monitoring: float = attr.ib(default=0)
+    operating_facilities: float = field(default=0)
+    environmental_health_safety_monitoring: float = field(default=0)
 
     # Insurance
-    insurance: float = attr.ib(default=0)
-    brokers_fee: float = attr.ib(default=0)
-    operations_all_risk: float = attr.ib(default=0)
-    business_interruption: float = attr.ib(default=0)
-    third_party_liability: float = attr.ib(default=0)
-    storm_coverage: float = attr.ib(default=0)
+    insurance: float = field(default=0)
+    brokers_fee: float = field(default=0)
+    operations_all_risk: float = field(default=0)
+    business_interruption: float = field(default=0)
+    third_party_liability: float = field(default=0)
+    storm_coverage: float = field(default=0)
 
     # Annual Leases and Fees
-    annual_leases_fees: float = attr.ib(default=0)
-    submerge_land_lease_costs: float = attr.ib(default=0)
-    transmission_charges_rights: float = attr.ib(default=0)
+    annual_leases_fees: float = field(default=0)
+    submerge_land_lease_costs: float = field(default=0)
+    transmission_charges_rights: float = field(default=0)
 
-    onshore_electrical_maintenance: float = attr.ib(default=0)
+    onshore_electrical_maintenance: float = field(default=0)
 
-    labor: float = attr.ib(default=0)
+    labor: float = field(default=0)
 
-    resolution: dict = attr.ib(init=False)
-    hierarchy: dict = attr.ib(init=False)
+    resolution: dict = field(init=False)
+    hierarchy: dict = field(init=False)
 
-    def cost_category_validator(self, name: str, sub_names: List[str]):
+    def cost_category_validator(self, name: str, sub_names: list[str]):
         """Either updates the higher-level cost to be the sum of the category's
         lower-level costs or uses a supplied higher-level cost and zeros out the
         lower-level costs.

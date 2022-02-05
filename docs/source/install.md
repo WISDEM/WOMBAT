@@ -64,6 +64,7 @@ $ pip install -e '.[docs]'
 
 ```text
 $ cd docs/
+$ sphinx-build -b html source _build
 $ make html
 ```
 

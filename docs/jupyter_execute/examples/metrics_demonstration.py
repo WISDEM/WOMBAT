@@ -7,13 +7,15 @@
 #
 # This demonstration will rely on the results produced in the "How To" notebook.
 
-# In[1]:
+# In[3]:
 
+
+from pprint import pprint
+from pathlib import Path
 
 import pandas as pd
-from pprint import pprint
 
-from wombat.core import Simulation
+from wombat.core import Metrics, Simulation
 from wombat.core.library import load_yaml
 
 
@@ -26,16 +28,32 @@ pd.set_option("display.max_columns", 1000)
 #
 # The simulations from the How To notebook are going to be rerun as it is not recommended to create a Metrics class from scratch due to the
 # large number of inputs that are required and the initialization is provided in the simulation API's run method.
+#
+# To simplify this process, a feature has been added to save the simulation outputs required to generate the Metrics inputs and a method to reload those outputs as inputs.
 
-# In[2]:
+# In[5]:
 
 
-simulation_name = "dinwoodie_base"
+sim = Simulation("DINWOODIE", "base.yaml")
 
-sim = Simulation(simulation_name, "DINWOODIE", "base.yaml")
-sim.run()
+# Both of these parameters are True by default for convenience
+sim.run(create_metrics=True, save_metrics_inputs=True)
 
-# For convenience only
+# Get the path and file name pattern from the simulation file naming convention
+events_fname = Path(sim.env.events_log_fname)
+
+# Get the path to the file which is one level up from the logging outputs
+fpath = events_fname.parents[1]
+
+# Get the filename and update it to the correct name
+fname = events_fname.name
+fname = fname.replace("_events.log", "_metrics_inputs.yaml")
+
+# Load the metrics data
+metrics = Metrics.from_simulation_outputs(fpath, fname)
+
+# Alternatively, in this case because the simulation was run, we can use the
+# following for convenience convenience only
 metrics = sim.metrics
 
 
