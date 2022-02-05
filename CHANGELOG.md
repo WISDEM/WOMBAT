@@ -119,8 +119,8 @@
   the initialization process and be more explicit about the starting and ending points on the cable.
 - `wombat.windfarm.system.cable.Cable.interrupt_subassembly_processes` is now `interrupt_processes`
   and only interrupts the cable's own maintenance and failure simulation processes.
-- `wombat.windfarm.system.cable.Cable.interrupt_all_subassembly_processes` has been removed
-  in place of calling each system's own interruption method, which
+- `wombat.windfarm.system.cable.Cable.interrupt_all_subassembly_processes` wraps `interrupt_processes`
+  to ensure similar functionality between system and subassembly methods for use in the simulations.
 - `wombat.windfarm.system.cable.Cable` logging now properly records itself as the target of repais
   and maintenance tasks instead of its starting node.
 
