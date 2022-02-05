@@ -219,15 +219,15 @@ class ServiceEquipment:
         # upstream turbines to be operating as long as there isn't another fatal cable
         # failure preventing it from operating
         if repair.cable and repair.details.operation_reduction == 1:
-            assert isinstance(subassembly, Cable)
-            start = subassembly.start_node
-            for i, turbine in enumerate(repair.upstream_turbines):
+            start: str = ""
+            for i, turbine_id in enumerate(repair.upstream_turbines):
                 if i > 0:
-                    cable = self.windfarm.cable((start, turbine))
+                    cable = self.windfarm.cable((start, turbine_id))
                     if cable.operating_level == 0:
                         break
-                self.windfarm.graph.nodes[turbine]["system"].cable_failure = False
-                start = turbine
+                turbine = self.windfarm.system(turbine_id)
+                turbine.cable_failure = False
+                start = turbine_id
 
         # Put the subassembly/component back to good as new condition
         if repair.details.operation_reduction == 1:
