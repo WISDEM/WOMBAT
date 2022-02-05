@@ -418,6 +418,10 @@ a simulation.
 The set library enables WOMBAT to easily access and store data files in a consistent
 manner. Here the `DINWOODIE` reference is going to be used again.
 
+```{note}
+If a custom library is being used, the `library_path` must be the full path name to the
+location of the folder where the configuration data is contained.
+```
 
 ```{code-cell} ipython3
 library_path = DINWOODIE
@@ -455,7 +459,6 @@ sim.env.cleanup_log_files(log_only=True)
 # retrieve the appropriate path, and that the simulation_name matches the configuration
 simulation_name = "dinwoodie_base"
 sim = Simulation(
-    name=simulation_name,
     library_path="DINWOODIE",
     config="base.yaml"
 )

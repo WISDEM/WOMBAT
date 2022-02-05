@@ -78,7 +78,9 @@ class Cable:
 
         # Map the upstream substations and turbines, and cables
         upstream = nx.dfs_successors(self.windfarm.graph, end_node)
-        self.upstream_nodes = list(set(upstream).union(chain(*upstream.values())))
+        self.upstream_nodes = [self.end_node]
+        if len(upstream) > 0:
+            self.upstream_nodes = list(chain(self.upstream_nodes, *upstream.values()))
         self.upstream_cables = list(nx.edge_dfs(self.windfarm.graph, end_node))
 
         cable_data = {**cable_data, "system_value": self.turbine.value}
@@ -123,6 +125,10 @@ class Cable:
             except RuntimeError:
                 # This error occurs for the process halting all other processes.
                 pass
+
+    def interrupt_all_subassembly_processes(self) -> None:
+        """Thin wrapper for ``interrupt_processes`` to keep usage the same as systems."""
+        self.interrupt_processes()
 
     def stop_all_upstream_processes(self, failure: Failure) -> None:
         """Stops all upstream turbines from producing power by setting their

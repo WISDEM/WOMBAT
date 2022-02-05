@@ -218,15 +218,16 @@ class ServiceEquipment:
         # If this is a cable repair and returning it back to operating, then reset all
         # upstream turbines to be operating as long as there isn't another fatal cable
         # failure preventing it from operating
-        start: str = ""
         if repair.cable and repair.details.operation_reduction == 1:
-            for i, turbine in enumerate(repair.upstream_turbines):
+            start: str = ""
+            for i, turbine_id in enumerate(repair.upstream_turbines):
                 if i > 0:
-                    edge = self.windfarm.graph.edges[start, turbine]
-                    if edge["cable"].operating_level == 0:
+                    cable = self.windfarm.cable((start, turbine_id))
+                    if cable.operating_level == 0:
                         break
-                self.windfarm.graph.nodes[turbine]["system"].cable_failure = False
-                start = turbine
+                turbine = self.windfarm.system(turbine_id)
+                turbine.cable_failure = False
+                start = turbine_id
 
         # Put the subassembly/component back to good as new condition
         if repair.details.operation_reduction == 1:
@@ -455,6 +456,11 @@ class ServiceEquipment:
             an indicator for if the process has to be delayed until the next shift for
             a safe transfer.
         """
+        # If the hours required for the window is 0, then return 0 and indicate there is
+        # no shift delay to be processed
+        if hours_required == 0:
+            return 0, False
+
         current = self.env.simulation_time
 
         # If the time required for a transfer is longer than the time left in the shift,
@@ -630,11 +636,15 @@ class ServiceEquipment:
             The travel time between two locations.
         """
         distance = 0  # setting for invalid cases to have no traveling
+        travel_time = 0.0
         valid_sys = self.windfarm.distance_matrix.columns
         intra_site = start in valid_sys and end in valid_sys
         if intra_site:
             distance = self.windfarm.distance_matrix.loc[start, end]
-        travel_time = distance / self.settings.speed
+
+        # if no speed is set, then there is no traveling time
+        if self.settings.speed > 0:
+            travel_time = distance / self.settings.speed
 
         # Infinity is the result of "traveling" between a system twice in a row
         if travel_time == float("inf"):
@@ -882,11 +892,12 @@ class ServiceEquipment:
         """
         shift_delay = False
 
-        system = self.windfarm.system(request.system_id)
         if request.cable:
+            system = self.windfarm.cable(request.system_id)
             cable = request.subassembly_id.split("::")[1:]
             subassembly = self.windfarm.graph.edges[cable]["cable"]
         else:
+            system = self.windfarm.system(request.system_id)
             subassembly = getattr(system, request.subassembly_id)
 
         starting_operational_level = max(

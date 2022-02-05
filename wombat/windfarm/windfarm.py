@@ -1,4 +1,5 @@
 """Creates the Windfarm class/model."""
+from __future__ import annotations
 
 from math import fsum
 from itertools import chain, combinations
@@ -253,22 +254,30 @@ class Windfarm:
         return self.graph.nodes[system_id]["system"]
 
     @cache
-    def cable(self, cable_id: str) -> Cable:
+    def cable(self, cable_id: tuple[str, str] | str) -> Cable:
         """Convenience function to returns the desired `Cable` object for a cable in the
         windfarm.
 
         Parameters
         ----------
-        cable_id : str
+        cable_id : tuple[str, str] | str
             The cable's unique identifier, of the form: (``wombat.windfarm.System.id``,
-            ``wombat.windfarm.System.id``), for the (downstream node id, upstream node id).
+            ``wombat.windfarm.System.id``), for the (downstream node id, upstream node id),
+            or the ``Cable.id``.
 
         Returns
         -------
         Cable
             The ``Cable`` object.
         """
-        return self.graph.edges[cable_id]["cable"]
+        if isinstance(cable_id, str):
+            edge_id = tuple(cable_id.split("::")[1:])
+        else:
+            edge_id = cable_id
+        try:
+            return self.graph.edges[edge_id]["cable"]
+        except KeyError:
+            raise KeyError(f"Edge {edge_id} is invalid.")
 
     @property
     def current_availability(self) -> float:
