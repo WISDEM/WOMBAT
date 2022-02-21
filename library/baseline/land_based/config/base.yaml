@@ -1,0 +1,12 @@
+name: LBW_2019baseline
+library: LBW_2019baseline
+weather: sweetwater_weather_1998_2017.csv
+service_equipment: [cable_truck.yaml, crawler_crane.yaml, onsite_truck.yaml]
+layout: layout.csv
+inflation_rate: 0
+fixed_costs: SAM_Singleowner_defaults.yaml
+workday_start: 7
+workday_end: 19
+start_year: 1998
+end_year: 2017
+project_capacity: 205.4

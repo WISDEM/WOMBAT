@@ -1,0 +1,39 @@
+capacity_kw: 0
+capex_kw: 0
+transformer:
+  name: transformer
+  maintenance:
+    -
+      description: n/a
+      time: 0
+      materials: 0
+      service_equipment: CTV
+      frequency: 0
+  failures:
+    1:
+      scale: 16.568
+      shape: 1
+      time: 7
+      materials: 107
+      service_equipment: CTV
+      operation_reduction: 0
+      level: 1
+      description: minor repair
+    2:
+      scale: 287
+      shape: 1
+      time: 26
+      materials: 2599
+      service_equipment: CTV
+      operation_reduction: 0
+      level: 2
+      description: major repair
+    3:
+      scale: 862
+      shape: 1
+      time: 19
+      materials: 79100
+      service_equipment: CRN
+      operation_reduction: 1
+      level: 3
+      description: major replacement
