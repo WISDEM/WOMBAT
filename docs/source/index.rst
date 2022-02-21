@@ -96,7 +96,7 @@ lifecycle of a single failure.
    will continue on in the same manner until it reaches it's user- or weather-defined
    ending point is reached.
 
-.. image:: images/simulation_diagram.svg
+.. image:: images/simulation_diagram.png
 
 
 Welcome
