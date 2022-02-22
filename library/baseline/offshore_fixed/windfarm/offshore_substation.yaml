@@ -33,7 +33,7 @@ transformer: # inputs from Carroll et al (2016)
       shape: 1
       time: 19
       materials: 79100
-      service_equipment: HLV
+      service_equipment: LCN
       operation_reduction: 1.0
       level: 3
       description: major replacement

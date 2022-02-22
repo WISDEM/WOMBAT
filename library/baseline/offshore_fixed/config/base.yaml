@@ -1,5 +1,5 @@
 name: OSW_2019baseline
-library: OSW_2019baseline
+library: OSW_FIXED
 weather: vineyard_wind_weather_1998_2017.csv
 service_equipment: [ctv1.yaml, ctv2.yaml, fsv.yaml, hlv.yaml, jackup.yaml, cable_vessel.yaml]
 layout: layout.csv

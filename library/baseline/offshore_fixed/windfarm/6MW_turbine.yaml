@@ -278,7 +278,7 @@ rotor_blades:
       shape: 1
       time: 288
       materials: 203400
-      service_equipment: WTIV
+      service_equipment: LCN
       operation_reduction: 1.0
       level: 3
       description: major replacement
@@ -386,7 +386,7 @@ gearbox:
       shape: 1
       time: 231
       materials: 519800
-      service_equipment: WTIV
+      service_equipment: LCN
       operation_reduction: 1.0
       level: 3
       description: major replacement
@@ -422,7 +422,7 @@ generator:
       shape: 1
       time: 81
       materials: 135600
-      service_equipment: WTIV
+      service_equipment: LCN
       operation_reduction: 1.0
       level: 3
       description: major replacement

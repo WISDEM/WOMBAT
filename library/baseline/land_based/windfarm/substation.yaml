@@ -33,7 +33,7 @@ transformer:
       shape: 1
       time: 19
       materials: 79100
-      service_equipment: CRN
+      service_equipment: LCN
       operation_reduction: 1
       level: 3
       description: major replacement

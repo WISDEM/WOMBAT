@@ -1,9 +1,12 @@
 name: Cable Laying Vessel
 equipment_rate: 115000  # 100,000 EUR rounded to 115,000 USD
-day_rate: 465  # 150,000($EUR) round up to $170,000 -> $465/day (ECN 2011)
-n_day_rate: 3  # maximum required techs from offshore base case
-hourly_rate: 125  # (Maples et al. 2013)
-n_hourly_rate: 0
+n_crews: 1
+crew:
+  day_rate: 465  # 150,000($EUR) round up to $170,000 -> $465/day (ECN 2011)
+  n_day_rate: 3  # maximum required techs from offshore base case
+  hourly_rate: 125  # (Maples et al. 2013)
+  n_hourly_rate: 0
+strategy: scheduled
 start_month: 6
 start_day: 1
 end_month: 8
