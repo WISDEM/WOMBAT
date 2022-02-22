@@ -139,6 +139,8 @@ def run_lbw():
     """Runs the land-based wind base scenario and outputs the essential input and output
     data points.
     """
+    np.random.seed(42)
+
     print("LBW starting")
     sim_lbw = Simulation(library_path="LBW", config="base.yaml")  # type: ignore
     print("LBW data loaded")
@@ -206,6 +208,8 @@ def run_osw_fixed():
     """Runs the fixed-base offshore wind base scenario and outputs the essential input
     and output data points.
     """
+    np.random.seed(42)
+    
     print("OSW-Fixed starting")
     sim_osw_fixed = Simulation(library_path="OSW_FIXED", config="base.yaml")  # type: ignore
     print("OSW-Fixed data loaded")
