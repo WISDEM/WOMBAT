@@ -390,9 +390,7 @@ class Metrics:
                 )
                 for year in counts.index
             ]
-            return pd.DataFrame(
-                annual, index=counts.index, columns=counts.columns
-            ).reset_index()
+            return pd.DataFrame(annual, index=counts.index, columns=counts.columns)
         elif frequency == "monthly":
             date_time = operations[["month"]]
             counts = operations.groupby(by="month").count()
@@ -403,9 +401,7 @@ class Metrics:
                 )
                 for month in counts.index
             ]
-            return pd.DataFrame(
-                monthly, index=counts.index, columns=counts.columns
-            ).reset_index()
+            return pd.DataFrame(monthly, index=counts.index, columns=counts.columns)
         elif frequency == "month-year":
             date_time = operations[["year", "month"]]
             counts = operations.groupby(by=["year", "month"]).count()
@@ -417,9 +413,7 @@ class Metrics:
                 )
                 for year, month in counts.index
             ]
-            return pd.DataFrame(
-                month_year, index=counts.index, columns=counts.columns
-            ).reset_index()
+            return pd.DataFrame(month_year, index=counts.index, columns=counts.columns)
 
     def production_based_availability(  # type: ignore
         self, frequency: str, by: str
@@ -669,7 +663,7 @@ class Metrics:
         )
         completions = completions.sort_index()
 
-        completion_rate = pd.DataFrame(completions / requests).reset_index()
+        completion_rate = pd.DataFrame(completions / requests)
         return completion_rate.rename(
             columns={
                 "request_id": "Completion Rate",
@@ -757,13 +751,13 @@ class Metrics:
                 ],
                 axis=1,
             )
-            return costs.fillna(value=0).reset_index()
+            return costs.fillna(value=0)
 
         if frequency == "project":
             return self.events[self._equipment_cost].sum()
 
         costs = self.events.groupby(col_filter).sum()[[self._equipment_cost]]
-        return costs.fillna(0).reset_index()
+        return costs.fillna(0)
 
     def service_equipment_utilization(self, frequency: str) -> pd.DataFrame:
         """Calculates the utilization rate for each of the service equipment in the
@@ -1213,7 +1207,7 @@ class Metrics:
                     continue
                 costs.loc[costs.shape[0]] = row
         costs = costs.sort_values(group_filter)[group_filter + cost_cols]
-        return costs.reset_index(drop=True)
+        return costs.reset_index(drop=True).set_index(group_filter)
 
     def project_fixed_costs(self, frequency: str, resolution: str) -> pd.DataFrame:
         """Calculates the fixed costs of a project at the project and annual frequencies
@@ -1223,7 +1217,7 @@ class Metrics:
         ----------
         frequency : str
             One of "project" or "annual".
-        resolution : str
+        resolution : st
             One of "low", "medium", or "high", where the values correspond to:
 
              - low: ``FixedCosts.resolution["low"]``, corresponding to the itemized costs.
