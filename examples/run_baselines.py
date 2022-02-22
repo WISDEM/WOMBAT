@@ -128,9 +128,7 @@ def compute_results_table(sim):
         *equipment_breakdown,
         *equipment_utilization,
     ]
-    pprint(results_table)
-    for row in results_table:
-        print(row[0], len(row))
+
     return results_table
 
 
