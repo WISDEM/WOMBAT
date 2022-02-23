@@ -12,7 +12,7 @@ HOW TO:
 """
 
 
-from pprint import pprint
+# from pprint import pprint
 from pathlib import Path
 
 import numpy as np
@@ -29,6 +29,7 @@ wb = xw.Book(here / "WOMBAT_baselines.xlsx")
 def compute_results_table(sim):
     """Creates the results table that gets printed to Excel for each simulation."""
     metrics = sim.metrics
+    capacity_kw = metrics.project_capacity * 1000
 
     avail_time = [metrics.time_based_availability(frequency="project", by="windfarm")]
     avail_time.extend(
@@ -84,17 +85,22 @@ def compute_results_table(sim):
     component_costs = component_costs.droplevel("component").groupby("year").sum()
     materials = [component_costs.materials_cost.sum()]
     materials.extend(component_costs.materials_cost.values.tolist())
-    materials = np.array(materials) / 1e6
+    materials = np.array(materials) / capacity_kw
 
     equipment = [metrics.equipment_costs(frequency="project", by_equipment=False)]
     equipment.extend(
         metrics.equipment_costs(frequency="annual", by_equipment=False).values.flatten()
     )
-    equipment = np.array(equipment) / 1e6
+    equipment = np.array(equipment) / capacity_kw
 
     df = metrics.equipment_costs(frequency="annual", by_equipment=True)
     equipment_breakdown = [
-        [f"{col} Cost", "Milllions USD$", df[col].sum() / 1e6, *(df[col].values / 1e6)]
+        [
+            f"{col} Cost",
+            "USD$/kW",
+            df[col].sum() / capacity_kw,
+            *(df[col].values / capacity_kw),
+        ]
         for col in df.columns
     ]
 
@@ -123,8 +129,8 @@ def compute_results_table(sim):
         ["Net Capacity Factor", "%", *cf_net],
         ["Gross Capacity Factor", "%", *cf_gross],
         ["Task Completion Rate", "%", *completion_rate],
-        ["Materials Cost", "Millions USD$", *materials],
-        ["Total Servicing Equipment Cost", "Millions USD$", *equipment],
+        ["Materials Cost", "USD$/kW", *materials],
+        ["Total Servicing Equipment Cost", "USD$/kW", *equipment],
         *equipment_breakdown,
         *equipment_utilization,
     ]
@@ -209,7 +215,7 @@ def run_osw_fixed():
     and output data points.
     """
     np.random.seed(42)
-    
+
     print("OSW-Fixed starting")
     sim_osw_fixed = Simulation(library_path="OSW_FIXED", config="base.yaml")  # type: ignore
     print("OSW-Fixed data loaded")
