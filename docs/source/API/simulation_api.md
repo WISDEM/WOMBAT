@@ -22,7 +22,12 @@
 ## Metrics Computation
 ```{eval-rst}
 .. autoclass:: wombat.core.post_processor.Metrics
-   :members:
+   :members: from_simulation_outputs, power_production, time_based_availability,
+    production_based_availability, capacity_factor, task_completion_rate,
+    equipment_costs, service_equipment_utilization, labor_costs,
+    equipment_labor_cost_breakdowns, component_costs, project_fixed_costs, process_times,
+    pysam_npv, pysam_lcoe_real, pysam_lcoe_nominal, pysam_irr, pysam_all_outputs
+   :member-order: bysource
    :undoc-members:
    :exclude-members:
 ```
