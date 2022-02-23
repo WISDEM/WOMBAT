@@ -664,12 +664,9 @@ class Metrics:
         completions = completions.sort_index()
 
         completion_rate = pd.DataFrame(completions / requests)
+        completion_rate.index = completion_rate.index.set_names(group_filter)
         return completion_rate.rename(
-            columns={
-                "request_id": "Completion Rate",
-                0: "Completion Rate",
-                "index": "year",
-            }
+            columns={"request_id": "Completion Rate", 0: "Completion Rate"}
         )
 
     def equipment_costs(
@@ -804,8 +801,8 @@ class Metrics:
         operating_df = pd.DataFrame(operation_days[0])
         total_df = pd.DataFrame(total_days[0])
         if len(self.service_equipment_names) > 1:
-            operating_df = operating_df.join(operation_days[1:]).fillna(0)
-            total_df = total_df.join(total_days[1:]).fillna(1)
+            operating_df = operating_df.join(operation_days[1:], how="outer").fillna(0)
+            total_df = total_df.join(total_days[1:], how="outer").fillna(1)
 
         for year in self.events.year.unique():
             if year not in operating_df.index:
@@ -890,14 +887,9 @@ class Metrics:
         elif frequency == "month-year":
             group_filter = ["year", "month"]
 
-        costs = (
-            self.events.groupby(group_filter)
-            .sum()[labor_cols]
-            .reset_index()
-            .fillna(value=0)
-        )
+        costs = self.events.groupby(group_filter).sum()[labor_cols].fillna(value=0)
         if not by_type:
-            return costs[group_filter + [self._labor_cost]]
+            return pd.DataFrame(costs[self._labor_cost])
         return costs
 
     def equipment_labor_cost_breakdowns(
@@ -952,13 +944,19 @@ class Metrics:
         if frequency == "month-year":
             group_filter.insert(1, "month")
 
+        action_list = [
+            "delay",
+            "repair",
+            "maintenance",
+            "mobilization",
+            "transferring crew",
+            "traveling",
+        ]
         equipment = self.events[self.events[self._equipment_cost] > 0].agent.unique()
         costs = (
             self.events[
                 self.events.agent.isin(equipment)
-                & self.events.action.isin(
-                    ("delay", "repair", "maintenance", "mobilization")
-                )
+                & self.events.action.isin(action_list)
                 & ~self.events.additional.isin(["work is complete"])
             ]
             .groupby(group_filter)
@@ -974,15 +972,20 @@ class Metrics:
             "no more return visits will be made",
             "will return next year",
         )
+        weather_hours = ("weather delay", "weather unsuitable to transfer crew")
         costs.loc[
             (costs.action == "delay") & (costs.additional.isin(non_shift_hours)),
             "display_reason",
         ] = "Not in Shift"
         costs.loc[costs.action == "repair", "display_reason"] = "Repair"
         costs.loc[costs.action == "maintenance", "display_reason"] = "Maintenance"
+        costs.loc[
+            costs.action == "transferring crew", "display_reason"
+        ] = "Crew Transfer"
+        costs.loc[costs.action == "traveling", "display_reason"] = "Site Travel"
         costs.loc[costs.action == "mobilization", "display_reason"] = "Mobilization"
         costs.loc[
-            costs.additional == "weather delay", "display_reason"
+            costs.additional.isin(weather_hours), "display_reason"
         ] = "Weather Delay"
         costs.loc[costs.reason == "no requests", "display_reason"] = "No Requests"
 
@@ -1042,19 +1045,22 @@ class Metrics:
         new_sort = [
             "Maintenance",
             "Repair",
+            "Crew Transfer",
+            "Site Travel",
             "Mobilization",
             "Weather Delay",
             "No Requests",
             "Not in Shift",
         ]
         costs.reason = pd.Categorical(costs.reason, new_sort)
+        costs = costs.set_index(group_filter)
         if frequency == "project":
-            return costs.sort_values(by="reason").reset_index(drop=True)
+            return costs.sort_values(by="reason")
         if frequency == "annual":
-            return costs.sort_values(by=["year", "reason"]).reset_index(drop=True)
+            return costs.sort_values(by=["year", "reason"])
         if frequency == "monthly":
-            return costs.sort_values(by=["month", "reason"]).reset_index(drop=True)
-        return costs.sort_values(by=["year", "month", "reason"]).reset_index(drop=True)
+            return costs.sort_values(by=["month", "reason"])
+        return costs.sort_values(by=["year", "month", "reason"])
 
     def component_costs(
         self, frequency: str, by_category: bool = False, by_action: bool = False
@@ -1270,8 +1276,8 @@ class Metrics:
             return pd.DataFrame(costs.sum(axis=0).values.reshape(1, -1), columns=keys)
 
         costs["year"] = years
-        col_resort = ["year"] + keys
-        costs = costs[col_resort]
+        costs = costs.set_index("year")
+        costs = costs[keys]
         return costs
 
     def process_times(self) -> pd.DataFrame:
