@@ -1,9 +1,6 @@
+```{mermaid}
 %%{init: {'theme':'base'}}%%
-classDiagram
-    direction BT
-    class FromDictMixin{
-        from_dict(cls, data)
-    }
+classDiagram BT
     class Failure{
         level: int
         scale: float
@@ -360,51 +357,51 @@ classDiagram
         pysam_all_outputs() pd.DataFrame
     }
 
-    ScheduledServiceEquipmentData <.. ServiceCrew
-    UnscheduledServiceEquipmentData <.. ServiceCrew
-    ServiceEquipmentData <.. ScheduledServiceEquipmentData
-    ServiceEquipmentData <.. UnscheduledServiceEquipmentData
+    ServiceCrew ..> ScheduledServiceEquipmentData
+    ServiceCrew ..> UnscheduledServiceEquipmentData
+    ScheduledServiceEquipmentData ..> ServiceEquipmentData : determine_type
+    UnscheduledServiceEquipmentData ..> ServiceEquipmentData : determine_type
 
-    Failure *-- FromDictMixin
-    Maintenance *-- FromDictMixin
-    RepairRequest *-- FromDictMixin
-    ScheduledServiceEquipmentData *-- FromDictMixin
-    UnscheduledServiceEquipmentData *-- FromDictMixin
-    FixedCosts *-- FromDictMixin
-    SubassemblyData *-- FromDictMixin
+    %% FromDictMixin --* Failure
+    %% FromDictMixin --* Maintenance
+    %% FromDictMixin --* RepairRequest
+    %% FromDictMixin --* ScheduledServiceEquipmentData
+    %% FromDictMixin --* UnscheduledServiceEquipmentData
+    %% FromDictMixin --* FixedCosts
+    %% FromDictMixin --* SubassemblyData
 
-    ServiceEquipment *-- ServiceEquipmentData
+    ServiceEquipmentData --* ServiceEquipment
 
-    RepairRequest <.. Failure
-    RepairRequest <.. Maintenance
-    RepairManager o-- RepairRequest
-    StrategyMap *-- EquipmentMap
-    RepairManager *-- StrategyMap
-    EquipmentMap *-- ServiceEquipment
-    StrategyMap o-- EquipmentMap
-    RepairManager o-- ServiceEquipment
+    Failure ..> RepairRequest
+    Maintenance ..> RepairRequest
+    RepairRequest --o RepairManager
+    EquipmentMap --* StrategyMap
+    StrategyMap --* RepairManager
+    ServiceEquipment --* EquipmentMap
+    EquipmentMap --o StrategyMap
+    ServiceEquipment --o RepairManager
 
-    RepairRequest <-- Subassembly
-    RepairRequest <-- System
+    Subassembly --> RepairRequest
+    System --> RepairRequest
 
-    SubassemblyData <|.. Failure
-    SubassemblyData <|.. Maintenance
-    Cable <|.. SubassemblyData
-    Subassembly <|.. SubassemblyData
-    System *-- Subassembly
-    Windfarm o-- Cable
-    Windfarm o-- System
+    Failure ..|> SubassemblyData
+    Maintenance ..|> SubassemblyData
+    SubassemblyData ..|> Cable
+    Cable --o Windfarm
+    SubassemblyData ..|> Subassembly
+    Subassembly --* System
+    System --o Windfarm
 
-    Metrics *-- FixedCosts
+    FixedCosts --* Metrics
 
-    Simulation *-- Configuration
-    Simulation *-- Metrics
-    Simulation *-- WombatEnvironment
-    Simulation *-- Windfarm
-    Simulation *-- RepairManager
-    Simulation *-- ServiceEquipment
+    Configuration --* Simulation
+    Metrics --* Simulation
+    WombatEnvironment --* Simulation
+    Windfarm --* Simulation
+    RepairManager --* Simulation
+    ServiceEquipment --* Simulation
 
 
 
     %% mmdc -i class_diagram.mmd -o class_diagram.svg
-    %% mmdc -i class_diagram.mmd -o class_diagram.png -w 2400 -b transparent
+```

@@ -8,14 +8,14 @@ To make a it easier for users, there is also a simulation interface provided.
 ## Package Hierarchy
 
 ```{image} ../images/package_hierarchy.svg
-:alt: don't forget me
+:alt:
 :align: center
 ```
 
 ## Class Hierarchy
 
-```{image} ../images/class_diagram_mmlive.svg
-:alt: don't forget me
+```{image} ../images/class_diagram.svg
+:alt:
 :align: center
 :width: 2400px
 ```

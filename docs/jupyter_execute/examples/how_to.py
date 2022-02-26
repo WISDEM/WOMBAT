@@ -300,7 +300,9 @@ pd.set_option("display.max_columns", 1000)
 #
 # The power curve input CSV contains two columns `windspeed_ms` and `power_kw` that should
 # be defined using the windspeed for a bin, in m/s and the power produced at that
-# windspeed, in kW.
+# windspeed, in kW. The current method available for generating the power curve is the IEC
+# 61400-12-1-2 method for a wind-speed binned power curve. If there is a need/desire for
+# additional power curve methodologies, then [please submit an issue on the GitHub](https://github.com/WISDEM/WOMBAT/issues)!
 #
 # In addition to the above, the following subassembly definitions must be provided in
 # a similar manner to the substation transformer.
@@ -443,29 +445,45 @@ for k, v in config.items():
 
 # ## Instantiate the simulation
 #
-# There are two ways that this could be done, the first is to use the classmethod `Simulation.from_config()`, which allows for the full path string, a dictionary, or ``Configuration`` object to passed as an input, and the second is through a standard class initialization.
+# There are two ways that this could be done, the first is to use the classmethod
+# `Simulation.from_config()`, which allows for the full path string, a dictionary, or
+# `Configuration` object to passed as an input, and the second is through a standard
+# class initialization.
+#
+# ### Option 1: `Simulation.from_config()`
+#
+# Load the file from the `Configuration` object that was created in the prior code black
 
 # In[4]:
 
 
-# Option 1
 sim = Simulation.from_config(config)
 
 # Delete the .log files that get initialized
 sim.env.cleanup_log_files(log_only=True)
 
-# Option 2
-# Note here that a string "DINWOODIE" is passed because the Simulation class knows to
-# retrieve the appropriate path, and that the simulation_name matches the configuration
-simulation_name = "dinwoodie_base"
+
+# ### Option 2: `Simulation()`
+#
+# Load the configuration file automatically given a library path and configuration file name.
+#
+# In this usage, the string "DINWOODIE" can be used because the `Simulation` class knows
+# to look for this library mapping, as well as the "IEA_26" mapping for the two validation
+# cases that we demonstrate in the examples folder.
+#
+# ```{note}
+# In Option 2, the config parameter can also be set with a dictionary.
+#
+# The library path in the configuration file should match the one provided, or the
+# setup steps will fail in the simulation.
+# ```
+
+# In[5]:
+
+
 sim = Simulation(library_path="DINWOODIE", config="base.yaml")
 
 
-# ```{note}
-# In Option 2, the config parameter can also be set with a dictionary.
-# ```
-#
-#
 # ## Run the analysis
 #
 # When the run method is called, the default run time is for the full length of the simulation, however, if a shorter run than was previously designed is required for debugging, or something similar, we can use `sum.run(until=<your-time>)` to do this. In the `run` method, not
@@ -473,14 +491,17 @@ sim = Simulation(library_path="DINWOODIE", config="base.yaml")
 # to results aggregation without any further code.
 #
 # ```{warning}
-# It should be noted at this stage that if a PySAM input file is specified AND a run time that isn't divisible by 8760 (hours in a year), the run will fail at the end due to PySAM's requirements. This will be worked out in later iterations to remove both leap years present in the data (currently available) and remainder hours to cap it to the correct number of hours (future feature).
+# It should be noted at this stage that a run time that isn't divisible by 8760 (hours in
+# a year), the run will fail at the end due to PySAM's requirements. This will be worked
+# out in later iterations to cap it to the correct number of hours (future feature) for an
+# evenly divisible year.
 #
 # Users should also be careful of leap years because the PySAM model cannot handle them,
 # though if Feb 29 is provided, it will be a part of the analysis and stripped out before
-# being fed to PySAM.
+# being fed to PySAM, so no errors will occur.
 # ```
 
-# In[5]:
+# In[6]:
 
 
 # Timing for a demonstration of performance
@@ -502,7 +523,7 @@ else:
 # For a more complete view of what metrics can be compiled, please see the [metrics notebook](metrics_demonstration.ipynb), though for the sake of demonstration a few methods will
 # be shown here
 
-# In[6]:
+# In[7]:
 
 
 net_cf = sim.metrics.capacity_factor(which="net", frequency="project", by="windfarm")
@@ -513,7 +534,7 @@ print(f"  Net Capacity Factor: {net_cf:2.1f}%")
 print(f"Gross Capacity Factor: {gross_cf:2.1f}%")
 
 
-# In[7]:
+# In[8]:
 
 
 # Report back a subset of the metrics
@@ -533,7 +554,7 @@ print(
 #
 # In the case that a lot of simulations are going to be run, and the processed outputs are all that is required, then there is a convenience method to cleanup these files automatically once you are done.
 
-# In[8]:
+# In[9]:
 
 
 sim.env.cleanup_log_files(log_only=False)

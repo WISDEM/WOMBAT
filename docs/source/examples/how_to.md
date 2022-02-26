@@ -20,6 +20,7 @@ analyses.
 
 ```{code-cell} ipython3
 from time import perf_counter  # timing purposes only
+from pprint import pprint
 
 import numpy as np
 import pandas as pd
@@ -306,10 +307,12 @@ power_curve:
 
 The power curve input CSV contains two columns `windspeed_ms` and `power_kw` that should
 be defined using the windspeed for a bin, in m/s and the power produced at that
-windspeed, in kW.
+windspeed, in kW. The current method available for generating the power curve is the IEC
+61400-12-1-2 method for a wind-speed binned power curve. If there is a need/desire for
+additional power curve methodologies, then [please submit an issue on the GitHub](https://github.com/WISDEM/WOMBAT/issues)!
 
-In addition to the above, the following subassembly definitions must be provided in
-a similar manner to the substation transformer.
+In addition to the above, the following subassembly definitions can all be modeled,
+though, and only one is required for the model to successfully be created.
 
  - electrical_system
  - electronic_control
@@ -329,7 +332,7 @@ a similar manner to the substation transformer.
 
 ```{note}
 Currently, only array cables are modeled at this point in time, though in the future
-they will be enabled.
+export cables will be enabled.
 ```
 
 The array cable is the simplest format in that you only define a descriptive name,
@@ -378,13 +381,13 @@ DRN
 : drone, or potentially even helicopters by changing the costs
 
 CTV
-: crew transfer vessel/vehicle
+: crew transfer vessel/onsite truck
 
 SCN
-: small crane (i.e., field support vessel)
+: small crane (i.e., field support vessel or cherry picker)
 
 LCN
-: large crane (i.e., heavy lift vessel)
+: large crane (i.e., heavy lift vessel or crawler crane)
 
 CAB
 : cabling-specific vessel/vehicle
@@ -429,12 +432,11 @@ library_path = DINWOODIE
 
 ### Load the configuration file
 
-```{note}
-At this stage, the path to the configuration will need to be created manually.
-```
 
-In this configuration we've provide a number of data points that will define our windfarm layout, weather conditions, working hours, customized start and completion years, project size, financials, and the servicing equipment to be used. Note that there can be as many or as
-few of the servicing equipment as desired.
+In this configuration we've provide a number of data points that will define our
+windfarm layout, weather conditions, working hours, customized start and completion
+years, project size, financials, and the servicing equipment to be used. Note that there
+can be as many or as few of the servicing equipment as desired.
 
 ```{code-cell} ipython3
 config = load_yaml(str(library_path / "config"), "base.yaml")
@@ -445,26 +447,43 @@ for k, v in config.items():
 
 ## Instantiate the simulation
 
-There are two ways that this could be done, the first is to use the classmethod `Simulation.from_config()`, which allows for the full path string, a dictionary, or ``Configuration`` object to passed as an input, and the second is through a standard class initialization.
+There are two ways that this could be done, the first is to use the classmethod
+`Simulation.from_config()`, which allows for the full path string, a dictionary, or
+`Configuration` object to passed as an input, and the second is through a standard
+class initialization.
+
+### Option 1: `Simulation.from_config()`
+
+Load the file from the `Configuration` object that was created in the prior code black
 
 ```{code-cell} ipython3
-# Option 1
+
 sim = Simulation.from_config(config)
 
 # Delete the .log files that get initialized
 sim.env.cleanup_log_files(log_only=True)
+```
 
-# Option 2
-# Note here that a string "DINWOODIE" is passed because the Simulation class knows to
-# retrieve the appropriate path, and that the simulation_name matches the configuration
-simulation_name = "dinwoodie_base"
+### Option 2: `Simulation()`
+
+Load the configuration file automatically given a library path and configuration file name.
+
+In this usage, the string "DINWOODIE" can be used because the `Simulation` class knows
+to look for this library mapping, as well as the "IEA_26" mapping for the two validation
+cases that we demonstrate in the examples folder.
+
+```{note}
+In Option 2, the config parameter can also be set with a dictionary.
+
+The library path in the configuration file should match the one provided, or the
+setup steps will fail in the simulation.
+```
+
+```{code-cell} ipython3
 sim = Simulation(
     library_path="DINWOODIE",
     config="base.yaml"
 )
-```
-```{note}
-In Option 2, the config parameter can also be set with a dictionary.
 ```
 
 
@@ -475,11 +494,14 @@ only is the simulation run, but the metrics class is loaded at the end to quickl
 to results aggregation without any further code.
 
 ```{warning}
-It should be noted at this stage that if a PySAM input file is specified AND a run time that isn't divisible by 8760 (hours in a year), the run will fail at the end due to PySAM's requirements. This will be worked out in later iterations to remove both leap years present in the data (currently available) and remainder hours to cap it to the correct number of hours (future feature).
+It should be noted at this stage that a run time that isn't divisible by 8760 (hours in
+a year), the run will fail at the end due to PySAM's requirements. This will be worked
+out in later iterations to cap it to the correct number of hours (future feature) for an
+evenly divisible year.
 
 Users should also be careful of leap years because the PySAM model cannot handle them,
 though if Feb 29 is provided, it will be a part of the analysis and stripped out before
-being fed to PySAM.
+being fed to PySAM, so no errors will occur.
 ```
 
 ```{code-cell} ipython3
