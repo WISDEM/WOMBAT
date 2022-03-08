@@ -7,7 +7,7 @@
 #
 # This demonstration will rely on the results produced in the "How To" notebook.
 
-# In[1]:
+# In[3]:
 
 
 from pprint import pprint
@@ -31,7 +31,7 @@ pd.set_option("display.max_columns", 1000)
 #
 # To simplify this process, a feature has been added to save the simulation outputs required to generate the Metrics inputs and a method to reload those outputs as inputs.
 
-# In[2]:
+# In[5]:
 
 
 sim = Simulation("DINWOODIE", "base.yaml")

@@ -1,3 +1,7 @@
+## [Unreleased]
+- Adds code diagrams to demonstrate how the various components connect
+- Updates the documentation to be better in line with the current state of the software
+
 ## 0.4.0 (2022-February-4)
 - Testing now included!
 - `pathlib.Path` is used in place of `os` throughout for easier to read file manuevering.
