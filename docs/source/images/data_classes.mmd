@@ -1,0 +1,260 @@
+%%{init: {'theme':'base'}}%%
+classDiagram
+    direction BT
+    class FromDictMixin{
+        from_dict(cls, data)
+    }
+    class Failure{
+        level: int
+        scale: float
+        shape: float
+        time: float
+        materials: float
+        description: str
+        operation_reduction: float
+        service_equipment: list[str]
+        system_value: float
+        weibull
+        request_id: str
+        assign_id(request_id: str)
+        hours_to_next_failure() float
+    }
+    class Maintenance{
+        time: float
+        materials: float
+        description: str
+        operation_reduction: float
+        service_equipment: list[str]
+        system_value: float
+        request_id: str
+        assign_id(request_id: str)
+    }
+    class RepairRequest{
+        cable: bool
+        details: Failure | Maintenance
+        request_id: str
+        severity_level: int
+        subassembly_id: str
+        subassembly_name: str
+        system_id: str
+        system_name: str
+        upstream_turbines: list[str]
+        assign_id(request_id: str)
+    }
+    class ServiceEquipmentData{
+        data_dict: dict
+        strategy: str
+        determine_type()
+    }
+    class ServiceCrew{
+        day_rate: float
+        hourly_rate: float
+        n_day_rate: int
+        n_hourly_rate: int
+    }
+    class ScheduledServiceEquipmentData{
+        name: str
+        capability: list[str]
+        equipment_rate: float
+        crew: ServiceCrew
+        n_crews: int
+        crew_transfer_time: float
+        start_day: int
+        start_month: int
+        end_day: int
+        end_month: int
+        start_year: int
+        end_year: int
+        strategy: str
+        onsite: bool
+        workday_start: int
+        workday_end: int
+        method: str
+        mobilization_cost: float
+        mobilization_days: int
+        speed: float
+        max_waveheight_repair: float
+        max_waveheight_transport: float
+        max_windspeed_repair: float
+        max_windspeed_transport: float
+        operating_dates: numpy.ndarray
+        create_date_range()
+    }
+    class UnscheduledServiceEquipmentData{
+        name: str
+        capability: list[str]
+        equipment_rate: float
+        crew: ServiceCrew
+        n_crews: int
+        crew_transfer_time: float
+        charter_days: int
+        strategy: str
+        strategy_threshold: int | float
+        workday_start: int
+        workday_end: int
+        method: str
+        mobilization_cost: float
+        mobilization_days: int
+        speed: float
+        max_waveheight_repair: float
+        max_waveheight_transport: float
+        max_windspeed_repair: float
+        max_windspeed_transport: float
+        onsite: bool
+    }
+    class SubassemblyData{
+        name: str
+        system_value: float
+        failures: dict[int, Failure]
+        maintenance: list[Maintenance]
+    }
+    class FixedCosts{
+        operations: float
+        annual_lease_fees: float
+        brokers_fee: float
+        business_interruption: float
+        condition_monitoring: float
+        environmental_health_safety_monitoring: float
+        insurance: float
+        labor: float
+        marine_management: float
+        onshore_electrical_maintenance: float
+        operating_facilities: float
+        operations_all_risk: float
+        operations_management_administration: float
+        project_management_administration: float
+        storm_coverage: float
+        submerge_land_lease_costs: float
+        third_party_liability: float
+        transmission_charges_rights: float
+        weather_forecasting: float
+        hierarchy: dict
+        resolution: dict
+        cost_category_validator(name: str, sub_name: list[str])
+    }
+
+    class ServiceEquipment{
+        env: WombatEnvironment
+        manager: RepairManager
+        windfarm: Windfarm
+        settings: ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData
+        at_port: bool
+        at_system: bool
+        onsite: bool
+        enroute: bool
+        transferring_crew: bool
+        current_system: bool
+        calculate_equipment_cost(duration: float)
+        calculate_hourly_cost(duration: float)
+        calculate_salary_cost(duration: float)
+        find_interrupted_weather_window(hours_required: float)
+        find_uninterrupted_weather_window(hours_required: float)
+        run_scheduled()
+        run_unscheduled()
+        mobilize()
+        mobilize_scheduled()
+        weather_delay(hours: float)
+        wait_until_next_shift()
+        wait_until_next_operational_period()
+        proces_repair(request: RepairRequest, time_processed: float, prior_operational_level: float)
+        crew_transfer(system: System, subassembly: Subassembly, requests: RepairRequest, to_system: bool)
+        repair(hours: float, request_details: Failure | Maintenance)
+        travel(start: str, end: str, set_current: str)
+    }
+
+    class System{
+        env: WombatEnvironment
+        id: str
+        name: str
+        operating_level: float
+        operating_level_wo_servicing: float
+        power_curve: Callable
+        repair_manager: RepairManager
+        servicing: bool
+        value: float
+        cable_failure: bool
+        capacity: float
+        subassemblies: list[Subassembly]
+        electrical_system: Subasembly
+        electronic_control: Subasembly
+        gearbox: Subasembly
+        generator: Subasembly
+        hydraulic_system: Subasembly
+        mechanical_brake: Subasembly
+        rotor_blades: Subasembly
+        rotor_hub: Subasembly
+        sensors: Subasembly
+        supporting_structure: Subasembly
+        yaw_system: Subasembly
+        transformer: Subasembly
+        power(windspeed: float | numpy.ndaray)
+        interrupt_all_subassembly_processes()
+    }
+    class Subassembly{
+        id: str
+        name: str
+        env: WombatEnvironment
+        data: SubassemblyData
+        broken: bool
+        operating_level: float
+        turbine: System
+        processes: dict
+        run_single_failure(failure: Failure)
+        run_single_maintenance(maintenance: Maintenance)
+        interrupt_processes()
+        interrupt_all_subassembly_processes()
+    }
+    class Cable{
+        id: str
+        name: str
+        env: WombatEnvironment
+        data: SubassemblyData
+        broken: bool
+        servicing: bool
+        downstream_failure: bool
+        processes: dict
+        operating_level: float
+        operating_level_wo_servicing: float
+        repair_manager: RepairManager
+        servicing: bool
+        value: float
+        cable_failure: bool
+        capacity: float
+        run_single_failure(failure: Failure)
+        run_single_maintenance(maintenance: Maintenance)
+        interrupt_processes()
+        interrupt_all_subassembly_processes()
+        stop_all_upstream_processes()
+    }
+
+    ScheduledServiceEquipmentData <.. ServiceCrew
+    UnscheduledServiceEquipmentData <.. ServiceCrew
+    ServiceEquipmentData <.. ScheduledServiceEquipmentData
+    ServiceEquipmentData <.. UnscheduledServiceEquipmentData
+
+    FixedCosts *-- FromDictMixin
+    Failure *-- FromDictMixin
+    Maintenance *-- FromDictMixin
+    RepairRequest *-- FromDictMixin
+    ServiceCrew *-- FromDictMixin
+    ScheduledServiceEquipmentData *-- FromDictMixin
+    UnscheduledServiceEquipmentData *-- FromDictMixin
+    SubassemblyData *-- FromDictMixin
+
+    ServiceEquipment *-- ServiceEquipmentData
+
+    RepairRequest <.. Failure
+    RepairRequest <.. Maintenance
+
+    RepairRequest <-- Subassembly
+    RepairRequest <-- System
+    RepairRequest <-- Cable
+
+    SubassemblyData <|.. Failure
+    SubassemblyData <|.. Maintenance
+    Cable <|.. SubassemblyData
+    Subassembly <|.. SubassemblyData
+
+
+    %% mmdc -i data_classes.mmd -o data_classes.svg
+    %% mmdc -i data_classes.mmd -o data_classes.png -w 2400 -b transparent

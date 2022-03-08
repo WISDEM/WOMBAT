@@ -14,6 +14,7 @@
 
 
 from time import perf_counter  # timing purposes only
+from pprint import pprint
 
 import numpy as np
 import pandas as pd
@@ -150,8 +151,9 @@ pd.set_option("display.max_columns", 1000)
 #
 # ### Fixed Costs
 #
-# Please see the `FixedCosts` API documentation for details on this optional piece of
-# financial modeling.
+# Please see the [`FixedCosts` API documentation](../API/types.md#fixed-cost-model) for
+# details on this optional piece of financial modeling.
+#
 #
 # ### Financial Model (SAM)
 #
@@ -163,50 +165,22 @@ pd.set_option("display.max_columns", 1000)
 #
 # ### The System Models
 #
-# The higher-level systems (assets) of a windfarm are the cables, turbine(s), and
-# substation(s), each with their own model, though heavily overlapping. Within each of
-# these systems, there are modeled, and pre-defined, subassemblies (or componenents) that
-# rely on two types of maintenance tasks:
-#  - maintenance: scheduled maintenance tasks
-#  - failures: unscheduled maintenance tasks
+# The actual assets on the windfarm such as cables, turbines, and substations, are
+# referred to as systems in WOMBAT, and each has their own individual model. Within each
+# of these systems, there are modeled, and pre-defined, subassemblies (or componenents) that
+# rely on two types of repair models:
+#  - maintenance: scheduled, fixed time interval-based maintenance tasks
+#  - failures: unscheduled, Weibull distribution-based modeled, maintenance tasks
 #
-# Generally, though in this case for the electrical_system subassembly it is not modeled
-# and has no inputs, the data inputs look like the below example. For a thorough definition,
-# it is recommended to see the API documentation of the
-# [Maintenance](../API/types.md#maintenance-tasks) and
+# In the example below we show a `generator` subassembly with an annual service task and
+# frequent manual reset. For a thorough definition, it is recommended to read the API
+# documentation of the [Maintenance](../API/types.md#maintenance-tasks) and
 # [Failure](../API/types.md#failures) data classes. It should be noted that the yaml
 # defintion below specifies that maintenance tasks are in a bulleted list format and that
 # failure defintions require a dictionary-style input with keys to match the severity
-# level of a given failure.
+# level of a given failure. For more details on the complete subassembly definition,
+# please visit the [Subassembly API documentation](../API/types.md#subassembly-model).
 #
-# ```{note}
-# For all non-modeled parameters, inputs must still be provided, though they can be all
-# zeros. This may become more flexible over time, but for now, at least on maintenance
-# and one failure must be provided even when all zeros.
-# ```
-#
-# ```
-# electrical_system:
-#   name: electrical_system
-#   maintenance:
-#   - description: n/a
-#     time: 0
-#     materials: 0
-#     service_equipment: CTV
-#     frequency: 0
-#   failures:
-#     1:
-#       scale: 0
-#       shape: 0
-#       time: 0
-#       materials: 0
-#       service_equipment: CTV
-#       operation_reduction: 0
-#       level: 1
-#       description: n/a
-# ```
-#
-# A more complete example would be for the generator subassembly, as follows:
 # ```
 # generator:
 #   name: generator
@@ -242,12 +216,11 @@ pd.set_option("display.max_columns", 1000)
 # transformer
 # : See the subassembly model for more details.
 #
-# The following is taken from `windfarm/offshore_substation.yaml` and is a good example of
-# a non-modeled system.
+# The following is an example of substation yaml definition with no modeled subasemblies.
 #
 # ```
-# capacity_kw: 0
-# capex_kw: 0
+# capacity_kw: 670000
+# capex_kw: 140
 # transformer:
 #   name: transformer
 #   maintenance:
@@ -273,7 +246,7 @@ pd.set_option("display.max_columns", 1000)
 # #### Turbines
 #
 # The turbine has the most to define out of the three systems in the windfarm model.
-# Similar to the substation, it relies mainly on the subsystem model with a few extra
+# Similar to the substation, it relies mainly on the subassembly model with a few extra
 # parameters, as defined here:
 #
 # capacity_kw
@@ -288,22 +261,29 @@ pd.set_option("display.max_columns", 1000)
 # power_curve: bin_width
 # : Distince in (m/s) between two points on the power curve.
 #
-# The `windfarm/vestas_v90.yaml` data file provides the following definition.
+# The `windfarm/vestas_v90.yaml` data file provides the following definition in addition
+# to the the maintenance and failure definitions that were shown previously.
 #
 # ```
 # capacity_kw: 3000
-# capex_kw: 1300  # need an updated value
+# capex_kw: 1300
 # power_curve:
 #   file: vestas_v90_power_curve.csv
 #   bin_width: 0.5
 # ```
 #
-# The power curve input CSV contains two columns `windspeed_ms` and `power_kw` that should
-# be defined using the windspeed for a bin, in m/s and the power produced at that
-# windspeed, in kW.
+# The power curve input CSV requires the following two columns: `windspeed_ms` and
+# `power_kw` that should be defined using the windspeed for a bin, in m/s and the power produced at that
+# windspeed, in kW. The current method available for generating the power curve is the IEC
+# 61400-12-1-2 method for a wind-speed binned power curve. If there is a need/desire for
+# additional power curve methodologies, then [please submit an issue on the GitHub](https://github.com/WISDEM/WOMBAT/issues)!
 #
-# In addition to the above, the following subassembly definitions must be provided in
-# a similar manner to the substation transformer.
+# For an open source listing of a variety of land-based, offshore, and distributed wind
+# turbine power curves, please visit the
+# [NREL Turbine Models repository](https://github.com/NREL/turbine-models).
+#
+# In addition to the above, the following subassembly definitions can all be modeled,
+# though, and only one is required for the model to successfully be created.
 #
 #  - electrical_system
 #  - electronic_control
@@ -322,8 +302,7 @@ pd.set_option("display.max_columns", 1000)
 # #### Cables
 #
 # ```{note}
-# Currently, only array cables are modeled at this point in time, though in the future
-# they will be enabled.
+# Currently, only array cables are modeled, though in the future export cables will be enabled.
 # ```
 #
 # The array cable is the simplest format in that you only define a descriptive name,
@@ -363,7 +342,10 @@ pd.set_option("display.max_columns", 1000)
 # see the [ServiceEquipmentData API documentation](../API/types.md#service-equipment)
 #
 # Below is an definition of the different equipment codes and their designations to show
-# the breadth of what can be simulated.
+# the breadth of what can be simulated. These codes do not have separate operating models,
+# but instead allow the user to specify the types of operations the servicing equipment
+# will be able to operate on. This model should be aligned with the `service_equipment`
+# requirements in the subassembly failure and maintenance models.
 #
 # RMT
 # : remote (no actual equipment BUT no special implementation), akin to remote resets
@@ -372,13 +354,13 @@ pd.set_option("display.max_columns", 1000)
 # : drone, or potentially even helicopters by changing the costs
 #
 # CTV
-# : crew transfer vessel/vehicle
+# : crew transfer vessel/onsite truck
 #
 # SCN
-# : small crane (i.e., field support vessel)
+# : small crane (i.e., field support vessel or cherry picker)
 #
 # LCN
-# : large crane (i.e., heavy lift vessel)
+# : large crane (i.e., heavy lift vessel or crawler crane)
 #
 # CAB
 # : cabling-specific vessel/vehicle
@@ -420,52 +402,76 @@ pd.set_option("display.max_columns", 1000)
 # In[2]:
 
 
-library_path = DINWOODIE
+library_path = DINWOODIE  # or user-defined path for an external data library
 
 
-# ### Load the configuration file
+# ### The configuration file
 #
-# ```{note}
-# At this stage, the path to the configuration will need to be created manually.
-# ```
 #
-# In this configuration we've provide a number of data points that will define our windfarm layout, weather conditions, working hours, customized start and completion years, project size, financials, and the servicing equipment to be used. Note that there can be as many or as
-# few of the servicing equipment as desired.
+# In the below configuration we've provided a number of data points that will define our
+# windfarm layout, weather conditions, working hours, customized start and completion
+# years, project size, financials, and the servicing equipment to be used. Note that there
+# can be as many or as few of the servicing equipment as desired.
+#
+# The purpose of an overarching configuration file is to provide a single place to define
+# the primary inputs for a simulation. As is seen below most of the inputs are pointers
+# to other files that WOMBAT will then use to construct and validate the remaining
+# simulation settings.
 
 # In[3]:
 
 
-config = load_yaml(str(library_path / "config"), "base.yaml")
+config = load_yaml(library_path / "config", "base.yaml")
 
 for k, v in config.items():
-    print(f"\033[1m{k}\033[0m:\n  {v}")  # make the keys bold
+    print(f"\033[1m{k}\033[0m:", end="\n  ")  # make the keys bold
+    pprint(v, indent=2)
 
 
 # ## Instantiate the simulation
 #
-# There are two ways that this could be done, the first is to use the classmethod `Simulation.from_config()`, which allows for the full path string, a dictionary, or ``Configuration`` object to passed as an input, and the second is through a standard class initialization.
+# There are two ways that this could be done, the first is to use the classmethod
+# `Simulation.from_config()`, which allows for the full path string, a dictionary, or
+# `Configuration` object to passed as an input, and the second is through a standard
+# class initialization.
+#
+# ### Option 1: `Simulation.from_config()`
+#
+# Load the file from the `Configuration` object that was created in the prior code black
 
 # In[4]:
 
 
-# Option 1
 sim = Simulation.from_config(config)
 
-# Delete the .log files that get initialized
-sim.env.cleanup_log_files(log_only=True)
-
-# Option 2
-# Note here that a string "DINWOODIE" is passed because the Simulation class knows to
-# retrieve the appropriate path, and that the simulation_name matches the configuration
-simulation_name = "dinwoodie_base"
-sim = Simulation(library_path="DINWOODIE", config="base.yaml")
+# Delete any files that get initialized through the simulation environment
+sim.env.cleanup_log_files(log_only=False)
 
 
+# ### Option 2: `Simulation()`
+#
+# Load the configuration file automatically given a library path and configuration file name.
+#
+# In this usage, the string "DINWOODIE" can be used because the `Simulation` class knows
+# to look for this library mapping, as well as the "IEA_26" mapping for the two validation
+# cases that we demonstrate in the examples folder.
+#
 # ```{note}
 # In Option 2, the config parameter can also be set with a dictionary.
+#
+# The library path in the configuration file should match the one provided, or the
+# setup steps will fail in the simulation.
 # ```
-#
-#
+
+# In[5]:
+
+
+sim = Simulation(
+    library_path="DINWOODIE",  # automatically directs to the provided library
+    config="base.yaml",
+)
+
+
 # ## Run the analysis
 #
 # When the run method is called, the default run time is for the full length of the simulation, however, if a shorter run than was previously designed is required for debugging, or something similar, we can use `sum.run(until=<your-time>)` to do this. In the `run` method, not
@@ -473,14 +479,18 @@ sim = Simulation(library_path="DINWOODIE", config="base.yaml")
 # to results aggregation without any further code.
 #
 # ```{warning}
-# It should be noted at this stage that if a PySAM input file is specified AND a run time that isn't divisible by 8760 (hours in a year), the run will fail at the end due to PySAM's requirements. This will be worked out in later iterations to remove both leap years present in the data (currently available) and remainder hours to cap it to the correct number of hours (future feature).
+# It should be noted at this stage that a run time that isn't divisible by 8760 (hours in
+# a year), the run will fail if the SAM financial model is being used due to a mismatch
+# with PySAM's requirements and the model's outputs. This will be worked
+# out in later iterations to cap it to the correct number of hours (future feature) for an
+# evenly divisible year.
 #
 # Users should also be careful of leap years because the PySAM model cannot handle them,
 # though if Feb 29 is provided, it will be a part of the analysis and stripped out before
-# being fed to PySAM.
+# being fed to PySAM, so no errors will occur.
 # ```
 
-# In[5]:
+# In[6]:
 
 
 # Timing for a demonstration of performance
@@ -502,7 +512,7 @@ else:
 # For a more complete view of what metrics can be compiled, please see the [metrics notebook](metrics_demonstration.ipynb), though for the sake of demonstration a few methods will
 # be shown here
 
-# In[6]:
+# In[7]:
 
 
 net_cf = sim.metrics.capacity_factor(which="net", frequency="project", by="windfarm")
@@ -513,7 +523,7 @@ print(f"  Net Capacity Factor: {net_cf:2.1f}%")
 print(f"Gross Capacity Factor: {gross_cf:2.1f}%")
 
 
-# In[7]:
+# In[8]:
 
 
 # Report back a subset of the metrics
@@ -533,7 +543,7 @@ print(
 #
 # In the case that a lot of simulations are going to be run, and the processed outputs are all that is required, then there is a convenience method to cleanup these files automatically once you are done.
 
-# In[8]:
+# In[9]:
 
 
 sim.env.cleanup_log_files(log_only=False)

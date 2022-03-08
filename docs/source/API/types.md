@@ -4,6 +4,25 @@ The WOMBAT architecture relies heavily on a base set of data classes to process 
 the model's inputs. This enables a rigid, yet robust data model to properly define a
 simulation.
 
+```{image} ../images/data_classes.svg
+:alt:
+:align: center
+:width: 2400px
+```
+
+## What is this FromDictMixin I keep seeing in the code diagrams?
+
+The `FromDictMixin` class provides a standard method for providing dictionary definitions
+to `attrs` dataclasses without worrying about overloading the definition. Plus, you get
+the convenience of writing `cls.from_dict(data_dict)` instead of cls(**data_dict), and
+hoping for the best.
+
+```{eval-rst}
+.. autoclass:: wombat.core.data_classes.FromDictMixin
+   :members:
+   :undoc-members:
+   :exclude-members:
+```
 
 ## Maintenance Tasks
 ```{eval-rst}
@@ -72,7 +91,7 @@ simulation.
 ```
 
 
-## Subassemblies/Components
+## Subassembly Model
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.SubassemblyData
    :members:

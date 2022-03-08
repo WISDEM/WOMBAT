@@ -261,12 +261,16 @@ class FromDictMixin:
     @classmethod
     def from_dict(cls, data: dict):
         """Maps a data dictionary to an `attrs`-defined class.
+
         TODO: Add an error to ensure that either none or all the parameters are passed in
-        Args:
+
+        Parameters
+        ----------
             data : dict
                 The data dictionary to be mapped.
-        Returns:
-            cls
+        Returns
+        -------
+            cls : Any
                 The `attrs`-defined class.
         """
         # Get all parameters from the input dictionary that map to the class initialization

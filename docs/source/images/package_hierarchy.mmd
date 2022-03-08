@@ -1,0 +1,23 @@
+%%{init: {'theme':'base'}}%%
+flowchart BT
+    wombat.core --> wombat
+    wombat.windfarm --> wombat
+    wombat.utilities --> wombat
+
+    simulation_api --> wombat.core
+    post_processor --> wombat.core
+    data_classes --> wombat.core
+    library --> wombat.core
+    environment --> wombat.core
+    repair_management --> wombat.core
+    service_equipment --> wombat.core
+
+    windfarm --> wombat.windfarm
+    wombat.windfarm.system --> wombat.windfarm
+    system --> wombat.windfarm.system
+    subassembly --> wombat.windfarm.system
+    cable --> wombat.windfarm.system
+
+    utilities --> wombat.utilities
+
+    %% mmdc -i package_hierarchy.mmd -o package_hierarchy.svg
