@@ -120,23 +120,18 @@ class WombatEnvironment(simpy.Environment):
             simulation = self.simulation_name.replace(" ", "_")
         dt_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S.%f")
 
-        self.events_log_fname = f"{dt_stamp}_{simulation}_events.log"
-        self.operations_log_fname = f"{dt_stamp}_{simulation}_operations.log"
-        self.power_potential_fname = f"{dt_stamp}_{simulation}_power_potential.csv"
-        self.power_production_fname = f"{dt_stamp}_{simulation}_power_production.csv"
+        events_log_fname = f"{dt_stamp}_{simulation}_events.log"
+        operations_log_fname = f"{dt_stamp}_{simulation}_operations.log"
+        power_potential_fname = f"{dt_stamp}_{simulation}_power_potential.csv"
+        power_production_fname = f"{dt_stamp}_{simulation}_power_production.csv"
+        metrics_input_fname = f"{dt_stamp}_{simulation}_metrics_inputs.yaml"
 
-        self.events_log_fname = str(
-            self.data_dir / "outputs" / "logs" / self.events_log_fname
-        )
-        self.operations_log_fname = str(
-            self.data_dir / "outputs" / "logs" / self.operations_log_fname
-        )
-        self.power_potential_fname = str(
-            self.data_dir / "outputs" / "logs" / self.power_potential_fname
-        )
-        self.power_production_fname = str(
-            self.data_dir / "outputs" / "logs" / self.power_production_fname
-        )
+        log_path = self.data_dir / "outputs" / "logs"
+        self.events_log_fname = log_path / events_log_fname
+        self.operations_log_fname = log_path / operations_log_fname
+        self.power_potential_fname = log_path / power_potential_fname
+        self.power_production_fname = log_path / power_production_fname
+        self.metrics_input_fname = log_path / metrics_input_fname
 
         _dir = self.data_dir / "outputs" / "logs"
         if not _dir.is_dir():
@@ -565,15 +560,15 @@ class WombatEnvironment(simpy.Environment):
         events = self._create_events_log_dataframe().sort_values("env_time")
         operations = self._create_operations_log_dataframe().sort_values("env_time")
 
-        events_fname = self.events_log_fname.replace(".log", ".csv")
+        events_fname = self.events_log_fname.with_suffix(".csv")
         events.to_csv(events_fname, index=False)
 
-        operations_fname = self.operations_log_fname.replace(".log", ".csv")
+        operations_fname = self.operations_log_fname.with_suffix(".csv")
         operations.to_csv(operations_fname, index=False)
 
         if delete_original:
-            Path(self.operations_log_fname).unlink()
-            Path(self.events_log_fname).unlink()
+            self.operations_log_fname.unlink()
+            self.events_log_fname.unlink()
 
         if return_df:
             return operations, events
@@ -644,26 +639,43 @@ class WombatEnvironment(simpy.Environment):
             logging files are all deleted, by default False
         """
 
-        Path(self.events_log_fname).unlink()
-        Path(self.operations_log_fname).unlink()
+        # NOTE: Everything is wrapped in a try/except clause to protect against failure
+        # when inevitably a file has already been deleted on accident, or if in the
+        # dataframe generation step, the original logs were deleted
+
+        try:
+            self.events_log_fname.unlink()
+        except FileNotFoundError:
+            pass
+
+        try:
+            self.operations_log_fname.unlink()
+        except FileNotFoundError:
+            pass
+
         if not log_only:
             # Don't fail if any of the following files were not created
             try:
-                Path(self.events_log_fname.replace(".log", ".csv")).unlink()
+                self.events_log_fname.with_suffix(".csv").unlink()
             except FileNotFoundError:
                 pass
 
             try:
-                Path(self.operations_log_fname.replace(".log", ".csv")).unlink()
+                self.operations_log_fname.with_suffix(".csv").unlink()
             except FileNotFoundError:
                 pass
 
             try:
-                Path(self.power_potential_fname).unlink()
+                self.power_potential_fname.unlink()
             except FileNotFoundError:
                 pass
 
             try:
-                Path(self.power_production_fname).unlink()
+                self.power_production_fname.unlink()
+            except FileNotFoundError:
+                pass
+
+            try:
+                self.metrics_input_fname.unlink()
             except FileNotFoundError:
                 pass
