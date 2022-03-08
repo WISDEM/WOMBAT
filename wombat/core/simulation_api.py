@@ -284,8 +284,8 @@ class Simulation(FromDictMixin):
         """
         data = dict(
             data_dir=str(self.config.library),
-            events=self.env.events_log_fname.replace(".log", ".csv"),
-            operations=self.env.operations_log_fname.replace(".log", ".csv"),
+            events=self.env.events_log_fname.with_suffix(".csv"),
+            operations=self.env.operations_log_fname.with_suffix(".csv"),
             potential=self.env.power_potential_fname,
             production=self.env.power_production_fname,
             inflation_rate=self.config.inflation_rate,
@@ -300,14 +300,5 @@ class Simulation(FromDictMixin):
             SAM_settings=self.config.SAM_settings,
         )
 
-        # Get the filename and rename it apporpriately
-        events_fname = Path(self.env.events_log_fname)
-        fname = events_fname.name
-        fname = fname.replace("_events.log", "_metrics_inputs.yaml")
-
-        # Get the path and move it 1 level up to <data_dir>/outputs/
-        fpath = events_fname.parents[1]
-
-        fname = fpath / fname  # type: ignore
-        with open(fname, "w") as f:
+        with open(self.env.metrics_input_fname, "w") as f:
             yaml.dump(data, f, default_flow_style=False, sort_keys=False)
