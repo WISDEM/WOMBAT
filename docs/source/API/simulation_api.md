@@ -1,5 +1,11 @@
 # Simulation API
 
+```{image} ../images/simulation_api.svg
+:alt:
+:align: center
+:width: 2400px
+```
+
 ## Configuration
 ```{eval-rst}
 .. autoclass:: wombat.core.simulation_api.Configuration

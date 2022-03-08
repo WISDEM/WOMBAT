@@ -28,7 +28,6 @@ The folowing all asssume you are in your `wombat` environment!
 
 ### Pip
 
-NOTE: THIS ONLY WORKS FOR WOMBAT, DO NOT DO THIS FOR WOMBAT!!!!!!!!
 ```text
 $ pip install wombat
 ```

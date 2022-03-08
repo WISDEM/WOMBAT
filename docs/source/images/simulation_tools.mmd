@@ -1,135 +1,6 @@
-```{mermaid}
 %%{init: {'theme':'base'}}%%
-classDiagram BT
-    class Failure{
-        level: int
-        scale: float
-        shape: float
-        time: float
-        materials: float
-        description: str
-        operation_reduction: float
-        service_equipment: list[str]
-        system_value: float
-        weibull
-        request_id: str
-        assign_id(request_id: str)
-        hours_to_next_failure() float
-    }
-    class Maintenance{
-        time: float
-        materials: float
-        description: str
-        operation_reduction: float
-        service_equipment: list[str]
-        system_value: float
-        request_id: str
-        assign_id(request_id: str)
-    }
-    class RepairRequest{
-        cable: bool
-        details: Failure | Maintenance
-        request_id: str
-        severity_level: int
-        subassembly_id: str
-        subassembly_name: str
-        system_id: str
-        system_name: str
-        upstream_turbines: list[str]
-        assign_id(request_id: str)
-    }
-    class ServiceEquipmentData{
-        data_dict: dict
-        strategy: str
-        determine_type()
-    }
-    class ServiceCrew{
-        day_rate: float
-        hourly_rate: float
-        n_day_rate: int
-        n_hourly_rate: int
-    }
-    class ScheduledServiceEquipmentData{
-        name: str
-        capability: list[str]
-        equipment_rate: float
-        crew: ServiceCrew
-        n_crews: int
-        crew_transfer_time: float
-        start_day: int
-        start_month: int
-        end_day: int
-        end_month: int
-        start_year: int
-        end_year: int
-        strategy: str
-        onsite: bool
-        workday_start: int
-        workday_end: int
-        method: str
-        mobilization_cost: float
-        mobilization_days: int
-        speed: float
-        max_waveheight_repair: float
-        max_waveheight_transport: float
-        max_windspeed_repair: float
-        max_windspeed_transport: float
-        operating_dates: numpy.ndarray
-        create_date_range()
-    }
-    class UnscheduledServiceEquipmentData{
-        name: str
-        capability: list[str]
-        equipment_rate: float
-        crew: ServiceCrew
-        n_crews: int
-        crew_transfer_time: float
-        charter_days: int
-        strategy: str
-        strategy_threshold: int | float
-        workday_start: int
-        workday_end: int
-        method: str
-        mobilization_cost: float
-        mobilization_days: int
-        speed: float
-        max_waveheight_repair: float
-        max_waveheight_transport: float
-        max_windspeed_repair: float
-        max_windspeed_transport: float
-        onsite: bool
-    }
-    class SubassemblyData{
-        name: str
-        system_value: float
-        failures: dict[int, Failure]
-        maintenance: list[Maintenance]
-    }
-    class FixedCosts{
-        operations: float
-        annual_lease_fees: float
-        brokers_fee: float
-        business_interruption: float
-        condition_monitoring: float
-        environmental_health_safety_monitoring: float
-        insurance: float
-        labor: float
-        marine_management: float
-        onshore_electrical_maintenance: float
-        operating_facilities: float
-        operations_all_risk: float
-        operations_management_administration: float
-        project_management_administration: float
-        storm_coverage: float
-        submerge_land_lease_costs: float
-        third_party_liability: float
-        transmission_charges_rights: float
-        weather_forecasting: float
-        hierarchy: dict
-        resolution: dict
-        cost_category_validator(name: str, sub_name: list[str])
-    }
-
+classDiagram
+    direction BT
     class ServiceEquipment{
         env: WombatEnvironment
         manager: RepairManager
@@ -252,6 +123,18 @@ classDiagram BT
         get_next_highest_severity_request(equipment_capability: list[str], severity_level: int)
         get_request_by_system(equipment_capability: list[str], system_id: str)
     }
+    class RepairRequest{
+        cable: bool
+        details: Failure | Maintenance
+        request_id: str
+        severity_level: int
+        subassembly_id: str
+        subassembly_name: str
+        system_id: str
+        system_name: str
+        upstream_turbines: list[str]
+        assign_id(request_id: str)
+    }
     class StrategyMap{
         CTV: list[EquipmentMap]
         LCN: list[EquipmentMap]
@@ -357,51 +240,28 @@ classDiagram BT
         pysam_all_outputs() pd.DataFrame
     }
 
-    ServiceCrew ..> ScheduledServiceEquipmentData
-    ServiceCrew ..> UnscheduledServiceEquipmentData
-    ScheduledServiceEquipmentData ..> ServiceEquipmentData : determine_type
-    UnscheduledServiceEquipmentData ..> ServiceEquipmentData : determine_type
+    RepairManager o-- RepairRequest
+    StrategyMap *-- EquipmentMap
+    RepairManager *-- StrategyMap
+    EquipmentMap *-- ServiceEquipment
+    StrategyMap o-- EquipmentMap
+    RepairManager o-- ServiceEquipment
 
-    %% FromDictMixin --* Failure
-    %% FromDictMixin --* Maintenance
-    %% FromDictMixin --* RepairRequest
-    %% FromDictMixin --* ScheduledServiceEquipmentData
-    %% FromDictMixin --* UnscheduledServiceEquipmentData
-    %% FromDictMixin --* FixedCosts
-    %% FromDictMixin --* SubassemblyData
+    RepairRequest <-- Subassembly
+    RepairRequest <-- System
 
-    ServiceEquipmentData --* ServiceEquipment
+    System *-- Subassembly
+    Windfarm o-- Cable
+    Windfarm o-- System
 
-    Failure ..> RepairRequest
-    Maintenance ..> RepairRequest
-    RepairRequest --o RepairManager
-    EquipmentMap --* StrategyMap
-    StrategyMap --* RepairManager
-    ServiceEquipment --* EquipmentMap
-    EquipmentMap --o StrategyMap
-    ServiceEquipment --o RepairManager
-
-    Subassembly --> RepairRequest
-    System --> RepairRequest
-
-    Failure ..|> SubassemblyData
-    Maintenance ..|> SubassemblyData
-    SubassemblyData ..|> Cable
-    Cable --o Windfarm
-    SubassemblyData ..|> Subassembly
-    Subassembly --* System
-    System --o Windfarm
-
-    FixedCosts --* Metrics
-
-    Configuration --* Simulation
-    Metrics --* Simulation
-    WombatEnvironment --* Simulation
-    Windfarm --* Simulation
-    RepairManager --* Simulation
-    ServiceEquipment --* Simulation
+    Simulation *-- Configuration
+    Simulation *-- Metrics
+    Simulation *-- WombatEnvironment
+    Simulation *-- Windfarm
+    Simulation *-- RepairManager
+    Simulation *-- ServiceEquipment
 
 
 
     %% mmdc -i class_diagram.mmd -o class_diagram.svg
-```
+    %% mmdc -i class_diagram.mmd -o class_diagram.png -w 2400 -b transparent
