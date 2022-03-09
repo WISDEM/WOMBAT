@@ -4,8 +4,9 @@
 from __future__ import annotations
 
 import logging  # type: ignore
-import datetime  # type: ignore
+import datetime
 from typing import Any, Callable  # type: ignore
+from pathlib import Path  # type: ignore
 
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
@@ -85,7 +86,7 @@ def _mean(*args) -> float:
     return np.mean(args)
 
 
-def setup_logger(logger_name: str, log_file: str, level: Any = logging.INFO) -> None:
+def setup_logger(logger_name: str, log_file: Path, level: Any = logging.INFO) -> None:
     """Creates the logging infrastructure for a given logging category.
 
     TODO: Figure out how to type check ``logging.INFO``; ``Callable``?
@@ -94,7 +95,7 @@ def setup_logger(logger_name: str, log_file: str, level: Any = logging.INFO) -> 
     ----------
     logger_name : str
         Name to assign to the logger.
-    log_file : str
+    log_file : Path
         File name and path for where the log data should be saved.
     level : Any, optional
         Logging level, by default logging.INFO.

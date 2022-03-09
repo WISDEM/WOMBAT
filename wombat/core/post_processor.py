@@ -1070,11 +1070,6 @@ class Metrics:
         the total cost because it is does not include times where there is no work being
         done, but costs are being accrued.
 
-        .. note:: It should be noted that the costs will include costs accrued from both
-            weather delays and shift-to-shift delays. In the future these will be
-            disentangled.
-
-
         Parameters
         ----------
         frequency : str
@@ -1092,14 +1087,14 @@ class Metrics:
         float | pd.DataFrame
             Returns either a float for whole project-level costs or a pandas ``DataFrame``
             with columns:
-                - year (if appropriate for frequency)
-                - month (if appropriate for frequency)
-                - component
-                - action (if broken out)
-                - materials_cost (if broken out)
-                - total_labor_cost (if broken out)
-                - equipment_cost (if broken out)
-                - total_cost
+             - year (if appropriate for frequency)
+             - month (if appropriate for frequency)
+             - component
+             - action (if broken out)
+             - materials_cost (if broken out)
+             - total_labor_cost (if broken out)
+             - equipment_cost (if broken out)
+             - total_cost
 
         Raises
         ------
@@ -1109,6 +1104,12 @@ class Metrics:
             If ``by_category`` is not one of ``True`` or ``False``.
         ValueError
             If ``by_action`` is not one of ``True`` or ``False``.
+
+        Notes
+        -----
+        It should be noted that the costs will include costs accrued from both weather
+        delays and shift-to-shift delays. In the future these will be disentangled.
+
         """
         frequency = frequency.lower().strip()
         if frequency not in ("project", "annual", "monthly", "month-year"):

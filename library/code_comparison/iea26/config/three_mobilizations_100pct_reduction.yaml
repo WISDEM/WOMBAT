@@ -1,0 +1,12 @@
+name: iea_26_three_mobilizations_100pct_reduction
+library: IEA_26
+weather: hornsrev3_weather_1996_2015.csv
+service_equipment: [ctv1.yaml, ctv2.yaml, dsv.yaml, cabling_scheduled.yaml, hlv_1.yaml, hlv_2.yaml, hlv_3.yaml, rmt.yaml]
+layout: layout_100pct_reduction.csv
+inflation_rate: 0
+fixed_costs: fixed_costs.yaml
+workday_start: 7
+workday_end: 18
+start_year: 1996
+end_year: 2015
+project_capacity: 400

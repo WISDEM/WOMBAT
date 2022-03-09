@@ -1,3 +1,9 @@
+## 0.4.1 (2022-March-8)
+- Adds code diagrams to demonstrate how the various components connect
+- Updates the documentation to be better in line with the current state of the software
+- Fixes a bug that allowed the x_metrics_inputs.yaml file to persist after the cleanup method is called.
+- Updates the provided library content structure to account for future updates
+
 ## 0.4.0 (2022-February-4)
 - Testing now included!
 - `pathlib.Path` is used in place of `os` throughout for easier to read file manuevering.
