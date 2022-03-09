@@ -10,10 +10,23 @@ import yaml  # type: ignore
 
 ROOT = Path(__file__).parents[2].resolve()
 DEFAULT_LIBRARY = ROOT / "library"
-DINWOODIE = DEFAULT_LIBRARY / "dinwoodie"
-IEA_26 = DEFAULT_LIBRARY / "iea26"
+CODE_COMPARISON = DEFAULT_LIBRARY / "code_comparison"
+BASE_CASES = DEFAULT_LIBRARY / "baseline"
 
-library_map = {"DINWOODIE": DINWOODIE, "IEA_26": IEA_26, "IEA26": IEA_26}
+DINWOODIE = CODE_COMPARISON / "dinwoodie"
+IEA_26 = DEFAULT_LIBRARY / "code_comparison" / "iea26"
+
+OSW_FIXED = BASE_CASES / "offshore_fixed"
+LBW = BASE_CASES / "land_based"
+
+library_map = {
+    "DINWOODIE": DINWOODIE,
+    "IEA_26": IEA_26,
+    "IEA26": IEA_26,
+    "OSW_FIXED": OSW_FIXED,
+    "LBW": LBW,
+    "LAND_BASED": LBW,
+}
 
 # YAML loader that is able to read scientific notation
 custom_loader = yaml.SafeLoader

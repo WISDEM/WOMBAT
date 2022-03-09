@@ -1,0 +1,100 @@
+%%{init: {'theme':'base'}}%%
+classDiagram
+    direction BT
+    class WombatEnvironment{
+        data_dir: pathlib.Path
+        weather_file: str
+        workday_end: int
+        workday_end: int
+        simulation_name: str
+        start_year: int
+        end_year: int
+        weather: pandas.DataFrame
+        max_run_time: int
+        shift_length: int
+        weather_now: tuple[float, float]
+        simulation_time: datetime.datetime
+        current_time: datetime.datetime
+        events_log_fname: str
+        operations_log_fname: str
+        power_potential_fname: str
+        power_production_fname: str
+        run(until: int | float)
+        hour_in_shift(hour: int, workday_start: int, workday_end: int) bool
+        hours_to_next_shift(workday_start: int) float
+        date_ix(date: datetime.datetime) int)
+        weather_forecast(hours: int | float) tuple[pandas.DateTimeIndex, numpy.ndarray, numpy.ndarray]
+        convert_logs_to_csv(delete_original: bool, return_df: True) tuple[pandas.DataFrame, pandas.DataFrame]
+        power_production_potential_to_csv(windfarm: Windfarm, operations: pandas.DataFrame, return_df: bool) tuple[pandas.DataFrame, pandas.DataFrame]
+        cleanup_log_files(log_only: bool)
+    }
+
+    class Simulation{
+        env: WombatEnvironment
+        library_path: pathlib.Path
+        config: dict | Configuration
+        windfarm: Windfarm
+        repair_manager: RepairManager
+        service_equipment: list[ServiceEquipment]
+        metrics: Metrics
+        from_config(cls, config: pathlib.Path | dict)
+        run(until: int, create_metrics: bool, save_metrics_inputs: bool)
+        save_metrics_inputs()
+    }
+    class Configuration{
+        name: str
+        library_path: pathlib.Path
+        layout: str
+        service_equipment: str | list[str]
+        weather: str | pandas.DataFrame
+        workday_start: int
+        workday_end: int
+        inflation_rate: float
+        fixed_costs: str
+        project_capacity: float
+        start_year: int
+        end_year: int
+        SAM_settings: str
+    }
+    class Metrics{
+        data_dir: pathlib.Path
+        events: str | pandas.DataFrame
+        operations: str | pandas.DataFrame
+        potential: str | pandas.DataFrame
+        production: str | pandas.DataFrame
+        inflation_rate: float
+        project_capacity: float
+        turbine_capacities: list[float]
+        substation_id: list[str]
+        turbine_id: list[str]
+        service_equipment_names: list[str]
+        fixed_costs: str
+        SAM_settings: str
+        from_simulation_outputs(cls, fpath: Path | str, fname: str)
+        time_based_availability(frequency: str, by: str) float | pd.DataFrame
+        production_based_availability(frequency: str, by: str) float | pd.DataFrame
+        capacity_factor(which: str, frequency: str, by: str) float | pd.DataFrame
+        task_completion_rate(which: str, frequency: str) float | pd.DataFrame
+        equipment_costs(frequency: str, by_equipment: bool)float | pd.DataFrame
+        service_equipment_utilization(frequency: str) pd.DataFrame
+        labor_costs(frequency: str, by_type: bool) float | pd.DataFrame
+        equipment_labor_cost_breakdowns(frequency: str, by_category: bool) pd.DataFrame
+        component_costs(frequency: str, by_category: bool, by_action: bool) pd.DataFrame
+        project_fixed_costs(frequency: str, resolution: str) pd.DataFrame
+        process_times() pd.DataFrame
+        power_production(frequency: str, by_turbine: bool) float | pd.DataFrame
+        pysam_npv() float | pd.DataFrame
+        pysam_lcoe_real() float | pd.DataFrame
+        pysam_lcoe_nominal() float | pd.DataFrame
+        pysam_irr() float | pd.DataFrame
+        pysam_all_outputs() pd.DataFrame
+    }
+
+    Simulation *-- Configuration
+    Simulation *-- Metrics
+    Simulation *-- WombatEnvironment
+
+
+
+    %% mmdc -i simulation_api.mmd -o simulation_api.svg
+    %% mmdc -i simulation_api.mmd -o simulation_api.png -w 2400 -b transparent

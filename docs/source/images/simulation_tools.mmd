@@ -1,0 +1,267 @@
+%%{init: {'theme':'base'}}%%
+classDiagram
+    direction BT
+    class ServiceEquipment{
+        env: WombatEnvironment
+        manager: RepairManager
+        windfarm: Windfarm
+        settings: ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData
+        at_port: bool
+        at_system: bool
+        onsite: bool
+        enroute: bool
+        transferring_crew: bool
+        current_system: bool
+        calculate_equipment_cost(duration: float)
+        calculate_hourly_cost(duration: float)
+        calculate_salary_cost(duration: float)
+        find_interrupted_weather_window(hours_required: float)
+        find_uninterrupted_weather_window(hours_required: float)
+        run_scheduled()
+        run_unscheduled()
+        mobilize()
+        mobilize_scheduled()
+        weather_delay(hours: float)
+        wait_until_next_shift()
+        wait_until_next_operational_period()
+        proces_repair(request: RepairRequest, time_processed: float, prior_operational_level: float)
+        crew_transfer(system: System, subassembly: Subassembly, requests: RepairRequest, to_system: bool)
+        repair(hours: float, request_details: Failure | Maintenance)
+        travel(start: str, end: str, set_current: str)
+    }
+
+    class Windfarm{
+        env: WombatEnvironment
+        windfarm_layout: str
+        repair_manager: RepairManager
+        capacity: float
+        graph: networkx.DiGraph
+        system_list: list[str]
+        substation_id: list[str]
+        turbine_id: list[str]
+        distance_matrix: numpy.ndarray
+        current_availability: float
+        current_availability_wo_servicing: float
+
+        calculate_distance_matrix()
+        _log_operations()
+        system(system_id: str) System
+        cable(cable_id: str | tuple) Cable
+    }
+    class System{
+        env: WombatEnvironment
+        id: str
+        name: str
+        operating_level: float
+        operating_level_wo_servicing: float
+        power_curve: Callable
+        repair_manager: RepairManager
+        servicing: bool
+        value: float
+        cable_failure: bool
+        capacity: float
+        subassemblies: list[Subassembly]
+        electrical_system: Subasembly
+        electronic_control: Subasembly
+        gearbox: Subasembly
+        generator: Subasembly
+        hydraulic_system: Subasembly
+        mechanical_brake: Subasembly
+        rotor_blades: Subasembly
+        rotor_hub: Subasembly
+        sensors: Subasembly
+        supporting_structure: Subasembly
+        yaw_system: Subasembly
+        transformer: Subasembly
+        power(windspeed: float | numpy.ndaray)
+        interrupt_all_subassembly_processes()
+    }
+    class Subassembly{
+        id: str
+        name: str
+        env: WombatEnvironment
+        data: SubassemblyData
+        broken: bool
+        operating_level: float
+        turbine: System
+        processes: dict
+        run_single_failure(failure: Failure)
+        run_single_maintenance(maintenance: Maintenance)
+        interrupt_processes()
+        interrupt_all_subassembly_processes()
+    }
+    class Cable{
+        id: str
+        name: str
+        env: WombatEnvironment
+        data: SubassemblyData
+        broken: bool
+        servicing: bool
+        downstream_failure: bool
+        processes: dict
+        operating_level: float
+        operating_level_wo_servicing: float
+        repair_manager: RepairManager
+        servicing: bool
+        value: float
+        cable_failure: bool
+        capacity: float
+        run_single_failure(failure: Failure)
+        run_single_maintenance(maintenance: Maintenance)
+        interrupt_processes()
+        interrupt_all_subassembly_processes()
+        stop_all_upstream_processes()
+    }
+    class RepairManager{
+        env: WombatEnvironment
+        windfarm: Windfarm
+        downtime_based_equipment: StrategyMap
+        request_based_equipment: StrategyMap
+        request_map: dict[str, int]
+        submit_request(request: RepairRequest) RepairREquest
+        purge_subassembly_requests(system_id: str, subassembly_id: str, exclude: list[str])
+        get_next_highest_severity_request(equipment_capability: list[str], severity_level: int)
+        get_request_by_system(equipment_capability: list[str], system_id: str)
+    }
+    class RepairRequest{
+        cable: bool
+        details: Failure | Maintenance
+        request_id: str
+        severity_level: int
+        subassembly_id: str
+        subassembly_name: str
+        system_id: str
+        system_name: str
+        upstream_turbines: list[str]
+        assign_id(request_id: str)
+    }
+    class StrategyMap{
+        CTV: list[EquipmentMap]
+        LCN: list[EquipmentMap]
+        SCN: list[EquipmentMap]
+        CAB: list[EquipmentMap]
+        DSV: list[EquipmentMap]
+        DRN: list[EquipmentMap]
+        RMT: list[EquipmentMap]
+        is_running: bool
+        update(capability: str, threshold: float | int, equipment: ServiceEquipment)
+    }
+    class EquipmentMap{
+        equipment_map: ServiceEquipment
+        strategy_threshold: int | float
+    }
+
+    class WombatEnvironment{
+        data_dir: pathlib.Path
+        weather_file: str
+        workday_end: int
+        workday_end: int
+        simulation_name: str
+        start_year: int
+        end_year: int
+        weather: pandas.DataFrame
+        max_run_time: int
+        shift_length: int
+        weather_now: tuple[float, float]
+        simulation_time: datetime.datetime
+        current_time: datetime.datetime
+        events_log_fname: str
+        operations_log_fname: str
+        power_potential_fname: str
+        power_production_fname: str
+        run(until: int | float)
+        hour_in_shift(hour: int, workday_start: int, workday_end: int) bool
+        hours_to_next_shift(workday_start: int) float
+        date_ix(date: datetime.datetime) int)
+        weather_forecast(hours: int | float) tuple[pandas.DateTimeIndex, numpy.ndarray, numpy.ndarray]
+        convert_logs_to_csv(delete_original: bool, return_df: True) tuple[pandas.DataFrame, pandas.DataFrame]
+        power_production_potential_to_csv(windfarm: Windfarm, operations: pandas.DataFrame, return_df: bool) tuple[pandas.DataFrame, pandas.DataFrame]
+        cleanup_log_files(log_only: bool)
+    }
+
+    class Simulation{
+        env: WombatEnvironment
+        library_path: pathlib.Path
+        config: dict | Configuration
+        windfarm: Windfarm
+        repair_manager: RepairManager
+        service_equipment: list[ServiceEquipment]
+        metrics: Metrics
+        from_config(cls, config: pathlib.Path | dict)
+        run(until: int, create_metrics: bool, save_metrics_inputs: bool)
+        save_metrics_inputs()
+    }
+    class Configuration{
+        name: str
+        library_path: pathlib.Path
+        layout: str
+        service_equipment: str | list[str]
+        weather: str | pandas.DataFrame
+        workday_start: int
+        workday_end: int
+        inflation_rate: float
+        fixed_costs: str
+        project_capacity: float
+        start_year: int
+        end_year: int
+        SAM_settings: str
+    }
+    class Metrics{
+        data_dir: pathlib.Path
+        events: str | pandas.DataFrame
+        operations: str | pandas.DataFrame
+        potential: str | pandas.DataFrame
+        production: str | pandas.DataFrame
+        inflation_rate: float
+        project_capacity: float
+        turbine_capacities: list[float]
+        substation_id: list[str]
+        turbine_id: list[str]
+        service_equipment_names: list[str]
+        fixed_costs: str
+        SAM_settings: str
+        from_simulation_outputs(cls, fpath: Path | str, fname: str)
+        time_based_availability(frequency: str, by: str) float | pd.DataFrame
+        production_based_availability(frequency: str, by: str) float | pd.DataFrame
+        capacity_factor(which: str, frequency: str, by: str) float | pd.DataFrame
+        task_completion_rate(which: str, frequency: str) float | pd.DataFrame
+        equipment_costs(frequency: str, by_equipment: bool)float | pd.DataFrame
+        service_equipment_utilization(frequency: str) pd.DataFrame
+        labor_costs(frequency: str, by_type: bool) float | pd.DataFrame
+        equipment_labor_cost_breakdowns(frequency: str, by_category: bool) pd.DataFrame
+        component_costs(frequency: str, by_category: bool, by_action: bool) pd.DataFrame
+        project_fixed_costs(frequency: str, resolution: str) pd.DataFrame
+        process_times() pd.DataFrame
+        power_production(frequency: str, by_turbine: bool) float | pd.DataFrame
+        pysam_npv() float | pd.DataFrame
+        pysam_lcoe_real() float | pd.DataFrame
+        pysam_lcoe_nominal() float | pd.DataFrame
+        pysam_irr() float | pd.DataFrame
+        pysam_all_outputs() pd.DataFrame
+    }
+
+    RepairManager o-- RepairRequest
+    StrategyMap *-- EquipmentMap
+    RepairManager *-- StrategyMap
+    EquipmentMap *-- ServiceEquipment
+    StrategyMap o-- EquipmentMap
+    RepairManager o-- ServiceEquipment
+
+    RepairRequest <-- Subassembly
+    RepairRequest <-- System
+
+    System *-- Subassembly
+    Windfarm o-- Cable
+    Windfarm o-- System
+
+    Simulation *-- Configuration
+    Simulation *-- Metrics
+    Simulation *-- WombatEnvironment
+    Simulation *-- Windfarm
+    Simulation *-- RepairManager
+    Simulation *-- ServiceEquipment
+
+
+
+    %% mmdc -i class_diagram.mmd -o class_diagram.svg
+    %% mmdc -i class_diagram.mmd -o class_diagram.png -w 2400 -b transparent

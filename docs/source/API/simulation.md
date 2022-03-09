@@ -6,6 +6,11 @@ There are a variety of components that enable a simulation to be run, from the
 environment, to the windfarm and its composition, and the servicing equipment. The
 below will show how each of the APIs are powered to enable the full flexibility of modeling.
 
+```{image} ../images/simulation_tools.svg
+:alt:
+:align: center
+:width: 2400px
+```
 
 ### Environment
 ```{eval-rst}
