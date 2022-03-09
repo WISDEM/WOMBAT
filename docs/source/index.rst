@@ -64,7 +64,7 @@ servicing equipment, repair manager to hold and pass on tasks, and results post-
 
 .. image:: images/high_level_diagram.svg
 
-As for how a windfarm is simulated, the below image represents the flow of events as
+The following section describes how a windfarm is simulated and the flow of events as
 they occur within the model.
 
 Simulation Architecture
@@ -94,7 +94,9 @@ lifecycle of a single failure.
    condition and the turbine will be reset to operating. From there all the turbine's
    and drivetrain's failure and maintenance models be turned back on, and the simulation
    will continue on in the same manner until it reaches it's user- or weather-defined
-   ending point is reached.
+   ending point.
+
+TODO @rob suggest to introduce some of these concepts (like timeouts, downtime accrual) earlier. Maybe describe what is modeled in some more detail above before using it in the context of simulation architecture.
 
 .. image:: images/simulation_diagram.png
 

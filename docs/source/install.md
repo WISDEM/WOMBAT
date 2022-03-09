@@ -13,7 +13,7 @@ of your choosing (without spaces):
 ```text
 $ conda create -n <environment_name> python=3.7 --no-default-packages
 $ conda activate <environment_name>
-$ conda install -c anaconda pip
+$ conda install -c anaconda pip  # installing Python above also install pip
 ```
 You can now use ``conda activate <environment_name>`` to enter the environment and
 ``conda deactivate`` to exit the environment.
