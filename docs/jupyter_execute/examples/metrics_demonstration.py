@@ -39,17 +39,9 @@ sim = Simulation("DINWOODIE", "base.yaml")
 # Both of these parameters are True by default for convenience
 sim.run(create_metrics=True, save_metrics_inputs=True)
 
-# Get the path and file name pattern from the simulation file naming convention
-events_fname = Path(sim.env.events_log_fname)
-
-# Get the path to the file which is one level up from the logging outputs
-fpath = events_fname.parents[1]
-
-# Get the filename and update it to the correct name
-fname = events_fname.name
-fname = fname.replace("_events.log", "_metrics_inputs.yaml")
-
 # Load the metrics data
+fpath = sim.env.metrics_input_fname.parent
+fname = sim.env.metrics_input_fname.name
 metrics = Metrics.from_simulation_outputs(fpath, fname)
 
 # Alternatively, in this case because the simulation was run, we can use the
@@ -362,7 +354,7 @@ metrics.labor_costs(frequency="month-year", by_type=False).head(24)
 #  - `True`: computed across as equipment, plus each labor type, plus totals
 #  - `False`: computed as single total
 #
-# ##### **NOTE:** For this breakdown the expense category (reason) is distributed across the rows in addition to time.
+# **NOTE:** For this breakdown the expense category (reason) is distributed across the rows in addition to time.
 #
 #
 # `reason` definitions:
@@ -432,7 +424,7 @@ metrics.equipment_labor_cost_breakdowns(frequency="month-year", by_category=Fals
 #  - `True`: computed by each of "repair", "maintenance", and "delay"
 #  - `False`: computed as single total
 #
-# ##### **NOTE:** For this breakdown the expense category (reason) is distributed across the rows in addition to time.
+# **NOTE:** For this breakdown the expense category (reason) is distributed across the rows in addition to time.
 #
 #
 # `action` definitions:

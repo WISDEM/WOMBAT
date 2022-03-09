@@ -35,8 +35,9 @@ pd.set_option("display.max_columns", 1000)
 # ## Defining the Simulation
 #
 # The following will demonstrate the required information to run a simulation. For the
-# purposes of this tutorial, we'll be working with the data under `library/dinwoodie` in
-# the Github repository, and specifically the base case.
+# purposes of this tutorial, we'll be working with the data under
+# `library/code_comparison/dinwoodie` in the Github repository, and specifically the base
+# case.
 #
 # ````{note}
 # One important item to note is that the library structure is enforced within the code so all
