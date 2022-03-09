@@ -284,10 +284,10 @@ class Simulation(FromDictMixin):
         """
         data = dict(
             data_dir=str(self.config.library),
-            events=self.env.events_log_fname.with_suffix(".csv"),
-            operations=self.env.operations_log_fname.with_suffix(".csv"),
-            potential=self.env.power_potential_fname,
-            production=self.env.power_production_fname,
+            events=str(self.env.events_log_fname.with_suffix(".csv")),
+            operations=str(self.env.operations_log_fname.with_suffix(".csv")),
+            potential=str(self.env.power_potential_fname),
+            production=str(self.env.power_production_fname),
             inflation_rate=self.config.inflation_rate,
             project_capacity=self.config.project_capacity,
             turbine_capacities=[
