@@ -3,12 +3,6 @@
 
 # # Servicing Equipment Strategy Demonstration
 #
-# ### National Renewable Energy Laboratory
-#
-# #### Rob Hammond
-#
-# ##### 7 December 2021
-#
 # In this example, we will demonstrate how the results for the base case for the Dinwoodie, et al. example vary based on how each of the vessels are scheduled. The configuration details all remain the same, regardless of details, except for the strategy information, which is defined as follows:
 #  - **strategy_scheduled**: exactly the same as the base case (fsv_scheduled.yaml and hlv_scheduled.yaml)
 #  - **strategy_requests**: the FSV and HLV are called to site when 10 requests that they can service are logged (fsv_requests.yaml and hlv_requests.yaml)
@@ -65,9 +59,9 @@ results = {
 # In[3]:
 
 
-print(f"{'name'.rjust(24)} | {'loading'} | running")
+print(f"{'name'.rjust(28)} | {'loading'} | running")
 for config in configs:
-    print(f"{config.rjust(24)}", end=" | ")
+    print(f"{config.rjust(28)}", end=" | ")
 
     # Load the simulation
     start = perf_counter()
