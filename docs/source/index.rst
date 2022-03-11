@@ -96,7 +96,9 @@ lifecycle of a single failure.
    will continue on in the same manner until it reaches it's user- or weather-defined
    ending point.
 
-TODO @rob suggest to introduce some of these concepts (like timeouts, downtime accrual) earlier. Maybe describe what is modeled in some more detail above before using it in the context of simulation architecture.
+TODO @rob suggest to introduce some of these concepts (like timeouts, downtime accrual)
+earlier. Maybe describe what is modeled in some more detail above before using it in the
+context of simulation architecture.
 
 .. image:: images/simulation_diagram.png
 
