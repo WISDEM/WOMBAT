@@ -628,6 +628,22 @@ class WombatEnvironment(simpy.Environment):
         if return_df:
             return potential_df, production_df
 
+    # ALICIA REVIEWS
+    # Consider using the with suppress() context manager to reduce the lines of
+    # code.
+    #
+    # from contentlib import suppress
+    # ...
+    # with suppress(FileNotFoundError):
+    #   self.events_log_fname.unlink()
+    #
+    # Or even all in the same context manager.
+    #
+    # with suppress(FileNotFoundError):
+    #   self.events_log_fname.unlink()
+    #   self.operations_log_fname.unlink()
+    #   # etc.
+
     def cleanup_log_files(self, log_only=False) -> None:
         """This is a convenience method to clear the output log files in case a large
         batch of simulations is being run and there are space limitations.
