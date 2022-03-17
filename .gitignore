@@ -157,3 +157,6 @@ ENV/
 # Text editors
 .vscode/
 .idea/
+
+# Ignore intermediate log files
+library/code_comparison/dinwoodie/outputs/logs
