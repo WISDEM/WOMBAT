@@ -451,9 +451,6 @@ class Metrics:
         production = self.production.loc[:, self.turbine_id]
         potential = self.potential.loc[:, self.turbine_id]
 
-        # TODO Review by Alicia
-        # (potential == 0).sum() > 0: When would this ever be greater than 0?
-
         if frequency == "project":
             production = production.values
             potential = potential.values
