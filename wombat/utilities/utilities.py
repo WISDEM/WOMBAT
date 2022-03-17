@@ -68,6 +68,9 @@ def hours_until_future_hour(dt: datetime.datetime, hour: int) -> float:
     diff = new_dt - dt
     return convert_dt_to_hours(diff)
 
+# ALICIA REVIEWS
+#
+# Maybe add a breif comment about why this has a @cache decorator.
 
 @cache
 def _mean(*args) -> float:
