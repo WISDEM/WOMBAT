@@ -636,13 +636,6 @@ class WombatEnvironment(simpy.Environment):
     # ...
     # with suppress(FileNotFoundError):
     #   self.events_log_fname.unlink()
-    #
-    # Or even all in the same context manager.
-    #
-    # with suppress(FileNotFoundError):
-    #   self.events_log_fname.unlink()
-    #   self.operations_log_fname.unlink()
-    #   # etc.
 
     def cleanup_log_files(self, log_only=False) -> None:
         """This is a convenience method to clear the output log files in case a large
