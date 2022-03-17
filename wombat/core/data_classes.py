@@ -46,6 +46,8 @@ def convert_to_list(
         return [manipulation(el) for el in value]
     return list(value)
 
+# ALICIA REVIEWS
+# Nice partial function applications!
 
 convert_to_list_upper = partial(convert_to_list, manipulation=str.upper)
 update_wrapper(convert_to_list_upper, convert_to_list)
@@ -184,7 +186,6 @@ def valid_hour(
     elif value < 0 or value > 24:
         raise ValueError(f"Input {attribute.name} must be between 0 and 24, inclusive.")
 
-
 def check_capability(
     instance: Any,  # pylint: disable=W0613
     attribute: Attribute,
@@ -245,6 +246,9 @@ def check_method(
     if value not in valid:
         raise ValueError(f"Input {attribute.name} must be one of {valid}.")
 
+
+# ALICIA REVIEWS
+# Good work at using the mixin to handle the dictionaries.
 
 @define
 class FromDictMixin:
