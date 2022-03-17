@@ -451,6 +451,9 @@ class Metrics:
         production = self.production.loc[:, self.turbine_id]
         potential = self.potential.loc[:, self.turbine_id]
 
+        # TODO Review by Alicia
+        # (potential == 0).sum() > 0: When would this ever be greater than 0?
+
         if frequency == "project":
             production = production.values
             potential = potential.values
@@ -548,10 +551,13 @@ class Metrics:
             cf = pd.DataFrame((production.sum(axis=0) / 1000 / potential)).T
             return cf
 
-        production[["year", "month"]] = [
-            production.index.year.values.reshape(-1, 1),
-            production.index.month.values.reshape(-1, 1),
-        ]
+        # production[["year", "month"]] = [
+        #     production.index.year.values.reshape(-1, 1),
+        #     production.index.month.values.reshape(-1, 1),
+        # ]
+
+        production["year"] = production.index.year.values
+        production["month"] = production.index.month.values
 
         if frequency == "annual":
             potential = production.groupby("year").count()[self.turbine_id]
