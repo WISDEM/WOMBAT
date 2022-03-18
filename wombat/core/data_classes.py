@@ -911,7 +911,6 @@ class ServiceEquipmentData(FromDictMixin):
     >>>     "end_year": 2014,
     >>>     "onsite": True,
     >>>     "capability": "CTV",
-    >>>     "max_severity": 10,
     >>>     "mobilization_cost": 0,
     >>>     "mobilization_days": 0,
     >>>     "speed": 37.04,
@@ -930,6 +929,7 @@ class ServiceEquipmentData(FromDictMixin):
     >>>     },
     >>> }
     >>> equipment = ServiceEquipmentData(data_dict).determine_type()
+    >>> type(equipment)
     """
 
     data_dict: dict
