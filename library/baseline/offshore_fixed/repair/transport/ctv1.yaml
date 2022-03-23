@@ -1,12 +1,12 @@
 name: Crew Transfer Vessel 1
 equipment_rate: 1750
-n_crews: 1
+n_crews: 4
 crew:
   day_rate: 0  # crew comes with vessel
   n_day_rate: 0
   hourly_rate: 0
   n_hourly_rate: 0
-strategy: scheduled
+crew_transfer_time: 0.25
 start_month: 1
 start_day: 1
 end_month: 12
