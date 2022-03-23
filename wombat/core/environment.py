@@ -110,7 +110,17 @@ class WombatEnvironment(simpy.Environment):
             until = self.max_run_time
         elif until > self.max_run_time:
             until = self.max_run_time
-        super().run(until=until)
+        try:
+            super().run(until=until)
+        except BaseException as e:
+            # Flush the logs to so the simulation up to the point of failure is logged
+            self._events_logger.handlers[0].flush()
+            self._operations_logger.handlers[0].flush()
+            raise e
+
+        # Ensure all logged events make it to their target file
+        self._events_logger.handlers[0].flush()
+        self._operations_logger.handlers[0].flush()
 
     def _logging_setup(self) -> None:
         """Completes the setup for logging data."""
@@ -137,8 +147,8 @@ class WombatEnvironment(simpy.Environment):
         if not _dir.is_dir():
             _dir.mkdir()
 
-        setup_logger("events_log", self.events_log_fname)
-        setup_logger("operations_log", self.operations_log_fname)
+        setup_logger("events_log", self.events_log_fname, capacity=7000)
+        setup_logger("operations_log", self.operations_log_fname, capacity=7000)
         self._events_logger = logging.getLogger("events_log")
         self._operations_logger = logging.getLogger("operations_log")
 
