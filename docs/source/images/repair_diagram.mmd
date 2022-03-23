@@ -1,0 +1,29 @@
+%%{init: {'theme':'base'}}%%
+flowchart TD
+    A[Start]
+    B{4x crew\ntransfer safety\nbuffer available?}
+    C[Travel to port]
+    D[Wait until next shift]
+    E[Travel to repair location]
+    F[Crew Transfer]
+
+    A-->B-->|Yes| E-->F
+    B-->|No| C-->D-->A
+
+    G{Weather\ndelay?}
+    H[Wait for safe\noperating window]
+    I[Repair during\nsafe operating window]
+    J{Repair\ncomplete?}
+    K[Transfer crew\noff system]
+    L{End of\nshift?}
+    M[Travel to port]
+
+    F-->G-->|No| I
+    G-->|Yes| H-->I
+    I-->J-->|Yes| K
+    J-->|No| L-->|Yes| M-->A
+    L-->|No| G
+
+    %% mmdc -i repair_diagram.mmd -o repair_diagram.svg
+    %% then manually change all instances of <br> to <br/>
+    %% mmdc -i repair_diagram.mmd -o repair_diagram.png -w 2400 -b transparent
