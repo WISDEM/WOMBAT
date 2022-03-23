@@ -7,6 +7,7 @@ import logging  # type: ignore
 import datetime
 from typing import Any, Callable  # type: ignore
 from pathlib import Path  # type: ignore
+from logging.handlers import MemoryHandler
 
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
@@ -86,7 +87,9 @@ def _mean(*args) -> float:
     return np.mean(args)
 
 
-def setup_logger(logger_name: str, log_file: Path, level: Any = logging.INFO) -> None:
+def setup_logger(
+    logger_name: str, log_file: Path, level: Any = logging.INFO, capacity: int = 500
+) -> None:
     """Creates the logging infrastructure for a given logging category.
 
     TODO: Figure out how to type check ``logging.INFO``; ``Callable``?
@@ -106,11 +109,13 @@ def setup_logger(logger_name: str, log_file: Path, level: Any = logging.INFO) ->
     )
     fileHandler = logging.FileHandler(log_file, mode="w")
     fileHandler.setFormatter(formatter)
-    streamHandler = logging.StreamHandler()
-    streamHandler.setFormatter(formatter)
+
+    memory_handler = MemoryHandler(capacity=capacity, target=fileHandler)
+    memory_handler.setFormatter(formatter)
 
     logger.setLevel(level)
-    logger.addHandler(fileHandler)
+    # logger.addHandler(fileHandler)
+    logger.addHandler(memory_handler)
 
 
 def format_events_log_message(
