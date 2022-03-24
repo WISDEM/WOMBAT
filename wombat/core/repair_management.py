@@ -320,6 +320,10 @@ class RepairManager(FilterStore):
         # This return statement ensures there is always a known return type,
         # but consider raising an error here if the loop is always assumed to
         # break when something is found.
+        #
+        # ALICIA REVIEWS
+        # If the case where None is returned to signal an error, consider using
+        # the exception raising approach.
 
         return None
 

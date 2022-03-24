@@ -157,3 +157,10 @@ ENV/
 # Text editors
 .vscode/
 .idea/
+
+# Ignore intermediate log files
+library/code_comparison/dinwoodie/outputs/logs
+
+# Ignore Alicia's test library
+library/alicia/*
+examples/alicias_test.ipynb

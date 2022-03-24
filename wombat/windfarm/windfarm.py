@@ -113,6 +113,10 @@ class Windfarm:
 
         self.graph = windfarm
 
+    # ALICIA REVIEWS
+    #
+    # Add docstring below?
+
     def _create_turbines_and_substations(self) -> None:
         for system_id, data in self.graph.nodes(data=True):
             if data["subassembly"] == "":
@@ -131,6 +135,10 @@ class Windfarm:
                 subassembly_dict,
                 data["type"],
             )
+
+    # ALICIA REVIEWS
+    #
+    # Add docstring below?
 
     def _create_cables(self) -> None:
         for start_node, end_node, data in self.graph.edges(data=True):
@@ -170,7 +178,7 @@ class Windfarm:
             data["latitude"], data["longitude"] = end_points.mean(axis=0)
 
     def calculate_distance_matrix(self) -> None:
-        """Calculates hte geodesic distance, in km, between all of the windfarm's nodes, e.g.,
+        """Calculates the geodesic distance, in km, between all of the windfarm's nodes, e.g.,
         substations and turbines, and cables.
         """
         ids = list(self.graph.nodes())

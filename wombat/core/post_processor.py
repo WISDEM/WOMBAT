@@ -548,10 +548,13 @@ class Metrics:
             cf = pd.DataFrame((production.sum(axis=0) / 1000 / potential)).T
             return cf
 
-        production[["year", "month"]] = [
-            production.index.year.values.reshape(-1, 1),
-            production.index.month.values.reshape(-1, 1),
-        ]
+        # production[["year", "month"]] = [
+        #     production.index.year.values.reshape(-1, 1),
+        #     production.index.month.values.reshape(-1, 1),
+        # ]
+
+        production["year"] = production.index.year.values
+        production["month"] = production.index.month.values
 
         if frequency == "annual":
             potential = production.groupby("year").count()[self.turbine_id]

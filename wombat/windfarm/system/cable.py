@@ -172,6 +172,10 @@ class Cable:
                 request_id=failure.request_id,
             )
 
+        # ALICIA REVIEWS
+        #
+        # Does the alternive work and can these comments be removed.
+
         # TODO: DELETE ONCE CONFIRMED THE ALTERNATIVE WORKS
         # for i, system_id in enumerate(self.upstream_nodes):
         #     node = self.windfarm.system(system_id)
@@ -231,6 +235,10 @@ class Cable:
             if hours_to_next == 0:
                 remainder = self.env.max_run_time - self.env.now
                 try:
+                    # ALICIA REVIEWS
+                    #
+                    # Is this logging needed?
+                    
                     # TODO: determine if this logging is really needed
                     # self.env.log_action(
                     #     system_id=self.turbine.id,
@@ -317,6 +325,10 @@ class Cable:
             if hours_to_next is None:
                 remainder = self.env.max_run_time - self.env.now
                 try:
+                    # ALICIA REVIEWS
+                    #
+                    # Is this logging needed?
+
                     # TODO: determine if this logging is really needed
                     # self.env.log_action(
                     #     system_id=self.turbine.id,
