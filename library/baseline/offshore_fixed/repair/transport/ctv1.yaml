@@ -14,6 +14,7 @@ end_day: 31
 start_year: 1998
 end_year: 2017
 onsite: True
+strategy: scheduled
 capability: CTV
 max_severity: 10
 mobilization_cost: 0
