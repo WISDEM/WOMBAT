@@ -1,15 +1,15 @@
-name: Heavy Lift Vessel
-equipment_rate: 150000
-charter_days: 30
+name: Jack-up Vessel
+equipment_rate: 140000
 strategy: requests
 strategy_threshold: 3
-start_year: 2002
-end_year: 2014
+charter_days: 20
+start_year: 1996
+end_year: 2015
 onsite: false
 capability: LCN
 mobilization_cost: 500000
 mobilization_days: 60
-speed: 12.66
+speed: 12.96
 max_windspeed_transport: 10
 max_windspeed_repair: 10
 max_waveheight_transport: 2
@@ -19,7 +19,7 @@ workday_end: 24
 crew_transfer_time: 0.25
 n_crews: 1
 crew:
-  day_rate: 0  # crew comes with vessel
-  n_day_rate: 0
+  day_rate: 273.97  # 100000/yr
+  n_day_rate: 0  # crew comes with the vessel
   hourly_rate: 0
   n_hourly_rate: 0
