@@ -19,6 +19,7 @@ from scipy.stats import weibull_min  # type: ignore
 HOURS_IN_YEAR = 8760
 HOURS_IN_DAY = 24
 
+# Define the valid servicing equipment types
 VALID_EQUIPMENT = (
     "CTV",  # Crew tranfer vessel or onsite vehicle
     "SCN",  # Small crane
@@ -29,6 +30,10 @@ VALID_EQUIPMENT = (
     "DSV",  # Diving support vessel
     "TOW",  # tugboat or support vessel for moving a turbine to a repair facility
 )
+
+# Define the valid unscheduled and valid strategies
+UNSCHEDULED_STRATEGIES = ("requests", "downtime")
+VALID_STRATEGIES = tuple(["requests", "tow_to_port"] + list(UNSCHEDULED_STRATEGIES))
 
 
 def convert_to_list(
@@ -194,6 +199,18 @@ def valid_hour(
         pass
     elif value < 0 or value > 24:
         raise ValueError(f"Input {attribute.name} must be between 0 and 24, inclusive.")
+
+
+def valid_reduction(value: int | float) -> None:
+    """Checks to see if the reduction factor is between 0 and 1, inclusive.
+
+    Parameters
+    ----------
+    value : int | float
+        The input value for `speed_reduction_factor`.
+    """
+    if value < 0 or value > 1:
+        raise ValueError("Input must be between 0 and 1, inclusive.")
 
 
 def check_capability(
@@ -634,6 +651,10 @@ class ScheduledServiceEquipmentData(FromDictMixin):
         Number of days it takes to mobilize the equipment.
     speed : float
         Maximum transit speed, km/hr.
+    speed_reduction_factor : flaot
+        Reduction factor for traveling in inclement weather, default 0. When 0, travel
+        is stopped when either `max_windspeed_transport` or `max_waveheight_transport`
+        is reached, and when 1, `speed` is used.
     max_windspeed_transport : float
         Maximum windspeed for safe transport, m/s.
     max_windspeed_repair : float
@@ -684,6 +705,9 @@ class ScheduledServiceEquipmentData(FromDictMixin):
     workday_start: int = field(default=-1, converter=int, validator=valid_hour)
     workday_end: int = field(default=-1, converter=int, validator=valid_hour)
     crew_transfer_time: float = field(converter=float, default=0.0)
+    speed_reduction_factor: float = field(
+        default=0.0, converter=float, validator=valid_reduction
+    )
     onsite: bool = field(default=False, converter=bool)
     method: str = field(  # type: ignore
         default="severity",
@@ -771,6 +795,10 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         Number of days it takes to mobilize the equipment.
     speed : float
         Maximum transit speed, km/hr.
+    speed_reduction_factor : flaot
+        Reduction factor for traveling in inclement weather, default 0. When 0, travel
+        is stopped when either `max_windspeed_transport` or `max_waveheight_transport`
+        is reached, and when 1, `speed` is used.
     max_windspeed_transport : float
         Maximum windspeed for safe transport, m/s.
     max_windspeed_repair : float
@@ -826,6 +854,9 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
     workday_start: int = field(default=-1, converter=int, validator=valid_hour)
     workday_end: int = field(default=-1, converter=int, validator=valid_hour)
     crew_transfer_time: float = field(converter=float, default=0.0)
+    speed_reduction_factor: float = field(
+        default=0.0, converter=float, validator=valid_reduction
+    )
     onsite: bool = field(default=False)
     method: str = field(  # type: ignore
         default="severity",
@@ -838,11 +869,10 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         self, attribute: Attribute, value: str  # pylint: disable=W0613
     ) -> None:
         """Determines if the provided strategy is valid"""
-        valid = ("requests", "downtime")
-        if value not in valid:
+        if value not in UNSCHEDULED_STRATEGIES:
             raise ValueError(
                 "``strategy`` for unscheduled servicing equipment must be one of",
-                "'requests' or 'downtime'!",
+                f"{' or '.join(UNSCHEDULED_STRATEGIES)}",
             )
 
     @strategy_threshold.validator  # type: ignore
@@ -958,10 +988,9 @@ class ServiceEquipmentData(FromDictMixin):
             object.__setattr__(
                 self, "strategy", clean_string_input(self.data_dict["strategy"])
             )
-        if self.strategy not in ("scheduled", "requests", "downtime"):
+        if self.strategy not in VALID_STRATEGIES:
             raise ValueError(
-                "ServiceEquipment strategy should be one of 'scheduled' or 'requests',"
-                f" or 'downtime'; input: {self.strategy}."
+                f"ServiceEquipment strategy should be one of {VALID_STRATEGIES}; input: {self.strategy}."
             )
 
     def determine_type(
@@ -979,6 +1008,9 @@ class ServiceEquipmentData(FromDictMixin):
             return ScheduledServiceEquipmentData.from_dict(self.data_dict)
         elif self.strategy in ("requests", "downtime"):
             return UnscheduledServiceEquipmentData.from_dict(self.data_dict)
+        elif self.strategy == "tow_to_port":
+            # TODO
+            raise NotImplementedError("Tow-to-port is not yet implemented")
         else:
             # This should not be able to be reached
             raise ValueError("Invalid strategy provided!")

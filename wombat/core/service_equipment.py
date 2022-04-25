@@ -22,7 +22,10 @@ from wombat.windfarm import Windfarm
 from wombat.utilities import hours_until_future_hour
 from wombat.core.library import load_yaml
 from wombat.windfarm.system import System
-from wombat.core.data_classes import ScheduledServiceEquipmentData
+from wombat.core.data_classes import (
+    UNSCHEDULED_STRATEGIES,
+    ScheduledServiceEquipmentData,
+)
 from wombat.windfarm.system.cable import Cable
 from wombat.windfarm.system.subassembly import Subassembly
 
@@ -122,13 +125,17 @@ class ServiceEquipment:
 
         # Register servicing equipment with the repair manager if it is using an
         # unscheduled maintenance scenario, so it can be dispatched as needed
-        if self.settings.strategy != "scheduled":
+        if self.settings.strategy in UNSCHEDULED_STRATEGIES:
             self.manager._register_equipment(self)
 
         # Only run the equipment if it is on a scheduled basis, otherwise wait
         # for it to be dispatched
         if self.settings.strategy == "scheduled":
-            self.env.process(self.run_scheduled())
+            self.env.process(self.run_scheduled_in_situ())
+
+        # Run the tow-to-port strategy
+        if self.settings.strategy == "tow_to_port":
+            self.env.process(self.run_tow_to_port)
 
     def _check_working_hours(self) -> None:
         """Checks the working hours of the equipment and overrides a default (-1) to
@@ -583,7 +590,7 @@ class ServiceEquipment:
         )
         yield self.env.timeout(hours)
 
-    def repair(
+    def process_repair(
         self,
         hours: int | float,
         request_details: Maintenance | Failure,
@@ -854,7 +861,7 @@ class ServiceEquipment:
             action="complete transfer", additional="complete", **shared_logging
         )
 
-    def process_repair(
+    def in_situ_repair(
         self,
         request: RepairRequest,
         time_processed: int | float = 0,
@@ -934,7 +941,7 @@ class ServiceEquipment:
             yield self.env.process(self.wait_until_next_shift(**shared_logging))
 
             yield self.env.process(
-                self.process_repair(
+                self.in_situ_repair(
                     request, prior_operation_level=starting_operational_level
                 )
             )
@@ -1017,7 +1024,9 @@ class ServiceEquipment:
                 # Ensure this gets the correct float hours to the start of the target
                 # hour, unless the hours to process is between (0, 1]
                 yield self.env.process(
-                    self.repair(hours_to_process, request.details, **shared_logging)
+                    self.process_repair(
+                        hours_to_process, request.details, **shared_logging
+                    )
                 )
                 hours_processed += hours_to_process
                 hours_available -= hours_to_process
@@ -1047,7 +1056,7 @@ class ServiceEquipment:
             yield self.env.process(self.wait_until_next_shift(**shared_logging))
 
             yield self.env.process(
-                self.process_repair(
+                self.in_situ_repair(
                     request,
                     time_processed=hours_processed + time_processed,
                     prior_operation_level=starting_operational_level,
@@ -1081,7 +1090,12 @@ class ServiceEquipment:
                 self.travel(start="site", end="port", **shared_logging)
             )
 
-    def run_scheduled(self) -> Generator[Process, None, None]:
+    def tow_to_port_repair(self) -> None:
+        """Not Implemented"""
+        # TODO
+        raise NotImplementedError("Tow-to-port is not yet implemented")
+
+    def run_scheduled_in_situ(self) -> Generator[Process, None, None]:
         """Runs the simulation.
 
         Yields
@@ -1136,9 +1150,9 @@ class ServiceEquipment:
                     )
                 )
             else:
-                yield self.env.process(self.process_repair(request.value))
+                yield self.env.process(self.in_situ_repair(request.value))
 
-    def run_unscheduled(self) -> Generator[Process, None, None]:
+    def run_unscheduled_in_situ(self) -> Generator[Process, None, None]:
         """Runs an unscheduled maintenance simulation
 
         Yields
@@ -1193,4 +1207,8 @@ class ServiceEquipment:
                     )
                 )
             else:
-                yield self.env.process(self.process_repair(request.value))
+                yield self.env.process(self.in_situ_repair(request.value))
+
+    def run_tow_to_port(self) -> None:
+        """Not Implemented"""
+        raise NotImplementedError("Tow-to-port is not yet implemented")

@@ -196,7 +196,7 @@ class RepairManager(FilterStore):
                     continue
                 if equipment.equipment.onsite or equipment.equipment.enroute:
                     continue
-                self.env.process(equipment.equipment.run_unscheduled())
+                self.env.process(equipment.equipment.run_unscheduled_in_situ())
 
     def _run_equipment_requests(self) -> None:
         """Run the first piece of equipment (if none are onsite) for each equipment
@@ -213,7 +213,7 @@ class RepairManager(FilterStore):
                 if equipment.equipment.onsite or equipment.equipment.enroute:
                     equipment_mapping.append(equipment_mapping.pop(i))
                     break
-                self.env.process(equipment.equipment.run_unscheduled())
+                self.env.process(equipment.equipment.run_unscheduled_in_situ())
                 equipment_mapping.append(equipment_mapping.pop(i))
 
     def submit_request(self, request: RepairRequest) -> RepairRequest:
