@@ -11,6 +11,7 @@ import pytest
 import numpy.testing as npt
 
 from wombat.core.data_classes import (
+    VALID_EQUIPMENT,
     Failure,
     FixedCosts,
     Maintenance,
@@ -181,13 +182,13 @@ def test_check_capability():
         CapabilityClass(capability=["snc", "nlc", "bac", "rtm", "dnr", "vds"])
 
     # Test for correct spellings and case changes
-    correct_options = ["CTV", "SCN", "LCN", "CAB", "RMT", "DRN", "DSV"]
-    inputs = ["CTV", "SCn", "LCN", "cab", "RMT", "DRN", "Dsv"]
+    correct_options = VALID_EQUIPMENT
+    inputs = ["CTV", "SCn", "LCN", "cab", "RMT", "DRN", "Dsv", "tOW"]
     capability = CapabilityClass(capability=inputs)
     npt.assert_equal(capability.capability, correct_options)
 
     # Test for correct spellings and cases
-    correct_options = ["CTV", "SCN", "LCN", "CAB", "RMT", "DRN", "DSV"]
+    correct_options = ["CTV", "SCN", "LCN", "CAB", "RMT", "DRN", "DSV", "TOW"]
     capability = CapabilityClass(capability=correct_options)
     npt.assert_equal(capability.capability, correct_options)
 

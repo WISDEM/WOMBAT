@@ -11,6 +11,7 @@ from wombat import windfarm
 from wombat.core import repair_management, service_equipment
 from wombat.core.library import load_yaml
 from wombat.core.data_classes import (
+    VALID_EQUIPMENT,
     Failure,
     Maintenance,
     RepairRequest,
@@ -316,7 +317,7 @@ def test_get_requests(env_setup):
     # Set up all the required infrastructure
     env = env_setup
     manager = RepairManager(env)
-    capability_list = ["SCN", "LCN", "CTV", "CAB", "DSV", "RMT", "DRN"]
+    capability_list = VALID_EQUIPMENT
     turbine1 = System(env, manager, "WTG001", "Vestas V90 001", VESTAS_V90, "turbine")
     turbine2 = System(env, manager, "WTG002", "Vestas V90 002", VESTAS_V90, "turbine")
     turbine3 = System(env, manager, "WTG003", "Vestas V90 003", VESTAS_V90, "turbine")

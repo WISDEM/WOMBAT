@@ -38,6 +38,7 @@ class StrategyMap:
     RMT: list[EquipmentMap] = field(factory=list)
     DRN: list[EquipmentMap] = field(factory=list)
     DSV: list[EquipmentMap] = field(factory=list)
+    TOW: list[EquipmentMap] = field(factory=list)
     is_running: bool = field(default=False, init=False)
 
     def update(
@@ -76,6 +77,8 @@ class StrategyMap:
             self.DRN.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "DSV":
             self.DSV.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "TOW":
+            self.TOW.append(EquipmentMap(threshold, equipment))  # type: ignore
         else:
             # This should not even be able to be reached
             raise ValueError(

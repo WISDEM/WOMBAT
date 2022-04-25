@@ -19,6 +19,17 @@ from scipy.stats import weibull_min  # type: ignore
 HOURS_IN_YEAR = 8760
 HOURS_IN_DAY = 24
 
+VALID_EQUIPMENT = (
+    "CTV",  # Crew tranfer vessel or onsite vehicle
+    "SCN",  # Small crane
+    "LCN",  # Large crane
+    "CAB",  # Cabling equipment
+    "RMT",  # Remote reset or anything performed remotely
+    "DRN",  # Drone
+    "DSV",  # Diving support vessel
+    "TOW",  # tugboat or support vessel for moving a turbine to a repair facility
+)
+
 
 def convert_to_list(
     value: Sequence | str | int | float,
@@ -207,13 +218,14 @@ def check_capability(
          - RMT: remote reset
          - DRN: drone
          - DSV: diving support vessel
+         - TOW: tugboat or towing equipment
 
     Raises
     ------
     ValueError
         Raised if the input is not of the valid inputs.
     """
-    valid = set(("CTV", "SCN", "LCN", "CAB", "RMT", "DRN", "DSV"))
+    valid = set(VALID_EQUIPMENT)
     values = set(value)
     invalid = values - valid
     if invalid:
@@ -315,6 +327,7 @@ class Maintenance(FromDictMixin):
          - LCN: large crane (i.e., heavy lift vessel)
          - CAB: cabling vessel/vehicle
          - DSV: diving support vessel
+         - TOW: tugboat or towing equipment
     system_value : Union[int, float]
         Turbine replacement value. Used if the materials cost is a proportional cost.
     description : str
@@ -388,6 +401,7 @@ class Failure(FromDictMixin):
          - LCN: large crane (i.e., heavy lift vessel)
          - CAB: cabling vessel/vehicle
          - DSV: diving support vessel
+         - TOW: tugboat or towing equipment
     system_value : Union[int, float]
         Turbine replacement value. Used if the materials cost is a proportional cost.
     description : str
@@ -613,6 +627,7 @@ class ScheduledServiceEquipmentData(FromDictMixin):
          - LCN: large crane (i.e., heavy lift vessel)
          - CAB: cabling vessel/vehicle
          - DSV: diving support vessel
+         - TOW: tugboat or towing equipment
     mobilization_cost : float
         Cost to mobilize the rig and crew.
     mobilization_days : int
@@ -749,6 +764,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
          - LCN: large crane (i.e., heavy lift vessel)
          - CAB: cabling vessel/vehicle
          - DSV: diving support vessel
+         - TOW: tugboat or towing equipment
     mobilization_cost : float
         Cost to mobilize the rig and crew.
     mobilization_days : int

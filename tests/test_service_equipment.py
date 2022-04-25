@@ -11,7 +11,7 @@ from sqlalchemy import false
 from wombat.windfarm import Windfarm
 from wombat.core.library import load_yaml
 from wombat.core.environment import WombatEnvironment
-from wombat.core.data_classes import Maintenance, RepairRequest
+from wombat.core.data_classes import VALID_EQUIPMENT, Maintenance, RepairRequest
 from wombat.core.repair_management import StrategyMap, EquipmentMap, RepairManager
 from wombat.core.service_equipment import ServiceEquipment, consecutive_groups
 
@@ -123,7 +123,7 @@ def test_service_equipment_init(env_setup):
     assert manager.downtime_based_equipment.LCN == [
         EquipmentMap(hlv_dict["strategy_threshold"], hlv)
     ]
-    for capability in ("CTV", "SCN", "CAB", "RMT", "DRN", "DSV"):
+    for capability in VALID_EQUIPMENT:
         assert getattr(manager.downtime_based_equipment, capability) == []
 
     # TEST 4
