@@ -192,6 +192,12 @@ def test_check_capability():
     capability = CapabilityClass(capability=correct_options)
     npt.assert_equal(capability.capability, correct_options)
 
+    # Test that a scheduled equipment can't have the two capability
+    with pytest.raises(ValueError):
+        scheduled = deepcopy(SCHEDULED_VESSEL)
+        scheduled["capability"] = "TOW"
+        ScheduledServiceEquipmentData.from_dict(scheduled)
+
 
 # @pytest.mark.cat("all")
 def test_check_method():

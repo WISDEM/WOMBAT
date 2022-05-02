@@ -32,8 +32,8 @@ VALID_EQUIPMENT = (
 )
 
 # Define the valid unscheduled and valid strategies
-UNSCHEDULED_STRATEGIES = ("requests", "downtime")
-VALID_STRATEGIES = tuple(["requests", "tow_to_port"] + list(UNSCHEDULED_STRATEGIES))
+UNSCHEDULED_STRATEGIES = ("requests", "downtime", "tow_to_port")
+VALID_STRATEGIES = tuple(["scheduled"] + list(UNSCHEDULED_STRATEGIES))
 
 
 def convert_to_list(
@@ -201,7 +201,9 @@ def valid_hour(
         raise ValueError(f"Input {attribute.name} must be between 0 and 24, inclusive.")
 
 
-def valid_reduction(value: int | float) -> None:
+def valid_reduction(
+    instance, attribute: Attribute, value: int | float  # pylint: disable=W0613
+) -> None:
     """Checks to see if the reduction factor is between 0 and 1, inclusive.
 
     Parameters
@@ -210,7 +212,9 @@ def valid_reduction(value: int | float) -> None:
         The input value for `speed_reduction_factor`.
     """
     if value < 0 or value > 1:
-        raise ValueError("Input must be between 0 and 1, inclusive.")
+        raise ValueError(
+            f"Input for {instance.name}'s `speed_reduction_factor` must be between 0 and 1, inclusive."
+        )
 
 
 def check_capability(
@@ -240,11 +244,18 @@ def check_capability(
     Raises
     ------
     ValueError
+        Raised if a `ScheduledServicingEquipment` has been given the "TOW" capability.
+    ValueError
         Raised if the input is not of the valid inputs.
     """
     valid = set(VALID_EQUIPMENT)
     values = set(value)
     invalid = values - valid
+    if isinstance(instance, ScheduledServiceEquipmentData):
+        if "TOW" in values:
+            raise ValueError(
+                f"Scheduled servicing equipment, {instance.name}, cannot have the `TOW` capability."
+            )
     if invalid:
         raise ValueError(f"Input {attribute.name} must be any combination of {valid}.")
 
@@ -644,7 +655,8 @@ class ScheduledServiceEquipmentData(FromDictMixin):
          - LCN: large crane (i.e., heavy lift vessel)
          - CAB: cabling vessel/vehicle
          - DSV: diving support vessel
-         - TOW: tugboat or towing equipment
+
+         Please note that "TOW" is unavailable for scheduled servicing equipment
     mobilization_cost : float
         Cost to mobilize the rig and crew.
     mobilization_days : int
