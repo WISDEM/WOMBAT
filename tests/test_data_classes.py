@@ -41,7 +41,6 @@ from tests.conftest import (
 )
 
 
-# @pytest.mark.cat("all")
 def test_convert_to_list():
     """Tests ``convert_to_list``."""
 
@@ -62,14 +61,12 @@ def test_convert_to_list():
     assert convert_to_list("word", manipulation=str.upper) == correct_conversion
 
 
-# @pytest.mark.cat("all")
 def test_clean_string_input():
     """Tests ``clean_string_input``."""
     correct = "this is a statement."
     assert clean_string_input(" THIS is a STATEMENT.    ") == correct
 
 
-# @pytest.mark.cat("all")
 def test_annual_date_range_good_endpoints():
     """Tests ``annual_date_range``."""
     correct_date_range = [
@@ -100,7 +97,6 @@ def test_annual_date_range_good_endpoints():
         annual_date_range(14, 12, 12, 12, 2019, 2021)
 
 
-# @pytest.mark.cat("all")
 def test_convert_ratio_to_absolute():
     """Tests ``convert_ratio_to_absolute``."""
 
@@ -123,7 +119,6 @@ def test_convert_ratio_to_absolute():
     assert convert_ratio_to_absolute(ratio, total) == correct_amount
 
 
-# @pytest.mark.cat("all")
 def test_valid_hour():
     """Tests ``valid_hour``. The function being checked is an attrs validator, and is
     used in conjunction with a integer conversion, so all passed values will be forced
@@ -157,7 +152,6 @@ def test_valid_hour():
     assert hour.hour == 24
 
 
-# @pytest.mark.cat("all")
 def test_check_capability():
     """Tests the ``check_capability`` attrs validator method. This function is an attrs
     validator method, and so a dummy class will be used for testing purposes. This class
@@ -199,7 +193,6 @@ def test_check_capability():
         ScheduledServiceEquipmentData.from_dict(scheduled)
 
 
-# @pytest.mark.cat("all")
 def test_check_method():
     """Tests the ``check_method`` attrs validator method. This function is an attrs
     validator method, and so a dummy class will be used for testing purposes. This class
@@ -231,7 +224,6 @@ def test_check_method():
 
 
 # TODO: rearrange to a single test functionx
-# @pytest.mark.cat("all")
 def test_FromDictMixin():
     """Test the ``FromDictMixin`` mix in class."""
 
@@ -265,7 +257,6 @@ def test_FromDictMixin():
         DictClass.from_dict({})
 
 
-# @pytest.mark.cat("all")
 def test_Maintenance():
     """Tests the `Maintenance` class."""
     # Test for all inputs being provided and converted
@@ -334,7 +325,6 @@ def test_Maintenance():
         cls.time = 100
 
 
-# @pytest.mark.cat("all")
 def test_Failure():
     """Tests the `Failure` class."""
     # Test that all inputs work
@@ -444,7 +434,6 @@ def test_Failure():
     # TODO: Write a test for the weibull function
 
 
-# @pytest.mark.cat("all")
 def test_SubassemblyData():
     """Tests the `SubassemblyData` class."""
     N_maintenance = len(GENERATOR_SUBASSEMBLY["maintenance"])
@@ -483,7 +472,6 @@ def test_SubassemblyData():
     assert subassembly.failures == failure_dict
 
 
-# @pytest.mark.cat("all")
 def test_RepairRequest():
     """Tests the `RepairRequest` class"""
     failure = GENERATOR_SUBASSEMBLY["failures"][1]
@@ -551,7 +539,6 @@ def test_RepairRequest():
         cls = RepairRequest.from_dict(request)
 
 
-# @pytest.mark.cat("all")
 def test_ServiceCrew():
     """Tests the `ServiceCrew` class."""
     inputs = dict(n_day_rate=4, day_rate=100, n_hourly_rate=10, hourly_rate=6.1)
@@ -562,7 +549,6 @@ def test_ServiceCrew():
     assert crew.hourly_rate == 6.1
 
 
-# @pytest.mark.cat("all")
 def test_ServiceEquipmentData_determine_type():
     """Tests the creation of the servicing equipment data classes."""
 
@@ -616,7 +602,6 @@ def test_ServiceEquipmentData_determine_type():
         ).determine_type()
 
 
-# @pytest.mark.cat("all")
 def test_ScheduledServiceEquipmentData():
     """Tests the creation of the values of the ScheduledServicingEquipmentData object."""
 
@@ -711,7 +696,6 @@ def test_ScheduledServiceEquipmentData():
     npt.assert_equal(vessel.operating_dates, correct_date_range)
 
 
-# @pytest.mark.cat("all")
 def test_UnscheduledServiceEquipmentData():
     """Tests the creation of the values of the UnscheduledServicingEquipmentData object."""
 
@@ -827,7 +811,6 @@ def test_UnscheduledServiceEquipmentData():
     assert vessel.workday_end == end_shift
 
 
-# @pytest.mark.cat("all")
 def test_FixedCosts_operations_provided():
     """Tests high resolution inptus go to 0 when `operations` is provided"""
     high_res = FixedCosts(
@@ -873,7 +856,6 @@ def test_FixedCosts_operations_provided():
     assert high_res.labor == 0
 
 
-# @pytest.mark.cat("all")
 def test_FixedCosts_category_values_provided():
     """Test that High resolution inputs get overwritten in the case of providing
     category values.
@@ -920,7 +902,6 @@ def test_FixedCosts_category_values_provided():
     assert high_res.labor == 100
 
 
-# @pytest.mark.cat("all")
 def test_FixedCosts_high_resolution_provided():
     """Test that high resolution inputs work and categories sum correctly."""
     high_res = FixedCosts(
