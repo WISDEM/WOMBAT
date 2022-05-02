@@ -833,8 +833,8 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         The ending hour of a workshift, in 24 hour time.
     crew_transfer_time : float
         The number of hours it takes to transfer the crew from the equipment to the
-        system, e.g. how long does it take to transfer the crew from the CTV to the turbine,
-        default 0.
+        system, e.g. how long does it take to transfer the crew from the CTV to the
+        turbine, default 0.
     onsite : bool
         Indicator for if the rig and crew are based onsite.
         ... note:: if the rig and crew are onsite be sure that the start and end dates
@@ -844,6 +844,14 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         Determines if the ship will do all maximum severity repairs first or do all
         the repairs at one turbine before going to the next, by default severity.
         Should by one of "severity" or "turbine".
+    unmoor_hours: int | float
+        The number of hours required to unmoor a floating offshore wind turbine in order
+        to tow it to port, by default 0.
+        ... note:: Required for the tugboat/towing capability, otherwise unused.
+    reconnection_hours: int | float
+        The number of hours required to reconnect a floating offshore wind turbine after
+        being towed back to site, by default 0.
+        ... note:: Required for the tugboat/towing capability, otherwise unused.
     """
 
     name: str = field(converter=str)
@@ -875,6 +883,8 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         converter=[str, str.lower],  # type: ignore
         validator=check_method,
     )
+    unmoor_hours: int | float = field(default=0, converter=float)
+    reconnection_hours: int | float = field(default=0, converter=float)
 
     @strategy.validator  # type: ignore
     def _validate_strategy(  # pylint: disable=R0201

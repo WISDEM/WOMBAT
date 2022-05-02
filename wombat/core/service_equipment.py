@@ -25,6 +25,7 @@ from wombat.windfarm.system import System
 from wombat.core.data_classes import (
     UNSCHEDULED_STRATEGIES,
     ScheduledServiceEquipmentData,
+    UnscheduledServiceEquipmentData,
 )
 from wombat.windfarm.system.cable import Cable
 from wombat.windfarm.system.subassembly import Subassembly
@@ -787,7 +788,7 @@ class ServiceEquipment:
         Yields
         ------
         Generator[Timeout | Process, None, None]
-            Yields a timeout event for the crew transfer once an interrupted weather
+            Yields a timeout event for the crew transfer once an uninterrupted weather
             window can be found.
         """
         hours_to_process = self.settings.crew_transfer_time
@@ -859,6 +860,114 @@ class ServiceEquipment:
             self.at_system = False
         self.env.log_action(
             action="complete transfer", additional="complete", **shared_logging
+        )
+
+    def mooring_connection(
+        self,
+        system: System,
+        subassembly: Subassembly,
+        request: RepairRequest,
+        which: str,
+    ) -> None | Generator[Timeout | Process, None, None]:
+        """The process of either umooring a floating turbine to prepare for towing it to
+        port, or reconnecting it after its repairs have been completed.
+
+        Parameters
+        ----------
+        system : System
+            The System that needs unmooring/reconnecting.
+        subassembly : Subassembly
+            The Subassembly that is being worked on.
+        request : RepairRequest
+            The repair to be processed.
+        which : bool
+            "unmoor" for unmooring the turbine, "reconnect" for reconnecting the turbine.
+
+        Returns
+        -------
+        None
+            None is returned when this is run recursively to not repeat the process.
+
+        Yields
+        ------
+        Generator[Timeout | Process, None, None]
+            Yields a timeout event for the unmooring/reconnection once an uninterrupted
+            weather window can be found.
+        """
+        assert isinstance(self.settings, UnscheduledServiceEquipmentData)  # mypy check
+        which = which.lower().strip()
+        if which == "unmoor":
+            hours_to_process = self.settings.unmoor_hours
+        elif which == "reconnect":
+            hours_to_process = self.settings.reconnection_hours
+        else:
+            raise ValueError(
+                f"Only `unmoor` and `reconnect` are allowable inputs, not {which}"
+            )
+
+        salary_cost = self.calculate_salary_cost(hours_to_process)
+        hourly_cost = self.calculate_hourly_cost(0)
+        equipment_cost = self.calculate_equipment_cost(hours_to_process)
+
+        shared_logging = dict(
+            system_id=system.id,
+            system_name=system.name,
+            part_id=subassembly.id,
+            part_name=subassembly.name,
+            system_ol=system.operating_level,
+            part_ol=subassembly.operating_level,
+            agent=self.settings.name,
+            reason=request.details.description,
+            request_id=request.request_id,
+        )
+
+        which_text = "unmooring" if which == "unmoor" else "mooring reconnection"
+
+        delay, shift_delay = self.find_uninterrupted_weather_window(hours_to_process)
+        # If there is a shift delay, then travel to port, wait, and travel back, and finally try again.
+        if shift_delay:
+            travel_time = self.env.now
+            yield self.env.process(
+                self.travel(start="site", end="port", **shared_logging)
+            )
+            travel_time -= self.env.now  # will be negative value, but is flipped
+            delay -= abs(travel_time)  # decrement the delay by the travel time
+            if delay > 0:
+                yield self.env.process(self.weather_delay(delay, **shared_logging))
+            yield self.env.process(
+                self.wait_until_next_shift(
+                    **shared_logging,
+                    **{"additional": f"weather unsuitable for {which_text}"},
+                )
+            )
+            yield self.env.process(
+                self.travel(
+                    start="port", end="site", set_current=system.id, **shared_logging
+                )
+            )
+            yield self.env.process(
+                self.mooring_connection(system, subassembly, request, which=which)
+            )
+            return
+
+        # If no shift delay, then process any weather delays before dis/connection
+        yield self.env.process(self.weather_delay(delay, **shared_logging))
+
+        if which == "unmoor":
+            additional = f"Unmooring {system.id} to tow to port"
+        else:
+            additional = f"Reconnecting the mooring to {system.id}"
+        self.env.log_action(
+            action=which_text,
+            additional=additional,
+            duration=hours_to_process,
+            salary_labor_cost=salary_cost,
+            hourly_labor_cost=hourly_cost,
+            equipment_cost=equipment_cost,
+            **shared_logging,
+        )
+        self.env.log_action(
+            action=f"complete {which_text}", additional="complete", **shared_logging
         )
 
     def in_situ_repair(
@@ -1209,6 +1318,29 @@ class ServiceEquipment:
             else:
                 yield self.env.process(self.in_situ_repair(request.value))
 
-    def run_tow_to_port(self) -> None:
+    def run_tow_to_port(self) -> Generator[Process, None, None]:
         """Not Implemented"""
+
+        # Run until there are no more towing processes left (should only run on demand)
+        # Scenario 1: Need to tow a turbine to port
+        # 1) Get the first most-severe turbine repair
+        # 2) Transfer all repairs for the turbine to the PortRepairManager
+        # 2) Tow the turbine to port
+        # 3) If no more turbines to tow, travel back to port, and end
+        #
+        # Scenario 2: Need to tow a turbine back to site
+        # 1) Get first available turbine
+        # 2) Tow it back to site
+        # 3) Check for turbines to see if they need to be towed to port, otherwise travel back to port
+        # 4) If no more turbines to tow, end
+
+        while True:
+
+            # Check location
+            # If at port, travel to turbine
+            #
+            pass
+
+        yield self.env.process(self.mooring_connection())
+
         raise NotImplementedError("Tow-to-port is not yet implemented")
