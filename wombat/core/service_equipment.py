@@ -27,6 +27,7 @@ from wombat.core.data_classes import (
     ScheduledServiceEquipmentData,
     UnscheduledServiceEquipmentData,
 )
+from wombat.utilities.utilities import check_working_hours
 from wombat.windfarm.system.cable import Cable
 from wombat.windfarm.system.subassembly import Subassembly
 
@@ -142,15 +143,14 @@ class ServiceEquipment:
         """Checks the working hours of the equipment and overrides a default (-1) to
         the ``env`` settings, otherwise hours remain the same.
         """
-        start_is_invalid = self.settings.workday_start == -1
-        end_is_invalid = self.settings.workday_end == -1
-
-        start = (
-            self.env.workday_start if start_is_invalid else self.settings.workday_start
+        self.settings._set_environment_shift(
+            *check_working_hours(
+                self.env.workday_start,
+                self.env.workday_end,
+                self.settings.workday_start,
+                self.settings.workday_end,
+            )
         )
-        end = self.env.workday_end if end_is_invalid else self.settings.workday_end
-
-        self.settings._set_environment_shift(start, end)
 
     def calculate_salary_cost(self, duration: int | float) -> float:
         """The total salaried labor cost implications for a given action.

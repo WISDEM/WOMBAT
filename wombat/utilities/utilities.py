@@ -70,6 +70,37 @@ def hours_until_future_hour(dt: datetime.datetime, hour: int) -> float:
     return convert_dt_to_hours(diff)
 
 
+def check_working_hours(
+    env_start: int, env_end: int, workday_start: int, workday_end: int
+) -> tuple[int, int]:
+    """Checks the working hours of a port or servicing equipment, and overrides a
+    default (-1) to the environment's settings, otherwise returns back the input hours.
+
+    Parameters
+    ----------
+    env_start : int
+        The starting hour for the environment's shift
+    env_end : int
+        The ending hour for the environment's shift
+    workday_start : int
+        The starting hour to be checked.
+    workday_end : int
+        The ending hour to be checked.
+
+    Returns
+    -------
+    tuple[int, int]
+        The starting and ending hour to be applied back to the port or servicing equipment.
+    """
+    start_is_invalid = workday_start == -1
+    end_is_invalid = workday_end == -1
+
+    start = env_start if start_is_invalid else workday_start
+    end = env_end if end_is_invalid else workday_end
+
+    return start, end
+
+
 @cache
 def _mean(*args) -> float:
     """Multiplies two numbers. Used for a reduce operation.

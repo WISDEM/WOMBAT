@@ -14,6 +14,9 @@ from .data_classes import (
     UnscheduledServiceEquipmentData,
     FixedCosts,
     FromDictMixin,
+    EquipmentMap,
+    StrategyMap,
+    PortConfig,
 )
 from .environment import WombatEnvironment
 from .post_processor import Metrics

@@ -1038,6 +1038,124 @@ class ServiceEquipmentData(FromDictMixin):
             raise ValueError("Invalid strategy provided!")
 
 
+@define(auto_attribs=True)
+class EquipmentMap:
+    """Internal mapping for servicing equipment strategy information."""
+
+    strategy_threshold: int | float
+    equipment: "ServiceEquipment"
+
+
+@define(auto_attribs=True)
+class StrategyMap:
+    """Internal mapping for equipment capabilities and their data."""
+
+    CTV: list[EquipmentMap] = field(factory=list)
+    SCN: list[EquipmentMap] = field(factory=list)
+    LCN: list[EquipmentMap] = field(factory=list)
+    CAB: list[EquipmentMap] = field(factory=list)
+    RMT: list[EquipmentMap] = field(factory=list)
+    DRN: list[EquipmentMap] = field(factory=list)
+    DSV: list[EquipmentMap] = field(factory=list)
+    TOW: list[EquipmentMap] = field(factory=list)
+    is_running: bool = field(default=False, init=False)
+
+    def update(
+        self, capability: str, threshold: int | float, equipment: "ServiceEquipment"
+    ) -> None:
+        """A method to update the strategy mapping between capability types and the
+        available ``ServiceEquipment`` objects.
+
+        Parameters
+        ----------
+        capability : str
+            The ``equipment``'s capability.
+        threshold : int | float
+            The threshold for ``equipment``'s strategy.
+        equipment : ServiceEquipment
+            The actual ``ServiceEquipment`` object to be logged.
+
+        Raises
+        ------
+        ValueError
+            Raised if there is an invalid capability, though this shouldn't be able to
+            be reached.
+        """
+        # Using a mypy ignore because of an unpatched bug using data classes
+        if capability == "CTV":
+            self.CTV.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "SCN":
+            self.SCN.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "LCN":
+            self.LCN.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "CAB":
+            self.CAB.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "RMT":
+            self.RMT.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "DRN":
+            self.DRN.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "DSV":
+            self.DSV.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "TOW":
+            self.TOW.append(EquipmentMap(threshold, equipment))  # type: ignore
+        else:
+            # This should not even be able to be reached
+            raise ValueError(
+                f"Invalid servicing equipment '{capability}' has been provided!"
+            )
+        self.is_running = True
+
+
+@define(frozen=True, auto_attribs=True)
+class PortConfig(FromDictMixin):
+    """Port configurations for offshore wind power plant scenarios.
+
+    Parameters
+    ----------
+    name: str
+        The name of the port, if multiple are used, then be sure this is unique.
+    tugboats : list[str]
+        file, or list of files to create the port's tugboats.
+        ... note:: Each tugboat is considered to be a tugboat + supporting vessels as
+            the primary purpose to tow turbines between a repair port and site.
+    n_crews : int
+        The number of service crews available to be working on repairs simultaneously;
+        each crew is able to service exactly one repair.
+    crew : ServiceCrew
+        The crew details, see ``ServiceCrew`` for more information.
+    max_operations : int
+        Total number of turbines the port can handle simultaneously.
+    workday_start : int
+        The starting hour of a workshift, in 24 hour time.
+    workday_end : int
+        The ending hour of a workshift, in 24 hour time.
+    site_distance: int | float
+        Distance, in km, a tugboat has to travel to get between site and port.
+    """
+
+    name: str = field(converter=str)
+    tugboats: list[str] = field(converter=convert_to_list)
+    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
+    n_crews: int = field(default=1, converter=int)
+    max_operations: int = field(default=1, converter=int)
+    workday_start: int = field(default=-1, converter=int, validator=valid_hour)
+    workday_end: int = field(default=-1, converter=int, validator=valid_hour)
+    site_distance: int | float = field(default=0, converter=float)
+
+    def _set_environment_shift(self, start: int, end: int) -> None:
+        """Used to set the ``workday_start`` and ``workday_end`` to the environment's values.
+
+        Parameters
+        ----------
+        start : int
+            Starting hour of a workshift.
+        end : int
+            Ending hour of a workshift.
+        """
+        object.__setattr__(self, "workday_start", start)
+        object.__setattr__(self, "workday_end", end)
+
+
 @define(frozen=True, auto_attribs=True)
 class FixedCosts(FromDictMixin):
     """The fixed costs for operating a windfarm. All values are assumed to be in $/kW/yr.

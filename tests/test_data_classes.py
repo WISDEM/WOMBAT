@@ -10,12 +10,15 @@ import numpy as np
 import pytest
 import numpy.testing as npt
 
+from wombat.core.library import load_yaml
 from wombat.core.data_classes import (
     VALID_EQUIPMENT,
     Failure,
     FixedCosts,
     Maintenance,
     ServiceCrew,
+    StrategyMap,
+    EquipmentMap,
     FromDictMixin,
     RepairRequest,
     SubassemblyData,
@@ -900,6 +903,125 @@ def test_FixedCosts_category_values_provided():
     assert high_res.transmission_charges_rights == 0
     assert high_res.onshore_electrical_maintenance == 60
     assert high_res.labor == 100
+
+
+def test_equipment_map(env_setup):
+    """Tests the ``EquipmentMap`` class."""
+    env = env_setup
+
+    # Test for a requests-based equipment
+    hlv = ServiceEquipmentData(
+        load_yaml(env.data_dir / "repair" / "transport", "hlv_requests.yaml")
+    ).determine_type()
+    mapping = EquipmentMap(equipment=hlv, strategy_threshold=hlv.strategy_threshold)
+    assert mapping.equipment == hlv
+    assert mapping.strategy_threshold == hlv.strategy_threshold
+
+    # Test for a downtime-based equipment
+    hlv = ServiceEquipmentData(
+        load_yaml(env.data_dir / "repair" / "transport", "hlv_downtime.yaml")
+    ).determine_type()
+    mapping = EquipmentMap(equipment=hlv, strategy_threshold=hlv.strategy_threshold)
+    assert mapping.equipment == hlv
+    assert mapping.strategy_threshold == hlv.strategy_threshold
+
+
+def test_strategy_map(env_setup):
+    """Tests the ``StrategyMap`` class."""
+    env = env_setup
+
+    mapping = StrategyMap()
+    assert mapping.CTV == []
+    assert mapping.SCN == []
+    assert mapping.LCN == []
+    assert mapping.CAB == []
+    assert mapping.RMT == []
+    assert mapping.DRN == []
+    assert mapping.DSV == []
+    assert not mapping.is_running
+
+    # Test for bad input
+    hlv = load_yaml(env.data_dir / "repair" / "transport", "hlv_requests.yaml")
+    hlv["capability"] = ["SCN", "LCN"]
+    hlv = ServiceEquipmentData(hlv).determine_type()
+    hlv_map = EquipmentMap(hlv.strategy_threshold, hlv)
+
+    # List of inputs will fail
+    with pytest.raises(ValueError):
+        mapping.update(hlv.capability, hlv.strategy_threshold, hlv)
+
+    # Single bad input will fail
+    with pytest.raises(ValueError):
+        mapping.update("CRV", hlv.strategy_threshold, hlv)
+
+    # Check that the update did not complete
+    assert not mapping.is_running
+
+    # Create a few equipment and test for inclusion
+
+    # HLV with multiple capabilities
+    hlv = load_yaml(env.data_dir / "repair" / "transport", "hlv_requests.yaml")
+    hlv["capability"] = ["SCN", "LCN"]
+    hlv = ServiceEquipmentData(hlv).determine_type()
+    hlv_map = EquipmentMap(hlv.strategy_threshold, hlv)
+    for capability in hlv.capability:
+        mapping.update(capability, hlv.strategy_threshold, hlv)
+    assert mapping.SCN == mapping.LCN == [hlv_map]
+    assert mapping.is_running
+
+    # Cabling vessel with one capability
+    cab = load_yaml(env.data_dir / "repair" / "transport", "cabling.yaml")
+    cab = ServiceEquipmentData(cab).determine_type()
+    for capability in cab.capability:
+        mapping.update(capability, cab.strategy_threshold, cab)
+    cab_map = EquipmentMap(cab.strategy_threshold, cab)
+    assert mapping.CAB == [cab_map]
+    assert mapping.is_running
+
+    # Diving support vessel
+    dsv = load_yaml(env.data_dir / "repair" / "transport", "dsv.yaml")
+    dsv = ServiceEquipmentData(dsv).determine_type()
+    for capability in dsv.capability:
+        mapping.update(capability, dsv.strategy_threshold, dsv)
+    dsv_map = EquipmentMap(dsv.strategy_threshold, dsv)
+    assert mapping.DSV == [dsv_map]
+    assert mapping.is_running
+
+    # Remote reset
+    rmt = load_yaml(env.data_dir / "repair" / "transport", "rmt.yaml")
+    rmt = ServiceEquipmentData(rmt).determine_type()
+    for capability in rmt.capability:
+        mapping.update(capability, rmt.strategy_threshold, rmt)
+    rmt_map = EquipmentMap(rmt.strategy_threshold, rmt)
+    assert mapping.RMT == [rmt_map]
+    assert mapping.is_running
+
+    # Drone repair
+    drn = load_yaml(env.data_dir / "repair" / "transport", "drn.yaml")
+    drn = ServiceEquipmentData(drn).determine_type()
+    for capability in drn.capability:
+        mapping.update(capability, drn.strategy_threshold, drn)
+    drn_map = EquipmentMap(drn.strategy_threshold, drn)
+    assert mapping.DRN == [drn_map]
+    assert mapping.is_running
+
+    # Crew tranfer
+    ctv = load_yaml(env.data_dir / "repair" / "transport", "ctv_requests.yaml")
+    ctv = ServiceEquipmentData(ctv).determine_type()
+    for capability in ctv.capability:
+        mapping.update(capability, ctv.strategy_threshold, ctv)
+    ctv_map = EquipmentMap(ctv.strategy_threshold, ctv)
+    assert mapping.CTV == [ctv_map]
+    assert mapping.is_running
+
+    # Update an existing category with another piece of equipment
+    fsv = load_yaml(env.data_dir / "repair" / "transport", "fsv_downtime.yaml")
+    fsv = ServiceEquipmentData(fsv).determine_type()
+    for capability in fsv.capability:
+        mapping.update(capability, fsv.strategy_threshold, fsv)
+    fsv_map = EquipmentMap(fsv.strategy_threshold, fsv)
+    assert mapping.SCN == [hlv_map, fsv_map]
+    assert mapping.is_running
 
 
 def test_FixedCosts_high_resolution_provided():

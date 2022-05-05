@@ -8,83 +8,20 @@ from itertools import chain
 from collections import Counter
 
 import numpy as np
-from attrs import field, define
 from simpy.resources.store import FilterStore, FilterStoreGet  # type: ignore
 
-from wombat.core import Failure, Maintenance, RepairRequest, WombatEnvironment
+from wombat.core import (
+    Failure,
+    Maintenance,
+    StrategyMap,
+    RepairRequest,
+    WombatEnvironment,
+)
 
 
 if TYPE_CHECKING:
     from wombat.windfarm import Windfarm
     from wombat.core.service_equipment import ServiceEquipment
-
-
-@define(auto_attribs=True)
-class EquipmentMap:
-    """Internal mapping for servicing equipment strategy information."""
-
-    strategy_threshold: int | float
-    equipment: ServiceEquipment
-
-
-@define(auto_attribs=True)
-class StrategyMap:
-    """Internal mapping for equipment capabilities and their data."""
-
-    CTV: list[EquipmentMap] = field(factory=list)
-    SCN: list[EquipmentMap] = field(factory=list)
-    LCN: list[EquipmentMap] = field(factory=list)
-    CAB: list[EquipmentMap] = field(factory=list)
-    RMT: list[EquipmentMap] = field(factory=list)
-    DRN: list[EquipmentMap] = field(factory=list)
-    DSV: list[EquipmentMap] = field(factory=list)
-    TOW: list[EquipmentMap] = field(factory=list)
-    is_running: bool = field(default=False, init=False)
-
-    def update(
-        self, capability: str, threshold: int | float, equipment: ServiceEquipment
-    ) -> None:
-        """A method to update the strategy mapping between capability types and the
-        available ``ServiceEquipment`` objects.
-
-        Parameters
-        ----------
-        capability : str
-            The ``equipment``'s capability.
-        threshold : int | float
-            The threshold for ``equipment``'s strategy.
-        equipment : ServiceEquipment
-            The actual ``ServiceEquipment`` object to be logged.
-
-        Raises
-        ------
-        ValueError
-            Raised if there is an invalid capability, though this shouldn't be able to
-            be reached.
-        """
-        # Using a mypy ignore because of an unpatched bug using data classes
-        if capability == "CTV":
-            self.CTV.append(EquipmentMap(threshold, equipment))  # type: ignore
-        elif capability == "SCN":
-            self.SCN.append(EquipmentMap(threshold, equipment))  # type: ignore
-        elif capability == "LCN":
-            self.LCN.append(EquipmentMap(threshold, equipment))  # type: ignore
-        elif capability == "CAB":
-            self.CAB.append(EquipmentMap(threshold, equipment))  # type: ignore
-        elif capability == "RMT":
-            self.RMT.append(EquipmentMap(threshold, equipment))  # type: ignore
-        elif capability == "DRN":
-            self.DRN.append(EquipmentMap(threshold, equipment))  # type: ignore
-        elif capability == "DSV":
-            self.DSV.append(EquipmentMap(threshold, equipment))  # type: ignore
-        elif capability == "TOW":
-            self.TOW.append(EquipmentMap(threshold, equipment))  # type: ignore
-        else:
-            # This should not even be able to be reached
-            raise ValueError(
-                f"Invalid servicing equipment '{capability}' has been provided!"
-            )
-        self.is_running = True
 
 
 class RepairManager(FilterStore):
@@ -325,6 +262,53 @@ class RepairManager(FilterStore):
         # break when something is found.
 
         return None
+
+    def get_all_requests_for_system(
+        self, agent: str, system_id: str
+    ) -> Optional[list[RepairRequest]]:
+        """Gets all repair requests for a specific ``system_id``.
+
+        Parameters
+        ----------
+        agent : str
+            The name of the entity requesting all of a system's repair requests.
+        system_id : Optional[str], optional
+            ID of the turbine or OSS; should correspond to ``System.id``.
+            the first repair requested.
+
+        Returns
+        -------
+        Optional[list[RepairRequest]]
+            All repair requests for a given system. If no matching requests are found,
+            or there aren't any items in the queue yet, then None is returned.
+        """
+        if not self.items:
+            return None
+
+        # Filter the requests by system
+        requests = self.items
+        if system_id is not None:
+            requests = [el for el in self.items if el.system_id == system_id]
+        if requests == []:
+            return None
+
+        # Loop the requests and pop them from the queue
+        for request in requests:
+            self.env.log_action(
+                system_id=request.system_id,
+                system_name=request.system_name,
+                part_id=request.subassembly_id,
+                part_name=request.subassembly_name,
+                system_ol=float("nan"),
+                part_ol=float("nan"),
+                agent=agent,
+                action="requests being moved",
+                reason="",
+                request_id=request.request_id,
+            )
+            _ = self.get(lambda x: x == request)  # pylint: disable=W0640
+
+        return requests
 
     def purge_subassembly_requests(
         self, system_id: str, subassembly_id: str, exclude: list[str] = []
