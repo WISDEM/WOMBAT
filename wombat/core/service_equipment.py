@@ -659,8 +659,75 @@ class ServiceEquipment:
             travel_time = 0
         return travel_time
 
+    def _calculate_travel_time(self, distance: float, towing: bool = False) -> float:
+        """Calculates the travel time with speed reductions for inclement weather, but
+        without shift interruptions.
+
+        Parameters
+        ----------
+        distance : flaot
+            The total distance to be traveled, in km.
+        towing : bool, optional
+            Indicator for if this travel is towing; if so, then the weather limits for
+            repair are being used (the specific tugboat functionality), by default False.
+
+        Returns
+        -------
+        float
+            _description_
+        """
+        speed = self.settings.speed
+        reduction_factor = self.settings.speed_reduction_factor
+        max_windspeed = (
+            self.settings.max_windspeed_repair
+            if towing
+            else self.settings.max_windspeed_transport
+        )
+        max_waveheight = (
+            self.settings.max_waveheight_repair
+            if towing
+            else self.settings.max_waveheight_transport
+        )
+
+        # get the weather forecast with this time for the max travel time
+        max_hours = 1 + distance / speed * (1 / reduction_factor)
+        _, wind, wave = self.env.weather_forecast(max_hours)
+
+        # get the safe operating window boolean array
+        all_clear = (wind <= max_windspeed) & (wave <= max_waveheight)
+
+        # calculate the distance able to be traveled in each 1-hour window
+        distance_traveled = speed * all_clear.astype(float)
+        distance_traveled[distance_traveled == 0] = speed * reduction_factor
+
+        # Reduce the first time step by the time lapsed since the start of the hour
+        # before proceeding
+        distance_traveled[0] *= 1 - self.env.now % 1
+
+        # Cumulative sum at the end of each full hour
+        distance_traveled_sum = distance_traveled.cumsum()
+
+        # Get the index for the end of the hour where the distance requred to be traveled is reached
+        ix_hours = np.where(distance_traveled_sum >= distance)[0][0]
+
+        # Shave off the extra timing to get the exact travel time
+        total_hours = ix_hours + 1  # add 1 for 0-indexing
+        traveled = distance_traveled_sum[ix_hours]
+        if traveled > distance:
+            difference = traveled - distance
+            speed_at_hour = distance_traveled[ix_hours]
+            reduction = difference / speed_at_hour
+            total_hours -= reduction
+
+        return total_hours
+
     def travel(
-        self, start: str, end: str, set_current: str | None = None, **kwargs
+        self,
+        start: str,
+        end: str,
+        set_current: str | None = None,
+        hours: float | None = None,
+        **kwargs,
     ) -> Generator[Timeout | Process, None, None]:
         """The process for traveling between port and site, or two systems onsite.
 
@@ -675,6 +742,9 @@ class ServiceEquipment:
         set_current : str, optional
             Where to set ``current_system`` to be if traveling to site or a different
             system onsite, by default None.
+        hours : float, optional
+            The number hours required for traveling between ``start`` and ``end``.
+            If provided, no internal travel time will be calculated.
 
         Yields
         -------
@@ -697,14 +767,20 @@ class ServiceEquipment:
                 "``end`` location must be one of 'port', 'site', or 'system'!"
             )
 
-        # TODO: Need a port-to-site distance to be implemented
-        hours = 0  # takes care of invalid cases
-        if start == end == "system":
-            additional = f"traveling from {self.current_system} to {set_current}"
-            hours = self._calculate_intra_site_time(self.current_system, set_current)
+        if hours is None:
+            if start == end == "system":
+                additional = f"traveling from {self.current_system} to {set_current}"
+                hours = self._calculate_intra_site_time(
+                    self.current_system, set_current
+                )
+            elif set((start, end)) == set(("site", "port")):
+                additional = f"traveling from {start} to {end}"
+                hours = self.settings.port_distance / self.settings.speed
+            else:
+                additional = f"traveling from {start} to {end}"
+                hours = 0
         else:
-            additional = f"traveling from {start} to {end}"
-            hours = 0
+            hours = 0  # takes care of invalid cases
 
         # If the the equipment will arive after the shift is over, then it must travel
         # back to port (if needed), and wait for the next shift

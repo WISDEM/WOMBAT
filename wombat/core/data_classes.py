@@ -692,6 +692,9 @@ class ScheduledServiceEquipmentData(FromDictMixin):
         Determines if the ship will do all maximum severity repairs first or do all
         the repairs at one turbine before going to the next, by default severity.
         Should by one of "severity" or "turbine".
+    port_distance : int | float
+        The distance, in km, the equipment must travel to go between port and site, by
+        default 0.
     """
 
     name: str = field(converter=str)
@@ -728,6 +731,7 @@ class ScheduledServiceEquipmentData(FromDictMixin):
     )
     operating_dates: np.ndarray = field(init=False)
     strategy: str = field(default="scheduled")
+    port_distance: int | float = field(default=0, converter=float)
 
     def create_date_range(self) -> np.ndarray:
         """Creates an ``np.ndarray`` of valid operational dates for the service equipment."""
@@ -844,14 +848,17 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         Determines if the ship will do all maximum severity repairs first or do all
         the repairs at one turbine before going to the next, by default severity.
         Should by one of "severity" or "turbine".
-    unmoor_hours: int | float
+    unmoor_hours : int | float
         The number of hours required to unmoor a floating offshore wind turbine in order
         to tow it to port, by default 0.
         ... note:: Required for the tugboat/towing capability, otherwise unused.
-    reconnection_hours: int | float
+    reconnection_hours : int | float
         The number of hours required to reconnect a floating offshore wind turbine after
         being towed back to site, by default 0.
         ... note:: Required for the tugboat/towing capability, otherwise unused.
+    port_distance : int | float
+        The distance, in km, the equipment must travel to go between port and site, by
+        default 0.
     """
 
     name: str = field(converter=str)
@@ -883,6 +890,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         converter=[str, str.lower],  # type: ignore
         validator=check_method,
     )
+    port_distance: int | float = field(default=0, converter=float)
     unmoor_hours: int | float = field(default=0, converter=float)
     reconnection_hours: int | float = field(default=0, converter=float)
 

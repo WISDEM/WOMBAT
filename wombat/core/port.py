@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Optional
 from pathlib import Path
 
 import numpy as np
@@ -12,6 +13,7 @@ from wombat.core.environment import WombatEnvironment
 from wombat.core.data_classes import PortConfig
 from wombat.utilities.utilities import check_working_hours
 from wombat.core.repair_management import RepairManager
+from wombat.core.service_equipment import ServiceEquipment
 
 
 try:
@@ -36,12 +38,19 @@ class Port(FilterStore):
         super().__init__(env, capacity)
 
         self.env = env
-        self.manager = RepairManager
+        self.manager = repair_manager
 
         settings = load_yaml(env.data_dir / "repair", config)
         self.settings = PortConfig.from_dict(settings)
 
         self._check_working_hours()
+
+        # Instantiate the crews and tugboats
+        self.availible_crews = self.settings.n_crews
+        self.availible_tugboats = [
+            ServiceEquipment(self.env, self.env.windfarm, repair_manager, tug)
+            for tug in self.settings.tugboats
+        ]
 
     def _check_working_hours(self) -> None:
         """Checks the working hours of the port and overrides a default (-1) to
@@ -69,7 +78,7 @@ class Port(FilterStore):
             self.settings.name, system_id
         )
         if requests is None:
-            return
+            return requests
 
         self.items.extend(requests)
         for request in requests:
@@ -85,3 +94,77 @@ class Port(FilterStore):
                 reason="at-port repair can now proceed",
                 request_id=request.request_id,
             )
+
+    def get_request_by_system(self, system_id: str) -> Optional[FilterStoreGet]:
+        """Gets all repair requests for a certain turbine with given a sequence of
+        ``equipment_capability``.
+
+        Parameters
+        ----------
+        system_id : Optional[str], optional
+            ID of the turbine or OSS; should correspond to ``System.id``.
+
+        Returns
+        -------
+        Optional[FilterStoreGet]
+            The first repair request for the focal system or None, if self.items is
+            empty, or there is no matching system.
+        """
+        if not self.items:
+            return None
+
+        # Filter the requests by equipment capability and return the first valid request
+        # or None, if no requests were found
+        requests = self.get(lambda x: x.system_id == system_id)
+        if requests == []:
+            return None
+        else:
+            yield requests
+
+    def tow_to_port(self, tugboat: ServiceEquipment, system_id: str) -> None:
+        """Process for a tugboat to initiate the tow-to-port repair process."""
+
+        """
+        TODO
+        1) Calculate travel time to site
+        2) Travel to site
+        3) Unmoor the turbine
+        4) Calculate travel time to port
+        5) Travel to port
+        6) Line it up for repairs
+        """
+
+    def return_system(self, tugboat: ServiceEquipment, system_id: str) -> None:
+        """Process returns the system to site, and turns it back on."""
+
+        """
+        TODO
+        1) Tow turbine back to port
+            a) get travel time with speed reductions
+            b) travel
+        2) Reconnect turbine
+        3) Reset to fully operating
+        4) Reset all failure/maintenance processes?
+
+        """
+
+        # Tow turbine back to site
+        hours = tugboat._calculate_travel_time(self.settings.site_distance, towing=True)
+        yield self.env.process(
+            tugboat.travel(
+                "port",
+                "site",
+                system_id,
+                hours=hours,
+                action=f"transporting {system_id} back to site",
+                agent=tugboat.settings.name,
+                reason="at-port repairs complete",
+                additional="anything else about slow downs, tbd?",
+            )
+        )
+
+    def repair(self) -> None:
+        """
+        TODO
+
+        """
