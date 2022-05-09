@@ -5,6 +5,7 @@ from __future__ import annotations
 from math import ceil
 from typing import Generator  # type: ignore
 from datetime import timedelta
+from functools import partial
 
 import numpy as np  # type: ignore
 from simpy.events import Process, Timeout  # type: ignore
@@ -27,7 +28,7 @@ from wombat.core.data_classes import (
     ScheduledServiceEquipmentData,
     UnscheduledServiceEquipmentData,
 )
-from wombat.utilities.utilities import check_working_hours
+from wombat.utilities.utilities import calculate_cost, check_working_hours
 from wombat.windfarm.system.cable import Cable
 from wombat.windfarm.system.subassembly import Subassembly
 
@@ -139,6 +140,22 @@ class ServiceEquipment:
         if self.settings.strategy == "tow_to_port":
             self.env.process(self.run_tow_to_port)
 
+        # Create partial functions for the labor and equipment costs for clarity
+        self.calculate_salary_cost = partial(
+            calculate_cost,
+            rate=self.settings.crew.day_rate,
+            n_rate=self.settings.crew.n_day_rate,
+            daily_rate=True,
+        )
+        self.calculate_hourly_cost = partial(
+            calculate_cost,
+            rate=self.settings.crew.hourly_rate,
+            n_rate=self.settings.crew.n_hourly_rate,
+        )
+        self.calculate_equipment_cost = partial(
+            calculate_cost, rate=self.settings.equipment_rate
+        )
+
     def _check_working_hours(self) -> None:
         """Checks the working hours of the equipment and overrides a default (-1) to
         the ``env`` settings, otherwise hours remain the same.
@@ -150,42 +167,6 @@ class ServiceEquipment:
                 self.settings.workday_start,
                 self.settings.workday_end,
             )
-        )
-
-    def calculate_salary_cost(self, duration: int | float) -> float:
-        """The total salaried labor cost implications for a given action.
-
-        Parameters
-        ----------
-        duration : int | float
-            Number of hours to charge for the salaried labor.
-
-        Returns
-        -------
-        float
-            The total cost of salaried workers for a given action.
-        """
-        return (
-            (duration / HOURS_IN_DAY)
-            * self.settings.crew.day_rate
-            * self.settings.crew.n_day_rate
-        )
-
-    def calculate_hourly_cost(self, duration: int | float) -> float:
-        """The total hourly labor cost implications for a given action.
-
-        Parameters
-        ----------
-        duration : int | float
-            Number of hours to charge for the hourly labor.
-
-        Returns
-        -------
-        float
-            The total cost of hourly workers for a given action.
-        """
-        return (
-            duration * self.settings.crew.hourly_rate * self.settings.crew.n_hourly_rate
         )
 
     def calculate_equipment_cost(self, duration: int | float) -> float:
@@ -262,7 +243,7 @@ class ServiceEquipment:
         kwargs["action"] = kwargs.get("action", "delay")
         delay = self.env.hours_to_next_shift(workday_start=self.settings.workday_start)
         salary_cost = self.calculate_salary_cost(delay)
-        hourly_cost = self.calculate_hourly_cost(0)
+        hourly_cost = 0  # contractor labor not paid for delays
         equpipment_cost = self.calculate_equipment_cost(delay)
         self.env.log_action(
             duration=delay,
@@ -578,7 +559,7 @@ class ServiceEquipment:
             return
 
         salary_cost = self.calculate_salary_cost(hours)
-        hourly_cost = self.calculate_hourly_cost(0)
+        hourly_cost = 0  # contractors not paid for delays
         equipment_cost = self.calculate_equipment_cost(hours)
         self.env.log_action(
             duration=hours,
@@ -806,7 +787,7 @@ class ServiceEquipment:
             )
 
         salary_cost = self.calculate_salary_cost(hours)
-        hourly_cost = self.calculate_hourly_cost(0)
+        hourly_cost = 0  # contractors not paid for traveling
         equipment_cost = self.calculate_equipment_cost(hours)
         self.env.log_action(
             action="traveling",
@@ -869,7 +850,7 @@ class ServiceEquipment:
         """
         hours_to_process = self.settings.crew_transfer_time
         salary_cost = self.calculate_salary_cost(hours_to_process)
-        hourly_cost = self.calculate_hourly_cost(0)
+        hourly_cost = self.calculate_hourly_cost(hours_to_process)
         equipment_cost = self.calculate_equipment_cost(hours_to_process)
 
         shared_logging = dict(
@@ -982,7 +963,7 @@ class ServiceEquipment:
             )
 
         salary_cost = self.calculate_salary_cost(hours_to_process)
-        hourly_cost = self.calculate_hourly_cost(0)
+        hourly_cost = self.calculate_hourly_cost(hours_to_process)
         equipment_cost = self.calculate_equipment_cost(hours_to_process)
 
         shared_logging = dict(

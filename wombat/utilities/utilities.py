@@ -10,7 +10,9 @@ from pathlib import Path  # type: ignore
 from logging.handlers import MemoryHandler
 
 import numpy as np  # type: ignore
-import pandas as pd  # type: ignore
+import pandas as pd
+
+from wombat.core.data_classes import HOURS_IN_DAY  # type: ignore
 
 
 try:  # pylint: disable=duplicate-code
@@ -99,6 +101,33 @@ def check_working_hours(
     end = env_end if end_is_invalid else workday_end
 
     return start, end
+
+
+def calculate_cost(
+    duration: int | float, rate: float, n_rate: int = 1, daily_rate: bool = False
+) -> float:
+    """Calculates the equipment cost, or labor cost for either salaried or hourly employees.
+
+    Parameters
+    ----------
+    duration : int | float
+        Length of time, in hours.
+    rate : float
+        The labor or equipment rate, in $USD/hour.
+    n_rate : int
+        Total number of of the rate to be applied, more than one if``rate`` is broken
+        down by number of individual laborers (if rate is a labor rate), by default 1.
+    daily_rate : bool, optional
+        Indicator for if the ``rate`` is a daily rate (True), or hourly rate (False), by
+        default False.
+
+    Returns
+    -------
+    float
+        The total cost of the labor performed.
+    """
+    multiplier = duration / HOURS_IN_DAY if daily_rate else duration
+    return multiplier * rate * n_rate
 
 
 @cache

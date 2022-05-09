@@ -2,16 +2,17 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Generator
 from pathlib import Path
 
 import numpy as np
+from simpy.events import Process, Timeout  # type: ignore
 from simpy.resources.store import FilterStore, FilterStoreGet
 
 from wombat.core.library import load_yaml
 from wombat.core.environment import WombatEnvironment
-from wombat.core.data_classes import PortConfig
-from wombat.utilities.utilities import check_working_hours
+from wombat.core.data_classes import PortConfig, RepairRequest
+from wombat.utilities.utilities import check_working_hours, hours_until_future_hour
 from wombat.core.repair_management import RepairManager
 from wombat.core.service_equipment import ServiceEquipment
 
@@ -163,8 +164,51 @@ class Port(FilterStore):
             )
         )
 
-    def repair(self) -> None:
+    def wait_until_next_shift(self, **kwargs) -> Generator[Timeout, None, None]:
+        """Delays the process until the start of the next shift.
+
+        Yields
+        -------
+        Generator[Timeout, None, None]
+            Delay until the start of the next shift.
+        """
+        kwargs["additional"] = kwargs.get(
+            "additional", "work shift has ended; waiting for next shift to start"
+        )
+        kwargs["action"] = kwargs.get("action", "delay")
+        delay = self.env.hours_to_next_shift(workday_start=self.settings.workday_start)
+        salary_cost = self.calculate_salary_cost(delay)
+        hourly_cost = self.calculate_hourly_cost(0)
+        equpipment_cost = self.calculate_equipment_cost(delay)
+        self.env.log_action(
+            duration=delay,
+            salary_labor_cost=salary_cost,
+            hourly_labor_cost=hourly_cost,
+            equipment_cost=equpipment_cost,
+            **kwargs,
+        )
+        yield self.env.timeout(delay)
+
+    def repair_single(self, repair: RepairRequest) -> None:
         """
         TODO
 
         """
+        # Check for enough time in shift
+        # - if not enough, wait a shift
+        # Perform operations for enough shifts/hours to complete the repair w/o weather
+        # Complete the repair
+        hours_processed = 0
+        current = self.env.simulation_time
+        start_shift = self.settings.workday_start
+        end_shift = self.settings.workday_end
+        hours_to_process = hours_required = repair.details.time
+
+        while hours_processed < hours_required:
+            # Check if the workday is limited by shifts and adjust to stay within shift
+            if not (start_shift == 0 and end_shift == 24):
+                hours_to_process = hours_until_future_hour(current, end_shift)
+
+            # Delay until the next shift if we're at the end
+            if hours_to_process == 0:
+                yield self.env.process(self.w)
