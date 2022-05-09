@@ -169,21 +169,6 @@ class ServiceEquipment:
             )
         )
 
-    def calculate_equipment_cost(self, duration: int | float) -> float:
-        """The total equipment cost implications for a given action.
-
-        Parameters
-        ----------
-        duration : int | float
-            Number of hours to charge for the equipment.
-
-        Returns
-        -------
-        float
-            The total cost of equipment for a given action.
-        """
-        return (duration / HOURS_IN_DAY) * self.settings.equipment_rate
-
     def register_repair_with_subassembly(
         self,
         subassembly: Subassembly | Cable,
@@ -578,7 +563,7 @@ class ServiceEquipment:
         request_details: Maintenance | Failure,
         **kwargs,
     ) -> None | Generator[Timeout | Process, None, None]:
-        """[summary]
+        """The logging and timeout process for performing a repair
 
         Parameters
         ----------

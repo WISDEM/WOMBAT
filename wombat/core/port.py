@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Optional, Generator
 from pathlib import Path
+from functools import partial
 
 import numpy as np
 from simpy.events import Process, Timeout  # type: ignore
@@ -11,8 +12,12 @@ from simpy.resources.store import FilterStore, FilterStoreGet
 
 from wombat.core.library import load_yaml
 from wombat.core.environment import WombatEnvironment
-from wombat.core.data_classes import PortConfig, RepairRequest
-from wombat.utilities.utilities import check_working_hours, hours_until_future_hour
+from wombat.core.data_classes import Failure, PortConfig, Maintenance, RepairRequest
+from wombat.utilities.utilities import (
+    calculate_cost,
+    check_working_hours,
+    hours_until_future_hour,
+)
 from wombat.core.repair_management import RepairManager
 from wombat.core.service_equipment import ServiceEquipment
 
@@ -52,6 +57,22 @@ class Port(FilterStore):
             ServiceEquipment(self.env, self.env.windfarm, repair_manager, tug)
             for tug in self.settings.tugboats
         ]
+
+        # Create partial functions for the labor and equipment costs for clarity
+        self.calculate_salary_cost = partial(
+            calculate_cost,
+            rate=self.settings.crew.day_rate,
+            n_rate=self.settings.crew.n_day_rate,
+            daily_rate=True,
+        )
+        self.calculate_hourly_cost = partial(
+            calculate_cost,
+            rate=self.settings.crew.hourly_rate,
+            n_rate=self.settings.crew.n_hourly_rate,
+        )
+        self.calculate_equipment_cost = partial(
+            calculate_cost, rate=self.settings.equipment_rate
+        )
 
     def _check_working_hours(self) -> None:
         """Checks the working hours of the port and overrides a default (-1) to
@@ -189,10 +210,45 @@ class Port(FilterStore):
         )
         yield self.env.timeout(delay)
 
-    def repair_single(self, repair: RepairRequest) -> None:
-        """
-        TODO
+    def process_repair(
+        self, hours: int | float, request_details: Maintenance | Failure, **kwargs
+    ) -> None | Generator[Timeout | Process, None, None]:
+        """The logging and timeout process for performing a repair or doing maintenance.
 
+        Parameters
+        ----------
+        hours : int | float
+            The lenght, in hours, of the repair or maintenance task.
+        request_details : Maintenance | Failure
+            The deatils of the request, this is only being checked for the type.
+
+        Yields
+        -------
+        None | Generator[Timeout | Process, None, None]
+            A ``Timeout`` is yielded of length ``hours``.
+        """
+        action = "repair" if isinstance(request_details, Failure) else "maintenance"
+        salary_cost = self.calculate_salary_cost(hours)
+        hourly_cost = self.calculate_hourly_cost(hours)
+        equipment_cost = self.calculate_equipment_cost(hours)
+        self.env.log_action(
+            action=action,
+            duration=hours,
+            salary_labor_cost=salary_cost,
+            hourly_labor_cost=hourly_cost,
+            equipment_cost=equipment_cost,
+            additional=action,
+            **kwargs,
+        )
+        yield self.env.timeout(hours)
+
+    def repair_single(self, request: RepairRequest) -> None:
+        """Simulation logic to process a single repair request.
+
+        Parameters
+        ----------
+        request : RepairRequest
+            The submitted repair or maintenance request.
         """
         # Check for enough time in shift
         # - if not enough, wait a shift
@@ -202,13 +258,46 @@ class Port(FilterStore):
         current = self.env.simulation_time
         start_shift = self.settings.workday_start
         end_shift = self.settings.workday_end
-        hours_to_process = hours_required = repair.details.time
+        hours_to_process = hours_remaining = request.details.time
 
-        while hours_processed < hours_required:
+        system = self.env.windfarm.system(request.system_id)
+        subassembly = getattr(system, request.subassembly_id)
+        shared_logging = dict(
+            agent=self.settings.name,
+            reason=request.details.description,
+            system_id=system.id,
+            system_name=system.name,
+            subassembly_id=subassembly.id,
+            subassembly_name=subassembly.name,
+        )
+
+        while hours_remaining > 0:
             # Check if the workday is limited by shifts and adjust to stay within shift
             if not (start_shift == 0 and end_shift == 24):
                 hours_to_process = hours_until_future_hour(current, end_shift)
 
             # Delay until the next shift if we're at the end
             if hours_to_process == 0:
-                yield self.env.process(self.w)
+                additional = "end of shift; will resume work in the next shift"
+                yield self.env.process(
+                    self.wait_until_next_shift(additional=additional, **shared_logging)
+                )
+                continue
+
+            hours_to_process = min(hours_to_process, hours_remaining)
+            yield self.env.process(
+                self.process_repair(hours_to_process, request.details, **shared_logging)
+            )
+            hours_remaining -= hours_to_process
+
+    def run_repairs(self, system_id: str) -> None:
+        """The process to continuously trigger repair processes for a turbine until
+        the queue is empty for a particular turbine.
+
+        Parameters
+        ----------
+        system_id : str
+            The process that should be triggered to complete all the repairs and
+            maintenance on a single turbine.
+        """
+        pass
