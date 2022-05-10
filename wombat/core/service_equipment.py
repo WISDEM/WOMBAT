@@ -563,7 +563,7 @@ class ServiceEquipment:
         request_details: Maintenance | Failure,
         **kwargs,
     ) -> None | Generator[Timeout | Process, None, None]:
-        """The logging and timeout process for performing a repair
+        """The logging and timeout process for performing a repair or doing maintenance.
 
         Parameters
         ----------

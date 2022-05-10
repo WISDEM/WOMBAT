@@ -7,6 +7,7 @@ from pathlib import Path
 from functools import partial
 
 import numpy as np
+import simpy
 from simpy.events import Process, Timeout  # type: ignore
 from simpy.resources.store import FilterStore, FilterStoreGet
 
@@ -52,7 +53,11 @@ class Port(FilterStore):
         self._check_working_hours()
 
         # Instantiate the crews and tugboats
-        self.availible_crews = self.settings.n_crews
+        self.crew_manager = simpy.Resource(env, self.settings.n_crews)
+
+        # Instantiate the crews and tugboats
+        # TODO: put this outside of port or in a register method bc mananger isn't used
+        # anywhere else
         self.availible_tugboats = [
             ServiceEquipment(self.env, self.env.windfarm, repair_manager, tug)
             for tug in self.settings.tugboats
@@ -87,7 +92,7 @@ class Port(FilterStore):
             )
         )
 
-    def get_system_requests_from_manager(self, system_id: str) -> None:
+    def transfer_requests_from_manager(self, system_id: str) -> None:
         """Gets all of a given system's repair requests from the simulation's repair
         manager, removes them from that queue, and puts them in the port's queue.
 
@@ -116,6 +121,7 @@ class Port(FilterStore):
                 reason="at-port repair can now proceed",
                 request_id=request.request_id,
             )
+        _ = [self.env.process(self.repair_single(request)) for request in requests]
 
     def get_request_by_system(self, system_id: str) -> Optional[FilterStoreGet]:
         """Gets all repair requests for a certain turbine with given a sequence of
@@ -250,16 +256,23 @@ class Port(FilterStore):
         request : RepairRequest
             The submitted repair or maintenance request.
         """
-        # Check for enough time in shift
-        # - if not enough, wait a shift
-        # Perform operations for enough shifts/hours to complete the repair w/o weather
-        # Complete the repair
-        hours_processed = 0
-        current = self.env.simulation_time
+        # Retrieve the actual request
+        request = yield self.get(lambda r: r == request)
+
+        # Request a service crew
+        crew_request = self.crew_manager.request()
+        yield crew_request
+
+        # Once a crew is available, process the acutal repair
+        # Get the shift parameters
         start_shift = self.settings.workday_start
         end_shift = self.settings.workday_end
+        continuous_operations = start_shift == 0 and end_shift == 24
+
+        # Set the default hours to process and remaining hours for the repair
         hours_to_process = hours_remaining = request.details.time
 
+        # Create the shared logging among the processes
         system = self.env.windfarm.system(request.system_id)
         subassembly = getattr(system, request.subassembly_id)
         shared_logging = dict(
@@ -271,9 +284,13 @@ class Port(FilterStore):
             subassembly_name=subassembly.name,
         )
 
+        # Continue repairing and waiting a shift until the remaining hours to complete
+        # the repair is zero
         while hours_remaining > 0:
+            current = self.env.simulation_time
+
             # Check if the workday is limited by shifts and adjust to stay within shift
-            if not (start_shift == 0 and end_shift == 24):
+            if not continuous_operations:
                 hours_to_process = hours_until_future_hour(current, end_shift)
 
             # Delay until the next shift if we're at the end
@@ -284,20 +301,31 @@ class Port(FilterStore):
                 )
                 continue
 
+            # Process the repair for the minimum of remaining hours to completion and
+            # hours available in the shift
             hours_to_process = min(hours_to_process, hours_remaining)
             yield self.env.process(
                 self.process_repair(hours_to_process, request.details, **shared_logging)
             )
+
+            # Decrement the remaining hours and reset the default hours to process back
+            # to the remaining repair time
             hours_remaining -= hours_to_process
+            hours_to_process = hours_remaining
 
-    def run_repairs(self, system_id: str) -> None:
-        """The process to continuously trigger repair processes for a turbine until
-        the queue is empty for a particular turbine.
+        # Log the completion of the repair
+        action = "maintenance" if isinstance(request.details, Maintenance) else "repair"
+        self.env.log_action(
+            system_id=system.id,
+            part_id=subassembly.id,
+            part_name=subassembly.name,
+            agent=self.settings.name,
+            action=f"{action} complete",
+            reason=request.details.description,
+            materials_cost=request.details.materials,
+            additional="complete",
+            request_id=request.request_id,
+        )
 
-        Parameters
-        ----------
-        system_id : str
-            The process that should be triggered to complete all the repairs and
-            maintenance on a single turbine.
-        """
-        pass
+        # Make the crew available again
+        self.crew_manager.release(crew_request)
