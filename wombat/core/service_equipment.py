@@ -6,6 +6,7 @@ from math import ceil
 from typing import Generator  # type: ignore
 from datetime import timedelta
 from functools import partial
+from multiprocessing.sharedctypes import Value
 
 import numpy as np  # type: ignore
 from simpy.events import Process, Timeout  # type: ignore
@@ -64,6 +65,33 @@ def consecutive_groups(data: np.ndarray, step_size: int = 1) -> list[np.ndarray]
     # Consecutive groups in delay
     groups = np.split(data, np.where(np.diff(data) != step_size)[0] + 1)
     return groups
+
+
+def calculate_delay_from_forecast(
+    self, forecast: np.ndarray, hours_required: int | float
+) -> tuple[bool, int]:
+    """Calculates the delay from the binary weather forecast for if that hour is all
+    clear for operations.
+
+    Parameters
+    ----------
+    forecast : np.ndarray
+        Truth array to indicate if that hour satisfies the weather limit requirements.
+    hours_required : np.ndarray
+        The minimum clear weather window required, in hours.
+
+    Returns
+    -------
+    tuple[bool, int]
+        Indicator if a window is found (``True``) or not (``False``), and the number
+        of hours the event needs to be delayed in order to start.
+    """
+    safe_operating_windows = consecutive_groups(np.where(forecast)[0])
+    window_lengths = np.array([window.size for window in safe_operating_windows])
+    clear_windows = np.where(window_lengths >= hours_required)[0]
+    if clear_windows.size == 0:
+        return False, forecast.size
+    return True, safe_operating_windows[clear_windows[0]][0]
 
 
 class ServiceEquipment:
@@ -368,7 +396,9 @@ class ServiceEquipment:
             equipment_cost=self.settings.mobilization_cost,
         )
 
-    def _weather_forecast(self, hours: int | float) -> tuple[DatetimeIndex, np.ndarray]:
+    def _weather_forecast(
+        self, hours: int | float, which: str
+    ) -> tuple[DatetimeIndex, np.ndarray]:
         """Retrieves the weather forecast from the simulation environment, and
         translates it to a boolean for satisfactory (True) and unsatisfactory (False)
         weather conditions.
@@ -377,6 +407,8 @@ class ServiceEquipment:
         ----------
         hours : int | float
             The number of hours of weather data that should be retrieved.
+        which : str
+            One of "repair" or "transport" to indicate which weather limits to be using.
 
         Returns
         -------
@@ -385,9 +417,17 @@ class ServiceEquipment:
             conditions are within safe operating limits for the servicing equipment
             (True) or not (False).
         """
+        if which == "repair":
+            max_wind = self.settings.max_windspeed_repair
+            max_wave = self.settings.max_waveheight_repair
+        elif which == "transport":
+            max_wind = self.settings.max_windspeed_transport
+            max_wave = self.settings.max_waveheight_transport
+        else:
+            raise ValueError("`which` must be one of `repair` or `transport`.")
+
         dt, wind, wave = self.env.weather_forecast(hours)
-        all_clear = wind <= self.settings.max_windspeed_repair
-        all_clear &= wave <= self.settings.max_waveheight_repair
+        all_clear = (wind <= max_wind) & (wave <= max_wave)
         return dt, all_clear
 
     def _is_workshift(self, datetime_ix: DatetimeIndex) -> np.ndarray:
@@ -445,7 +485,7 @@ class ServiceEquipment:
         if hours_required > max_hours:
             return max_hours, True
 
-        dt_ix, all_clear = self._weather_forecast(max_hours)
+        dt_ix, all_clear = self._weather_forecast(max_hours, which="repair")
         all_clear &= self._is_workshift(dt_ix)
         safe_operating_windows = consecutive_groups(np.where(all_clear)[0])
         window_lengths = np.array([window.size for window in safe_operating_windows])
@@ -496,7 +536,9 @@ class ServiceEquipment:
         hours_required = ceil(hours_required)
 
         for i in range(10):  # no more than 10 attempts to find a window
-            dt_ix, weather = self._weather_forecast(hours_required + (i * 24))
+            dt_ix, weather = self._weather_forecast(
+                hours_required + (i * 24), which="repair"
+            )
             working_hours = self._is_workshift(dt_ix)
             window = weather & working_hours
             if window.sum() >= hours_required:
@@ -625,7 +667,38 @@ class ServiceEquipment:
             travel_time = 0
         return travel_time
 
-    def _calculate_travel_time(self, distance: float, towing: bool = False) -> float:
+    def _calculate_uninterrupted_travel_time(
+        self, distance: float
+    ) -> tuple[float, float]:
+        """Calculates the delay to the start of traveling and the amount of time it
+        will take to travel between two locations.
+
+        Parameters
+        ----------
+        distance : float
+            The distance to be traveled.
+
+        Returns
+        -------
+        tuple[float, float]
+            The length of the delay and the length of travel time, in hours.`
+        """
+        hours_required = distance / self.settings.speed
+
+        n = 1
+        max_tries = 20
+        while n <= max_tries:  # max tries before failing
+            hours = hours_required * n
+            _, all_clear = self._weather_forecast(hours, which="repair")
+            found, delay = calculate_delay_from_forecast(all_clear, hours_required)
+            if found:
+                return delay, hours_required
+
+        raise ValueError(
+            f"{self.settings.name} unable to find a suitable weather window in the near future at {self.env.simulation_time}"
+        )
+
+    def _calculate_interrupted_travel_time(self, distance: float) -> float:
         """Calculates the travel time with speed reductions for inclement weather, but
         without shift interruptions.
 
@@ -633,9 +706,6 @@ class ServiceEquipment:
         ----------
         distance : flaot
             The total distance to be traveled, in km.
-        towing : bool, optional
-            Indicator for if this travel is towing; if so, then the weather limits for
-            repair are being used (the specific tugboat functionality), by default False.
 
         Returns
         -------
@@ -644,23 +714,10 @@ class ServiceEquipment:
         """
         speed = self.settings.speed
         reduction_factor = self.settings.speed_reduction_factor
-        max_windspeed = (
-            self.settings.max_windspeed_repair
-            if towing
-            else self.settings.max_windspeed_transport
-        )
-        max_waveheight = (
-            self.settings.max_waveheight_repair
-            if towing
-            else self.settings.max_waveheight_transport
-        )
 
         # get the weather forecast with this time for the max travel time
         max_hours = 1 + distance / speed * (1 / reduction_factor)
-        _, wind, wave = self.env.weather_forecast(max_hours)
-
-        # get the safe operating window boolean array
-        all_clear = (wind <= max_windspeed) & (wave <= max_waveheight)
+        _, all_clear = self._weather_forecast(max_hours, which="transport")
 
         # calculate the distance able to be traveled in each 1-hour window
         distance_traveled = speed * all_clear.astype(float)
@@ -741,7 +798,10 @@ class ServiceEquipment:
                 )
             elif set((start, end)) == set(("site", "port")):
                 additional = f"traveling from {start} to {end}"
-                hours = self.settings.port_distance / self.settings.speed
+                # hours = self.settings.port_distance / self.settings.speed
+                hours = self._calculate_interrupted_travel_time(
+                    self.settings.port_distance
+                )
             else:
                 additional = f"traveling from {start} to {end}"
                 hours = 0
@@ -766,7 +826,7 @@ class ServiceEquipment:
                 "additional": "insufficient time to complete travel before end of the shift"
             }
             kw.update(kwargs)
-            yield self.env.process(self.wait_until_next_shift(**kwargs))
+            yield self.env.process(self.wait_until_next_shift(**kw))
             yield self.env.process(
                 self.travel(start=start, end=end, set_current=set_current, **kwargs)
             )
@@ -796,6 +856,66 @@ class ServiceEquipment:
         self.env.log_action(
             action="complete travel",
             additional=f"arrived at {set_current if set_current is not None else end}",
+            **kwargs,
+        )
+
+    def tow(
+        self,
+        start: str,
+        end: str,
+        set_current: str | None = None,
+        **kwargs,
+    ) -> Generator[Timeout | Process, None, None]:
+        """TODO:docstring"""
+        if start not in ("port", "site", "system"):
+            raise ValueError(
+                "``start`` location must be one of 'port', 'site', or 'system'!"
+            )
+        if end not in ("port", "site", "system"):
+            raise ValueError(
+                "``end`` location must be one of 'port', 'site', or 'system'!"
+            )
+
+        # Get the distance that needs to be traveled
+        if start == end == "system":
+            additional = f"towing from {self.current_system} to {set_current}"
+            distance = self.windfarm.distance_matrix.loc[start, end]
+        elif set((start, end)) == set(("site", "port")):
+            additional = f"towing from {start} to {end}"
+            distance = self.settings.port_distance
+        else:
+            raise ValueError(f"Inavlid (start, end) combination: ({start}, {end})")
+
+        # Calculate the delay and time traveling, then log each of them
+        delay, hours = self._calculate_uninterrupted_travel_time(distance)
+        if delay > 0:
+            yield self.env.process(self.weather_delay(delay))
+
+        salary_labor_cost = self.calculate_salary_cost(hours)
+        hourly_labor_cost = self.calculate_hourly_cost(hours)
+        equipment_cost = self.calculate_equipment_cost(hours)
+        self.env.log_action(
+            duration=hours,
+            action="towing",
+            salary_labor_cost=salary_labor_cost,
+            hourly_labor_cost=hourly_labor_cost,
+            equipment_cost=equipment_cost,
+            reason="towing turbine",
+            agent=self.settings.name,
+            additional=additional,
+            **kwargs,
+        )
+
+        yield self.env.timeout(hours)
+        self.env.log_action(
+            duration=hours,
+            action=f"complete {additional}",
+            salary_labor_cost=salary_labor_cost,
+            hourly_labor_cost=hourly_labor_cost,
+            equipment_cost=equipment_cost,
+            reason="complete complete",
+            agent=self.settings.name,
+            additional="complete",
             **kwargs,
         )
 
@@ -1135,7 +1255,9 @@ class ServiceEquipment:
         if not (start_shift == 0 and end_shift == 24):
             hours_available = hours_until_future_hour(current, end_shift)
             hours_available -= self.settings.crew_transfer_time
-            _, weather_forecast = self._weather_forecast(hours_available)
+            _, weather_forecast = self._weather_forecast(
+                hours_available, which="repair"
+            )
         else:
             _, weather_forecast, _ = self.find_interrupted_weather_window(
                 hours_required

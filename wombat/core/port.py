@@ -149,48 +149,6 @@ class Port(FilterStore):
         else:
             yield requests
 
-    def tow_to_port(self, tugboat: ServiceEquipment, system_id: str) -> None:
-        """Process for a tugboat to initiate the tow-to-port repair process."""
-
-        """
-        TODO
-        1) Calculate travel time to site
-        2) Travel to site
-        3) Unmoor the turbine
-        4) Calculate travel time to port
-        5) Travel to port
-        6) Line it up for repairs
-        """
-
-    def return_system(self, tugboat: ServiceEquipment, system_id: str) -> None:
-        """Process returns the system to site, and turns it back on."""
-
-        """
-        TODO
-        1) Tow turbine back to port
-            a) get travel time with speed reductions
-            b) travel
-        2) Reconnect turbine
-        3) Reset to fully operating
-        4) Reset all failure/maintenance processes?
-
-        """
-
-        # Tow turbine back to site
-        hours = tugboat._calculate_travel_time(self.settings.site_distance, towing=True)
-        yield self.env.process(
-            tugboat.travel(
-                "port",
-                "site",
-                system_id,
-                hours=hours,
-                action=f"transporting {system_id} back to site",
-                agent=tugboat.settings.name,
-                reason="at-port repairs complete",
-                additional="anything else about slow downs, tbd?",
-            )
-        )
-
     def wait_until_next_shift(self, **kwargs) -> Generator[Timeout, None, None]:
         """Delays the process until the start of the next shift.
 
@@ -329,3 +287,46 @@ class Port(FilterStore):
 
         # Make the crew available again
         self.crew_manager.release(crew_request)
+
+    def tow_to_port(self, tugboat: ServiceEquipment, system_id: str) -> None:
+        """Process for a tugboat to initiate the tow-to-port repair process."""
+
+        """
+        TODO
+        1) Calculate travel time to site
+        2) Travel to site
+        3) Unmoor the turbine
+        4) Calculate travel time to port
+        5) Travel to port
+        6) Line it up for repairs
+        """
+        tugboat.find_uninterrupted_weather_window()
+
+    def return_system(self, tugboat: ServiceEquipment, system_id: str) -> None:
+        """Process returns the system to site, and turns it back on."""
+
+        """
+        TODO
+        1) Tow turbine back to port
+            a) get travel time with speed reductions
+            b) travel
+        2) Reconnect turbine
+        3) Reset to fully operating
+        4) Reset all failure/maintenance processes?
+
+        """
+
+        # Tow turbine back to site
+        hours = tugboat._calculate_travel_time(self.settings.site_distance, towing=True)
+        yield self.env.process(
+            tugboat.travel(
+                "port",
+                "site",
+                system_id,
+                hours=hours,
+                action=f"transporting {system_id} back to site",
+                agent=tugboat.settings.name,
+                reason="at-port repairs complete",
+                additional="anything else about slow downs, tbd?",
+            )
+        )
