@@ -11,14 +11,11 @@ import simpy
 from simpy.events import Process, Timeout  # type: ignore
 from simpy.resources.store import FilterStore, FilterStoreGet
 
+from wombat.core.mixins import RepairsMixin
 from wombat.core.library import load_yaml
 from wombat.core.environment import WombatEnvironment
 from wombat.core.data_classes import Failure, PortConfig, Maintenance, RepairRequest
-from wombat.utilities.utilities import (
-    calculate_cost,
-    check_working_hours,
-    hours_until_future_hour,
-)
+from wombat.utilities.utilities import cache, calculate_cost, hours_until_future_hour
 from wombat.core.repair_management import RepairManager
 from wombat.core.service_equipment import ServiceEquipment
 
@@ -34,7 +31,7 @@ except ImportError:
 HOURS_IN_DAY = 24
 
 
-class Port(FilterStore):
+class Port(FilterStore, RepairsMixin):
     def __init__(
         self,
         env: WombatEnvironment,

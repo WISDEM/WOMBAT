@@ -15,12 +15,12 @@ import pandas as pd
 from wombat.core.data_classes import HOURS_IN_DAY  # type: ignore
 
 
-try:  # pylint: disable=duplicate-code
-    from functools import cache  # type: ignore
-except ImportError:  # pylint: disable=duplicate-code
-    from functools import lru_cache  # pylint: disable=duplicate-code
+try:
+    from functools import cache
+except ImportError:
+    from functools import lru_cache
 
-    cache = lru_cache(None)  # pylint: disable=duplicate-code
+    cache = lru_cache(None)
 
 
 def convert_dt_to_hours(diff: datetime.timedelta) -> float:

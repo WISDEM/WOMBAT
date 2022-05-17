@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from math import ceil
-from typing import Generator  # type: ignore
+from typing import Optional, Generator  # type: ignore
 from datetime import timedelta
 from functools import partial
 from multiprocessing.sharedctypes import Value
@@ -22,6 +22,7 @@ from wombat.core import (
 )
 from wombat.windfarm import Windfarm
 from wombat.utilities import hours_until_future_hour
+from wombat.core.mixins import RepairsMixin
 from wombat.core.library import load_yaml
 from wombat.windfarm.system import System
 from wombat.core.data_classes import (
@@ -29,17 +30,9 @@ from wombat.core.data_classes import (
     ScheduledServiceEquipmentData,
     UnscheduledServiceEquipmentData,
 )
-from wombat.utilities.utilities import calculate_cost, check_working_hours
+from wombat.utilities.utilities import cache, calculate_cost, check_working_hours
 from wombat.windfarm.system.cable import Cable
 from wombat.windfarm.system.subassembly import Subassembly
-
-
-try:
-    from functools import cache  # type: ignore
-except ImportError:
-    from functools import lru_cache
-
-    cache = lru_cache(None)
 
 
 HOURS_IN_DAY = 24
@@ -94,7 +87,7 @@ def calculate_delay_from_forecast(
     return True, safe_operating_windows[clear_windows[0]][0]
 
 
-class ServiceEquipment:
+class ServiceEquipment(RepairsMixin):
     """Provides a servicing equipment object that can handle various maintenance and
     repair tasks.
 
@@ -196,6 +189,115 @@ class ServiceEquipment:
                 self.settings.workday_end,
             )
         )
+
+    def _validate_end_points(
+        self, start: str, end: str, no_intrasite: bool = False
+    ) -> None:
+        """Checks the starting and ending locations for traveling and towing.
+
+        Parameters
+        ----------
+        start : str
+            The starting location; should be on of: "site", "system", or "port".
+        end : str
+            The ending location; should be on of: "site", "system", or "port".
+        no_intrasite : bool
+            A flag to disable intrasite travel, so that ``start`` and ``end`` cannot
+            both be "system", by default False.
+
+        Raises
+        ------
+        ValueError
+            Raised if the starting location is invalid.
+        ValueError
+            Raised if the ending location is invalid
+        ValueError
+            Raised if "system" is provided to both ``start`` and ``end``, but
+            ``no_intrasite`` is set to ``True``.
+        """
+        if start not in ("port", "site", "system"):
+            raise ValueError(
+                "``start`` location must be one of 'port', 'site', or 'system'!"
+            )
+        if end not in ("port", "site", "system"):
+            raise ValueError(
+                "``end`` location must be one of 'port', 'site', or 'system'!"
+            )
+        if no_intrasite and (start == end == "system"):
+            raise ValueError("No travel within the site is allowed for this process")
+
+    def _set_location(
+        self, start: str, end: str, set_current: Optional[str] = None
+    ) -> None:
+        """Keeps track of the servicing equipment by setting the location at either:
+        site, port, or a specific system
+
+        Parameters
+        ----------
+        start : str
+            The starting location; one of "site", or "port"
+        end : str
+            The ending location; one of "site", or "port"
+        set_current : str
+            The ``System.id`` for the new current location, if one is to be set.
+        """
+        if end == "port":
+            self.at_port = True
+            self.onsite = False
+        else:
+            self.at_port = False
+            self.onsite = True
+        self.at_system = True if set_current is not None else False
+        self.current_system = set_current
+
+    def _weather_forecast(
+        self, hours: int | float, which: str
+    ) -> tuple[DatetimeIndex, np.ndarray]:
+        """Retrieves the weather forecast from the simulation environment, and
+        translates it to a boolean for satisfactory (True) and unsatisfactory (False)
+        weather conditions.
+
+        Parameters
+        ----------
+        hours : int | float
+            The number of hours of weather data that should be retrieved.
+        which : str
+            One of "repair" or "transport" to indicate which weather limits to be using.
+
+        Returns
+        -------
+        tuple[DatetimeIndex, np.ndarray]
+            The pandas DatetimeIndex and the boolean array of where the weather
+            conditions are within safe operating limits for the servicing equipment
+            (True) or not (False).
+        """
+        if which == "repair":
+            max_wind = self.settings.max_windspeed_repair
+            max_wave = self.settings.max_waveheight_repair
+        elif which == "transport":
+            max_wind = self.settings.max_windspeed_transport
+            max_wave = self.settings.max_waveheight_transport
+        else:
+            raise ValueError("`which` must be one of `repair` or `transport`.")
+
+        dt, wind, wave = self.env.weather_forecast(hours)
+        all_clear = (wind <= max_wind) & (wave <= max_wave)
+        return dt, all_clear
+
+    def get_next_request(self):
+        """Gets the next request by the rig's method for processing repairs.
+
+        Returns
+        -------
+        simpy.resources.store.FilterStoreGet
+            The next ``RepairRequest`` to be processed.
+        """
+        if self.settings.method == "turbine":
+            return self.manager.get_request_by_system(self.settings.capability)
+        elif self.settings.method == "severity":
+            return self.manager.get_next_highest_severity_request(
+                self.settings.capability
+            )
 
     def register_repair_with_subassembly(
         self,
@@ -371,40 +473,6 @@ class ServiceEquipment:
             equipment_cost=self.settings.mobilization_cost,
         )
 
-    def _weather_forecast(
-        self, hours: int | float, which: str
-    ) -> tuple[DatetimeIndex, np.ndarray]:
-        """Retrieves the weather forecast from the simulation environment, and
-        translates it to a boolean for satisfactory (True) and unsatisfactory (False)
-        weather conditions.
-
-        Parameters
-        ----------
-        hours : int | float
-            The number of hours of weather data that should be retrieved.
-        which : str
-            One of "repair" or "transport" to indicate which weather limits to be using.
-
-        Returns
-        -------
-        tuple[DatetimeIndex, np.ndarray]
-            The pandas DatetimeIndex and the boolean array of where the weather
-            conditions are within safe operating limits for the servicing equipment
-            (True) or not (False).
-        """
-        if which == "repair":
-            max_wind = self.settings.max_windspeed_repair
-            max_wave = self.settings.max_waveheight_repair
-        elif which == "transport":
-            max_wind = self.settings.max_windspeed_transport
-            max_wave = self.settings.max_waveheight_transport
-        else:
-            raise ValueError("`which` must be one of `repair` or `transport`.")
-
-        dt, wind, wave = self.env.weather_forecast(hours)
-        all_clear = (wind <= max_wind) & (wave <= max_wave)
-        return dt, all_clear
-
     def find_uninterrupted_weather_window(
         self, hours_required: int | float
     ) -> tuple[int | float, bool]:
@@ -502,21 +570,6 @@ class ServiceEquipment:
                 break
 
         return dt_ix, weather, window_found
-
-    def get_next_request(self):
-        """Gets the next request by the rig's method for processing repairs.
-
-        Returns
-        -------
-        simpy.resources.store.FilterStoreGet
-            The next ``RepairRequest`` to be processed.
-        """
-        if self.settings.method == "turbine":
-            return self.manager.get_request_by_system(self.settings.capability)
-        elif self.settings.method == "severity":
-            return self.manager.get_next_highest_severity_request(
-                self.settings.capability
-            )
 
     def weather_delay(
         self, hours: int | float, **kwargs
@@ -694,22 +747,8 @@ class ServiceEquipment:
         -------
         Generator[Timeout | Process, None, None]
             The timeout event for traveling.
-
-        Raises
-        ------
-        ValueError
-            Raised if ``start`` is not one of the required inputs.
-        ValueError
-            Raised if ``end`` is not one of the required inputs.
         """
-        if start not in ("port", "site", "system"):
-            raise ValueError(
-                "``start`` location must be one of 'port', 'site', or 'system'!"
-            )
-        if end not in ("port", "site", "system"):
-            raise ValueError(
-                "``end`` location must be one of 'port', 'site', or 'system'!"
-            )
+        self._validate_end_points(start, end)
 
         if hours is None:
             if start == end == "system":
@@ -766,14 +805,7 @@ class ServiceEquipment:
         )
         yield self.env.timeout(hours)
 
-        if end == "port":
-            self.at_port = True
-            self.onsite = False
-        else:
-            self.at_port = False
-            self.onsite = True
-        self.at_system = True if set_current is not None else False
-        self.current_system = set_current
+        self._set_location(start, end, set_current)
         self.env.log_action(
             action="complete travel",
             additional=f"arrived at {set_current if set_current is not None else end}",
@@ -787,27 +819,27 @@ class ServiceEquipment:
         set_current: str | None = None,
         **kwargs,
     ) -> Generator[Timeout | Process, None, None]:
-        """TODO:docstring"""
-        if start not in ("port", "site", "system"):
-            raise ValueError(
-                "``start`` location must be one of 'port', 'site', or 'system'!"
-            )
-        if end not in ("port", "site", "system"):
-            raise ValueError(
-                "``end`` location must be one of 'port', 'site', or 'system'!"
-            )
+        """The process for towing a turbine to/from port.
 
-        # Get the distance that needs to be traveled
-        if start == end == "system":
-            additional = f"towing from {self.current_system} to {set_current}"
-            distance = self.windfarm.distance_matrix.loc[start, end]
-        elif set((start, end)) == set(("site", "port")):
-            additional = f"towing from {start} to {end}"
-            distance = self.settings.port_distance
-        else:
-            raise ValueError(f"Inavlid (start, end) combination: ({start}, {end})")
+        Parameters
+        ----------
+        start : str
+            The starting location; one of "site" or "port".
+        end : str
+            The ending location; one of "site" or "port".
+        set_current : str | None, optional
+            The ``System.id`` if the turbine is being returned to site, by default None
 
-        # Calculate the delay and time traveling, then log each of them
+        Yields
+        ------
+        Generator[Timeout | Process, None, None]
+            The series of SimPy events that will be processed for the actions to occur.
+        """
+        self._validate_end_points(start, end, no_intrasite=True)
+
+        # Get the distance that needs to be traveled, then calculate the delay and time
+        # traveling, and log each of them
+        distance = self.settings.port_distance
         delay, hours = self._calculate_uninterrupted_travel_time(distance)
         if delay > 0:
             yield self.env.process(self.weather_delay(delay))
@@ -828,6 +860,7 @@ class ServiceEquipment:
         )
 
         yield self.env.timeout(hours)
+        self._set_location(start, end, set_current)
         self.env.log_action(
             duration=hours,
             action=f"complete {additional}",
