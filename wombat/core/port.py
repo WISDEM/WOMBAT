@@ -13,19 +13,11 @@ from simpy.resources.store import FilterStore, FilterStoreGet
 
 from wombat.core.mixins import RepairsMixin
 from wombat.core.library import load_yaml
+from wombat.utilities.time import calculate_cost, hours_until_future_hour
 from wombat.core.environment import WombatEnvironment
-from wombat.core.data_classes import Failure, PortConfig, Maintenance, RepairRequest
-from wombat.utilities.utilities import cache, calculate_cost, hours_until_future_hour
+from wombat.core.data_classes import PortConfig, Maintenance, RepairRequest
 from wombat.core.repair_management import RepairManager
 from wombat.core.service_equipment import ServiceEquipment
-
-
-try:
-    from functools import cache  # type: ignore
-except ImportError:
-    from functools import lru_cache
-
-    cache = lru_cache(None)
 
 
 HOURS_IN_DAY = 24
