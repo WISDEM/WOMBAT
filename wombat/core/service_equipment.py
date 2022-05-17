@@ -242,31 +242,6 @@ class ServiceEquipment:
         else:
             subassembly.operating_level /= 1 - repair.details.operation_reduction
 
-    def wait_until_next_shift(self, **kwargs) -> Generator[Timeout, None, None]:
-        """Delays the crew until the start of the next shift.
-
-        Yields
-        -------
-        Generator[Timeout, None, None]
-            Delay until the start of the next shift.
-        """
-        kwargs["additional"] = kwargs.get(
-            "additional", "work shift has ended; waiting for next shift to start"
-        )
-        kwargs["action"] = kwargs.get("action", "delay")
-        delay = self.env.hours_to_next_shift(workday_start=self.settings.workday_start)
-        salary_cost = self.calculate_salary_cost(delay)
-        hourly_cost = 0  # contractor labor not paid for delays
-        equpipment_cost = self.calculate_equipment_cost(delay)
-        self.env.log_action(
-            duration=delay,
-            salary_labor_cost=salary_cost,
-            hourly_labor_cost=hourly_cost,
-            equipment_cost=equpipment_cost,
-            **kwargs,
-        )
-        yield self.env.timeout(delay)
-
     def wait_until_next_operational_period(
         self, *, less_mobilization_hours: int = 0
     ) -> Generator[Timeout, None, None]:
@@ -430,25 +405,6 @@ class ServiceEquipment:
         all_clear = (wind <= max_wind) & (wave <= max_wave)
         return dt, all_clear
 
-    def _is_workshift(self, datetime_ix: DatetimeIndex) -> np.ndarray:
-        """Determines which timestamps are in the servicing equipment's working hours.
-
-        Parameters
-        ----------
-        datetime_ix : DatetimeIndex
-            A pandas DatetimeIndex that needs to be assessed.
-
-        Returns
-        -------
-        np.ndarray
-            A boolean array for which values in working hours (True), and which values
-            are outside working hours (False).
-        """
-        start = self.settings.workday_start
-        end = self.settings.workday_end
-        hour = datetime_ix.hour
-        return (start <= hour) & (hour <= end)
-
     def find_uninterrupted_weather_window(
         self, hours_required: int | float
     ) -> tuple[int | float, bool]:
@@ -595,41 +551,6 @@ class ServiceEquipment:
             salary_labor_cost=salary_cost,
             hourly_labor_cost=hourly_cost,
             equipment_cost=equipment_cost,
-            **kwargs,
-        )
-        yield self.env.timeout(hours)
-
-    def process_repair(
-        self,
-        hours: int | float,
-        request_details: Maintenance | Failure,
-        **kwargs,
-    ) -> None | Generator[Timeout | Process, None, None]:
-        """The logging and timeout process for performing a repair or doing maintenance.
-
-        Parameters
-        ----------
-        hours : int | float
-            The lenght, in hours, of the repair or maintenance task.
-        request_details : Maintenance | Failure
-            The deatils of the request, this is only being checked for the type.
-
-        Yields
-        -------
-        None | Generator[Timeout | Process, None, None]
-            A ``Timeout`` is yielded of length ``hours``.
-        """
-        action = "repair" if isinstance(request_details, Failure) else "maintenance"
-        salary_cost = self.calculate_salary_cost(hours)
-        hourly_cost = self.calculate_hourly_cost(hours)
-        equipment_cost = self.calculate_equipment_cost(hours)
-        self.env.log_action(
-            action=action,
-            duration=hours,
-            salary_labor_cost=salary_cost,
-            hourly_labor_cost=hourly_cost,
-            equipment_cost=equipment_cost,
-            additional=action,
             **kwargs,
         )
         yield self.env.timeout(hours)

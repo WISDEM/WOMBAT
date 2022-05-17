@@ -15,6 +15,8 @@ import pandas as pd  # type: ignore
 from attrs import Factory, Attribute, field, define  # type: ignore
 from scipy.stats import weibull_min  # type: ignore
 
+from wombat.core.mixins import FromDictMixin
+
 
 HOURS_IN_YEAR = 8760
 HOURS_IN_DAY = 24
@@ -284,54 +286,6 @@ def check_method(
     valid = ("turbine", "severity")
     if value not in valid:
         raise ValueError(f"Input {attribute.name} must be one of {valid}.")
-
-
-@define
-class FromDictMixin:
-    """A Mixin class to allow for kwargs overloading when a data class doesn't
-    have a specific parameter definied. This allows passing of larger dictionaries
-    to a data class without throwing an error.
-
-    Raises
-    ------
-    AttributeError
-        Raised if the required class inputs are not provided.
-    """
-
-    @classmethod
-    def from_dict(cls, data: dict):
-        """Maps a data dictionary to an `attrs`-defined class.
-
-        TODO: Add an error to ensure that either none or all the parameters are passed in
-
-        Parameters
-        ----------
-            data : dict
-                The data dictionary to be mapped.
-        Returns
-        -------
-            cls : Any
-                The `attrs`-defined class.
-        """
-        # Get all parameters from the input dictionary that map to the class initialization
-        kwargs = {
-            a.name: data[a.name]
-            for a in cls.__attrs_attrs__  # type: ignore
-            if a.name in data and a.init
-        }
-
-        # Map the inputs must be provided: 1) must be initialized, 2) no default value defined
-        required_inputs = [
-            a.name
-            for a in cls.__attrs_attrs__  # type: ignore
-            if a.init and isinstance(a.default, attr._make._Nothing)  # type: ignore
-        ]
-        undefined = sorted(set(required_inputs) - set(kwargs))
-        if undefined:
-            raise AttributeError(
-                f"The class defintion for {cls.__name__} is missing the following inputs: {undefined}"
-            )
-        return cls(**kwargs)  # type: ignore
 
 
 @define(frozen=True, auto_attribs=True)

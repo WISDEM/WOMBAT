@@ -79,19 +79,6 @@ class Port(FilterStore):
             calculate_cost, rate=self.settings.equipment_rate
         )
 
-    def _check_working_hours(self) -> None:
-        """Checks the working hours of the port and overrides a default (-1) to
-        the ``env`` settings, otherwise hours remain the same.
-        """
-        self.settings._set_environment_shift(
-            *check_working_hours(
-                self.env.workday_start,
-                self.env.workday_end,
-                self.settings.workday_start,
-                self.settings.workday_end,
-            )
-        )
-
     def transfer_requests_from_manager(self, system_id: str) -> None:
         """Gets all of a given system's repair requests from the simulation's repair
         manager, removes them from that queue, and puts them in the port's queue.
@@ -148,63 +135,6 @@ class Port(FilterStore):
             return None
         else:
             yield requests
-
-    def wait_until_next_shift(self, **kwargs) -> Generator[Timeout, None, None]:
-        """Delays the process until the start of the next shift.
-
-        Yields
-        -------
-        Generator[Timeout, None, None]
-            Delay until the start of the next shift.
-        """
-        kwargs["additional"] = kwargs.get(
-            "additional", "work shift has ended; waiting for next shift to start"
-        )
-        kwargs["action"] = kwargs.get("action", "delay")
-        delay = self.env.hours_to_next_shift(workday_start=self.settings.workday_start)
-        salary_cost = self.calculate_salary_cost(delay)
-        hourly_cost = self.calculate_hourly_cost(0)
-        equpipment_cost = self.calculate_equipment_cost(delay)
-        self.env.log_action(
-            duration=delay,
-            salary_labor_cost=salary_cost,
-            hourly_labor_cost=hourly_cost,
-            equipment_cost=equpipment_cost,
-            **kwargs,
-        )
-        yield self.env.timeout(delay)
-
-    def process_repair(
-        self, hours: int | float, request_details: Maintenance | Failure, **kwargs
-    ) -> None | Generator[Timeout | Process, None, None]:
-        """The logging and timeout process for performing a repair or doing maintenance.
-
-        Parameters
-        ----------
-        hours : int | float
-            The lenght, in hours, of the repair or maintenance task.
-        request_details : Maintenance | Failure
-            The deatils of the request, this is only being checked for the type.
-
-        Yields
-        -------
-        None | Generator[Timeout | Process, None, None]
-            A ``Timeout`` is yielded of length ``hours``.
-        """
-        action = "repair" if isinstance(request_details, Failure) else "maintenance"
-        salary_cost = self.calculate_salary_cost(hours)
-        hourly_cost = self.calculate_hourly_cost(hours)
-        equipment_cost = self.calculate_equipment_cost(hours)
-        self.env.log_action(
-            action=action,
-            duration=hours,
-            salary_labor_cost=salary_cost,
-            hourly_labor_cost=hourly_cost,
-            equipment_cost=equipment_cost,
-            additional=action,
-            **kwargs,
-        )
-        yield self.env.timeout(hours)
 
     def repair_single(self, request: RepairRequest) -> None:
         """Simulation logic to process a single repair request.
