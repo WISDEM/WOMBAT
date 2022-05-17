@@ -157,10 +157,6 @@ class ServiceEquipment(RepairsMixin):
         if self.settings.strategy == "scheduled":
             self.env.process(self.run_scheduled_in_situ())
 
-        # Run the tow-to-port strategy
-        if self.settings.strategy == "tow_to_port":
-            self.env.process(self.run_tow_to_port)
-
         # Create partial functions for the labor and equipment costs for clarity
         self.calculate_salary_cost = partial(
             calculate_cost,
@@ -1028,10 +1024,7 @@ class ServiceEquipment(RepairsMixin):
         shared_logging = dict(
             system_id=system.id,
             system_name=system.name,
-            part_id=subassembly.id,
-            part_name=subassembly.name,
             system_ol=system.operating_level,
-            part_ol=subassembly.operating_level,
             agent=self.settings.name,
             reason=request.details.description,
             request_id=request.request_id,
@@ -1436,29 +1429,74 @@ class ServiceEquipment(RepairsMixin):
             else:
                 yield self.env.process(self.in_situ_repair(request.value))
 
-    def run_tow_to_port(self) -> Generator[Process, None, None]:
-        """Not Implemented"""
+    def run_tow_to_port(self, request: RepairRequest) -> Generator[Process, None, None]:
+        """Runs the tow to port logic, so a turbine can be repaired at port.
 
-        # Run until there are no more towing processes left (should only run on demand)
-        # Scenario 1: Need to tow a turbine to port
-        # 1) Get the first most-severe turbine repair
-        # 2) Transfer all repairs for the turbine to the PortRepairManager
-        # 2) Tow the turbine to port
-        # 3) If no more turbines to tow, travel back to port, and end
-        #
-        # Scenario 2: Need to tow a turbine back to site
-        # 1) Get first available turbine
-        # 2) Tow it back to site
-        # 3) Check for turbines to see if they need to be towed to port, otherwise travel back to port
-        # 4) If no more turbines to tow, end
+        Parameters
+        ----------
+        request : RepairRequest
+            The request the triggered the tow-to-port strategy.
 
-        while True:
+        Yields
+        ------
+        Generator[Process, None, None]
+            The series of events that simulate the complete towing logic.
 
-            # Check location
-            # If at port, travel to turbine
-            #
-            pass
+        Raises
+        ------
+        ValueError
+            Raised if the equipment is not currently at port
+        """
 
-        yield self.env.process(self.mooring_connection())
+        if not self.at_port:
+            raise ValueError("Cannot run tow-to-port if not at port")
 
-        raise NotImplementedError("Tow-to-port is not yet implemented")
+        system = self.windfarm.system(request.system_id)
+
+        yield self.env.process(self.travel("port", "site", set_current=system.id))
+        self.manager.halt_requests_for_system(system.id)
+        system.servicing = True
+        yield self.env.process(self.mooring_connection(system, request, which="unmoor"))
+        yield self.env.process(self.tow("site", "port"))
+
+    def run_tow_to_site(self, request: RepairRequest) -> Generator[Process, None, None]:
+        """Runs the tow to site logic for after a turbine has had its repairs completed
+        at port.
+
+        Parameters
+        ----------
+        request : RepairRequest
+            The request the triggered the tow-to-port strategy.
+
+        Yields
+        ------
+        Generator[Process, None, None]
+            The series of events that simulate the complete towing logic.
+
+        Raises
+        ------
+        ValueError
+            Raised if the equipment is not currently at port
+        """
+        if not self.at_port:
+            raise ValueError("Cannot run tow-to-port if not at port")
+
+        system = self.windfarm.system(request.system_id)
+        yield self.env.process(self.tow("port", "site", set_current=system.id))
+        yield self.env.process(
+            self.mooring_connection(system, request, which="reconnect")
+        )
+        yield self.env.process(self.travel("site", "port"))
+        self.manager.enable_requests_for_system(system.id)
+
+        # TODO: How to register all the repairs are complete
+        self.servicing = False
+
+    def run_unscheduled(self) -> None:
+        """TODO"""
+        # The TOW capability indicates this is a tugboat and that a repair is the
+        # tow-to-port strategy. Everything else is considered in-situ-repairs
+        if "TOW" in self.settings.capability:
+            self.env.process(self.port.run_tow_to_port())
+        else:
+            self.env.process(self.run_unscheduled_in_situ())

@@ -7,13 +7,9 @@ import numpy as np
 import pytest
 import numpy.testing as nptest
 
-from wombat.utilities.utilities import (
-    IEC_power_curve,
-    _mean,
-    convert_dt_to_hours,
-    hours_until_future_hour,
-    format_events_log_message,
-)
+from wombat.utilities.time import convert_dt_to_hours, hours_until_future_hour
+from wombat.utilities.logging import format_events_log_message
+from wombat.utilities.utilities import IEC_power_curve, _mean
 
 
 def test_convert_dt_to_hours():

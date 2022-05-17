@@ -207,45 +207,15 @@ class Port(FilterStore, RepairsMixin):
         # Make the crew available again
         self.crew_manager.release(crew_request)
 
-    def tow_to_port(self, tugboat: ServiceEquipment, system_id: str) -> None:
+    def run_tow_to_port(self, tugboat: ServiceEquipment, system_id: str) -> None:
         """Process for a tugboat to initiate the tow-to-port repair process."""
 
         """
         TODO
-        1) Calculate travel time to site
-        2) Travel to site
-        3) Unmoor the turbine
-        4) Calculate travel time to port
-        5) Travel to port
-        6) Line it up for repairs
+        1) Wait for a tugboat
+        2) Tugboat: Tow turbine to port
+        3) Transfer requests from the repair manager
+        4) Perform the repairs and register their completion
+        5) Reset all current maintenance processes
+        6) Tugboat: Tow turbine to site
         """
-        tugboat.find_uninterrupted_weather_window()
-
-    def return_system(self, tugboat: ServiceEquipment, system_id: str) -> None:
-        """Process returns the system to site, and turns it back on."""
-
-        """
-        TODO
-        1) Tow turbine back to port
-            a) get travel time with speed reductions
-            b) travel
-        2) Reconnect turbine
-        3) Reset to fully operating
-        4) Reset all failure/maintenance processes?
-
-        """
-
-        # Tow turbine back to site
-        hours = tugboat._calculate_travel_time(self.settings.site_distance, towing=True)
-        yield self.env.process(
-            tugboat.travel(
-                "port",
-                "site",
-                system_id,
-                hours=hours,
-                action=f"transporting {system_id} back to site",
-                agent=tugboat.settings.name,
-                reason="at-port repairs complete",
-                additional="anything else about slow downs, tbd?",
-            )
-        )

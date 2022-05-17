@@ -57,6 +57,7 @@ class RepairManager(FilterStore):
 
         self.env = env
         self._current_id = 0
+        self.invalid_systems = []
 
         self.downtime_based_equipment = StrategyMap()
         self.request_based_equipment = StrategyMap()
@@ -133,7 +134,7 @@ class RepairManager(FilterStore):
                     continue
                 if equipment.equipment.onsite or equipment.equipment.enroute:
                     continue
-                self.env.process(equipment.equipment.run_unscheduled_in_situ())
+                self.env.process(equipment.equipment.run_unscheduled())
 
     def _run_equipment_requests(self) -> None:
         """Run the first piece of equipment (if none are onsite) for each equipment
@@ -150,7 +151,7 @@ class RepairManager(FilterStore):
                 if equipment.equipment.onsite or equipment.equipment.enroute:
                     equipment_mapping.append(equipment_mapping.pop(i))
                     break
-                self.env.process(equipment.equipment.run_unscheduled_in_situ())
+                self.env.process(equipment.equipment.run_unscheduled())
                 equipment_mapping.append(equipment_mapping.pop(i))
 
     def submit_request(self, request: RepairRequest) -> RepairRequest:
@@ -183,7 +184,7 @@ class RepairManager(FilterStore):
         self, equipment_capability: Sequence[str], system_id: Optional[str] = None
     ) -> Optional[FilterStoreGet]:
         """Gets all repair requests for a certain turbine with given a sequence of
-        ``equipment_capability``.
+        ``equipment_capability`` as long as it isn't registered as unable to be serviced.
 
         Parameters
         ----------
@@ -201,6 +202,9 @@ class RepairManager(FilterStore):
             empty, or there is no matching system.
         """
         if not self.items:
+            return None
+
+        if system_id in self.invalid_systems:
             return None
 
         equipment_capability = set(equipment_capability)  # type: ignore
@@ -248,7 +252,12 @@ class RepairManager(FilterStore):
         # Filter the requests by severity level
         requests = self.items
         if severity_level is not None:
-            requests = [el for el in self.items if el.severity_level == severity_level]
+            requests = [
+                el
+                for el in self.items
+                if (el.severity_level == severity_level)
+                and (el.system_id not in self.invalid_systems)
+            ]
         if requests == []:
             return None
 
@@ -262,6 +271,19 @@ class RepairManager(FilterStore):
         # break when something is found.
 
         return None
+
+    def halt_requests_for_system(self, system_id: str) -> None:
+        """Disables the ability for servicing equipment to service a specific system.
+
+        Parameters
+        ----------
+        system_id : str
+            The system to disable repairs.
+        """
+        self.invalid_systems.append(system_id)
+
+    def enable_requests_for_system(self, system_id: str) -> None:
+        _ = self.invalid_systems.pop(self.invalid_systems.index(system_id))
 
     def get_all_requests_for_system(
         self, agent: str, system_id: str
