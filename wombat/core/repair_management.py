@@ -57,7 +57,7 @@ class RepairManager(FilterStore):
 
         self.env = env
         self._current_id = 0
-        self.invalid_systems = []
+        self.invalid_systems: list[str] = []
 
         self.downtime_based_equipment = StrategyMap()
         self.request_based_equipment = StrategyMap()
@@ -283,6 +283,13 @@ class RepairManager(FilterStore):
         self.invalid_systems.append(system_id)
 
     def enable_requests_for_system(self, system_id: str) -> None:
+        """Reenables service equipment operations on the provided system.
+
+        Parameters
+        ----------
+        system_id : str
+            The ``System.id`` of the turbine that can be operated on again
+        """
         _ = self.invalid_systems.pop(self.invalid_systems.index(system_id))
 
     def get_all_requests_for_system(

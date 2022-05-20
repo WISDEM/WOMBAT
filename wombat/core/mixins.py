@@ -4,63 +4,22 @@ different types of classes.
 
 from __future__ import annotations
 
-from typing import Generator
+from typing import Callable, Generator
 
 import numpy as np
-from attrs import field, define
+import pandas as pd
 from simpy.events import Process, Timeout
 
-from wombat.utilities.utilities import check_working_hours
+from wombat.utilities import check_working_hours
+from wombat.core.environment import WombatEnvironment
 
-from .data_classes import Failure, Maintenance
-
-
-@define
-class FromDictMixin:
-    """A Mixin class to allow for kwargs overloading when a data class doesn't
-    have a specific parameter definied. This allows passing of larger dictionaries
-    to a data class without throwing an error.
-
-    Raises
-    ------
-    AttributeError
-        Raised if the required class inputs are not provided.
-    """
-
-    @classmethod
-    def from_dict(cls, data: dict):
-        """Maps a data dictionary to an `attrs`-defined class.
-
-        TODO: Add an error to ensure that either none or all the parameters are passed in
-
-        Parameters
-        ----------
-            data : dict
-                The data dictionary to be mapped.
-        Returns
-        -------
-            cls : Any
-                The `attrs`-defined class.
-        """
-        # Get all parameters from the input dictionary that map to the class initialization
-        kwargs = {
-            a.name: data[a.name]
-            for a in cls.__attrs_attrs__  # type: ignore
-            if a.name in data and a.init
-        }
-
-        # Map the inputs must be provided: 1) must be initialized, 2) no default value defined
-        required_inputs = [
-            a.name
-            for a in cls.__attrs_attrs__  # type: ignore
-            if a.init and isinstance(a.default, attr._make._Nothing)  # type: ignore
-        ]
-        undefined = sorted(set(required_inputs) - set(kwargs))
-        if undefined:
-            raise AttributeError(
-                f"The class defintion for {cls.__name__} is missing the following inputs: {undefined}"
-            )
-        return cls(**kwargs)  # type: ignore
+from .data_classes import (
+    Failure,
+    PortConfig,
+    Maintenance,
+    ScheduledServiceEquipmentData,
+    UnscheduledServiceEquipmentData,
+)
 
 
 class RepairsMixin:
@@ -68,20 +27,26 @@ class RepairsMixin:
     across different repair-providing classes, such as: servicing equipment and ports.
     """
 
+    env: WombatEnvironment
+    settings: PortConfig | ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData
+    calculate_salary_cost: Callable
+    calculate_hourly_cost: Callable
+    calculate_equipment_cost: Callable
+
     def _check_working_hours(self) -> None:
         """Checks the working hours of the port and overrides a default (-1) to
         the ``env`` settings, otherwise hours remain the same.
         """
         self.settings._set_environment_shift(
             *check_working_hours(
-                self.env.workday_start,
+                self.env.workday_start,  # type: ignore
                 self.env.workday_end,
                 self.settings.workday_start,
                 self.settings.workday_end,
             )
         )
 
-    def _is_workshift(self, datetime_ix: DatetimeIndex) -> np.ndarray:
+    def _is_workshift(self, datetime_ix: pd.DatetimeIndex) -> np.ndarray:
         """Determines which timestamps are in the servicing equipment's working hours.
 
         Parameters

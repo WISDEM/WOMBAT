@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import datetime
 
-from wombat.core.data_classes import HOURS_IN_DAY  # type: ignore
+
+HOURS_IN_DAY = 24
+HOURS_IN_YEAR = 8760
 
 
 def convert_dt_to_hours(diff: datetime.timedelta) -> float:

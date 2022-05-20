@@ -274,7 +274,7 @@ class Simulation(FromDictMixin):
             fixed_costs=self.config.fixed_costs,
             substation_id=self.windfarm.substation_id.tolist(),
             turbine_id=self.windfarm.turbine_id.tolist(),
-            service_equipment_names=[el.settings.name for el in self.service_equipment],
+            service_equipment_names=[el.settings.name for el in self.service_equipment],  # type: ignore
             SAM_settings=self.config.SAM_settings,
         )
 
@@ -296,7 +296,7 @@ class Simulation(FromDictMixin):
             fixed_costs=self.config.fixed_costs,
             substation_id=self.windfarm.substation_id.tolist(),
             turbine_id=self.windfarm.turbine_id.tolist(),
-            service_equipment_names=[el.settings.name for el in self.service_equipment],
+            service_equipment_names=[el.settings.name for el in self.service_equipment],  # type: ignore
             SAM_settings=self.config.SAM_settings,
         )
 

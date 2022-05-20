@@ -11,8 +11,14 @@ from sqlalchemy import false
 from wombat.windfarm import Windfarm
 from wombat.core.library import load_yaml
 from wombat.core.environment import WombatEnvironment
-from wombat.core.data_classes import VALID_EQUIPMENT, Maintenance, RepairRequest
-from wombat.core.repair_management import StrategyMap, EquipmentMap, RepairManager
+from wombat.core.data_classes import (
+    VALID_EQUIPMENT,
+    Maintenance,
+    StrategyMap,
+    EquipmentMap,
+    RepairRequest,
+)
+from wombat.core.repair_management import RepairManager
 from wombat.core.service_equipment import ServiceEquipment, consecutive_groups
 
 from tests.conftest import TEST_DATA, env_setup, env_setup_full_profile

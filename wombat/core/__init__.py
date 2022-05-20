@@ -18,6 +18,7 @@ from .data_classes import (
     StrategyMap,
     PortConfig,
 )
+from .mixins import RepairsMixin
 from .environment import WombatEnvironment
 from .post_processor import Metrics
 from .repair_management import RepairManager

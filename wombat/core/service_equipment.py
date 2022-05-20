@@ -6,14 +6,12 @@ from math import ceil
 from typing import Optional, Generator  # type: ignore
 from datetime import timedelta
 from functools import partial
-from multiprocessing.sharedctypes import Value
 
 import numpy as np  # type: ignore
 from simpy.events import Process, Timeout  # type: ignore
 from pandas.core.indexes.datetimes import DatetimeIndex
 
 from wombat.core import (
-    Failure,
     Maintenance,
     RepairManager,
     RepairRequest,
@@ -21,7 +19,12 @@ from wombat.core import (
     ServiceEquipmentData,
 )
 from wombat.windfarm import Windfarm
-from wombat.utilities import hours_until_future_hour
+from wombat.utilities import (
+    HOURS_IN_DAY,
+    cache,
+    calculate_cost,
+    hours_until_future_hour,
+)
 from wombat.core.mixins import RepairsMixin
 from wombat.core.library import load_yaml
 from wombat.windfarm.system import System
@@ -30,12 +33,8 @@ from wombat.core.data_classes import (
     ScheduledServiceEquipmentData,
     UnscheduledServiceEquipmentData,
 )
-from wombat.utilities.utilities import cache, calculate_cost, check_working_hours
 from wombat.windfarm.system.cable import Cable
 from wombat.windfarm.system.subassembly import Subassembly
-
-
-HOURS_IN_DAY = 24
 
 
 def consecutive_groups(data: np.ndarray, step_size: int = 1) -> list[np.ndarray]:
@@ -61,7 +60,7 @@ def consecutive_groups(data: np.ndarray, step_size: int = 1) -> list[np.ndarray]
 
 
 def calculate_delay_from_forecast(
-    self, forecast: np.ndarray, hours_required: int | float
+    forecast: np.ndarray, hours_required: int | float
 ) -> tuple[bool, int]:
     """Calculates the delay from the binary weather forecast for if that hour is all
     clear for operations.
@@ -85,6 +84,39 @@ def calculate_delay_from_forecast(
     if clear_windows.size == 0:
         return False, forecast.size
     return True, safe_operating_windows[clear_windows[0]][0]
+
+
+def validate_end_points(start: str, end: str, no_intrasite: bool = False) -> None:
+    """Checks the starting and ending locations for traveling and towing.
+
+    Parameters
+    ----------
+    start : str
+        The starting location; should be on of: "site", "system", or "port".
+    end : str
+        The ending location; should be on of: "site", "system", or "port".
+    no_intrasite : bool
+        A flag to disable intrasite travel, so that ``start`` and ``end`` cannot
+        both be "system", by default False.
+
+    Raises
+    ------
+    ValueError
+        Raised if the starting location is invalid.
+    ValueError
+        Raised if the ending location is invalid
+    ValueError
+        Raised if "system" is provided to both ``start`` and ``end``, but
+        ``no_intrasite`` is set to ``True``.
+    """
+    if start not in ("port", "site", "system"):
+        raise ValueError(
+            "``start`` location must be one of 'port', 'site', or 'system'!"
+        )
+    if end not in ("port", "site", "system"):
+        raise ValueError("``end`` location must be one of 'port', 'site', or 'system'!")
+    if no_intrasite and (start == end == "system"):
+        raise ValueError("No travel within the site is allowed for this process")
 
 
 class ServiceEquipment(RepairsMixin):
@@ -144,7 +176,7 @@ class ServiceEquipment(RepairsMixin):
             pass
 
         # NOTE: mypy is not caught up with attrs yet :(
-        self.settings = ServiceEquipmentData(data).determine_type()  # type: ignore
+        self.settings: ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData = ServiceEquipmentData(data).determine_type()  # type: ignore
         self._check_working_hours()
 
         # Register servicing equipment with the repair manager if it is using an
@@ -158,73 +190,22 @@ class ServiceEquipment(RepairsMixin):
             self.env.process(self.run_scheduled_in_situ())
 
         # Create partial functions for the labor and equipment costs for clarity
-        self.calculate_salary_cost = partial(
+        self.calculate_salary_cost = partial(  # type: ignore
             calculate_cost,
             rate=self.settings.crew.day_rate,
             n_rate=self.settings.crew.n_day_rate,
             daily_rate=True,
         )
-        self.calculate_hourly_cost = partial(
+        self.calculate_hourly_cost = partial(  # type: ignore
             calculate_cost,
             rate=self.settings.crew.hourly_rate,
             n_rate=self.settings.crew.n_hourly_rate,
         )
-        self.calculate_equipment_cost = partial(
+        self.calculate_equipment_cost = partial(  # type: ignore
             calculate_cost, rate=self.settings.equipment_rate
         )
 
-    def _check_working_hours(self) -> None:
-        """Checks the working hours of the equipment and overrides a default (-1) to
-        the ``env`` settings, otherwise hours remain the same.
-        """
-        self.settings._set_environment_shift(
-            *check_working_hours(
-                self.env.workday_start,
-                self.env.workday_end,
-                self.settings.workday_start,
-                self.settings.workday_end,
-            )
-        )
-
-    def _validate_end_points(
-        self, start: str, end: str, no_intrasite: bool = False
-    ) -> None:
-        """Checks the starting and ending locations for traveling and towing.
-
-        Parameters
-        ----------
-        start : str
-            The starting location; should be on of: "site", "system", or "port".
-        end : str
-            The ending location; should be on of: "site", "system", or "port".
-        no_intrasite : bool
-            A flag to disable intrasite travel, so that ``start`` and ``end`` cannot
-            both be "system", by default False.
-
-        Raises
-        ------
-        ValueError
-            Raised if the starting location is invalid.
-        ValueError
-            Raised if the ending location is invalid
-        ValueError
-            Raised if "system" is provided to both ``start`` and ``end``, but
-            ``no_intrasite`` is set to ``True``.
-        """
-        if start not in ("port", "site", "system"):
-            raise ValueError(
-                "``start`` location must be one of 'port', 'site', or 'system'!"
-            )
-        if end not in ("port", "site", "system"):
-            raise ValueError(
-                "``end`` location must be one of 'port', 'site', or 'system'!"
-            )
-        if no_intrasite and (start == end == "system"):
-            raise ValueError("No travel within the site is allowed for this process")
-
-    def _set_location(
-        self, start: str, end: str, set_current: Optional[str] = None
-    ) -> None:
+    def _set_location(self, end: str, set_current: Optional[str] = None) -> None:
         """Keeps track of the servicing equipment by setting the location at either:
         site, port, or a specific system
 
@@ -744,7 +725,7 @@ class ServiceEquipment(RepairsMixin):
         Generator[Timeout | Process, None, None]
             The timeout event for traveling.
         """
-        self._validate_end_points(start, end)
+        validate_end_points(start, end)
 
         if hours is None:
             if start == end == "system":
@@ -768,11 +749,11 @@ class ServiceEquipment(RepairsMixin):
         # back to port (if needed), and wait for the next shift
         is_shift = self._is_workshift(self.env.simulation_time + timedelta(hours=hours))
         if not is_shift and end != "port" and not self.at_port:
-            kw = {
+            kw: dict[str, str] = {
                 "additional": "insufficient time to complete travel before end of the shift"
             }
             kw.update(kwargs)
-            yield self.env.process(self.travel(start=start, end="port", **kw))
+            yield self.env.process(self.travel(start=start, end="port", **kw))  # type: ignore
             yield self.env.process(self.wait_until_next_shift(**kwargs))
             yield self.env.process(
                 self.travel(start=start, end=end, set_current=set_current, **kwargs)
@@ -801,7 +782,7 @@ class ServiceEquipment(RepairsMixin):
         )
         yield self.env.timeout(hours)
 
-        self._set_location(start, end, set_current)
+        self._set_location(end, set_current)
         self.env.log_action(
             action="complete travel",
             additional=f"arrived at {set_current if set_current is not None else end}",
@@ -831,7 +812,7 @@ class ServiceEquipment(RepairsMixin):
         Generator[Timeout | Process, None, None]
             The series of SimPy events that will be processed for the actions to occur.
         """
-        self._validate_end_points(start, end, no_intrasite=True)
+        validate_end_points(start, end, no_intrasite=True)
 
         # Get the distance that needs to be traveled, then calculate the delay and time
         # traveling, and log each of them
@@ -851,19 +832,18 @@ class ServiceEquipment(RepairsMixin):
             equipment_cost=equipment_cost,
             reason="towing turbine",
             agent=self.settings.name,
-            additional=additional,
             **kwargs,
         )
 
         yield self.env.timeout(hours)
-        self._set_location(start, end, set_current)
+        self._set_location(end, set_current)
         self.env.log_action(
             duration=hours,
-            action=f"complete {additional}",
+            action="complete towing",
             salary_labor_cost=salary_labor_cost,
             hourly_labor_cost=hourly_labor_cost,
             equipment_cost=equipment_cost,
-            reason="complete complete",
+            reason="tow-to-port repair",
             agent=self.settings.name,
             additional="complete",
             **kwargs,
@@ -1037,7 +1017,7 @@ class ServiceEquipment(RepairsMixin):
         if shift_delay:
             travel_time = self.env.now
             yield self.env.process(
-                self.travel(start="site", end="port", **shared_logging)
+                self.travel(start="site", end="port", **shared_logging)  # type: ignore
             )
             travel_time -= self.env.now  # will be negative value, but is flipped
             delay -= abs(travel_time)  # decrement the delay by the travel time
@@ -1051,7 +1031,7 @@ class ServiceEquipment(RepairsMixin):
             )
             yield self.env.process(
                 self.travel(
-                    start="port", end="site", set_current=system.id, **shared_logging
+                    start="port", end="site", set_current=system.id, **shared_logging  # type: ignore
                 )
             )
             yield self.env.process(
@@ -1073,10 +1053,10 @@ class ServiceEquipment(RepairsMixin):
             salary_labor_cost=salary_cost,
             hourly_labor_cost=hourly_cost,
             equipment_cost=equipment_cost,
-            **shared_logging,
+            **shared_logging,  # type: ignore
         )
         self.env.log_action(
-            action=f"complete {which_text}", additional="complete", **shared_logging
+            action=f"complete {which_text}", additional="complete", **shared_logging  # type: ignore
         )
 
     def in_situ_repair(
@@ -1357,7 +1337,7 @@ class ServiceEquipment(RepairsMixin):
                         self.travel(
                             start="site",
                             end="port",
-                            **dict(reason="no requests", agent=self.settings.name),
+                            **dict(reason="no requests", agent=self.settings.name),  # type: ignore
                         )
                     )
                 yield self.env.process(
@@ -1456,7 +1436,7 @@ class ServiceEquipment(RepairsMixin):
         yield self.env.process(self.travel("port", "site", set_current=system.id))
         self.manager.halt_requests_for_system(system.id)
         system.servicing = True
-        yield self.env.process(self.mooring_connection(system, request, which="unmoor"))
+        yield self.env.process(self.mooring_connection(system, request, which="unmoor"))  # type: ignore
         yield self.env.process(self.tow("site", "port"))
 
     def run_tow_to_site(self, request: RepairRequest) -> Generator[Process, None, None]:
@@ -1484,7 +1464,7 @@ class ServiceEquipment(RepairsMixin):
         system = self.windfarm.system(request.system_id)
         yield self.env.process(self.tow("port", "site", set_current=system.id))
         yield self.env.process(
-            self.mooring_connection(system, request, which="reconnect")
+            self.mooring_connection(system, request, which="reconnect")  # type: ignore
         )
         yield self.env.process(self.travel("site", "port"))
         self.manager.enable_requests_for_system(system.id)

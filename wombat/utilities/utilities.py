@@ -10,7 +10,7 @@ import pandas as pd
 
 
 try:
-    from functools import cache
+    from functools import cache  # type: ignore
 except ImportError:
     from functools import lru_cache
 
