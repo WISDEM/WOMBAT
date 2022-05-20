@@ -8,7 +8,7 @@ from functools import partial
 
 import numpy as np
 import simpy
-from simpy.events import Process, Timeout  # type: ignore
+from simpy.events import Process
 from simpy.resources.store import FilterStore, FilterStoreGet
 
 from wombat.core.mixins import RepairsMixin
@@ -43,6 +43,7 @@ class Port(FilterStore, RepairsMixin):
 
         # Instantiate the crews and tugboats
         self.crew_manager = simpy.Resource(env, self.settings.n_crews)
+        self.tugboat_manager = simpy.Resource(env, len(self.settings.tugboats))
 
         # Instantiate the crews and tugboats
         # TODO: put this outside of port or in a register method bc mananger isn't used
@@ -207,15 +208,50 @@ class Port(FilterStore, RepairsMixin):
         # Make the crew available again
         self.crew_manager.release(crew_request)
 
-    def run_tow_to_port(self, tugboat: ServiceEquipment, system_id: str) -> None:
-        """Process for a tugboat to initiate the tow-to-port repair process."""
+    def run_tow_to_port(self, request: RepairRequest) -> Generator[Process, None, None]:
+        """The method to initiate a tow-to-port repair sequence.
 
+        Process:
+        - Request a tugboat from the tugboat resource manager and wait
+        - Runs ``ServiceEquipment.tow_to_port()``, which encapsulates the traveling to
+          site, unmooring, and return tow with a turbine
+        - Transfers the the turbine's repair log to the port, and gets all available
+          crews to work on repairs immediately
+        - Requests a tugboat to return the turbine to site
+        - Runs ``ServiceEquipment.tow_to_site()``, which encapsulates the tow back to
+          site, reconnection, resetting the operating status, and returning back to port
+
+        Parameters
+        ----------
+        request : RepairRequest
+            The request that initiated the process. This is primarily used for logging
+            purposes.
+
+        Yields
+        ------
+        Generator[Process, None, None]
+            The series of events constituting the tow-to-port repairs
         """
-        TODO
-        1) Wait for a tugboat
-        2) Tugboat: Tow turbine to port
-        3) Transfer requests from the repair manager
-        4) Perform the repairs and register their completion
-        5) Reset all current maintenance processes
-        6) Tugboat: Tow turbine to site
-        """
+
+        # Request a tugboat to retrieve the tugboat
+        tugboat_request = self.tugboat_manager.request()
+        yield tugboat_request
+        tugboat = self.availible_tugboats.pop(0)
+        yield self.env.process(tugboat.run_tow_to_port(request))
+
+        # Make the tugboat available again
+        self.availible_tugboats.append(tugboat)
+        self.tugboat_manager.release(tugboat_request)
+
+        # Transfer the repairs to the port queue, which will initiate the repair process
+        self.transfer_requests_from_manager(request.system_id)
+
+        # Request a tugboat to tow the turbine back to site
+        tugboat_request = self.tugboat_manager.request()
+        yield tugboat_request
+        tugboat = self.availible_tugboats.pop(0)
+        yield self.env.process(tugboat.run_tow_to_site(request))
+
+        # Make the tugboat available again
+        self.availible_tugboats.append(tugboat)
+        self.tugboat_manager.release(tugboat_request)
