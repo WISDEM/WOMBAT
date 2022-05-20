@@ -27,7 +27,8 @@ VALID_EQUIPMENT = (
     "RMT",  # Remote reset or anything performed remotely
     "DRN",  # Drone
     "DSV",  # Diving support vessel
-    "TOW",  # tugboat or support vessel for moving a turbine to a repair facility
+    "TOW",  # Tugboat or support vessel for moving a turbine to a repair facility
+    "AHV",  # Anchor handling vessel, tpyically a tugboat, but doesn't trigger tow-to-port
 )
 
 # Define the valid unscheduled and valid strategies
@@ -239,6 +240,7 @@ def check_capability(
          - DRN: drone
          - DSV: diving support vessel
          - TOW: tugboat or towing equipment
+         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
 
     Raises
     ------
@@ -355,6 +357,7 @@ class Maintenance(FromDictMixin):
          - CAB: cabling vessel/vehicle
          - DSV: diving support vessel
          - TOW: tugboat or towing equipment
+         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
     system_value : Union[int, float]
         Turbine replacement value. Used if the materials cost is a proportional cost.
     description : str
@@ -429,6 +432,7 @@ class Failure(FromDictMixin):
          - CAB: cabling vessel/vehicle
          - DSV: diving support vessel
          - TOW: tugboat or towing equipment
+         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
     system_value : Union[int, float]
         Turbine replacement value. Used if the materials cost is a proportional cost.
     description : str
@@ -804,6 +808,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
          - CAB: cabling vessel/vehicle
          - DSV: diving support vessel
          - TOW: tugboat or towing equipment
+         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
     mobilization_cost : float
         Cost to mobilize the rig and crew.
     mobilization_days : int
@@ -1065,6 +1070,7 @@ class StrategyMap:
     DRN: list[EquipmentMap] = field(factory=list)
     DSV: list[EquipmentMap] = field(factory=list)
     TOW: list[EquipmentMap] = field(factory=list)
+    AHV: list[EquipmentMap] = field(factory=list)
     is_running: bool = field(default=False, init=False)
 
     def update(
@@ -1108,6 +1114,8 @@ class StrategyMap:
             self.DSV.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "TOW":
             self.TOW.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "AHV":
+            self.AHV.append(EquipmentMap(threshold, equipment))  # type: ignore
         else:
             # This should not even be able to be reached
             raise ValueError(

@@ -12,6 +12,7 @@ from simpy.events import Process, Timeout  # type: ignore
 from pandas.core.indexes.datetimes import DatetimeIndex
 
 from wombat.core import (
+    Port,
     Maintenance,
     RepairManager,
     RepairRequest,
@@ -204,6 +205,16 @@ class ServiceEquipment(RepairsMixin):
         self.calculate_equipment_cost = partial(  # type: ignore
             calculate_cost, rate=self.settings.equipment_rate
         )
+
+    def _register_port(self, port: Port) -> None:
+        """Method for a tugboat at attach the port for two-way communications.
+
+        Parameters
+        ----------
+        port : Port
+            The port where the tugboat is based.
+        """
+        self.port = port
 
     def _set_location(self, end: str, set_current: Optional[str] = None) -> None:
         """Keeps track of the servicing equipment by setting the location at either:
@@ -735,7 +746,6 @@ class ServiceEquipment(RepairsMixin):
                 )
             elif set((start, end)) == set(("site", "port")):
                 additional = f"traveling from {start} to {end}"
-                # hours = self.settings.port_distance / self.settings.speed
                 hours = self._calculate_interrupted_travel_time(
                     self.settings.port_distance
                 )

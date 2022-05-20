@@ -1,3 +1,8 @@
+## [UNRELEASED]
+- Adds capabilities: "TOW" and "AHV" for tugboat/towing equipment and anchor-handling vessels
+- Adds a tow-to-port strategy that is activated for repairs with the "TOW" capability in the servicing
+- Adds a `Port` class to handle the tow-to-port class
+
 ## 0.4.1 (2022-March-8)
 - Adds code diagrams to demonstrate how the various components connect
 - Updates the documentation to be better in line with the current state of the software

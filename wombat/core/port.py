@@ -52,6 +52,8 @@ class Port(FilterStore, RepairsMixin):
             ServiceEquipment(self.env, self.env.windfarm, repair_manager, tug)
             for tug in self.settings.tugboats
         ]
+        for tugboat in self.availible_tugboats:
+            tugboat._register_port(self)
 
         # Create partial functions for the labor and equipment costs for clarity
         self.calculate_salary_cost = partial(
