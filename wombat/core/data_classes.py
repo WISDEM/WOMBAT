@@ -1130,7 +1130,7 @@ class PortConfig(FromDictMixin):
 
     Parameters
     ----------
-    name: str
+    name : str
         The name of the port, if multiple are used, then be sure this is unique.
     tugboats : list[str]
         file, or list of files to create the port's tugboats.
@@ -1212,7 +1212,7 @@ class FixedCosts(FromDictMixin):
         Co-located offices, parts store, quayside facilities, helipad, refueling
         facilities, hanger (if necesssary), etc.
     environmental_health_safety_monitoring : float
-        Coordination and monitoring to ensure comp0liance with HSE requirements during
+        Coordination and monitoring to ensure compliance with HSE requirements during
         operations.
     insurance : float
         Insurance policies during operational period including All Risk Property,

@@ -122,7 +122,7 @@ class RepairManager(FilterStore):
         self._current_id += 1
         return request_id
 
-    def _run_equipment_downtime(self) -> None:
+    def _run_equipment_downtime(self, request: RepairRequest) -> None:
         """Run any equipment that has a pending request where the current windfarm
         operating capacity is less than or equal to the servicing equipment's threshold.
         """
@@ -134,9 +134,9 @@ class RepairManager(FilterStore):
                     continue
                 if equipment.equipment.onsite or equipment.equipment.enroute:
                     continue
-                self.env.process(equipment.equipment.run_unscheduled())
+                self.env.process(equipment.equipment.run_unscheduled(request))
 
-    def _run_equipment_requests(self) -> None:
+    def _run_equipment_requests(self, request: RepairRequest) -> None:
         """Run the first piece of equipment (if none are onsite) for each equipment
         capability category where the number of requests is greater than or equal to the
         equipment's threshold.
@@ -151,7 +151,7 @@ class RepairManager(FilterStore):
                 if equipment.equipment.onsite or equipment.equipment.enroute:
                     equipment_mapping.append(equipment_mapping.pop(i))
                     break
-                self.env.process(equipment.equipment.run_unscheduled())
+                self.env.process(equipment.equipment.run_unscheduled(request))
                 equipment_mapping.append(equipment_mapping.pop(i))
 
     def submit_request(self, request: RepairRequest) -> RepairRequest:
@@ -174,9 +174,9 @@ class RepairManager(FilterStore):
         self.put(request)
 
         if self.downtime_based_equipment.is_running:
-            self._run_equipment_downtime()
+            self._run_equipment_downtime(request)
         if self.request_based_equipment.is_running:
-            self._run_equipment_requests()
+            self._run_equipment_requests(request)
 
         return request
 

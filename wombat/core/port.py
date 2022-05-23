@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Optional, Generator
 from pathlib import Path
-from functools import partial
 
 import numpy as np
 import simpy
@@ -13,7 +12,7 @@ from simpy.resources.store import FilterStore, FilterStoreGet
 
 from wombat.core.mixins import RepairsMixin
 from wombat.core.library import load_yaml
-from wombat.utilities.time import calculate_cost, hours_until_future_hour
+from wombat.utilities.time import hours_until_future_hour
 from wombat.core.environment import WombatEnvironment
 from wombat.core.data_classes import PortConfig, Maintenance, RepairRequest
 from wombat.core.repair_management import RepairManager
@@ -38,9 +37,11 @@ class Port(FilterStore, RepairsMixin):
 
         self._check_working_hours()
 
-        # Instantiate the crews and tugboats
+        # Instantiate the crews, tugboats, and turbine availability
+        assert isinstance(self.settings, PortConfig)
+        self.turbine_manager = simpy.Resource(env, self.settings.max_operations)
         self.crew_manager = simpy.Resource(env, self.settings.n_crews)
-        self.tugboat_manager = simpy.Resource(env, len(self.settings.tugboats))  # type: ignore
+        self.tugboat_manager = simpy.Resource(env, len(self.settings.tugboats))
 
         # Instantiate the crews and tugboats
         # TODO: put this outside of port or in a register method bc mananger isn't used
@@ -53,21 +54,7 @@ class Port(FilterStore, RepairsMixin):
             tugboat._register_port(self)
 
         # Create partial functions for the labor and equipment costs for clarity
-        self.calculate_salary_cost = partial(  # type: ignore
-            calculate_cost,
-            rate=self.settings.crew.day_rate,
-            n_rate=self.settings.crew.n_day_rate,
-            daily_rate=True,
-        )
-        self.calculate_hourly_cost = partial(  # type: ignore
-            calculate_cost,
-            rate=self.settings.crew.hourly_rate,
-            n_rate=self.settings.crew.n_hourly_rate,
-        )
-        # TODO: incorporate the actual port costing rate
-        self.calculate_equipment_cost = partial(  # type: ignore
-            calculate_cost, rate=self.settings.equipment_rate, daily_rate=True
-        )
+        self.initialize_cost_calculators(which="port")
 
     def transfer_requests_from_manager(self, system_id: str) -> None:
         """Gets all of a given system's repair requests from the simulation's repair
@@ -232,6 +219,9 @@ class Port(FilterStore, RepairsMixin):
         Generator[Process, None, None]
             The series of events constituting the tow-to-port repairs
         """
+        # Wait for a spot to open up in the port queue
+        turbine_request = self.turbine_manager.request()
+        yield turbine_request
 
         # Request a tugboat to retrieve the tugboat
         tugboat_request = self.tugboat_manager.request()
@@ -246,10 +236,11 @@ class Port(FilterStore, RepairsMixin):
         # Transfer the repairs to the port queue, which will initiate the repair process
         self.transfer_requests_from_manager(request.system_id)
 
-        # Request a tugboat to tow the turbine back to site
+        # Request a tugboat to tow the turbine back to site, and open up the turbine queue
         tugboat_request = self.tugboat_manager.request()
         yield tugboat_request
         tugboat = self.availible_tugboats.pop(0)
+        self.turbine_manager.release(turbine_request)
         yield self.env.process(tugboat.run_tow_to_site(request))
 
         # Make the tugboat available again

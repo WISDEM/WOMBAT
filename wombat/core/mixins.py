@@ -4,13 +4,15 @@ different types of classes.
 
 from __future__ import annotations
 
-from typing import Callable, Generator
+from typing import Generator
+from functools import partial
 
 import numpy as np
 import pandas as pd
 from simpy.events import Process, Timeout
 
 from wombat.utilities import check_working_hours
+from wombat.utilities.time import calculate_cost
 from wombat.core.environment import WombatEnvironment
 
 from .data_classes import (
@@ -29,9 +31,32 @@ class RepairsMixin:
 
     env: WombatEnvironment
     settings: PortConfig | ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData
-    calculate_salary_cost: Callable
-    calculate_hourly_cost: Callable
-    calculate_equipment_cost: Callable
+
+    def initialize_cost_calculators(self, which: str) -> None:
+        """Creates the cost calculators for each of the subclasses that will need to
+        calculate hourly costs.
+
+        Parameters
+        ----------
+        which : str
+            One of "port" or "equipment" to to indicate how to access equipment costs
+        """
+        self.calculate_salary_cost = partial(
+            calculate_cost,
+            rate=self.settings.crew.day_rate,
+            n_rate=self.settings.crew.n_day_rate,
+            daily_rate=True,
+        )
+        self.calculate_hourly_cost = partial(
+            calculate_cost,
+            rate=self.settings.crew.hourly_rate,
+            n_rate=self.settings.crew.n_hourly_rate,
+        )
+        self.calculate_equipment_cost = partial(
+            calculate_cost,
+            rate=0 if which == "port" else self.settings.equipment_rate,
+            daily_rate=True,
+        )
 
     def _check_working_hours(self) -> None:
         """Checks the working hours of the port and overrides a default (-1) to

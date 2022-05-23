@@ -5,7 +5,6 @@ from __future__ import annotations
 from math import ceil
 from typing import TYPE_CHECKING, Optional, Generator  # type: ignore
 from datetime import timedelta
-from functools import partial
 
 import numpy as np  # type: ignore
 from simpy.events import Process, Timeout  # type: ignore
@@ -19,12 +18,7 @@ from wombat.core import (
     ServiceEquipmentData,
 )
 from wombat.windfarm import Windfarm
-from wombat.utilities import (
-    HOURS_IN_DAY,
-    cache,
-    calculate_cost,
-    hours_until_future_hour,
-)
+from wombat.utilities import HOURS_IN_DAY, cache, hours_until_future_hour
 from wombat.core.mixins import RepairsMixin
 from wombat.core.library import load_yaml
 from wombat.windfarm.system import System
@@ -194,22 +188,7 @@ class ServiceEquipment(RepairsMixin):
             self.env.process(self.run_scheduled_in_situ())
 
         # Create partial functions for the labor and equipment costs for clarity
-        self.calculate_salary_cost = partial(  # type: ignore
-            calculate_cost,
-            rate=self.settings.crew.day_rate,
-            n_rate=self.settings.crew.n_day_rate,
-            daily_rate=True,
-        )
-        self.calculate_hourly_cost = partial(  # type: ignore
-            calculate_cost,
-            rate=self.settings.crew.hourly_rate,
-            n_rate=self.settings.crew.n_hourly_rate,
-        )
-        self.calculate_equipment_cost = partial(  # type: ignore
-            calculate_cost,
-            rate=self.settings.equipment_rate,
-            daily_rate=True,
-        )
+        self.initialize_cost_calculators(which="equipment")
 
     def _register_port(self, port: "Port") -> None:
         """Method for a tugboat at attach the port for two-way communications.
@@ -1487,11 +1466,11 @@ class ServiceEquipment(RepairsMixin):
         # TODO: How to register all the repairs are complete
         self.servicing = False
 
-    def run_unscheduled(self) -> None:
+    def run_unscheduled(self, request: Optional[RepairRequest] = None) -> None:
         """TODO"""
         # The TOW capability indicates this is a tugboat and that a repair is the
         # tow-to-port strategy. Everything else is considered in-situ-repairs
         if "TOW" in self.settings.capability:
-            self.env.process(self.port.run_tow_to_port())
+            self.env.process(self.port.run_tow_to_port(request))
         else:
             self.env.process(self.run_unscheduled_in_situ())
