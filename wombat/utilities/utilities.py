@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Callable  # type: ignore
 
 import numpy as np  # type: ignore
@@ -32,6 +33,34 @@ def _mean(*args) -> float:
         The average of the values provided
     """
     return np.mean(args)
+
+
+def create_variable_from_string(string: str) -> str:
+    """Creates a valid Python variable style string from a passed string.
+
+    Parameters
+    ----------
+    string : str
+        The string to convert into a Python-friendly variable name.
+
+    Returns
+    -------
+    str
+        A Python-valid variable name.
+
+    Examples
+    --------
+    >>> example_string = "*Electrical!*_ _System$*_"
+    >>> print(create_variable_from_string(example_string))
+    'electrical_system'
+
+    """
+    new_string = re.sub(
+        "[^0-9a-zA-Z]+",
+        "_",
+        re.sub("^\W+", "", re.sub("[^a-zA-Z]+$", "", string)),  # noqa: disable=W605
+    ).lower()
+    return new_string
 
 
 def IEC_power_curve(

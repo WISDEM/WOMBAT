@@ -20,9 +20,6 @@ from wombat.core.repair_management import RepairManager
 from wombat.core.service_equipment import ServiceEquipment
 
 
-HOURS_IN_DAY = 24
-
-
 class Port(FilterStore, RepairsMixin):
     def __init__(
         self,
@@ -43,32 +40,33 @@ class Port(FilterStore, RepairsMixin):
 
         # Instantiate the crews and tugboats
         self.crew_manager = simpy.Resource(env, self.settings.n_crews)
-        self.tugboat_manager = simpy.Resource(env, len(self.settings.tugboats))
+        self.tugboat_manager = simpy.Resource(env, len(self.settings.tugboats))  # type: ignore
 
         # Instantiate the crews and tugboats
         # TODO: put this outside of port or in a register method bc mananger isn't used
         # anywhere else
         self.availible_tugboats = [
-            ServiceEquipment(self.env, self.env.windfarm, repair_manager, tug)
+            ServiceEquipment(self.env, self.env.windfarm, repair_manager, tug)  # type: ignore
             for tug in self.settings.tugboats
         ]
         for tugboat in self.availible_tugboats:
             tugboat._register_port(self)
 
         # Create partial functions for the labor and equipment costs for clarity
-        self.calculate_salary_cost = partial(
+        self.calculate_salary_cost = partial(  # type: ignore
             calculate_cost,
             rate=self.settings.crew.day_rate,
             n_rate=self.settings.crew.n_day_rate,
             daily_rate=True,
         )
-        self.calculate_hourly_cost = partial(
+        self.calculate_hourly_cost = partial(  # type: ignore
             calculate_cost,
             rate=self.settings.crew.hourly_rate,
             n_rate=self.settings.crew.n_hourly_rate,
         )
-        self.calculate_equipment_cost = partial(
-            calculate_cost, rate=self.settings.equipment_rate
+        # TODO: incorporate the actual port costing rate
+        self.calculate_equipment_cost = partial(  # type: ignore
+            calculate_cost, rate=self.settings.equipment_rate, daily_rate=True
         )
 
     def transfer_requests_from_manager(self, system_id: str) -> None:
@@ -100,7 +98,7 @@ class Port(FilterStore, RepairsMixin):
                 reason="at-port repair can now proceed",
                 request_id=request.request_id,
             )
-        _ = [self.env.process(self.repair_single(request)) for request in requests]
+        _ = [self.env.process(self.repair_single(request)) for request in requests]  # type: ignore
 
     def get_request_by_system(self, system_id: str) -> Optional[FilterStoreGet]:
         """Gets all repair requests for a certain turbine with given a sequence of

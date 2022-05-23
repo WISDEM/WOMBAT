@@ -12,12 +12,11 @@ from wombat.core import (
     SubassemblyData,
     WombatEnvironment,
 )
+from wombat.utilities import HOURS_IN_DAY
 
 
 # TODO: Need a better method for checking if a repair has been made to bring the
 # subassembly back online
-HOURS = 8760
-TIMEOUT = 24  # Wait time of 1 day for replacement to occur
 
 
 class Subassembly:
@@ -102,7 +101,7 @@ class Subassembly:
 
         Yields
         -------
-        simpy.events.Timeout
+        simpy.events. HOURS_IN_DAY
             Time between maintenance requests.
         """
         while True:
@@ -132,7 +131,7 @@ class Subassembly:
                 try:
                     # If the replacement has not been completed, then wait another minute
                     if self.turbine.operating_level == 0 or self.turbine.servicing:
-                        yield self.env.timeout(TIMEOUT)
+                        yield self.env.timeout(HOURS_IN_DAY)
                         continue
 
                     start = self.env.now
@@ -186,7 +185,7 @@ class Subassembly:
 
         Yields
         -------
-        simpy.events.Timeout
+        simpy.events. HOURS_IN_DAY
             Time between failure events that need to request a repair.
         """
         while True:
@@ -216,7 +215,7 @@ class Subassembly:
                 while hours_to_next > 0:  # type: ignore
                     try:
                         if self.turbine.operating_level == 0 or self.turbine.servicing:
-                            yield self.env.timeout(TIMEOUT)
+                            yield self.env.timeout(HOURS_IN_DAY)
                             continue
 
                         start = self.env.now

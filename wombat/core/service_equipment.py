@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from math import ceil
-from typing import Optional, Generator  # type: ignore
+from typing import TYPE_CHECKING, Optional, Generator  # type: ignore
 from datetime import timedelta
 from functools import partial
 
@@ -12,7 +12,6 @@ from simpy.events import Process, Timeout  # type: ignore
 from pandas.core.indexes.datetimes import DatetimeIndex
 
 from wombat.core import (
-    Port,
     Maintenance,
     RepairManager,
     RepairRequest,
@@ -36,6 +35,10 @@ from wombat.core.data_classes import (
 )
 from wombat.windfarm.system.cable import Cable
 from wombat.windfarm.system.subassembly import Subassembly
+
+
+if TYPE_CHECKING:
+    from wombat.core import Port
 
 
 def consecutive_groups(data: np.ndarray, step_size: int = 1) -> list[np.ndarray]:
@@ -203,10 +206,12 @@ class ServiceEquipment(RepairsMixin):
             n_rate=self.settings.crew.n_hourly_rate,
         )
         self.calculate_equipment_cost = partial(  # type: ignore
-            calculate_cost, rate=self.settings.equipment_rate
+            calculate_cost,
+            rate=self.settings.equipment_rate,
+            daily_rate=True,
         )
 
-    def _register_port(self, port: Port) -> None:
+    def _register_port(self, port: "Port") -> None:
         """Method for a tugboat at attach the port for two-way communications.
 
         Parameters

@@ -1152,7 +1152,7 @@ class PortConfig(FromDictMixin):
     """
 
     name: str = field(converter=str)
-    tugboats: list[str] = field(converter=convert_to_list)
+    tugboats: list[UnscheduledServiceEquipmentData] = field(converter=convert_to_list)
     crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
     n_crews: int = field(default=1, converter=int)
     max_operations: int = field(default=1, converter=int)
