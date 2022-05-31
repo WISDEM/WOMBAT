@@ -202,7 +202,7 @@ class ServiceEquipment(RepairsMixin):
         """
         self.port = port
         self.at_port = True
-        self.settings._set_distance(port.settings.site_distance)
+        self.settings._set_distance(port.settings.site_distance)  # type: ignore
 
     def _set_location(self, end: str, set_current: Optional[str] = None) -> None:
         """Keeps track of the servicing equipment by setting the location at either:
@@ -1480,19 +1480,16 @@ class ServiceEquipment(RepairsMixin):
             reason=f"{request.details.description} has triggered tow-to-port",
         )
 
-        print(f"{self.env.simulation_time} | {self.settings.name} about to travel")
+        # Travel to the turbine and shut it down
         yield self.env.process(
-            self.travel("port", "site", set_current=system.id, **shared_logging)
+            self.travel("port", "site", set_current=system.id, **shared_logging)  # type: ignore
         )
-        print(f"{self.env.simulation_time} | {self.settings.name} has traveled")
         self.manager.halt_requests_for_system(system.id)
         system.servicing = True
-        print(f"{self.env.simulation_time} | {self.settings.name} about to unmoor")
+
+        # Unmoor the turbine and tow it back to port
         yield self.env.process(self.mooring_connection(system, request, which="unmoor"))  # type: ignore
-        print(f"{self.env.simulation_time} | {self.settings.name} has unmoored")
-        print(f"{self.env.simulation_time} | {self.settings.name} about to tow")
         yield self.env.process(self.tow("site", "port", **shared_logging))
-        print(f"{self.env.simulation_time} | {self.settings.name} has towed")
 
     def run_tow_to_site(self, request: RepairRequest) -> Generator[Process, None, None]:
         """Runs the tow to site logic for after a turbine has had its repairs completed
@@ -1524,6 +1521,7 @@ class ServiceEquipment(RepairsMixin):
             system_name=request.system_name,
         )
 
+        # Tow the turbine back to site and reconnect it to the mooring and electrical systems
         yield self.env.process(
             self.tow(
                 "port",
@@ -1536,23 +1534,15 @@ class ServiceEquipment(RepairsMixin):
         yield self.env.process(
             self.mooring_connection(system, request, which="reconnect")  # type: ignore
         )
+
+        # Reset the turbine back to operating and return to port
+        self.manager.enable_requests_for_system(system.id)
+        self.reset_system_operations(system)
         yield self.env.process(
             self.travel(
                 "site",
                 "port",
                 reason="traveling back to port after returning turbine",
-                **shared_logging,
+                **shared_logging,  # type: ignore
             )
         )
-        self.manager.enable_requests_for_system(system.id)
-
-        self.reset_system_operations(system)
-
-    def run_unscheduled(self, request: Optional[RepairRequest] = None) -> None:
-        """TODO"""
-        # The TOW capability indicates this is a tugboat and that a repair is the
-        # tow-to-port strategy. Everything else is considered in-situ-repairs
-        if "TOW" in self.settings.capability:
-            yield self.env.process(self.port.run_tow_to_port(request))
-        else:
-            yield self.env.process(self.run_unscheduled_in_situ())

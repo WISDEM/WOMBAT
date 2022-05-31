@@ -6,7 +6,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional, Sequence  # type: ignore
 from itertools import chain
 from collections import Counter
-from email.generator import Generator
 
 import numpy as np
 from simpy.resources.store import FilterStore, FilterStoreGet  # type: ignore
@@ -133,7 +132,7 @@ class RepairManager(FilterStore):
         self._current_id += 1
         return request_id
 
-    def _run_equipment_downtime(self, request: RepairRequest) -> None:
+    def _run_equipment_downtime(self) -> None:
         """Run any equipment that has a pending request where the current windfarm
         operating capacity is less than or equal to the servicing equipment's threshold.
         """
@@ -145,9 +144,9 @@ class RepairManager(FilterStore):
                     continue
                 if equipment.equipment.onsite or equipment.equipment.enroute:
                     continue
-                self.env.process(equipment.equipment.run_unscheduled(request))
+                self.env.process(equipment.equipment.run_unscheduled_in_situ())
 
-    def _run_equipment_requests(self, request: RepairRequest) -> None:
+    def _run_equipment_requests(self) -> None:
         """Run the first piece of equipment (if none are onsite) for each equipment
         capability category where the number of requests is greater than or equal to the
         equipment's threshold.
@@ -162,7 +161,7 @@ class RepairManager(FilterStore):
                 if equipment.equipment.onsite or equipment.equipment.enroute:
                     equipment_mapping.append(equipment_mapping.pop(i))
                     break
-                self.env.process(equipment.equipment.run_unscheduled(request))
+                self.env.process(equipment.equipment.run_unscheduled_in_situ())
                 equipment_mapping.append(equipment_mapping.pop(i))
 
     def register_request(self, request: RepairRequest) -> RepairRequest:
@@ -185,7 +184,7 @@ class RepairManager(FilterStore):
         self.put(request)
         return request
 
-    def submit_request(self, request: RepairRequest) -> None | Generator:
+    def submit_request(self, request: RepairRequest) -> None:
         """The method to submit requests to the repair mananger and adds a unique
         identifier for logging.
 
@@ -203,15 +202,14 @@ class RepairManager(FilterStore):
 
         # If this is a tow-to-port-repair, trigger the process, and exit.
         if "TOW" in request.details.service_equipment:
-            print(
-                f"calling tow to port for: {request.request_id} | {request.details.description}"
-            )
             self.env.process(self.port.run_tow_to_port(request))
+            return
 
         if self.downtime_based_equipment.is_running:
-            self._run_equipment_downtime(request)
+            self._run_equipment_downtime()
         if self.request_based_equipment.is_running:
-            self._run_equipment_requests(request)
+            self._run_equipment_requests()
+        return
 
     def get_request_by_system(
         self, equipment_capability: Sequence[str], system_id: Optional[str] = None

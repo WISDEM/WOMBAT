@@ -5,9 +5,8 @@ from __future__ import annotations
 
 import datetime  # type: ignore
 from math import fsum
-from typing import Any, Callable, Sequence  # type: ignore
+from typing import TYPE_CHECKING, Any, Callable, Sequence  # type: ignore
 from functools import partial, update_wrapper  # type: ignore
-from multiprocessing.sharedctypes import Value  # type: ignore
 
 import attr
 import attrs
@@ -17,6 +16,10 @@ from attrs import Factory, Attribute, field, define  # type: ignore
 from scipy.stats import weibull_min  # type: ignore
 
 from wombat.utilities import HOURS_IN_DAY, HOURS_IN_YEAR
+
+
+if TYPE_CHECKING:
+    from wombat.core import ServiceEquipment
 
 
 # Define the valid servicing equipment types
@@ -757,7 +760,6 @@ class ScheduledServiceEquipmentData(FromDictMixin):
     )
     operating_dates: np.ndarray = field(init=False)
     strategy: str = field(default="scheduled")
-    port_distance: int | float = field(default=0, converter=float)
 
     def create_date_range(self) -> np.ndarray:
         """Creates an ``np.ndarray`` of valid operational dates for the service equipment."""

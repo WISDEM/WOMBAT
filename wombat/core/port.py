@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Optional, Generator
+from typing import Generator
 from pathlib import Path
 
 import numpy as np
 import simpy
 from simpy.events import Process
-from simpy.resources.store import FilterStore, FilterStoreGet
+from simpy.resources.store import FilterStore
 
 from wombat.windfarm import Windfarm
 from wombat.core.mixins import RepairsMixin
@@ -152,7 +152,9 @@ class Port(RepairsMixin, FilterStore):
 
         self.active_repairs[request.system_id][request.request_id].succeed()
 
-    def transfer_requests_from_manager(self, system_id: str) -> None:
+    def transfer_requests_from_manager(
+        self, system_id: str
+    ) -> None | list[RepairRequest]:
         """Gets all of a given system's repair requests from the simulation's repair
         manager, removes them from that queue, and puts them in the port's queue.
 
@@ -160,6 +162,11 @@ class Port(RepairsMixin, FilterStore):
         ----------
         system_id : str
             The ``System.id`` attribute from the system that will be repaired at port.
+
+        Returns
+        -------
+        None | list[RepairRequest]
+            The list of repair requests that need to be completed at port.
         """
         requests = self.manager.get_all_requests_for_system(
             self.settings.name, system_id
@@ -184,10 +191,19 @@ class Port(RepairsMixin, FilterStore):
             self.active_repairs[system_id][request.request_id] = self.env.event()
         return requests
 
-    def run_repairs(self, system_id: str) -> list:
+    def run_repairs(self, system_id: str) -> None:
+        """Method that transfers the requests from the repair manager and initiates the
+        repair sequence.
+
+        Parameters
+        ----------
+        system_id : str
+            The ``System.id`` that is has been towed to port.
+        """
         self.active_repairs[system_id] = {}
         requests = self.transfer_requests_from_manager(system_id)
-        return [self.env.process(self.repair_single(request)) for request in requests]  # type: ignore
+        if requests is not None:
+            [self.env.process(self.repair_single(request)) for request in requests]  # type: ignore
 
     def run_tow_to_port(self, request: RepairRequest) -> Generator[Process, None, None]:
         """The method to initiate a tow-to-port repair sequence.
@@ -213,52 +229,27 @@ class Port(RepairsMixin, FilterStore):
         Generator[Process, None, None]
             The series of events constituting the tow-to-port repairs
         """
-        print(
-            self.env.simulation_time,
-            self.env.now,
-            request.system_id,
-            request.details.request_id,
-            request.details.description,
-            "starting tow-to-port",
-        )
         # Wait for a spot to open up in the port queue
         turbine_request = self.turbine_manager.request()
         yield turbine_request
 
         # Request a tugboat to retrieve the tugboat
-        # tugboat_request = self.tugboat_manager.request()
-        # yield tugboat_request
-        # tugboat = self.availible_tugboats.pop(0)
         tugboat = yield self.tugboat_manager.get()
         yield self.env.process(tugboat.run_tow_to_port(request))
 
         # Make the tugboat available again
-        # self.availible_tugboats.append(tugboat)
-        # self.tugboat_manager.release(tugboat_request)
         self.tugboat_manager.put(tugboat)
 
         # Transfer the repairs to the port queue, which will initiate the repair process
-        _ = self.run_repairs(request.system_id)
+        self.run_repairs(request.system_id)
 
         # Wait for the repairs to complete
         yield simpy.AllOf(self.env, self.active_repairs[request.system_id].values())
 
         # Request a tugboat to tow the turbine back to site, and open up the turbine queue
-        # tugboat_request = self.tugboat_manager.request()
-        # yield tugboat_request
-        # tugboat = self.availible_tugboats.pop(0)
-        # self.turbine_manager.release(turbine_request)
         tugboat = yield self.tugboat_manager.get()
+        self.turbine_manager.release(turbine_request)
         yield self.env.process(tugboat.run_tow_to_site(request))
 
         # Make the tugboat available again
-        # self.availible_tugboats.append(tugboat)
-        # self.tugboat_manager.release(tugboat_request)
         self.tugboat_manager.put(tugboat)
-        print(
-            self.env.simulation_time,
-            self.env.now,
-            request.details.request_id,
-            request.details.description,
-            "finishing tow-to-port",
-        )

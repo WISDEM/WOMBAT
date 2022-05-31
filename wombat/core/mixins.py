@@ -54,7 +54,7 @@ class RepairsMixin:
         )
         self.calculate_equipment_cost = partial(
             calculate_cost,
-            rate=0 if which == "port" else self.settings.equipment_rate,
+            rate=0 if which == "port" else self.settings.equipment_rate,  # type: ignore
             daily_rate=True,
         )
 
