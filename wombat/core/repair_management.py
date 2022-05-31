@@ -20,8 +20,8 @@ from wombat.core import (
 
 
 if TYPE_CHECKING:
+    from wombat.core import Port, ServiceEquipment
     from wombat.windfarm import Windfarm
-    from wombat.core.service_equipment import ServiceEquipment
 
 
 class RepairManager(FilterStore):
@@ -89,6 +89,16 @@ class RepairManager(FilterStore):
         capabilities mapping.
         """
         self._update_equipment_map(service_equipment)
+
+    def _register_port(self, port: "Port") -> None:
+        """Registers the port with the repair manager, so that they can communicate as needed.
+
+        Parameters
+        ----------
+        port : Port
+            The port where repairs will occur.
+        """
+        self.port = port
 
     def _create_request_id(self, request: RepairRequest) -> str:
         """Creates a unique ``request_id`` to be logged in the ``request``.
@@ -172,13 +182,19 @@ class RepairManager(FilterStore):
         request_id = self._create_request_id(request)
         request.assign_id(request_id)
         self.put(request)
+        yield request
+
+        # If this is a tow-to-port-repair, trigger the process, and exit.
+        if "TOW" in request.details.service_equipment:
+            print(
+                f"calling tow to port for: {request.request_id} | {request.details.description}"
+            )
+            yield self.env.process(self.port.run_tow_to_port(request))
 
         if self.downtime_based_equipment.is_running:
             self._run_equipment_downtime(request)
         if self.request_based_equipment.is_running:
             self._run_equipment_requests(request)
-
-        return request
 
     def get_request_by_system(
         self, equipment_capability: Sequence[str], system_id: Optional[str] = None

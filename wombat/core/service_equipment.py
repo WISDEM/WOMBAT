@@ -2,6 +2,7 @@
 # TODO: NEED A SPECIFIC STARTUP METHOD
 from __future__ import annotations
 
+from copy import deepcopy
 from math import ceil
 from typing import TYPE_CHECKING, Optional, Generator  # type: ignore
 from datetime import timedelta
@@ -191,7 +192,8 @@ class ServiceEquipment(RepairsMixin):
         self.initialize_cost_calculators(which="equipment")
 
     def _register_port(self, port: "Port") -> None:
-        """Method for a tugboat at attach the port for two-way communications.
+        """Method for a tugboat at attach the port for two-way communications. This also
+        sets the vessel to be at the port, and updates the port_distance.
 
         Parameters
         ----------
@@ -199,6 +201,8 @@ class ServiceEquipment(RepairsMixin):
             The port where the tugboat is based.
         """
         self.port = port
+        self.at_port = True
+        self.settings._set_distance(port.settings.site_distance)
 
     def _set_location(self, end: str, set_current: Optional[str] = None) -> None:
         """Keeps track of the servicing equipment by setting the location at either:
@@ -315,6 +319,23 @@ class ServiceEquipment(RepairsMixin):
             subassembly.operating_level = starting_operating_level
         else:
             subassembly.operating_level /= 1 - repair.details.operation_reduction
+        subassembly.system.servicing = False
+
+    def reset_system_operations(self, system: System) -> None:
+        """Completely resets the failure and maintenance events for a given system
+        and its subassemblies, and puts each ``Subassembly.operating_level`` back to 100%.
+        ... note:: This is only intended to be used in conjunction with a tow-to-port
+            repair where a turbine will be completely serviced.
+
+        Parameters
+        ----------
+        system : System
+            The turbine to be reset.
+        """
+        for subassembly in system.subassemblies:
+            subassembly.operating_level = 1.0
+            subassembly.recreate_processes()
+        system.servicing = False
 
     def wait_until_next_operational_period(
         self, *, less_mobilization_hours: int = 0
@@ -627,22 +648,27 @@ class ServiceEquipment(RepairsMixin):
         Returns
         -------
         tuple[float, float]
-            The length of the delay and the length of travel time, in hours.`
+            The length of the delay and the length of travel time, in hours.` -1 is
+            returned if there no weather windows, and the process will have to be attempted
+            again.
         """
+        # Return 0 delay and travel time in the distance is zero
+        if distance == 0:
+            return 0, 0
+
         hours_required = distance / self.settings.speed
 
         n = 1
-        max_tries = 20
-        while n <= max_tries:  # max tries before failing
-            hours = hours_required * n
+        max_extra_days = 4
+        while n <= max_extra_days:  # max tries before failing
+            hours = hours_required + (24 * n)
             _, all_clear = self._weather_forecast(hours, which="repair")
             found, delay = calculate_delay_from_forecast(all_clear, hours_required)
             if found:
                 return delay, hours_required
 
-        raise ValueError(
-            f"{self.settings.name} unable to find a suitable weather window in the near future at {self.env.simulation_time}"
-        )
+        # Return -1 for delay if no weather window was found
+        return -1, hours_required
 
     def _calculate_interrupted_travel_time(self, distance: float) -> float:
         """Calculates the travel time with speed reductions for inclement weather, but
@@ -659,7 +685,7 @@ class ServiceEquipment(RepairsMixin):
             _description_
         """
         speed = self.settings.speed
-        reduction_factor = self.settings.speed_reduction_factor
+        reduction_factor = 1 - self.settings.speed_reduction_factor
 
         # get the weather forecast with this time for the max travel time
         max_hours = 1 + distance / speed * (1 / reduction_factor)
@@ -752,6 +778,7 @@ class ServiceEquipment(RepairsMixin):
             yield self.env.process(
                 self.travel(start=start, end=end, set_current=set_current, **kwargs)
             )
+            return
         elif not is_shift and self.at_port:
             kw = {
                 "additional": "insufficient time to complete travel before end of the shift"
@@ -761,6 +788,7 @@ class ServiceEquipment(RepairsMixin):
             yield self.env.process(
                 self.travel(start=start, end=end, set_current=set_current, **kwargs)
             )
+            return
 
         salary_cost = self.calculate_salary_cost(hours)
         hourly_cost = 0  # contractors not paid for traveling
@@ -812,8 +840,31 @@ class ServiceEquipment(RepairsMixin):
         # traveling, and log each of them
         distance = self.settings.port_distance
         delay, hours = self._calculate_uninterrupted_travel_time(distance)
+        if delay == -1:
+            if start == "site":
+                kw = deepcopy(kwargs)
+                kw.update(
+                    {"reason": "Insufficient weather windows, need to return to port"}
+                )
+                yield self.env.process(self.travel("site", "port", **kw))
+                yield self.env.timeout(HOURS_IN_DAY * 4)
+                yield self.env.process(
+                    self.tow(start, end, set_current=set_current, **kwargs)
+                )
+                return
+            elif start == "port":
+                kw = deepcopy(kwargs)
+                kw.update(
+                    {"reason": "Insufficient weather windows, will try again later"}
+                )
+                yield self.env.timeout(HOURS_IN_DAY * 4)
+                yield self.env.process(
+                    self.tow(start, end, set_current=set_current, **kwargs)
+                )
+                return
+
         if delay > 0:
-            yield self.env.process(self.weather_delay(delay))
+            yield self.env.process(self.weather_delay(delay, **kwargs))
 
         salary_labor_cost = self.calculate_salary_cost(hours)
         hourly_labor_cost = self.calculate_hourly_cost(hours)
@@ -824,8 +875,6 @@ class ServiceEquipment(RepairsMixin):
             salary_labor_cost=salary_labor_cost,
             hourly_labor_cost=hourly_labor_cost,
             equipment_cost=equipment_cost,
-            reason="towing turbine",
-            agent=self.settings.name,
             **kwargs,
         )
 
@@ -837,8 +886,6 @@ class ServiceEquipment(RepairsMixin):
             salary_labor_cost=salary_labor_cost,
             hourly_labor_cost=hourly_labor_cost,
             equipment_cost=equipment_cost,
-            reason="tow-to-port repair",
-            agent=self.settings.name,
             additional="complete",
             **kwargs,
         )
@@ -951,7 +998,6 @@ class ServiceEquipment(RepairsMixin):
     def mooring_connection(
         self,
         system: System,
-        subassembly: Subassembly,
         request: RepairRequest,
         which: str,
     ) -> None | Generator[Timeout | Process, None, None]:
@@ -962,8 +1008,6 @@ class ServiceEquipment(RepairsMixin):
         ----------
         system : System
             The System that needs unmooring/reconnecting.
-        subassembly : Subassembly
-            The Subassembly that is being worked on.
         request : RepairRequest
             The repair to be processed.
         which : bool
@@ -1029,7 +1073,7 @@ class ServiceEquipment(RepairsMixin):
                 )
             )
             yield self.env.process(
-                self.mooring_connection(system, subassembly, request, which=which)
+                self.mooring_connection(system, request, which=which)
             )
             return
 
@@ -1049,6 +1093,12 @@ class ServiceEquipment(RepairsMixin):
             equipment_cost=equipment_cost,
             **shared_logging,  # type: ignore
         )
+
+        if which == "unmoor":
+            yield self.env.timeout(self.settings.unmoor_hours)
+        else:
+            yield self.env.timeout(self.settings.reconnection_hours)
+
         self.env.log_action(
             action=f"complete {which_text}", additional="complete", **shared_logging  # type: ignore
         )
@@ -1259,7 +1309,6 @@ class ServiceEquipment(RepairsMixin):
             return
 
         # Register the repair
-        system.servicing = False
         self.register_repair_with_subassembly(
             subassembly, request, starting_operational_level
         )
@@ -1283,11 +1332,6 @@ class ServiceEquipment(RepairsMixin):
             yield self.env.process(
                 self.travel(start="site", end="port", **shared_logging)
             )
-
-    def tow_to_port_repair(self) -> None:
-        """Not Implemented"""
-        # TODO
-        raise NotImplementedError("Tow-to-port is not yet implemented")
 
     def run_scheduled_in_situ(self) -> Generator[Process, None, None]:
         """Runs the simulation.
@@ -1331,7 +1375,8 @@ class ServiceEquipment(RepairsMixin):
                         self.travel(
                             start="site",
                             end="port",
-                            **dict(reason="no requests", agent=self.settings.name),  # type: ignore
+                            reason="no requests",
+                            agent=self.settings.name,
                         )
                     )
                 yield self.env.process(
@@ -1427,11 +1472,27 @@ class ServiceEquipment(RepairsMixin):
 
         system = self.windfarm.system(request.system_id)
 
-        yield self.env.process(self.travel("port", "site", set_current=system.id))
+        shared_logging = dict(
+            system_id=request.system_id,
+            system_name=request.system_name,
+            request_id=request.request_id,
+            agent=self.settings.name,
+            reason=f"{request.details.description} has triggered tow-to-port",
+        )
+
+        print(f"{self.env.simulation_time} | {self.settings.name} about to travel")
+        yield self.env.process(
+            self.travel("port", "site", set_current=system.id, **shared_logging)
+        )
+        print(f"{self.env.simulation_time} | {self.settings.name} has traveled")
         self.manager.halt_requests_for_system(system.id)
         system.servicing = True
+        print(f"{self.env.simulation_time} | {self.settings.name} about to unmoor")
         yield self.env.process(self.mooring_connection(system, request, which="unmoor"))  # type: ignore
-        yield self.env.process(self.tow("site", "port"))
+        print(f"{self.env.simulation_time} | {self.settings.name} has unmoored")
+        print(f"{self.env.simulation_time} | {self.settings.name} about to tow")
+        yield self.env.process(self.tow("site", "port", **shared_logging))
+        print(f"{self.env.simulation_time} | {self.settings.name} has towed")
 
     def run_tow_to_site(self, request: RepairRequest) -> Generator[Process, None, None]:
         """Runs the tow to site logic for after a turbine has had its repairs completed
@@ -1456,21 +1517,42 @@ class ServiceEquipment(RepairsMixin):
             raise ValueError("Cannot run tow-to-port if not at port")
 
         system = self.windfarm.system(request.system_id)
-        yield self.env.process(self.tow("port", "site", set_current=system.id))
+        shared_logging = dict(
+            agent=self.settings.name,
+            request_id=request.request_id,
+            system_id=request.system_id,
+            system_name=request.system_name,
+        )
+
+        yield self.env.process(
+            self.tow(
+                "port",
+                "site",
+                set_current=system.id,
+                reason="towing turbine back to site",
+                **shared_logging,
+            )
+        )
         yield self.env.process(
             self.mooring_connection(system, request, which="reconnect")  # type: ignore
         )
-        yield self.env.process(self.travel("site", "port"))
+        yield self.env.process(
+            self.travel(
+                "site",
+                "port",
+                reason="traveling back to port after returning turbine",
+                **shared_logging,
+            )
+        )
         self.manager.enable_requests_for_system(system.id)
 
-        # TODO: How to register all the repairs are complete
-        self.servicing = False
+        self.reset_system_operations(system)
 
     def run_unscheduled(self, request: Optional[RepairRequest] = None) -> None:
         """TODO"""
         # The TOW capability indicates this is a tugboat and that a repair is the
         # tow-to-port strategy. Everything else is considered in-situ-repairs
         if "TOW" in self.settings.capability:
-            self.env.process(self.port.run_tow_to_port(request))
+            yield self.env.process(self.port.run_tow_to_port(request))
         else:
-            self.env.process(self.run_unscheduled_in_situ())
+            yield self.env.process(self.run_unscheduled_in_situ())

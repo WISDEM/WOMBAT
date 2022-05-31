@@ -4,9 +4,10 @@
 from __future__ import annotations
 
 import datetime  # type: ignore
-from math import fsum  # type: ignore
+from math import fsum
 from typing import Any, Callable, Sequence  # type: ignore
 from functools import partial, update_wrapper  # type: ignore
+from multiprocessing.sharedctypes import Value  # type: ignore
 
 import attr
 import attrs
@@ -32,7 +33,7 @@ VALID_EQUIPMENT = (
 )
 
 # Define the valid unscheduled and valid strategies
-UNSCHEDULED_STRATEGIES = ("requests", "downtime", "tow_to_port")
+UNSCHEDULED_STRATEGIES = ("requests", "downtime")
 VALID_STRATEGIES = tuple(["scheduled"] + list(UNSCHEDULED_STRATEGIES))
 
 
@@ -215,6 +216,27 @@ def valid_reduction(
         raise ValueError(
             f"Input for {instance.name}'s `speed_reduction_factor` must be between 0 and 1, inclusive."
         )
+
+
+def greater_than_zero(instance, attribute: Attribute, value: int | float) -> None:
+    """Checks if an input is greater than 0.
+
+    Parameters
+    ----------
+    instance : Any
+        The class containing the attribute to be checked.
+    attribute : Attribute
+        The attribute's properties.
+    value : int | float
+        The user-input value for the ``attribute``.
+
+    Raises
+    ------
+    ValueError
+        Raised if ``value`` is less than or equal to zero.
+    """
+    if value <= 0:
+        raise ValueError("Input must be greater than 0.")
 
 
 def check_capability(
@@ -715,7 +737,7 @@ class ScheduledServiceEquipmentData(FromDictMixin):
     )
     mobilization_cost: float = field(converter=float)
     mobilization_days: int = field(converter=int)
-    speed: float = field(converter=float)
+    speed: float = field(converter=float, validator=greater_than_zero)
     max_windspeed_transport: float = field(converter=float)
     max_windspeed_repair: float = field(converter=float)
     max_waveheight_transport: float = field(default=1000.0, converter=float)
@@ -726,6 +748,7 @@ class ScheduledServiceEquipmentData(FromDictMixin):
     speed_reduction_factor: float = field(
         default=0.0, converter=float, validator=valid_reduction
     )
+    port_distance: float = field(default=0, converter=float)
     onsite: bool = field(default=False, converter=bool)
     method: str = field(  # type: ignore
         default="severity",
@@ -809,10 +832,6 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
          - DSV: diving support vessel
          - TOW: tugboat or towing equipment
          - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
-    mobilization_cost : float
-        Cost to mobilize the rig and crew.
-    mobilization_days : int
-        Number of days it takes to mobilize the equipment.
     speed : float
         Maximum transit speed, km/hr.
     speed_reduction_factor : flaot
@@ -827,6 +846,10 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         Maximum waveheight for safe transport, m, default 1000 (land-based).
     max_waveheight_repair : float
         Maximum waveheight for safe operations, m, default 1000 (land-based).
+    mobilization_cost : float
+        Cost to mobilize the rig and crew, default 0.
+    mobilization_days : int
+        Number of days it takes to mobilize the equipment, default 0.
     strategy : str
         For any unscheduled maintenance servicing equipment, this determines the
         strategy for dispatching. Should be on of "downtime" or "requests".
@@ -873,15 +896,15 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
     capability: list[str] | str = field(
         converter=convert_to_list_upper, validator=check_capability  # type: ignore
     )
-    mobilization_cost: float = field(converter=float)
-    mobilization_days: int = field(converter=int)
-    speed: float = field(converter=float)
+    speed: float = field(converter=float, validator=greater_than_zero)
     max_windspeed_transport: float = field(converter=float)
     max_windspeed_repair: float = field(converter=float)
     strategy: str | None = field(converter=clean_string_input)
     strategy_threshold: int | float = field(converter=float)
     max_waveheight_transport: float = field(default=1000)
     max_waveheight_repair: float = field(default=1000)
+    mobilization_cost: float = field(default=0, converter=float)
+    mobilization_days: int = field(default=0, converter=int)
     workday_start: int = field(default=-1, converter=int, validator=valid_hour)
     workday_end: int = field(default=-1, converter=int, validator=valid_hour)
     crew_transfer_time: float = field(converter=float, default=0.0)
@@ -941,6 +964,18 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         """
         object.__setattr__(self, "workday_start", start)
         object.__setattr__(self, "workday_end", end)
+
+    def _set_distance(self, distance: int | float) -> None:
+        """Method to enable the port to set a vessel's travel distance if the provided
+        input is less than or equal to zero.
+
+        Parameters
+        ----------
+        distance : int | float
+            The distance a vessel will travel, from site to port, or vice versa, in km.
+        """
+        if self.port_distance <= 0:
+            object.__setattr__(self, "port_distance", distance)
 
     def __attrs_post_init__(self) -> None:
         object.__setattr__(
@@ -1040,11 +1075,8 @@ class ServiceEquipmentData(FromDictMixin):
         """
         if self.strategy == "scheduled":
             return ScheduledServiceEquipmentData.from_dict(self.data_dict)
-        elif self.strategy in ("requests", "downtime"):
+        elif self.strategy in UNSCHEDULED_STRATEGIES:
             return UnscheduledServiceEquipmentData.from_dict(self.data_dict)
-        elif self.strategy == "tow_to_port":
-            # TODO
-            raise NotImplementedError("Tow-to-port is not yet implemented")
         else:
             # This should not be able to be reached
             raise ValueError("Invalid strategy provided!")

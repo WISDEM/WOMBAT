@@ -17,6 +17,7 @@ from wombat.core import (
     WombatEnvironment,
 )
 from wombat.windfarm import Windfarm
+from wombat.core.port import Port
 from wombat.core.library import load_yaml, library_map
 
 
@@ -68,6 +69,9 @@ class Configuration(FromDictMixin):
         The file name for the fixed costs assumptions.
     project_capacity : Union[int, float]
         The total capacity of the wind plant, in MW.
+    port : dict | str \ Path
+        The port configuration file or dictionary that will be used to setup a
+        tow-to-port repair strategy, default None.
     start_year : int
         Start year of the simulation. The exact date will be determined by
         the first valid date of this year in ``weather``.
@@ -82,13 +86,14 @@ class Configuration(FromDictMixin):
     name: str
     library: Path = field(converter=_library_mapper)
     layout: str
-    service_equipment: Union[str, List[str]]
-    weather: Union[str, pd.DataFrame]
+    service_equipment: str | list[str]
+    weather: str | pd.DataFrame
     workday_start: int
     workday_end: int
     inflation_rate: float
     fixed_costs: str
-    project_capacity: Union[int, float]
+    project_capacity: int | float
+    port: dict | str | Path = field(default=None)
     start_year: int = field(default=None)
     end_year: int = field(default=None)
     SAM_settings: str = field(default=None)
@@ -122,6 +127,7 @@ class Simulation(FromDictMixin):
     env: WombatEnvironment = field(init=False)
     repair_manager: RepairManager = field(init=False)
     service_equipment: list[ServiceEquipment] = field(init=False)
+    port: Port = field(init=False)
 
     def __attrs_post_init__(self) -> None:
         self._setup_simulation()
@@ -224,6 +230,10 @@ class Simulation(FromDictMixin):
                 ServiceEquipment(
                     self.env, self.windfarm, self.repair_manager, service_equipment
                 )
+            )
+        if self.config.port is not None:
+            self.port = Port(
+                self.env, self.windfarm, self.repair_manager, self.config.port
             )
 
     def run(
