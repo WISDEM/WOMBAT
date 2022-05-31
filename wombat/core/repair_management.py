@@ -6,6 +6,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional, Sequence  # type: ignore
 from itertools import chain
 from collections import Counter
+from email.generator import Generator
 
 import numpy as np
 from simpy.resources.store import FilterStore, FilterStoreGet  # type: ignore
@@ -164,7 +165,7 @@ class RepairManager(FilterStore):
                 self.env.process(equipment.equipment.run_unscheduled(request))
                 equipment_mapping.append(equipment_mapping.pop(i))
 
-    def submit_request(self, request: RepairRequest) -> RepairRequest:
+    def register_request(self, request: RepairRequest) -> RepairRequest:
         """The method to submit requests to the repair mananger and adds a unique
         identifier for logging.
 
@@ -182,14 +183,30 @@ class RepairManager(FilterStore):
         request_id = self._create_request_id(request)
         request.assign_id(request_id)
         self.put(request)
-        yield request
+        return request
+
+    def submit_request(self, request: RepairRequest) -> None | Generator:
+        """The method to submit requests to the repair mananger and adds a unique
+        identifier for logging.
+
+        Parameters
+        ----------
+        request : RepairRequest
+            The request that needs to be tracked and logged.
+
+        Returns
+        -------
+        RepairRequest
+            The same request as passed into the method, but with a unique identifier
+            used for logging.
+        """
 
         # If this is a tow-to-port-repair, trigger the process, and exit.
         if "TOW" in request.details.service_equipment:
             print(
                 f"calling tow to port for: {request.request_id} | {request.details.description}"
             )
-            yield self.env.process(self.port.run_tow_to_port(request))
+            self.env.process(self.port.run_tow_to_port(request))
 
         if self.downtime_based_equipment.is_running:
             self._run_equipment_downtime(request)
