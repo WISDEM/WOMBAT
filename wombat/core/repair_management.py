@@ -132,7 +132,7 @@ class RepairManager(FilterStore):
         self._current_id += 1
         return request_id
 
-    def _run_equipment_downtime(self) -> None:
+    def _run_equipment_downtime(self, request: RepairRequest) -> None:
         """Run any equipment that has a pending request where the current windfarm
         operating capacity is less than or equal to the servicing equipment's threshold.
         """
@@ -142,27 +142,49 @@ class RepairManager(FilterStore):
             for equipment in equipment_mapping:
                 if operating_capacity > equipment.strategy_threshold:
                     continue
+                if capability in ("TOW", "AHV"):
+                    try:
+                        self.env.process(equipment.equipment.run_unscheduled(request))
+                    except ValueError:
+                        # ValueError is raised when a duplicate request is called for any of
+                        # the port-based servicing equipment
+                        pass
                 if equipment.equipment.onsite or equipment.equipment.enroute:
                     continue
-                self.env.process(equipment.equipment.run_unscheduled_in_situ())
+                self.env.process(equipment.equipment.run_unscheduled(request))
 
-    def _run_equipment_requests(self) -> None:
+    def _run_equipment_requests(self, request: RepairRequest) -> None:
         """Run the first piece of equipment (if none are onsite) for each equipment
         capability category where the number of requests is greater than or equal to the
         equipment's threshold.
         """
         for capability, n_requests in self.request_map.items():
+            if capability not in request.details.service_equipment:
+                continue
             equipment_mapping = getattr(self.request_based_equipment, capability)
             for i, equipment in enumerate(equipment_mapping):
                 if n_requests < equipment.strategy_threshold:
                     continue
                 # Run only the first piece of equipment in the mapping list, but ensure
                 # that it moves to the back of the line after being used
+                if capability in ("TOW", "AHV"):
+                    try:
+                        self.env.process(equipment.equipment.run_unscheduled(request))
+                    except ValueError:
+                        # ValueError is raised when a duplicate request is called for any of
+                        # the port-based servicing equipment
+                        pass
+                    break
+
                 if equipment.equipment.onsite or equipment.equipment.enroute:
+                    # TODO: have non-tugboat unscheduled maintenance be able to operate like tugboats
+                    # to trigger operatins in the same way
                     equipment_mapping.append(equipment_mapping.pop(i))
                     break
-                self.env.process(equipment.equipment.run_unscheduled_in_situ())
+
+                self.env.process(equipment.equipment.run_unscheduled(request))
                 equipment_mapping.append(equipment_mapping.pop(i))
+                break
 
     def register_request(self, request: RepairRequest) -> RepairRequest:
         """The method to submit requests to the repair mananger and adds a unique
@@ -201,15 +223,15 @@ class RepairManager(FilterStore):
         """
 
         # If this is a tow-to-port-repair, trigger the process, and exit.
-        if "TOW" in request.details.service_equipment:
-            self.env.process(self.port.run_tow_to_port(request))
-            return
+        # if "TOW" in request.details.service_equipment:
+        #     self.env.process(self.port.run_tow_to_port(request))
+        #     return
 
         if self.downtime_based_equipment.is_running:
-            self._run_equipment_downtime()
+            self._run_equipment_downtime(request)
         if self.request_based_equipment.is_running:
-            self._run_equipment_requests()
-        return
+            self._run_equipment_requests(request)
+        # return
 
     def get_request_by_system(
         self, equipment_capability: Sequence[str], system_id: Optional[str] = None

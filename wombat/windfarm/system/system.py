@@ -174,17 +174,6 @@ class System:
                 bin_width=bin_width,
             )
 
-        self.env.log_action(
-            system_id=self.id,
-            system_name=self.name,
-            system_ol=self.operating_level,
-            part_ol=1,
-            agent=self.name,
-            action="subassemblies created",
-            reason="windfarm initialization",
-            additional="initialization",
-        )
-
     def interrupt_all_subassembly_processes(self) -> None:
         """Interrupts the running processes in all of the system's subassemblies."""
         [subassembly.interrupt_processes() for subassembly in self.subassemblies]  # type: ignore

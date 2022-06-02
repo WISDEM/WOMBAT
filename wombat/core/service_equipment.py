@@ -319,7 +319,16 @@ class ServiceEquipment(RepairsMixin):
             subassembly.operating_level = starting_operating_level
         else:
             subassembly.operating_level /= 1 - repair.details.operation_reduction
-        subassembly.system.servicing = False
+
+        # Register that the servicing is now over
+        if isinstance(subassembly, Subassembly):
+            subassembly.system.servicing = False
+        elif isinstance(subassembly, Cable):
+            subassembly.servicing = False
+        else:
+            raise ValueError(
+                f"Passed subassembly of type: `{type(subassembly)}` invalid."
+            )
 
     def reset_system_operations(self, system: System) -> None:
         """Completely resets the failure and maintenance events for a given system
@@ -666,6 +675,7 @@ class ServiceEquipment(RepairsMixin):
             found, delay = calculate_delay_from_forecast(all_clear, hours_required)
             if found:
                 return delay, hours_required
+            n += 1
 
         # Return -1 for delay if no weather window was found
         return -1, hours_required
@@ -747,7 +757,6 @@ class ServiceEquipment(RepairsMixin):
             The timeout event for traveling.
         """
         validate_end_points(start, end)
-
         if hours is None:
             if start == end == "system":
                 additional = f"traveling from {self.current_system} to {set_current}"
@@ -835,7 +844,6 @@ class ServiceEquipment(RepairsMixin):
             The series of SimPy events that will be processed for the actions to occur.
         """
         validate_end_points(start, end, no_intrasite=True)
-
         # Get the distance that needs to be traveled, then calculate the delay and time
         # traveling, and log each of them
         distance = self.settings.port_distance
@@ -851,7 +859,6 @@ class ServiceEquipment(RepairsMixin):
                 yield self.env.process(
                     self.tow(start, end, set_current=set_current, **kwargs)
                 )
-                return
             elif start == "port":
                 kw = deepcopy(kwargs)
                 kw.update(
@@ -861,7 +868,6 @@ class ServiceEquipment(RepairsMixin):
                 yield self.env.process(
                     self.tow(start, end, set_current=set_current, **kwargs)
                 )
-                return
 
         if delay > 0:
             yield self.env.process(self.weather_delay(delay, **kwargs))
@@ -1053,23 +1059,12 @@ class ServiceEquipment(RepairsMixin):
         delay, shift_delay = self.find_uninterrupted_weather_window(hours_to_process)
         # If there is a shift delay, then travel to port, wait, and travel back, and finally try again.
         if shift_delay:
-            travel_time = self.env.now
-            yield self.env.process(
-                self.travel(start="site", end="port", **shared_logging)  # type: ignore
-            )
-            travel_time -= self.env.now  # will be negative value, but is flipped
-            delay -= abs(travel_time)  # decrement the delay by the travel time
             if delay > 0:
                 yield self.env.process(self.weather_delay(delay, **shared_logging))
             yield self.env.process(
                 self.wait_until_next_shift(
                     **shared_logging,
                     **{"additional": f"weather unsuitable for {which_text}"},
-                )
-            )
-            yield self.env.process(
-                self.travel(
-                    start="port", end="site", set_current=system.id, **shared_logging  # type: ignore
                 )
             )
             yield self.env.process(
@@ -1467,8 +1462,8 @@ class ServiceEquipment(RepairsMixin):
             Raised if the equipment is not currently at port
         """
 
-        if not self.at_port:
-            raise ValueError("Cannot run tow-to-port if not at port")
+        # if not self.at_port:
+        #     raise ValueError(f"{self.settings.name} cannot run tow-to-port if not at port")
 
         system = self.windfarm.system(request.system_id)
 
@@ -1510,8 +1505,8 @@ class ServiceEquipment(RepairsMixin):
         ValueError
             Raised if the equipment is not currently at port
         """
-        if not self.at_port:
-            raise ValueError("Cannot run tow-to-port if not at port")
+        # if not self.at_port:
+        #     raise ValueError(f"{self.settings.name} cannot run tow-to-site if not at port")
 
         system = self.windfarm.system(request.system_id)
         shared_logging = dict(
@@ -1546,3 +1541,19 @@ class ServiceEquipment(RepairsMixin):
                 **shared_logging,  # type: ignore
             )
         )
+
+    def run_unscheduled(self, request: RepairRequest):
+        """Runs the appropriate repair logic for unscheduled servicing equipment, or
+        those that can be immediately dispatched.
+
+        Parameters
+        ----------
+        request : RepairRequest
+            The request that trigged the repair logic.
+        """
+        if "TOW" in request.details.service_equipment:
+            yield self.env.process(self.port.run_tow_to_port(request))
+        elif "AHV" in request.details.service_equipment:
+            yield self.env.process(self.port.run_unscheduled_in_situ(request))
+        else:
+            yield self.env.process(self.run_unscheduled_in_situ())

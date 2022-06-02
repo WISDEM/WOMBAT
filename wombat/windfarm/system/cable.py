@@ -172,47 +172,6 @@ class Cable:
                 request_id=failure.request_id,
             )
 
-        # TODO: DELETE ONCE CONFIRMED THE ALTERNATIVE WORKS
-        # for i, system_id in enumerate(self.upstream_nodes):
-        #     node = self.windfarm.system(system_id)
-
-        #     # Check the cable to see if it's still operating first and break the
-        #     # loop if it's already not operating
-        #     if i > 0:
-        #         upstream_cable = self.windfarm.graph[start_id][system_id][  # noqa: F821
-        #             "cable"
-        #         ]
-        #         if upstream_cable.downstream_failure:
-        #             break
-
-        #         upstream_cable.downstream_failure = True
-        #         self.env.log_action(
-        #             part_id=upstream_cable.id,
-        #             part_name=upstream_cable.name,
-        #             system_ol=np.nan,
-        #             part_ol=upstream_cable.operating_level,
-        #             agent=self.name,
-        #             action="repair request",
-        #             reason=failure.description,
-        #             additional="cable failure shutting off all upstream cables and turbines that are still operating",
-        #             request_id=failure.request_id,
-        #         )
-
-        #     if not node.cable_failure or node.operating_level == 0:
-        #         node.cable_failure = True
-        #         self.env.log_action(
-        #             system_id=system_id,
-        #             system_name=node.name,
-        #             system_ol=node.operating_level,
-        #             part_ol=np.nan,
-        #             agent=self.name,
-        #             action="repair request",
-        #             reason=failure.description,
-        #             additional="cable failure shutting off all upstream cables and turbines that are still operating",
-        #             request_id=failure.request_id,
-        #         )
-        #         start_id: str = system_id  # noqa: F841
-
     def run_single_maintenance(self, maintenance: Maintenance) -> Generator:
         """Runs a process to trigger one type of maintenance request throughout the simulation.
 
@@ -231,20 +190,6 @@ class Cable:
             if hours_to_next == 0:
                 remainder = self.env.max_run_time - self.env.now
                 try:
-                    # TODO: determine if this logging is really needed
-                    # self.env.log_action(
-                    #     system_id=self.turbine.id,
-                    #     system_name=self.turbine.name,
-                    #     part_id=self.id,
-                    #     part_name=self.name,
-                    #     system_ol=self.turbine.operating_level,
-                    #     part_ol=self.operating_level,
-                    #     agent=self.name,
-                    #     action="none",
-                    #     reason=f"{self.name} is not modeled",
-                    #     additional="no maintenance will be modeled for select cable section",
-                    #     duration=remainder,
-                    # )
                     yield self.env.timeout(remainder)
                 except simpy.Interrupt:
                     remainder -= self.env.now
@@ -272,7 +217,7 @@ class Cable:
                         cable=True,
                         upstream_turbines=self.upstream_nodes,
                     )
-                    repair_request = self.turbine.repair_manager.submit_request(
+                    repair_request = self.turbine.repair_manager.register_request(
                         repair_request
                     )
                     self.env.log_action(
@@ -288,6 +233,7 @@ class Cable:
                         additional="request",
                         request_id=repair_request.request_id,
                     )
+                    self.turbine.repair_manager.submit_request(repair_request)
 
                 except simpy.Interrupt:
                     if self.broken:
@@ -317,20 +263,6 @@ class Cable:
             if hours_to_next is None:
                 remainder = self.env.max_run_time - self.env.now
                 try:
-                    # TODO: determine if this logging is really needed
-                    # self.env.log_action(
-                    #     system_id=self.turbine.id,
-                    #     system_name=self.turbine.name,
-                    #     part_id=self.id,
-                    #     part_name=self.name,
-                    #     system_ol=self.turbine.operating_level,
-                    #     part_ol=self.operating_level,
-                    #     agent=self.name,
-                    #     action="none",
-                    #     reason=f"{self.name} is not modeled",
-                    #     additional="no failures will be modeled for this cable section",
-                    #     duration=remainder,
-                    # )
                     yield self.env.timeout(remainder)
                 except simpy.Interrupt:
                     remainder -= self.env.now
@@ -358,7 +290,7 @@ class Cable:
                         cable=True,
                         upstream_turbines=self.upstream_nodes,
                     )
-                    repair_request = self.turbine.repair_manager.submit_request(
+                    repair_request = self.turbine.repair_manager.register_request(
                         repair_request
                     )
 
@@ -385,6 +317,7 @@ class Cable:
                         additional=f"severity level {failure.level}",
                         request_id=repair_request.request_id,
                     )
+                    self.turbine.repair_manager.submit_request(repair_request)
 
                 except simpy.Interrupt:
                     if self.broken:

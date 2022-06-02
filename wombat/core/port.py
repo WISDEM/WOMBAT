@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import simpy
-from simpy.events import Process
+from simpy.events import Process, Timeout
 from simpy.resources.store import FilterStore
 
 from wombat.windfarm import Windfarm
@@ -21,6 +21,14 @@ from wombat.core.service_equipment import ServiceEquipment
 
 
 class Port(RepairsMixin, FilterStore):
+    """The offshore wind base port that operates tugboats and performs tow-to-port
+    repairs.
+
+    ... note:: The operating costs for the port are incorporated into the ``FixedCosts``
+        functionality in the high-levl cost bucket: ``operations_management_administration``
+        or the more granula cost bucket: ``marine_management``
+    """
+
     def __init__(
         self,
         env: WombatEnvironment,
@@ -33,11 +41,13 @@ class Port(RepairsMixin, FilterStore):
         self.env = env
         self.windfarm = windfarm
         self.manager = repair_manager
+        self.requests_serviced: set[str] = set()
 
         self.manager._register_port(self)
 
         if not isinstance(config, dict):
             config = load_yaml(env.data_dir / "repair", config)
+        assert isinstance(config, dict)
         self.settings = PortConfig.from_dict(config)
 
         self._check_working_hours()
@@ -46,15 +56,8 @@ class Port(RepairsMixin, FilterStore):
         assert isinstance(self.settings, PortConfig)
         self.turbine_manager = simpy.Resource(env, self.settings.max_operations)
         self.crew_manager = simpy.Resource(env, self.settings.n_crews)
-        self.tugboat_manager = simpy.Store(env, len(self.settings.tugboats))
+        self.tugboat_manager = simpy.FilterStore(env, len(self.settings.tugboats))
 
-        # Instantiate the crews and tugboats
-        # TODO: put this outside of port or in a register method bc mananger isn't used
-        # anywhere else
-        # self.availible_tugboats = [
-        #     ServiceEquipment(self.env, self.windfarm, repair_manager, tug)  # type: ignore
-        #     for tug in self.settings.tugboats
-        # ]
         tugboats = [
             ServiceEquipment(self.env, self.windfarm, repair_manager, tug)  # type: ignore
             for tug in self.settings.tugboats
@@ -67,7 +70,9 @@ class Port(RepairsMixin, FilterStore):
         # Create partial functions for the labor and equipment costs for clarity
         self.initialize_cost_calculators(which="port")
 
-    def repair_single(self, request: RepairRequest) -> None:
+    def repair_single(
+        self, request: RepairRequest
+    ) -> Generator[Timeout | Process, None, None]:
         """Simulation logic to process a single repair request.
 
         Parameters
@@ -76,7 +81,7 @@ class Port(RepairsMixin, FilterStore):
             The submitted repair or maintenance request.
         """
         # Retrieve the actual request
-        request = yield self.get(lambda r: r == request)
+        request = yield self.get(lambda r: r == request)  # type: ignore
 
         # Request a service crew
         crew_request = self.crew_manager.request()
@@ -203,6 +208,7 @@ class Port(RepairsMixin, FilterStore):
         self.active_repairs[system_id] = {}
         requests = self.transfer_requests_from_manager(system_id)
         if requests is not None:
+            self.requests_serviced.update([r.request_id for r in requests])
             [self.env.process(self.repair_single(request)) for request in requests]  # type: ignore
 
     def run_tow_to_port(self, request: RepairRequest) -> Generator[Process, None, None]:
@@ -229,13 +235,19 @@ class Port(RepairsMixin, FilterStore):
         Generator[Process, None, None]
             The series of events constituting the tow-to-port repairs
         """
+        # If the request has already been addressed, return
+        if request.request_id in self.requests_serviced:
+            return
+
+        self.requests_serviced.update([request.request_id])
+
         # Wait for a spot to open up in the port queue
         turbine_request = self.turbine_manager.request()
         yield turbine_request
 
-        # Request a tugboat to retrieve the tugboat
-        tugboat = yield self.tugboat_manager.get()
-        yield self.env.process(tugboat.run_tow_to_port(request))
+        # Request a tugboat to retrieve the turbine
+        tugboat = yield self.tugboat_manager.get(lambda x: x.at_port)
+        yield self.env.process(tugboat.run_tow_to_port(request))  # type: ignore
 
         # Make the tugboat available again
         self.tugboat_manager.put(tugboat)
@@ -247,9 +259,58 @@ class Port(RepairsMixin, FilterStore):
         yield simpy.AllOf(self.env, self.active_repairs[request.system_id].values())
 
         # Request a tugboat to tow the turbine back to site, and open up the turbine queue
-        tugboat = yield self.tugboat_manager.get()
+        tugboat = yield self.tugboat_manager.get(lambda x: x.at_port)
         self.turbine_manager.release(turbine_request)
-        yield self.env.process(tugboat.run_tow_to_site(request))
+        yield self.env.process(tugboat.run_tow_to_site(request))  # type: ignore
+
+        # Make the tugboat available again
+        self.tugboat_manager.put(tugboat)
+
+    def run_unscheduled_in_situ(
+        self, request: RepairRequest
+    ) -> Generator[Process, None, None]:
+        """Runs the in-situ repair processes for port-based servicing equipment such as
+        tugboats that will always return back to port, but are not necessarily a feature
+        of the windfarm itself, such as a crew transfer vessel.
+
+        Parameters
+        ----------
+        request : RepairRequest
+            The request that triggered the non tow-to-port, but port-based servicing
+            equipment repair.
+
+        Yields
+        ------
+        Generator[Process, None, None]
+            The travel and repair processes.
+        """
+        # If the request has already been addressed, return
+        if request.request_id in self.requests_serviced:
+            return
+
+        self.requests_serviced.update([request.request_id])
+
+        # Request a tugboat to retrieve the tugboat
+        tugboat = yield self.tugboat_manager.get(lambda x: x.at_port)
+        request = yield self.manager.get(lambda x: x == request)
+        yield self.env.process(tugboat.in_situ_repair(request))
+
+        # If the tugboat finished mid-shift, the in-situ repair logic will keep it there,
+        # so ensure it returns back to port once it's complete
+        if not tugboat.at_port:
+            yield self.env.process(
+                tugboat.travel(
+                    start="site",
+                    end="port",
+                    agent=tugboat.settings.name,
+                    reason=f"{request.details.description} complete",
+                    system_id=request.system_id,
+                    system_name=request.system_name,
+                    part_id=request.subassembly_id,
+                    part_name=request.subassembly_name,
+                    request_id=request.request_id,
+                )
+            )
 
         # Make the tugboat available again
         self.tugboat_manager.put(tugboat)

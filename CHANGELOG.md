@@ -1,7 +1,8 @@
 ## [UNRELEASED]
 - Adds capabilities: "TOW" and "AHV" for tugboat/towing equipment and anchor-handling vessels
 - Adds a tow-to-port strategy that is activated for repairs with the "TOW" capability in the servicing
-- Adds a `Port` class to handle the tow-to-port class
+- Adds a `Port` class to handle the tow-to-port class and tugboat-based service requests
+- Allows for any name to define the subassemblies of a turbine or substation to enable users to use the naming conventions they are most familiar with or most meaningful for their own work
 
 ## 0.4.1 (2022-March-8)
 - Adds code diagrams to demonstrate how the various components connect
