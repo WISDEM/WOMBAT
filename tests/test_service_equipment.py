@@ -130,7 +130,10 @@ def test_service_equipment_init(env_setup):
         EquipmentMap(hlv_dict["strategy_threshold"], hlv)
     ]
     for capability in VALID_EQUIPMENT:
-        assert getattr(manager.downtime_based_equipment, capability) == []
+        if capability == "LCN":
+            assert len(getattr(manager.downtime_based_equipment, capability)) == 1
+        else:
+            assert getattr(manager.downtime_based_equipment, capability) == []
 
     # TEST 4
     # Check the initializtion for an unscheduled vessel for a request-basis

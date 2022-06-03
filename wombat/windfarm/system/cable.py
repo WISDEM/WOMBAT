@@ -72,7 +72,7 @@ class Cable:
         self.end_node = end_node
         self.id = f"cable::{start_node}::{end_node}"
         # TODO: need to be able to handle substations, which are not being modeled currently
-        self.turbine = windfarm.graph.nodes(data=True)[start_node][
+        self.system = windfarm.graph.nodes(data=True)[start_node][
             "system"
         ]  # MAKE THIS START
 
@@ -83,7 +83,7 @@ class Cable:
             self.upstream_nodes = list(chain(self.upstream_nodes, *upstream.values()))
         self.upstream_cables = list(nx.edge_dfs(self.windfarm.graph, end_node))
 
-        cable_data = {**cable_data, "system_value": self.turbine.value}
+        cable_data = {**cable_data, "system_value": self.system.value}
         self.data = SubassemblyData.from_dict(cable_data)
         self.name = self.data.name
 
@@ -208,8 +208,8 @@ class Cable:
                     # Automatically submit a repair request
                     # NOTE: mypy is not caught up with attrs yet :(
                     repair_request = RepairRequest(  # type: ignore
-                        self.turbine.id,
-                        self.turbine.name,
+                        self.system.id,
+                        self.system.name,
                         self.id,
                         self.name,
                         0,
@@ -217,15 +217,15 @@ class Cable:
                         cable=True,
                         upstream_turbines=self.upstream_nodes,
                     )
-                    repair_request = self.turbine.repair_manager.register_request(
+                    repair_request = self.system.repair_manager.register_request(
                         repair_request
                     )
                     self.env.log_action(
-                        system_id=self.turbine.id,
-                        system_name=self.turbine.name,
+                        system_id=self.system.id,
+                        system_name=self.system.name,
                         part_id=self.id,
                         part_name=self.name,
-                        system_ol=self.turbine.operating_level,
+                        system_ol=self.system.operating_level,
                         part_ol=self.operating_level,
                         agent=self.name,
                         action="maintenance request",
@@ -233,7 +233,7 @@ class Cable:
                         additional="request",
                         request_id=repair_request.request_id,
                     )
-                    self.turbine.repair_manager.submit_request(repair_request)
+                    self.system.repair_manager.submit_request(repair_request)
 
                 except simpy.Interrupt:
                     if self.broken:
@@ -290,7 +290,7 @@ class Cable:
                         cable=True,
                         upstream_turbines=self.upstream_nodes,
                     )
-                    repair_request = self.turbine.repair_manager.register_request(
+                    repair_request = self.system.repair_manager.register_request(
                         repair_request
                     )
 
@@ -298,7 +298,7 @@ class Cable:
                         self.broken = True
 
                         # Remove previously submitted requests as a replacement is required
-                        _ = self.turbine.repair_manager.purge_subassembly_requests(
+                        _ = self.system.repair_manager.purge_subassembly_requests(
                             self.id, self.id, exclude=[repair_request.request_id]
                         )
                         self.interrupt_processes()
@@ -309,7 +309,7 @@ class Cable:
                         system_name=self.name,
                         part_id=self.id,
                         part_name=self.name,
-                        system_ol=self.turbine.operating_level,
+                        system_ol=self.system.operating_level,
                         part_ol=self.operating_level,
                         agent=self.name,
                         action="repair request",
@@ -317,7 +317,7 @@ class Cable:
                         additional=f"severity level {failure.level}",
                         request_id=repair_request.request_id,
                     )
-                    self.turbine.repair_manager.submit_request(repair_request)
+                    self.system.repair_manager.submit_request(repair_request)
 
                 except simpy.Interrupt:
                     if self.broken:

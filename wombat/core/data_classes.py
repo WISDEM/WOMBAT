@@ -217,11 +217,15 @@ def valid_reduction(
     """
     if value < 0 or value > 1:
         raise ValueError(
-            f"Input for {instance.name}'s `speed_reduction_factor` must be between 0 and 1, inclusive."
+            f"Input for {attribute.name}'s `speed_reduction_factor` must be between 0 and 1, inclusive."
         )
 
 
-def greater_than_zero(instance, attribute: Attribute, value: int | float) -> None:
+def greater_than_zero(
+    instance,  # pylint: disable=W0613
+    attribute: Attribute,  # pylint: disable=W0613
+    value: int | float,
+) -> None:
     """Checks if an input is greater than 0.
 
     Parameters

@@ -292,6 +292,7 @@ class Port(RepairsMixin, FilterStore):
 
         # Request a tugboat to retrieve the tugboat
         tugboat = yield self.tugboat_manager.get(lambda x: x.at_port)
+        assert isinstance(tugboat, ServiceEquipment)
         request = yield self.manager.get(lambda x: x == request)
         yield self.env.process(tugboat.in_situ_repair(request))
 

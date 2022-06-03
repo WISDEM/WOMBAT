@@ -101,7 +101,7 @@ def test_repair_manager_init(env_setup):
         manager._register_equipment(ctv)
 
 
-def test_submit_request_and_get_request(env_setup):
+def test_register_request_and_submit_request_and_get_request(env_setup):
     """Tests the ``RepairManager.submit_request`` method."""
 
     # Set up all the required infrastructure
@@ -120,11 +120,13 @@ def test_submit_request_and_get_request(env_setup):
         manual_reset.level,
         manual_reset,
     )
-    repair_request_failure = turbine.repair_manager.submit_request(
+    repair_request_failure = turbine.repair_manager.register_request(
         repair_request_failure
     )
     assert manager._current_id == 1
     assert repair_request_failure.request_id == "RPR00000000"
+
+    turbine.repair_manager.submit_request(repair_request_failure)
     assert len(manager.items) == 1
     assert not manager.downtime_based_equipment.is_running
     assert not manager.request_based_equipment.is_running
@@ -139,11 +141,13 @@ def test_submit_request_and_get_request(env_setup):
         annual_service.level,
         annual_service,
     )
-    repair_request_maintenance = turbine.repair_manager.submit_request(
+    repair_request_maintenance = turbine.repair_manager.register_request(
         repair_request_maintenance
     )
     assert manager._current_id == 2
     assert repair_request_maintenance.request_id == "MNT00000001"
+
+    turbine.repair_manager.submit_request(repair_request_maintenance)
     assert len(manager.items) == 2
     assert not manager.downtime_based_equipment.is_running
     assert not manager.request_based_equipment.is_running
@@ -179,7 +183,8 @@ def test_request_map(env_setup):
         repair_request = RepairRequest(
             turbine.id, turbine.name, generator.id, generator.name, repair.level, repair
         )
-        repair_request = turbine.repair_manager.submit_request(repair_request)
+        repair_request = turbine.repair_manager.register_request(repair_request)
+        turbine.repair_manager.submit_request(repair_request)
 
     assert manager.request_map == correct_request_map
 
@@ -220,7 +225,8 @@ def test_get_requests(env_setup):
         medium_repair1.level,
         medium_repair1,
     )
-    medium_repair1 = turbine1.repair_manager.submit_request(medium_repair1)
+    medium_repair1 = turbine1.repair_manager.register_request(medium_repair1)
+    turbine1.repair_manager.submit_request(medium_repair1)
 
     annual_reset2 = generator2.data.maintenance[0]
     annual_reset2 = RepairRequest(
@@ -231,7 +237,8 @@ def test_get_requests(env_setup):
         annual_reset2.level,
         annual_reset2,
     )
-    annual_reset2 = turbine2.repair_manager.submit_request(annual_reset2)
+    annual_reset2 = turbine2.repair_manager.register_request(annual_reset2)
+    turbine2.repair_manager.submit_request(annual_reset2)
 
     minor_repair2 = generator2.data.failures[2]
     minor_repair2 = RepairRequest(
@@ -242,7 +249,8 @@ def test_get_requests(env_setup):
         minor_repair2.level,
         minor_repair2,
     )
-    minor_repair2 = turbine2.repair_manager.submit_request(minor_repair2)
+    minor_repair2 = turbine2.repair_manager.register_request(minor_repair2)
+    turbine2.repair_manager.submit_request(minor_repair2)
 
     major_replacement3 = generator3.data.failures[5]
     major_replacement3 = RepairRequest(
@@ -253,7 +261,8 @@ def test_get_requests(env_setup):
         major_replacement3.level,
         major_replacement3,
     )
-    major_replacement3 = turbine3.repair_manager.submit_request(major_replacement3)
+    major_replacement3 = turbine3.repair_manager.register_request(major_replacement3)
+    turbine3.repair_manager.submit_request(major_replacement3)
 
     medium_repair3 = generator3.data.failures[3]
     medium_repair3 = RepairRequest(
@@ -264,7 +273,8 @@ def test_get_requests(env_setup):
         medium_repair3.level,
         medium_repair3,
     )
-    medium_repair3 = turbine3.repair_manager.submit_request(medium_repair3)
+    medium_repair3 = turbine3.repair_manager.register_request(medium_repair3)
+    turbine3.repair_manager.submit_request(medium_repair3)
 
     major_repair2 = generator2.data.failures[4]
     major_repair2 = RepairRequest(
@@ -275,7 +285,8 @@ def test_get_requests(env_setup):
         major_repair2.level,
         major_repair2,
     )
-    major_repair2 = turbine2.repair_manager.submit_request(major_repair2)
+    major_repair2 = turbine2.repair_manager.register_request(major_repair2)
+    turbine2.repair_manager.submit_request(major_repair2)
 
     # Basic checks that the submissions are all there
     assert len(manager.items) == 6
@@ -357,7 +368,8 @@ def test_purge_subassembly_requests(env_setup):
         gen_medium_repair1.level,
         gen_medium_repair1,
     )
-    gen_medium_repair1 = turbine1.repair_manager.submit_request(gen_medium_repair1)
+    gen_medium_repair1 = turbine1.repair_manager.register_request(gen_medium_repair1)
+    turbine1.repair_manager.submit_request(gen_medium_repair1)
 
     gen_major_repair1 = generator1.data.failures[4]
     gen_major_repair1 = RepairRequest(
@@ -368,7 +380,8 @@ def test_purge_subassembly_requests(env_setup):
         gen_major_repair1.level,
         gen_major_repair1,
     )
-    gen_major_repair1 = turbine1.repair_manager.submit_request(gen_major_repair1)
+    gen_major_repair1 = turbine1.repair_manager.register_request(gen_major_repair1)
+    turbine1.repair_manager.submit_request(gen_major_repair1)
 
     gbx_medium_repair1 = gearbox1.data.failures[3]
     gbx_medium_repair1 = RepairRequest(
@@ -379,7 +392,8 @@ def test_purge_subassembly_requests(env_setup):
         gbx_medium_repair1.level,
         gbx_medium_repair1,
     )
-    gbx_medium_repair1 = turbine1.repair_manager.submit_request(gbx_medium_repair1)
+    gbx_medium_repair1 = turbine1.repair_manager.register_request(gbx_medium_repair1)
+    turbine1.repair_manager.submit_request(gbx_medium_repair1)
 
     gen_medium_repair2 = generator2.data.failures[3]
     gen_medium_repair2 = RepairRequest(
@@ -390,7 +404,8 @@ def test_purge_subassembly_requests(env_setup):
         gen_medium_repair2.level,
         gen_medium_repair2,
     )
-    gen_medium_repair2 = turbine2.repair_manager.submit_request(gen_medium_repair2)
+    gen_medium_repair2 = turbine2.repair_manager.register_request(gen_medium_repair2)
+    turbine2.repair_manager.submit_request(gen_medium_repair2)
 
     gen_major_repair2 = generator2.data.failures[4]
     gen_major_repair2 = RepairRequest(
@@ -401,7 +416,8 @@ def test_purge_subassembly_requests(env_setup):
         gen_major_repair2.level,
         gen_major_repair2,
     )
-    gen_major_repair2 = turbine2.repair_manager.submit_request(gen_major_repair2)
+    gen_major_repair2 = turbine2.repair_manager.register_request(gen_major_repair2)
+    turbine2.repair_manager.submit_request(gen_major_repair2)
 
     gbx_medium_repair2 = gearbox2.data.failures[3]
     gbx_medium_repair2 = RepairRequest(
@@ -412,7 +428,8 @@ def test_purge_subassembly_requests(env_setup):
         gbx_medium_repair2.level,
         gbx_medium_repair2,
     )
-    gbx_medium_repair2 = turbine2.repair_manager.submit_request(gbx_medium_repair2)
+    gbx_medium_repair2 = turbine2.repair_manager.register_request(gbx_medium_repair2)
+    turbine2.repair_manager.submit_request(gbx_medium_repair2)
 
     gen_medium_repair3 = generator3.data.failures[3]
     gen_medium_repair3 = RepairRequest(
@@ -423,7 +440,8 @@ def test_purge_subassembly_requests(env_setup):
         gen_medium_repair3.level,
         gen_medium_repair3,
     )
-    gen_medium_repair3 = turbine3.repair_manager.submit_request(gen_medium_repair3)
+    gen_medium_repair3 = turbine3.repair_manager.register_request(gen_medium_repair3)
+    turbine3.repair_manager.submit_request(gen_medium_repair3)
 
     gen_major_repair3 = generator3.data.failures[4]
     gen_major_repair3 = RepairRequest(
@@ -434,7 +452,8 @@ def test_purge_subassembly_requests(env_setup):
         gen_major_repair3.level,
         gen_major_repair3,
     )
-    gen_major_repair3 = turbine3.repair_manager.submit_request(gen_major_repair3)
+    gen_major_repair3 = turbine3.repair_manager.register_request(gen_major_repair3)
+    turbine3.repair_manager.submit_request(gen_major_repair3)
 
     gbx_medium_repair3 = gearbox3.data.failures[3]
     gbx_medium_repair3 = RepairRequest(
@@ -445,7 +464,8 @@ def test_purge_subassembly_requests(env_setup):
         gbx_medium_repair3.level,
         gbx_medium_repair3,
     )
-    gbx_medium_repair3 = turbine3.repair_manager.submit_request(gbx_medium_repair3)
+    gbx_medium_repair3 = turbine3.repair_manager.register_request(gbx_medium_repair3)
+    turbine3.repair_manager.submit_request(gbx_medium_repair3)
 
     # Check for the correct number of submissions
     assert len(manager.items) == 9

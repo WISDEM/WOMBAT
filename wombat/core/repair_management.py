@@ -221,17 +221,10 @@ class RepairManager(FilterStore):
             The same request as passed into the method, but with a unique identifier
             used for logging.
         """
-
-        # If this is a tow-to-port-repair, trigger the process, and exit.
-        # if "TOW" in request.details.service_equipment:
-        #     self.env.process(self.port.run_tow_to_port(request))
-        #     return
-
         if self.downtime_based_equipment.is_running:
             self._run_equipment_downtime(request)
         if self.request_based_equipment.is_running:
             self._run_equipment_requests(request)
-        # return
 
     def get_request_by_system(
         self, equipment_capability: Sequence[str], system_id: Optional[str] = None

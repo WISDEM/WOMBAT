@@ -219,28 +219,6 @@ def test_initialization_error_cases(env_setup):
             system=incorrect_system,
         )
 
-    # Turbine definition with substation indicator
-    with pytest.raises(ValueError):
-        System(
-            env=ENV,
-            repair_manager=MANAGER,
-            t_id=turbine_id,
-            name=turbine_name,
-            subassemblies=VESTAS_V90,
-            system="substation",
-        )
-
-    # Substation definition with turbine indicator
-    with pytest.raises(ValueError):
-        System(
-            env=ENV,
-            repair_manager=MANAGER,
-            t_id=turbine_id,
-            name=turbine_name,
-            subassemblies=SUBSTATION,
-            system="turbine",
-        )
-
 
 def test_operating_level(env_setup):
     """Tests the ``operating_level`` method."""

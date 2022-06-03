@@ -28,8 +28,10 @@ from wombat.core.data_classes import (
     valid_hour,
     check_method,
     convert_to_list,
+    valid_reduction,
     check_capability,
     annual_date_range,
+    greater_than_zero,
     clean_string_input,
     convert_to_list_lower,
     convert_to_list_upper,
@@ -155,6 +157,54 @@ def test_valid_hour():
     assert hour.hour == 24
 
 
+def test_valid_reduction():
+    """Tests the ``valid_reduction`` validator."""
+
+    @attr.s(auto_attribs=True)
+    class ReductionClass:
+        """Dummy class for testing ``valid_reduction``."""
+
+        speed_reduction: int = attr.ib(converter=float, validator=valid_reduction)
+
+    # Test the fringes
+    with pytest.raises(ValueError):
+        ReductionClass(-0.000001)
+    with pytest.raises(ValueError):
+        ReductionClass(-1)
+    with pytest.raises(ValueError):
+        ReductionClass(1.000001)
+    with pytest.raises(ValueError):
+        ReductionClass(2)
+
+    # Test that valid positive decimals work
+    r = ReductionClass(0.2)
+    assert r.speed_reduction == 0.2
+
+    r = ReductionClass(0.999)
+    assert r.speed_reduction == 0.999
+
+
+def test_greater_than_zero():
+    """Tests the ``greater_than_zero`` validator."""
+
+    @attr.s(auto_attribs=True)
+    class SpeedClass:
+        """Dummy class for testing ``greater_than_zero``."""
+
+        speed: int = attr.ib(converter=float, validator=greater_than_zero)
+
+    # Test the fringes
+    with pytest.raises(ValueError):
+        SpeedClass(0)
+    with pytest.raises(ValueError):
+        SpeedClass(-10)
+
+    s = SpeedClass(1)
+    assert s.speed == 1.0
+    s = SpeedClass(20.112)
+    assert s.speed == 20.112
+
+
 def test_check_capability():
     """Tests the ``check_capability`` attrs validator method. This function is an attrs
     validator method, and so a dummy class will be used for testing purposes. This class
@@ -180,12 +230,12 @@ def test_check_capability():
 
     # Test for correct spellings and case changes
     correct_options = VALID_EQUIPMENT
-    inputs = ["CTV", "SCn", "LCN", "cab", "RMT", "DRN", "Dsv", "tOW"]
+    inputs = ["CTV", "SCn", "LCN", "cab", "RMT", "DRN", "Dsv", "tOW", "ahv"]
     capability = CapabilityClass(capability=inputs)
     npt.assert_equal(capability.capability, correct_options)
 
     # Test for correct spellings and cases
-    correct_options = ["CTV", "SCN", "LCN", "CAB", "RMT", "DRN", "DSV", "TOW"]
+    correct_options = ["CTV", "SCN", "LCN", "CAB", "RMT", "DRN", "DSV", "TOW", "AHV"]
     capability = CapabilityClass(capability=correct_options)
     npt.assert_equal(capability.capability, correct_options)
 
