@@ -8,7 +8,6 @@ import pytest
 from wombat.core.library import load_yaml, library_map
 
 
-# @pytest.mark.cat("all")
 def test_load_yaml():
     """Tests `load_yaml`."""
     # Test loading the offshore substation from the Dinwoodie library

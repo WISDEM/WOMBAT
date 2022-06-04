@@ -157,9 +157,14 @@ class WombatEnvironment(simpy.Environment):
         """Current time within the simulation ("datetime" column within weather)."""
         now = self.now
         minutes = now % 1 * 60
-        dt = self.weather.iloc[math.floor(now)].name.to_pydatetime()
+        if now == self.max_run_time:
+            _dt = self.weather.iloc[math.floor(now - 1)].name.to_pydatetime()
+            _dt + timedelta(hours=1)
+        else:
+            _dt = self.weather.iloc[math.floor(now)].name.to_pydatetime()
+
         minutes, seconds = math.floor(minutes), math.ceil(minutes % 1 * 60)
-        return dt + timedelta(minutes=minutes, seconds=seconds)
+        return _dt + timedelta(minutes=minutes, seconds=seconds)
 
     def is_workshift(self, workday_start: int = -1, workday_end: int = -1) -> bool:
         """Checks if the current simulation time is within the windfarm's working hours.
