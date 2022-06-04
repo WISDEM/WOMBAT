@@ -68,7 +68,7 @@ def test_cable_init(env_setup):
         assert cable.env == correct_cable.env
         assert cable.id == correct_cable.id
         assert cable.name == correct_cable.name
-        assert cable.turbine == correct_cable.turbine
+        assert cable.system == correct_cable.system
         assert cable.data.name == cable.data.name
         assert cable.operating_level == correct_cable.operating_level == 1
         assert cable.broken == correct_cable.broken is False

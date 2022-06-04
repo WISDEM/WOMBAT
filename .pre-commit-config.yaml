@@ -40,12 +40,14 @@ repos:
     hooks:
     -   id: flake8
         exclude: ^tests/
+        additional_dependencies: ["flake8-docstrings"]
 
 -   repo: https://github.com/pre-commit/mirrors-pylint
     rev: v3.0.0a4
     hooks:
     -   id: pylint
         exclude: (^tests/|^docs/)
+        args: ["--rcfile=.pylintrc"]
 
 # -   repo: local
 #     hooks:

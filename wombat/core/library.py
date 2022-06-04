@@ -1,8 +1,10 @@
 """Provides a consistent way to access the provided Dinwoodie and IEA Task 26 data libraries."""
 
+from __future__ import annotations
+
 import os
 import re
-from typing import Any, Union
+from typing import Any
 from pathlib import Path
 
 import yaml  # type: ignore
@@ -46,14 +48,14 @@ custom_loader.add_implicit_resolver(
 )
 
 
-def load_yaml(path: Union[str, Path], fname: str) -> Any:
+def load_yaml(path: str | Path, fname: str | Path) -> Any:
     """Loads and returns the contents of the YAML file.
 
     Parameters
     ----------
-    path : Union[str, Path]
+    path : str | Path
         Path to the file to be loaded.
-    fname : str
+    fname : str | Path
         Name of the file (ending in .yaml) to be loaded.
 
     Returns

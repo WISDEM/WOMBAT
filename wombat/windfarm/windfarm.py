@@ -12,14 +12,7 @@ from geopy import distance  # type: ignore
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.core.library import load_yaml
 from wombat.windfarm.system import Cable, System
-
-
-try:  # pylint: disable=duplicate-code
-    from functools import cache  # type: ignore
-except ImportError:  # pylint: disable=duplicate-code
-    from functools import lru_cache  # pylint: disable=duplicate-code
-
-    cache = lru_cache(None)  # pylint: disable=duplicate-code
+from wombat.utilities.utilities import cache
 
 
 class Windfarm:
