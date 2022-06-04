@@ -7,8 +7,8 @@ import pandas as pd
 import pytest
 
 from wombat.core import WombatEnvironment
+from wombat.utilities import IEC_power_curve
 from wombat.core.library import load_yaml
-from wombat.utilities.utilities import IEC_power_curve
 
 
 TEST_DATA = Path(__file__).resolve().parent / "library"
