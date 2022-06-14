@@ -118,6 +118,23 @@ def validate_end_points(start: str, end: str, no_intrasite: bool = False) -> Non
         raise ValueError("No travel within the site is allowed for this process")
 
 
+def reset_system_operations(system: System) -> None:
+    """Completely resets the failure and maintenance events for a given system
+    and its subassemblies, and puts each ``Subassembly.operating_level`` back to 100%.
+    ... note:: This is only intended to be used in conjunction with a tow-to-port
+        repair where a turbine will be completely serviced.
+
+    Parameters
+    ----------
+    system : System
+        The turbine to be reset.
+    """
+    for subassembly in system.subassemblies:
+        subassembly.operating_level = 1.0
+        subassembly.recreate_processes()
+    system.servicing = False
+
+
 class ServiceEquipment(RepairsMixin):
     """Provides a servicing equipment object that can handle various maintenance and
     repair tasks.
@@ -329,22 +346,6 @@ class ServiceEquipment(RepairsMixin):
             raise ValueError(
                 f"Passed subassembly of type: `{type(subassembly)}` invalid."
             )
-
-    def reset_system_operations(self, system: System) -> None:
-        """Completely resets the failure and maintenance events for a given system
-        and its subassemblies, and puts each ``Subassembly.operating_level`` back to 100%.
-        ... note:: This is only intended to be used in conjunction with a tow-to-port
-            repair where a turbine will be completely serviced.
-
-        Parameters
-        ----------
-        system : System
-            The turbine to be reset.
-        """
-        for subassembly in system.subassemblies:
-            subassembly.operating_level = 1.0
-            subassembly.recreate_processes()
-        system.servicing = False
 
     def wait_until_next_operational_period(
         self, *, less_mobilization_hours: int = 0
@@ -696,10 +697,11 @@ class ServiceEquipment(RepairsMixin):
         """
         speed = self.settings.speed
         reduction_factor = 1 - self.settings.speed_reduction_factor
+        reduction_factor = 0.01 if reduction_factor == 0 else reduction_factor
 
         # get the weather forecast with this time for the max travel time
         max_hours = 1 + distance / speed * (1 / reduction_factor)
-        _, all_clear = self._weather_forecast(max_hours, which="transport")
+        dt, all_clear = self._weather_forecast(max_hours, which="transport")
 
         # calculate the distance able to be traveled in each 1-hour window
         distance_traveled = speed * all_clear.astype(float)
@@ -712,8 +714,18 @@ class ServiceEquipment(RepairsMixin):
         # Cumulative sum at the end of each full hour
         distance_traveled_sum = distance_traveled.cumsum()
 
-        # Get the index for the end of the hour where the distance requred to be traveled is reached
-        ix_hours = np.where(distance_traveled_sum >= distance)[0][0]
+        # Get the index for the end of the hour where the distance requred to be
+        # traveled is reached.
+        try:
+            ix_hours = np.where(distance_traveled_sum >= distance)[0][0]
+        except IndexError as e:
+            # If an error occurs because an index maxes out the weather window, check
+            # that it's not due to having reached the end of the simulation. If so,
+            # return the max amount of time, but if that's not the case re-raise the error.
+            if self.env.weather.index.values[-1] in dt:
+                ix_hours = distance_traveled.size - 1
+            else:
+                raise e
 
         # Shave off the extra timing to get the exact travel time
         total_hours = ix_hours + 1  # add 1 for 0-indexing
@@ -1532,7 +1544,7 @@ class ServiceEquipment(RepairsMixin):
 
         # Reset the turbine back to operating and return to port
         self.manager.enable_requests_for_system(system.id)
-        self.reset_system_operations(system)
+        reset_system_operations(system)
         yield self.env.process(
             self.travel(
                 "site",
