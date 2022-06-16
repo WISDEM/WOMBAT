@@ -33,6 +33,14 @@ below will show how each of the APIs are powered to enable the full flexibility 
    :undoc-members:
 ```
 
+### Port
+```{eval-rst}
+.. autoclass:: wombat.core.port.Port
+   :members:
+   :undoc-members: env, windfarm, manager, settings, requests_serviced, turbine_manager,
+      crew_manager, tugboat_manager, active_repairs
+```
+
 
 ## Windfarm Classes
 
