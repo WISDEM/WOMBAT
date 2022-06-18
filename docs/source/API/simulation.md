@@ -30,15 +30,20 @@ below will show how each of the APIs are powered to enable the full flexibility 
 ```{eval-rst}
 .. automodule:: wombat.core.service_equipment
    :members:
+   :inherited-members:
    :undoc-members:
 ```
 
 ### Port
 ```{eval-rst}
 .. autoclass:: wombat.core.port.Port
-   :members:
-   :undoc-members: env, windfarm, manager, settings, requests_serviced, turbine_manager,
-      crew_manager, tugboat_manager, active_repairs
+   :members: transfer_requests_from_manager, repair_single, run_repairs,
+      wait_until_next_shift, run_tow_to_port, run_unscheduled_in_situ
+   :inherited-members:
+   :undoc-members:
+   :exclude-members: env, windfarm, manager, settings, requests_serviced, turbine_manager,
+      crew_manager, tugboat_manager, active_repairs, GetQueue, PutQueue, capacity, get,
+      get_queue, items, put, put_queue
 ```
 
 
