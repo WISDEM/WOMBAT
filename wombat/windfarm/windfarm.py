@@ -181,7 +181,7 @@ class Windfarm:
             data["latitude"], data["longitude"] = end_points.mean(axis=0)
 
     def calculate_distance_matrix(self) -> None:
-        """Calculates hte geodesic distance, in km, between all of the windfarm's nodes, e.g.,
+        """Calculates the geodesic distance, in km, between all of the windfarm's nodes, e.g.,
         substations and turbines, and cables.
         """
         ids = list(self.graph.nodes())
