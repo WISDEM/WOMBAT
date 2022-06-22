@@ -107,6 +107,15 @@ class Windfarm:
         self.graph = windfarm
 
     def _create_turbines_and_substations(self) -> None:
+        """Instantiates the turbine and substation models as defined in the
+        user-provided layout file, and connects these models to the appropriate graph
+        nodes to create a fully representative windfarm network model.
+
+        Raises
+        ------
+        ValueError
+            Raised if the subassembly data is not provided in the layout file.
+        """
         for system_id, data in self.graph.nodes(data=True):
             if data["subassembly"] == "":
                 raise ValueError(
@@ -126,6 +135,15 @@ class Windfarm:
             )
 
     def _create_cables(self) -> None:
+        """Instantiates the cable models as defined in the user-provided layout file,
+        and connects these models to the appropriate graph edges to create a fully
+        representative windfarm network model.
+
+        Raises
+        ------
+        ValueError
+            Raised if the cable model is not specified.
+        """
         for start_node, end_node, data in self.graph.edges(data=True):
             # Check that the cable data is provided
             if data["cable"] == "":
