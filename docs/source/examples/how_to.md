@@ -21,7 +21,6 @@ analyses.
 
 ```{code-cell} ipython3
 from time import perf_counter  # timing purposes only
-from pprint import pprint  # pretty object printing
 
 import numpy as np
 import pandas as pd

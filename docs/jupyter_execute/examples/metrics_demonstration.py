@@ -44,6 +44,9 @@ fpath = sim.env.metrics_input_fname.parent
 fname = sim.env.metrics_input_fname.name
 metrics = Metrics.from_simulation_outputs(fpath, fname)
 
+# Delete the log files now that they're loaded in
+sim.env.cleanup_log_files(log_only=False)
+
 # Alternatively, in this case because the simulation was run, we can use the
 # following for convenience convenience only
 metrics = sim.metrics
@@ -648,21 +651,13 @@ except NotImplementedError as e:
 # In[54]:
 
 
-SAM_settings = "SAM_Singleowner_defaults.yaml"
-metrics.sam_settings = load_yaml(sim.env.data_dir / "windfarm", SAM_settings)
-metrics._setup_pysam()
+try:
+    metrics.pysam_all_outputs()
+except NotImplementedError as e:
+    print(e)
 
 
-# In[55]:
-
-
-metrics.pysam_all_outputs()
-
-
-# In[56]:
-
-
-sim.env.cleanup_log_files(log_only=False)
+# In[ ]:
 
 
 # In[ ]:
