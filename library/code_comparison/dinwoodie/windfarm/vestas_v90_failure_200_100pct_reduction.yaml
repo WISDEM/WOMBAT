@@ -3,8 +3,8 @@ capex_kw: 1300  # need an updated value
 power_curve:
   file: vestas_v90_power_curve.csv
   bin_width: 0.5
-generator:
-  name: generator
+turbine:
+  name: turbine
   maintenance:
   - description: annual service
     time: 60
