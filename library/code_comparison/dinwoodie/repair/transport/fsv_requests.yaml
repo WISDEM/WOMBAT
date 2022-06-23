@@ -2,7 +2,7 @@ name: Field Support Vessel
 equipment_rate: 9500
 charter_days: 28
 strategy: requests
-strategy_threshold: 10
+strategy_threshold: 3
 onsite: false
 capability: SCN
 mobilization_cost: 0

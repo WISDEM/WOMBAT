@@ -16,6 +16,40 @@ from wombat.core import FixedCosts
 from wombat.core.library import load_yaml
 
 
+def _check_frequency(frequency: str, which: str = "all") -> str:
+    """Checks the frequency input to ensure it meets the correct criteria according
+    to the ``which`` flag.
+
+    Parameters
+    ----------
+    frequency : str
+        The user-provided value.
+    which : str, optional
+        Designation for which combinations to check for, by default "all".
+        - "all": project, annual, monthly, adn month-year
+
+    Returns
+    -------
+    str
+        The lower-case, input with white spaces removed.
+
+    Raises
+    ------
+    ValueError
+        Raised if an invalid value was raised
+    """
+    if which == "all":
+        opts = ("project", "annual", "monthly", "month-year")  # type: ignore
+    elif which == "monthly":
+        opts = ("project", "annual", "monthly")  # type: ignore
+    elif which == "annual":  # type: ignore
+        opts = ("project", "annual")  # type: ignore
+    frequency = frequency.lower().strip()  # type: ignore
+    if frequency not in opts:
+        raise ValueError(f"``frequency`` must be one of {opts}.")  # type: ignore
+    return frequency
+
+
 def _calculate_time_availability(
     availability: np.ndarray, by_turbine: bool = False
 ) -> float | np.ndarray:
@@ -141,6 +175,10 @@ class Metrics:
             that should end in ".yaml". If no input is provided, then the model will
             raise a ``NotImplementedError`` when the SAM-powered metrics are attempted to
             be accessed.
+
+            ... warning:: This functionality relies heavily on the user to configure
+                correctly. More information can be found at:
+                https://nrel-pysam.readthedocs.io/en/master/modules/Singleowner.html
         """
         self.data_dir = Path(data_dir)
         if not self.data_dir.is_dir():
@@ -355,11 +393,7 @@ class Metrics:
         float | pd.DataFrame
             The time-based availability at the desired aggregation level.
         """
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual", "monthly", "month-year"):
-            raise ValueError(
-                '``frequency`` must be one of "project", "annual", "monthly", or "month-year".'
-            )
+        frequency = _check_frequency(frequency, which="all")
 
         by = by.lower().strip()
         if by not in ("windfarm", "turbine"):
@@ -437,11 +471,7 @@ class Metrics:
         float | pd.DataFrame
             The production-based availability at the desired aggregation level.
         """
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual", "monthly", "month-year"):
-            raise ValueError(
-                '``frequency`` must be one of "project", "annual", "monthly", or "month-year".'
-            )
+        frequency = _check_frequency(frequency, which="all")
 
         by = by.lower().strip()
         if by not in ("windfarm", "turbine"):
@@ -464,14 +494,11 @@ class Metrics:
             )
             return availability
 
-        production[["year", "month"]] = [
-            production.index.year.values.reshape(-1, 1),
-            production.index.month.values.reshape(-1, 1),
-        ]
-        potential[["year", "month"]] = [
-            potential.index.year.values.reshape(-1, 1),
-            potential.index.month.values.reshape(-1, 1),
-        ]
+        production["year"] = production.index.year.values
+        production["month"] = production.index.month.values
+
+        potential["year"] = potential.index.year.values
+        potential["month"] = potential.index.month.values
 
         if frequency == "annual":
             production = production.groupby("year").sum()[self.turbine_id]
@@ -522,11 +549,7 @@ class Metrics:
         if which not in ("net", "gross"):
             raise ValueError('``which`` must be one of "net" or "gross".')
 
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual", "monthly", "month-year"):
-            raise ValueError(
-                '``frequency`` must be one of "project", "annual", "monthly", or "month-year".'
-            )
+        frequency = _check_frequency(frequency, which="all")
 
         by = by.lower().strip()
         if by not in ("windfarm", "turbine"):
@@ -601,11 +624,7 @@ class Metrics:
                 '``which`` must be one of "scheduled", "unscheduled", or "both".'
             )
 
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual", "monthly", "month-year"):
-            raise ValueError(
-                '``frequency`` must be one of "project", "annual", "monthly", or "month-year".'
-            )
+        frequency = _check_frequency(frequency, which="all")
 
         if which == "scheduled":
             task_filter = ["maintenance"]
@@ -699,11 +718,7 @@ class Metrics:
         ValueError
             If ``by_equipment`` is not one of ``True`` or ``False``.
         """
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual", "monthly", "month-year"):
-            raise ValueError(
-                '``frequency`` must be one of "project", "annual", or "monthly".'
-            )
+        frequency = _check_frequency(frequency, which="all")
 
         if not isinstance(by_equipment, bool):
             raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
@@ -759,7 +774,13 @@ class Metrics:
     def service_equipment_utilization(self, frequency: str) -> pd.DataFrame:
         """Calculates the utilization rate for each of the service equipment in the
         simulation  as the ratio of total number of days each of the servicing
-        equipment is in operation over the total number of days in the simulation.
+        equipment is in operation over the total number of days it's present in the
+        simulation. This number excludes mobilization time and the time between
+        visits for scheduled servicing equipment strategies.
+
+        .. note:: For tugboats in a tow-to-port scenario, this ratio will be near
+        100% because they are considered to be operating on an as-needed basis per the
+        port contracting assumptions
 
         Parameters
         ----------
@@ -776,13 +797,20 @@ class Metrics:
         ValueError
             If ``frequency`` is not one of "project" or "annual".
         """
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual"):
-            raise ValueError('``frequency`` must be one of "project" or "annual".')
+        frequency = _check_frequency(frequency, which="annual")
 
         operation_days = []
         total_days = []
-        operating_filter = self.events.action.isin(["repair", "maintenance"])
+        operating_actions = [
+            "traveling",  # traveling between port/site or on-site
+            "repair",
+            "maintenance",
+            "delay",  # performing work
+            "unmooring",
+            "mooring_reconnection",
+            "towing",  # tugboat classifications
+        ]
+        operating_filter = self.events.action.isin(operating_actions)
         return_filter = self.events.action == "delay"
         return_filter &= self.events.reason == "work is complete"
         return_filter &= self.events.additional == "will return next year"
@@ -861,11 +889,7 @@ class Metrics:
         ValueError
             If ``by_type`` is not one of ``True`` or ``False``.
         """
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual", "monthly", "month-year"):
-            raise ValueError(
-                '``frequency`` must be one of "project", "annual", "monthly", or "month-year".'
-            )
+        frequency = _check_frequency(frequency, which="all")
 
         if not isinstance(by_type, bool):
             raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
@@ -928,11 +952,7 @@ class Metrics:
         ValueError
             If ``by_category`` is not one of ``True`` or ``False``.
         """
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual", "monthly", "month-year"):
-            raise ValueError(
-                '``frequency`` must be one of "project", "annual", or "monthly".'
-            )
+        frequency = _check_frequency(frequency, which="all")
         if not isinstance(by_category, bool):
             raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
 
@@ -1111,11 +1131,7 @@ class Metrics:
         delays and shift-to-shift delays. In the future these will be disentangled.
 
         """
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual", "monthly", "month-year"):
-            raise ValueError(
-                '``frequency`` must be one of "project", "annual", or "monthly".'
-            )
+        frequency = _check_frequency(frequency, which="all")
         if not isinstance(by_category, bool):
             raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
         if not isinstance(by_action, bool):
@@ -1247,9 +1263,7 @@ class Metrics:
         ValueError
             If ``resolution`` must be one of "low", "medium", or "high".
         """
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual"):
-            raise ValueError('``frequency`` must be one of "project" or "annual".')
+        frequency = _check_frequency(frequency, which="annual")
 
         resolution = resolution.lower().strip()
         if resolution not in ("low", "medium", "high"):
@@ -1342,11 +1356,7 @@ class Metrics:
         ValueError
             If ``by_turbine`` is not one of ``True`` or ``False``.
         """
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual", "monthly", "month-year"):
-            raise ValueError(
-                '``frequency`` must be one of "project", "annual", or "monthly".'
-            )
+        frequency = _check_frequency(frequency, which="all")
 
         if not isinstance(by_turbine, bool):
             raise ValueError("``by_turbine`` must be one of ``True`` or ``False``")

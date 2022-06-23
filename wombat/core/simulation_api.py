@@ -1,7 +1,7 @@
 """The main API for the ``wombat``."""
 from __future__ import annotations
 
-from typing import List, Union, Optional
+from typing import Optional
 from pathlib import Path
 
 import yaml
@@ -21,19 +21,19 @@ from wombat.core.port import Port
 from wombat.core.library import load_yaml, library_map
 
 
-def _library_mapper(file_path: Union[str, Path]) -> Path:
+def _library_mapper(file_path: str | Path) -> Path:
     """Attempts to extract a default library path if one of "DINWOODIE" or "IEA_26"
     are passed, other returns ``file_path``.
 
     Parameters
     ----------
-    file_path : Union[str, Path]
+    file_path : str | Path
         Should be a valid file path, or one of "DINWOODIE" or "IEA_26" to indicate a
         provided library is being used.
 
     Returns
     -------
-    Union[str, Path]
+    str | Path
         The library path.
     """
     return Path(library_map.get(file_path, file_path)).resolve()  # type: ignore
@@ -51,7 +51,7 @@ class Configuration(FromDictMixin):
         The data directory. See ``wombat.simulation.WombatEnvironment`` for more details.
     layout : str
         The windfarm layout file. See ``wombat.Windfarm`` for more details.
-    service_equipment : Union[str, List[str]]
+    service_equipment : str | list[str]
         The equpiment that will be used in the simulation. See
         ``wombat.core.ServiceEquipment`` for more details.
     weather : str
@@ -67,9 +67,9 @@ class Configuration(FromDictMixin):
         The annual inflation rate to be used for post-processing.
     fixed_costs : str
         The file name for the fixed costs assumptions.
-    project_capacity : Union[int, float]
+    project_capacity : int | float
         The total capacity of the wind plant, in MW.
-    port : dict | str \ Path
+    port : dict | str | Path
         The port configuration file or dictionary that will be used to setup a
         tow-to-port repair strategy, default None.
     start_year : int
@@ -134,7 +134,7 @@ class Simulation(FromDictMixin):
 
     @config.validator  # type: ignore
     def _create_configuration(
-        self, attribute: Attribute, value: Union[str, dict, Configuration]
+        self, attribute: Attribute, value: str | dict | Configuration
     ) -> None:
         """Validates the configuration object and creates the ``Configuration`` object
         for the simulation.Raises:
@@ -171,14 +171,14 @@ class Simulation(FromDictMixin):
             )
 
     @classmethod
-    def from_config(cls, config: Union[str, dict, Configuration]):
+    def from_config(cls, config: str | dict | Configuration):
         """Creates the ``Simulation`` object only the configuration contents as either a
         full file path to the configuration file, a dictionary of the configuration
         contents, or pre-loaded ``Configuration`` object.
 
         Parameters
         ----------
-        config : Union[str, dict, Configuration]
+        config : str | dict | Configuration
             The simulation configuration, see ``Configuration`` for more details on the
             contents. The following is a description of the acceptable contents:
 
@@ -235,6 +235,7 @@ class Simulation(FromDictMixin):
             self.port = Port(
                 self.env, self.windfarm, self.repair_manager, self.config.port
             )
+            self.service_equipment.extend(self.port.tugboat_manager.items)
 
     def run(
         self,
@@ -248,7 +249,7 @@ class Simulation(FromDictMixin):
 
         Parameters
         ----------
-        until : Optional[Union[int, float, Event]], optional
+        until : Optional[int | float | Event], optional
             When to stop the simulation, by default None. See documentation on
             ``simpy.Environment.run`` for more details.
         create_metrics : bool, optional

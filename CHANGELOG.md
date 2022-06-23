@@ -3,6 +3,8 @@
 - Adds a tow-to-port strategy that is activated for repairs with the "TOW" capability in the servicing
 - Adds a `Port` class to handle the tow-to-port class and tugboat-based service requests
 - Allows for any name to define the subassemblies of a turbine or substation to enable users to use the naming conventions they are most familiar with or most meaningful for their own work
+- Minor bug fixes in the `Metrics` class to improve stability, improve code reuse, and documentation\
+- Adds nearly all documentation udpates from PR #39 as a result of an internal code review, but makes the changes in the source files that generate the example notebooks, so is not a direct merge
 
 ## 0.4.1 (2022-March-8)
 - Adds code diagrams to demonstrate how the various components connect

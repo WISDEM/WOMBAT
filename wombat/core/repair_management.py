@@ -394,9 +394,9 @@ class RepairManager(FilterStore):
         Parameters
         ----------
         system_id : str
-            ``System.id`` or ``Cable.id``.
+            Either the ``System.id`` or ``Cable.id``.
         subassembly_id : str
-            ``Subassembly.id`` or the ``Cable.id`` repeated for cables.
+            Either the ``Subassembly.id`` or the ``Cable.id`` repeated for cables.
         exclude : list[str]
             A list of ``request_id``s to exclude from the purge. This is a specific use
             case for the combined cable system/subassembly, but can be to exclude

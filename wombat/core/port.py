@@ -1,4 +1,12 @@
-"""Creates the Port class that provies the tow-to-port repair capabilities."""
+"""
+Creates the `Port` class that provies the tow-to-port repair capabilities for offshore
+floating wind farms. The `Port` will control a series of tugboats enabled through the
+"TOW" capability that get automatically dispatched once a tow-to-port repair is
+submitted and a tugboat is available (`ServiceEquipment.at_port`). The `Port` also
+controls any mooring repairs through the "AHV" capability, which operates similarly to
+the tow-to-port except that it will not be released until the repair is completed, and
+operates on a strict shift scheduling basis.
+"""
 
 from __future__ import annotations
 
@@ -27,6 +35,49 @@ class Port(RepairsMixin, FilterStore):
     ... note:: The operating costs for the port are incorporated into the ``FixedCosts``
         functionality in the high-levl cost bucket: ``operations_management_administration``
         or the more granula cost bucket: ``marine_management``
+
+    Parameters
+    ----------
+    env : WombatEnvironment
+        The simulation environment instance.
+    windfarm : Windfarm
+        The simulation windfarm instance.
+    repair_manager : RepairManager
+        The simulation repair manager instance.
+    config : dict | str | Path
+        A path to a YAML object or dictionary encoding the port's configuration settings.
+        This will be loaded into a ``PortConfig`` object during initialization.
+
+    Attributes
+    ----------
+    env : WombatEnvironment
+        The simulation environment instance.
+    windfarm : Windfarm
+        The simulation windfarm instance.
+    manager : RepairManager
+        The simulation repair manager instance.
+    settings : PortConfig
+        The port's configuration settings, as provided by the user.
+    requests_serviced : set[str]
+        The set of requests that have already been serviced to ensure there are no
+        duplications of labor when splitting out the repair requests to be processed.
+    turbine_manager : simpy.Resource
+        A SimPy ``Resource`` object that limits the number of turbines that can be towed
+        to port, so as not to overload the quayside waters, which is controlled by
+        ``settings.max_operations``.
+    crew_manager : simpy.Resource
+        A SimPy ``Resource`` object that limts the number of repairs that can be
+        occurring at any given time, which is controlled by ``settings.n_crews``.
+    tugboat_manager : simpy.FilterStore
+        A SimPy ``FilterStore`` object that acts as a coordination system for the
+        registered tugboats to tow turbines between port and site. In order to tow
+        in either direction they must be filtered by ``ServiceEquipment.at_port``. This
+        is generated from the tugboat definitions in ``settings.tugboats``.
+    active_repairs : dict[str, dict[str, simpy.events.Event]]
+        A nested dictionary of turbines, and its associated request IDs with a SimPy
+        ``Event``. The use of events allows them to automatically succeed at the end of
+        repairs, and once all repairs are processed on a turbine, the tow-to-site
+        process can commence.
     """
 
     def __init__(
@@ -214,15 +265,16 @@ class Port(RepairsMixin, FilterStore):
     def run_tow_to_port(self, request: RepairRequest) -> Generator[Process, None, None]:
         """The method to initiate a tow-to-port repair sequence.
 
-        Process:
-        - Request a tugboat from the tugboat resource manager and wait
-        - Runs ``ServiceEquipment.tow_to_port()``, which encapsulates the traveling to
-          site, unmooring, and return tow with a turbine
-        - Transfers the the turbine's repair log to the port, and gets all available
-          crews to work on repairs immediately
-        - Requests a tugboat to return the turbine to site
-        - Runs ``ServiceEquipment.tow_to_site()``, which encapsulates the tow back to
-          site, reconnection, resetting the operating status, and returning back to port
+        The process follows the following following routine:
+
+        1. Request a tugboat from the tugboat resource manager and wait
+        2. Runs ``ServiceEquipment.tow_to_port``, which encapsulates the traveling to
+            site, unmooring, and return tow with a turbine
+        3. Transfers the the turbine's repair log to the port, and gets all available
+           crews to work on repairs immediately
+        4. Requests a tugboat to return the turbine to site
+        5. Runs ``ServiceEquipment.tow_to_site()``, which encapsulates the tow back to
+           site, reconnection, resetting the operating status, and returning back to port
 
         Parameters
         ----------

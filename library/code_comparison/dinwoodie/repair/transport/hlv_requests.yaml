@@ -2,7 +2,7 @@ name: Heavy Lift Vessel
 equipment_rate: 150000
 charter_days: 30
 strategy: requests
-strategy_threshold: 10
+strategy_threshold: 3
 start_year: 2002
 end_year: 2014
 onsite: false

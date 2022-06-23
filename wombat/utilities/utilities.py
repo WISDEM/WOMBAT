@@ -18,6 +18,8 @@ except ImportError:
     cache = lru_cache(None)
 
 
+# Don't repeat the most common inputs that occur when there are no state changes, but
+# the result is needed again for logging
 @cache
 def _mean(*args) -> float:
     """Multiplies two numbers. Used for a reduce operation.
