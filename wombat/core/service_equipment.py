@@ -125,7 +125,6 @@ def validate_end_points(start: str, end: str, no_intrasite: bool = False) -> Non
 def reset_system_operations(system: System) -> None:
     """Completely resets the failure and maintenance events for a given system
     and its subassemblies, and puts each ``Subassembly.operating_level`` back to 100%.
-
     ... note:: This is only intended to be used in conjunction with a tow-to-port
         repair where a turbine will be completely serviced.
 

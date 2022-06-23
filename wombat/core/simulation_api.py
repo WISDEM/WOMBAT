@@ -271,7 +271,6 @@ class Simulation(FromDictMixin):
         power_potential, power_production = self.env.power_production_potential_to_csv(
             windfarm=self.windfarm, operations=operations, return_df=True
         )
-
         self.metrics = Metrics(
             data_dir=self.config.library,
             events=events,
