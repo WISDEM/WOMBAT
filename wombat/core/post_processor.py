@@ -177,7 +177,8 @@ class Metrics:
             be accessed.
 
             ... warning:: This functionality relies heavily on the user to configure
-                correctly.
+                correctly. More information can be found at:
+                https://nrel-pysam.readthedocs.io/en/master/modules/Singleowner.html
         """
         self.data_dir = Path(data_dir)
         if not self.data_dir.is_dir():
