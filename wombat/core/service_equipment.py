@@ -1,4 +1,8 @@
-"""Creates the ServiceEquipment class for simulating repairs."""
+"""The servicing equipment module provides a small number of utility functions specific
+to the operations of servicing equipment and the `ServiceEquipment` class that provides
+the repair and transportation logic for scheduled, unscheduled, and unscheduled towing
+servicing equipment.
+"""
 # TODO: NEED A SPECIFIC STARTUP METHOD
 from __future__ import annotations
 
@@ -121,6 +125,7 @@ def validate_end_points(start: str, end: str, no_intrasite: bool = False) -> Non
 def reset_system_operations(system: System) -> None:
     """Completely resets the failure and maintenance events for a given system
     and its subassemblies, and puts each ``Subassembly.operating_level`` back to 100%.
+
     ... note:: This is only intended to be used in conjunction with a tow-to-port
         repair where a turbine will be completely serviced.
 
@@ -149,6 +154,35 @@ class ServiceEquipment(RepairsMixin):
         The ``RepairManager`` object.
     equipment_data_file : str
         The equipment settings file name with extension.
+
+    Attributes
+    ----------
+    env : WombatEnvironment
+        The simulation environment instance.
+    windfarm : Windfarm
+        The simulation windfarm instance.
+    manager : RepairManager
+        The simulation repair manager instance.
+    settings : PortConfig
+        The port's configuration settings, as provided by the user.
+    onsite : bool
+        Indicates if the servicing equipment is at the site (``True``), or not
+        (``False``).
+    enroute : bool
+        Indicates if the servicing equipment is on its way to the site (``True``),
+        or not (``False``).
+    at_port : bool
+        Indicates if the servicing equipment is at the port, or similar location for
+        land-based, (``True``), or not (``False``).
+    at_system : bool
+        Indications if the servicing equipment is at a cable, substation, or turbine
+        while on the site (``True``), or not (``False``).
+    current_system : str | None
+        Either the ``System.id`` if ``at_system``, or ``None`` if not.
+    transferring_crew : bool
+        Indications if the servicing equipment is at a cable, substation, or turbine
+        and transferring the crew to or from that system (``True``), or not
+        (``False``).
     """
 
     def __init__(
@@ -170,35 +204,6 @@ class ServiceEquipment(RepairsMixin):
             The ``RepairManager`` object.
         equipment_data_file : str
             The equipment settings file name with extension.
-
-        Attributes
-        ----------
-        env : WombatEnvironment
-            The simulation environment instance.
-        windfarm : Windfarm
-            The simulation windfarm instance.
-        manager : RepairManager
-            The simulation repair manager instance.
-        settings : PortConfig
-            The port's configuration settings, as provided by the user.
-        onsite : bool
-            Indicates if the servicing equipment is at the site (``True``), or not
-            (``False``).
-        enroute : bool
-            Indicates if the servicing equipment is on its way to the site (``True``),
-            or not (``False``).
-        at_port : bool
-            Indicates if the servicing equipment is at the port, or similar location for
-            land-based, (``True``), or not (``False``).
-        at_system : bool
-            Indications if the servicing equipment is at a cable, substation, or turbine
-            while on the site (``True``), or not (``False``).
-        current_system : str | None
-            Either the ``System.id`` if ``at_system``, or ``None`` if not.
-        transferring_crew : bool
-            Indications if the servicing equipment is at a cable, substation, or turbine
-            and transferring the crew to or from that system (``True``), or not
-            (``False``).
         """
         self.env = env
         self.windfarm = windfarm

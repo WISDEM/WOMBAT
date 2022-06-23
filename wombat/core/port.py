@@ -1,4 +1,12 @@
-"""Creates the Port class that provies the tow-to-port repair capabilities."""
+"""
+Creates the `Port` class that provies the tow-to-port repair capabilities for offshore
+floating wind farms. The `Port` will control a series of tugboats enabled through the
+"TOW" capability that get automatically dispatched once a tow-to-port repair is
+submitted and a tugboat is available (`ServiceEquipment.at_port`). The `Port` also
+controls any mooring repairs through the "AHV" capability, which operates similarly to
+the tow-to-port except that it will not be released until the repair is completed, and
+operates on a strict shift scheduling basis.
+"""
 
 from __future__ import annotations
 
