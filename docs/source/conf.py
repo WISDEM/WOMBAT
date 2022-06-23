@@ -88,10 +88,12 @@ source_suffix = {
 }
 
 # toggle this between auto/off to rerun full documentation build
-jupyter_execute_notebooks = "off"
+jupyter_execute_notebooks = "auto"
 execution_timeout = -1
 execution_allow_errors = True
-# execution_excludepatterns = ["*_demonstration.ipynb"]  # only used for quick docs building when updating the how to example
+execution_excludepatterns = [
+    "*_demonstration.ipynb"
+]  # only used for quick docs building when updating the how to example
 
 myst_heading_anchors = 3
 
