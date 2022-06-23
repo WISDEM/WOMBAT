@@ -175,6 +175,9 @@ class Metrics:
             that should end in ".yaml". If no input is provided, then the model will
             raise a ``NotImplementedError`` when the SAM-powered metrics are attempted to
             be accessed.
+
+            ... warning:: This functionality relies heavily on the user to configure
+                correctly.
         """
         self.data_dir = Path(data_dir)
         if not self.data_dir.is_dir():
@@ -714,7 +717,7 @@ class Metrics:
         ValueError
             If ``by_equipment`` is not one of ``True`` or ``False``.
         """
-        frequency = _check_frequency(frequency, which="monthly")
+        frequency = _check_frequency(frequency, which="all")
 
         if not isinstance(by_equipment, bool):
             raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
