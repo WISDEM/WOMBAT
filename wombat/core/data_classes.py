@@ -246,6 +246,31 @@ def greater_than_zero(
         raise ValueError("Input must be greater than 0.")
 
 
+def greater_than_equal_to_zero(
+    instance,  # pylint: disable=W0613
+    attribute: Attribute,  # pylint: disable=W0613
+    value: int | float,
+) -> None:
+    """Checks if an input is at least 0.
+
+    Parameters
+    ----------
+    instance : Any
+        The class containing the attribute to be checked.
+    attribute : Attribute
+        The attribute's properties.
+    value : int | float
+        The user-input value for the ``attribute``.
+
+    Raises
+    ------
+    ValueError
+        Raised if ``value`` is less than or equal to zero.
+    """
+    if value < 0:
+        raise ValueError("Input must be at least 0.")
+
+
 def check_capability(
     instance: Any,  # pylint: disable=W0613
     attribute: Attribute,
@@ -1209,7 +1234,9 @@ class PortConfig(FromDictMixin):
     workday_start: int = field(default=-1, converter=int, validator=valid_hour)
     workday_end: int = field(default=-1, converter=int, validator=valid_hour)
     site_distance: float = field(default=0, converter=float)
-    annual_fee: float = field(default=0, converter=float, validator=greater_than_zero)
+    annual_fee: float = field(
+        default=0, converter=float, validator=greater_than_equal_to_zero
+    )
 
     def _set_environment_shift(self, start: int, end: int) -> None:
         """Used to set the ``workday_start`` and ``workday_end`` to the environment's values.

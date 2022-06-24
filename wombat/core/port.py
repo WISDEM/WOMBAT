@@ -121,6 +121,37 @@ class Port(RepairsMixin, FilterStore):
         # Create partial functions for the labor and equipment costs for clarity
         self.initialize_cost_calculators(which="port")
 
+        # Run the annualized fee logger
+        if self.settings.annual_fee > 0:
+            self.env.process(self._log_annual_fee())
+
+    def _log_annual_fee(self):
+        """Logs the annual port lease fee on a monthly-basis"""
+        assert isinstance(self.settings, PortConfig)
+        monthly_fee = self.settings.annual_fee / 12.0
+        ix_month_starts = self.env.weather.index.day == 1  # 1st of the month
+        ix_month_starts &= self.env.weather.index.hour == 0  # at midnight
+        ix_month_starts = np.where(ix_month_starts)[0]
+        ix_month_starts = ix_month_starts[ix_month_starts > 0]
+
+        # At time 0 log the first monthly fee
+        self.env.log_action(
+            agent=self.settings.name,
+            action="monthly lease fee",
+            reason="port lease",
+            equipment_cost=monthly_fee,
+        )
+
+        for month_start in ix_month_starts:
+            # Log the fee at the start of each month at midnight
+            yield self.env.timeout(month_start)
+            self.env.log_action(
+                agent=self.settings.name,
+                action="monthly lease fee",
+                reason="port lease",
+                equipment_cost=monthly_fee,
+            )
+
     def repair_single(
         self, request: RepairRequest
     ) -> Generator[Timeout | Process, None, None]:
