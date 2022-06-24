@@ -1,14 +1,34 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # Servicing Equipment Strategy Demonstration
+# # Servicing Strategies
+#
+# In this example, we'll demonstrate the essential differences in scheduled servicing, unscheduled servicing, and tow-to-port repair repair strategies. Each of the examples demonstrated below will be based on the 2015 Dinwoodie, et al. paper, though the the variations will be for demonstration purposes only.
+#
+#
+# ## WOMBAT Setup and Variables
+#
+# The vessels that will be changed in this demonstration are the field support vessel (FSV) with capability: "SCN", the heavy lift vessel (HLV) with capability: "LCN", and the tugboats, which have capability: "TOW".
+#
+# <div class="alert alert-block alert-info">
+# <b>Note:</b>
+# When running tow-to-port a `Port` configuration is also required, which will control the tugboats. However, the port costs will still be accounted for in the
+# `FixedCosts` class as port fees are assumed to be constant. These costs are not considered in this example, so differences in cost should be taken with a grain
+# of salt given the reduction of HLV and FSV operational and mobilization costs.
+# </div>
+#
+#
+# Scenario descriptions:
+#  - **Scheduled**: exactly the same as the base case (fsv_scheduled.yaml and hlv_scheduled.yaml)
+#  - **Unscheduled: requests**: the FSV and HLV are called to site when 10 requests that they can service are logged (fsv_requests.yaml and hlv_requests.yaml)
+#  - **Unscheduled: downtime**: the FSV and HLV are called to site once the windfarm's operating level hits 90% or lower (fsv_downtime.yaml and hlv_downtime.yaml)
+#  - **Unscheduled: tow-to-port**: the FSV and HLV will be replaced with three identical tugboats (tugboat1.yaml, tugboat2.yaml, tugboat3.yaml), and all the failures associated with the FSV and HLV will be changed to capability "TOW" to trigger the tow-to-port repairs. These processes will be triggered on the first request (WOMBAT base assumption that can't be changed for now).
 #
 # In this example, we will demonstrate how the results for the base case for the Dinwoodie, et al. example vary based on how each of the vessels are scheduled. The configuration details all remain the same, regardless of details, except for the strategy information, which is defined as follows:
-#  - **strategy_scheduled**: exactly the same as the base case (fsv_scheduled.yaml and hlv_scheduled.yaml)
-#  - **strategy_requests**: the FSV and HLV are called to site when 10 requests that they can service are logged (fsv_requests.yaml and hlv_requests.yaml)
-#  - **strategy_downtime**: the FSV and HLV are called to site once the windfarm's operating level hits 90% or lower (fsv_downtime.yaml and hlv_downtime.yaml)
 #
-#  This example is set up similar to that of the validation cases to show how the results differ, and not a step-by-step guide for setting up the analyses. We refer the reader to the exensive [documentation](../API/index.md) and [How To example](how_to.md) for more on the specifics.
+# This example is set up similarly to that of the validation cases to show how the results differ, and not a step-by-step guide for setting up the analyses. We refer the reader to the exensive [documentation](../API/index.md) and [How To example](how_to.md) for more information.
+#
+# ## Imports and notebook configuration
 
 # In[1]:
 
@@ -27,6 +47,10 @@ pd.set_option("display.max_columns", 1000)
 pd.options.display.float_format = "{:,.2f}".format
 
 
+# ## Simulation and results setup
+#
+# Here we're providing the names of the configuration files (found at: dinwoodie / config) without their .yaml extensions (added in later) and the results that we want to compare between simulations to understand some of the timing and cost trade offs between simulations.
+
 # In[2]:
 
 
@@ -34,8 +58,18 @@ configs = [
     "base_scheduled",
     "base_requests",
     "base_downtime",
+    "base_tow_to_port",
 ]
-columns = deepcopy(configs)
+
+
+# The dictionary of keys and lists will be used to create the results data frame where the keys will be the indices and the lists will be the row values for each of the above configurations.
+
+# In[3]:
+
+
+columns = deepcopy(
+    configs
+)  # Create a unique copy of the config names for column naming
 results = {
     "availability - time based": [],
     "availability - production based": [],
@@ -48,15 +82,19 @@ results = {
     "ctv cost": [],
     "fsv cost": [],
     "hlv cost": [],
+    "tow cost": [],
     "annual repair cost": [],
     "annual technician cost": [],
     "ctv utilization": [],
     "fsv utilization": [],
     "hlv utilization": [],
+    "tow utilization": [],
 }
 
 
-# In[3]:
+# ## Run the simulations and display the results
+
+# In[4]:
 
 
 print(f"{'name'.rjust(28)} | {'loading'} | running")
@@ -79,6 +117,7 @@ for config in configs:
     years = sim.metrics.events.year.unique().shape[0]
     mil = 1000000
 
+    # Gather the high-level results for the simulation
     availability_time = sim.metrics.time_based_availability(
         frequency="project", by="windfarm"
     )
@@ -103,6 +142,7 @@ for config in configs:
     ).operations[0]
     total = sim.metrics.events[["total_cost"]].sum().sum()
 
+    # Gather the equipment costs and separate the results by equipment type
     equipment = sim.metrics.equipment_costs(frequency="project", by_equipment=True)
     equipment_sum = equipment.sum().sum()
     hlv = (
@@ -120,7 +160,9 @@ for config in configs:
         .sum()
         .sum()
     )
+    tow = equipment[[el for el in equipment.columns if "Tugboat" in el]].sum().sum()
 
+    # Gather the equipment utilization data frame and separate the results by equipment type
     utilization = sim.metrics.service_equipment_utilization(frequency="project")
     hlv_ur = (
         utilization[[el for el in utilization.columns if "Heavy Lift Vessel" in el]]
@@ -137,6 +179,9 @@ for config in configs:
         .mean()
         .mean()
     )
+    tow_ur = (
+        utilization[[el for el in utilization.columns if "Tugboat" in el]].mean().mean()
+    )
 
     # Log the results of interest
     results["availability - time based"].append(availability_time)
@@ -150,17 +195,19 @@ for config in configs:
     results["ctv cost"].append(ctv / mil / years)
     results["fsv cost"].append(fsv / mil / years)
     results["hlv cost"].append(hlv / mil / years)
+    results["tow cost"].append(tow / mil / years)
     results["annual repair cost"].append(parts / mil / years)
     results["annual technician cost"].append(techs / mil / years)
     results["ctv utilization"].append(ctv_ur)
     results["fsv utilization"].append(fsv_ur)
     results["hlv utilization"].append(hlv_ur)
+    results["tow utilization"].append(tow_ur)
 
     # Clear the logs
     sim.env.cleanup_log_files(log_only=False)
 
 
-# In[4]:
+# In[5]:
 
 
 results_df = pd.DataFrame(

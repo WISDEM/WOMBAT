@@ -1,0 +1,16 @@
+%%{init: {'theme':'base'}}%%
+flowchart TD
+    c1{Weather\ndelay?}
+    c2[Is delay longer\nthan time in shift]
+    c3[Travel to port]
+    c4[Wait until next shift]
+    c5[Wait out delay]
+    c6[Tranfer crew\nto the system]
+
+    c1-->|No| c6
+    c2-->|Yes| c3-->c4-->c1
+    c1-->|Yes| c2-->|No| c5-->c6
+
+    %% mmdc -i crew_transfer.mmd -o crew_transfer.svg
+    %% then manually change all instances of <br> to <br/>
+    %% mmdc -i crew_transfer.mmd -o crew_transfer.png -w 2400 -b transparent
