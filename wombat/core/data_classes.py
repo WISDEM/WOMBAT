@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-import datetime  # type: ignore
+import datetime
 from math import fsum
 from typing import TYPE_CHECKING, Any, Callable, Sequence  # type: ignore
 from functools import partial, update_wrapper  # type: ignore
@@ -992,65 +992,69 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
 @define(frozen=True, auto_attribs=True)
 class ServiceEquipmentData(FromDictMixin):
     """Helps to determine the type ServiceEquipment that should be used, based on the
-    repair strategy for its operation. See
-    :py:class:`~data_classes.ScheduledServiceEquipmentData` or
-    :py:class:`~data_classes.UnscheduledServiceEquipmentData` for more details on each
-    classifcation.
+        repair strategy for its operation. See
+        :py:class:`~data_classes.ScheduledServiceEquipmentData` or
+        :py:class:`~data_classes.UnscheduledServiceEquipmentData` for more details on each
+        classifcation.
 
-    Parameters
-    ----------
-    data_dict : dict
-        The dictionary that will be used to create the appropriate ServiceEquipmentData.
-        This should contain a field called 'strategy' with either "scheduled" or
-        "unscheduled" as a value if strategy is not provided as a keyword argument.
-    strategy : str, optional
-        Should be one of "scheduled", "requests", "downtime". If nothing is provided,
-        the equipment configuration will be checked.
+        Parameters
+        ----------
+        data_dict : dict
+            The dictionary that will be used to create the appropriate ServiceEquipmentData.
+            This should contain a field called 'strategy' with either "scheduled" or
+            "unscheduled" as a value if strategy is not provided as a keyword argument.
+        strategy : str, optional
+            Should be one of "scheduled", "requests", "downtime". If nothing is provided,
+            the equipment configuration will be checked.
 
-    Raises
-    ------
-    ValueError
-        If ``strategy`` is not one of "scheduled" or "unscheduled" an error will be raised.
+        Raises
+        ------
+        ValueError
+            If ``strategy`` is not one of "scheduled" or "unscheduled" an error will be raised.
 
-    Examples
-    --------
-    The below workflow is how a new data :py:class:`~data_classes.ScheduledServiceEquipmentData`
-    object could be created via a generic/routinized creation method, and is how the
-    :py:class:`~service_equipment.ServiceEquipment`'s ``__init__`` method creates the
-    settings data.
+        Examples
+        --------
+        The below workflow is how a new data :py:class:`~data_classes.ScheduledServiceEquipmentData`
+        object could be created via a generic/routinized creation method, and is how the
+        :py:class:`~service_equipment.ServiceEquipment`'s ``__init__`` method creates the
+        settings data.
 
-    >>> from wombat.core.data_classes import  ServiceEquipmentData
-    >>>
-    >>> data_dict = {
-    >>>     "name": "Crew Transfer Vessel 1",
-    >>>     "equipment_rate": 1750,
-    >>>     "start_month": 1,
-    >>>     "start_day": 1,
-    >>>     "end_month": 12,
-    >>>     "end_day": 31,
-    >>>     "start_year": 2002,
-    >>>     "end_year": 2014,
-    >>>     "onsite": True,
-    >>>     "capability": "CTV",
-    >>>     "mobilization_cost": 0,
-    >>>     "mobilization_days": 0,
-    >>>     "speed": 37.04,
-    >>>     "max_windspeed_transport": 99,
-    >>>     "max_windspeed_repair": 99,
-    >>>     "max_waveheight_transport": 1.5,
-    >>>     "max_waveheight_repair": 1.5,
-    >>>     "strategy": scheduled,
-    >>>     "crew_transfer_time": 0.25,
-    >>>     "n_crews": 1,
-    >>>     "crew": {
-    >>>         "day_rate": 0,
-    >>>         "n_day_rate": 0,
-    >>>         "hourly_rate": 0,
-    >>>         "n_hourly_rate": 0,
-    >>>     },
-    >>> }
-    >>> equipment = ServiceEquipmentData(data_dict).determine_type()
-    >>> type(equipment)
+        >>> from wombat.core.data_classes import  ServiceEquipmentData
+        >>>
+        >>> data_dict = {
+        >>>     "name": "Crew Transfer Vessel 1",
+        >>>     "equipment_rate": 1750,
+        >>>     "start_month": 1,
+        >>>     "start_day": 1,
+        >>>     "end_month": 12,
+        >>>     "end_day": 31,
+        >>>     "start_year": 2002,
+        >>>     "end_year": 2014,
+        >>>     "onsite": True,
+        >>>     "capability": "CTV",
+        >>>     "max_severity": 10,
+        >>>     "mobilization_cost": 0,
+        >>>     "mobilization_days": 0,
+        >>>     "speed": 37.04,
+        >>>     "max_windspeed_transport": 99,
+        >>>     "max_windspeed_repair": 99,
+        >>>     "max_waveheight_transport": 1.5,
+        >>>     "max_waveheight_repair": 1.5,
+        >>>     "strategy": scheduled,
+        >>>     "crew_transfer_time": 0.25,
+        >>>     "n_crews": 1,
+        >>>     "crew": {
+        >>>         "day_rate": 0,
+        >>>         "n_day_rate": 0,
+        >>>         "hourly_rate": 0,
+        >>>         "n_hourly_rate": 0,
+        >>>     },
+        >>> }
+        >>> equipment = ServiceEquipmentData(data_dict).determine_type()
+    <<<<<<< HEAD
+    =======
+        >>> type(equipment)
+    >>>>>>> 989bab1a5ac84c0769d0c238166a34787e7d2f02
     """
 
     data_dict: dict
@@ -1185,8 +1189,16 @@ class PortConfig(FromDictMixin):
         The starting hour of a workshift, in 24 hour time.
     workday_end : int
         The ending hour of a workshift, in 24 hour time.
-    site_distance: int | float
+    site_distance : int | float
         Distance, in km, a tugboat has to travel to get between site and port.
+    annual_fee : int | float
+        The annualized fee for access to the repair port that will be distributed
+        monthly in the simulation and accounted for on the first of the month from the
+        start of the simulation to the end of the simulation.
+
+        ... note:: Don't include this cost in both this category and either the
+        ``FixedCosts.operations_management_administration`` bucket or
+        ``FixedCosts.marine_management`` category.
     """
 
     name: str = field(converter=str)
@@ -1196,7 +1208,8 @@ class PortConfig(FromDictMixin):
     max_operations: int = field(default=1, converter=int)
     workday_start: int = field(default=-1, converter=int, validator=valid_hour)
     workday_end: int = field(default=-1, converter=int, validator=valid_hour)
-    site_distance: int | float = field(default=0, converter=float)
+    site_distance: float = field(default=0, converter=float)
+    annual_fee: float = field(default=0, converter=float, validator=greater_than_zero)
 
     def _set_environment_shift(self, start: int, end: int) -> None:
         """Used to set the ``workday_start`` and ``workday_end`` to the environment's values.
@@ -1229,7 +1242,7 @@ class FixedCosts(FromDictMixin):
         and equipment to coordinate high voltage equipment, switching, port activities,
         and marine activities.
 
-        This should only be used when not breaking down the cost into the following
+        ... note:: This should only be used when not breaking down the cost into the following
         categories: ``project_management_administration``,
         ``operation_management_administration``, ``marine_management``, and/or
         ``weather_forecasting``
@@ -1256,7 +1269,7 @@ class FixedCosts(FromDictMixin):
         Insurance policies during operational period including All Risk Property,
         Buisness Interuption, Third Party Liability, and Brokers Fee, and Storm Coverage.
 
-        This should only be used when not breaking down the cost into the following
+        ... note:: This should only be used when not breaking down the cost into the following
         categories: ``brokers_fee``, ``operations_all_risk``, ``business_interruption``,
         ``third_party_liability``, and/or ``storm_coverage``
     brokers_fee : float
@@ -1279,7 +1292,7 @@ class FixedCosts(FromDictMixin):
         Transmission Systems Operators or Transmission Asseet Owners for rights to
         transport generated power.
 
-        This should only be used when not breaking down the cost into the following
+        ... note:: This should only be used when not breaking down the cost into the following
         categories: ``submerge_land_lease_costs`` and/or ``transmission_charges_rights``
 
     submerge_land_lease_costs : float
