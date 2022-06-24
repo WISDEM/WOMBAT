@@ -865,6 +865,12 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
          - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
     speed : float
         Maximum transit speed, km/hr.
+    tow_speed : float
+        The maximum transit speed when towing, km/hr.
+
+        ... note:: This is only required for when the servicing equipment is tugboat
+        enabled for a tow-to-port scenario (capability = "TOW")
+
     speed_reduction_factor : flaot
         Reduction factor for traveling in inclement weather, default 0. When 0, travel
         is stopped when either `max_windspeed_transport` or `max_waveheight_transport`
@@ -932,6 +938,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
     max_windspeed_repair: float = field(converter=float)
     strategy: str | None = field(converter=clean_string_input)
     strategy_threshold: int | float = field(converter=float)
+    tow_speed: float = field(default=1, converter=float, validator=greater_than_zero)
     max_waveheight_transport: float = field(default=1000)
     max_waveheight_repair: float = field(default=1000)
     mobilization_cost: float = field(default=0, converter=float)

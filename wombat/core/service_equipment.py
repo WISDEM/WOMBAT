@@ -678,7 +678,7 @@ class ServiceEquipment(RepairsMixin):
         return travel_time
 
     def _calculate_uninterrupted_travel_time(
-        self, distance: float
+        self, distance: float, tow: bool = False
     ) -> tuple[float, float]:
         """Calculates the delay to the start of traveling and the amount of time it
         will take to travel between two locations.
@@ -687,6 +687,9 @@ class ServiceEquipment(RepairsMixin):
         ----------
         distance : float
             The distance to be traveled.
+        tow : bool
+            Indicates if this travel is for towing (True), or not (False), by default
+            False.
 
         Returns
         -------
@@ -699,7 +702,8 @@ class ServiceEquipment(RepairsMixin):
         if distance == 0:
             return 0, 0
 
-        hours_required = distance / self.settings.speed
+        speed = self.settings.tow_speed if tow else self.settings.speed  # type: ignore
+        hours_required = distance / speed
 
         n = 1
         max_extra_days = 4
@@ -714,7 +718,9 @@ class ServiceEquipment(RepairsMixin):
         # Return -1 for delay if no weather window was found
         return -1, hours_required
 
-    def _calculate_interrupted_travel_time(self, distance: float) -> float:
+    def _calculate_interrupted_travel_time(
+        self, distance: float, tow: bool = False
+    ) -> float:
         """Calculates the travel time with speed reductions for inclement weather, but
         without shift interruptions.
 
@@ -722,13 +728,16 @@ class ServiceEquipment(RepairsMixin):
         ----------
         distance : flaot
             The total distance to be traveled, in km.
+        tow : bool
+            Indicates if this travel is for towing (True), or not (False), by default
+            False.
 
         Returns
         -------
         float
             _description_
         """
-        speed = self.settings.speed
+        speed = self.settings.tow_speed if tow else self.settings.speed  # type: ignore
         reduction_factor = 1 - self.settings.speed_reduction_factor
         reduction_factor = 0.01 if reduction_factor == 0 else reduction_factor
 
@@ -892,7 +901,7 @@ class ServiceEquipment(RepairsMixin):
         # Get the distance that needs to be traveled, then calculate the delay and time
         # traveling, and log each of them
         distance = self.settings.port_distance
-        delay, hours = self._calculate_uninterrupted_travel_time(distance)
+        delay, hours = self._calculate_uninterrupted_travel_time(distance, tow=True)
         if delay == -1:
             if start == "site":
                 kw = deepcopy(kwargs)
