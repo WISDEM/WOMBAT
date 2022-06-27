@@ -905,6 +905,10 @@ class Metrics:
 
         # Filter out only the towing events
         towing = self.events.loc[self.events.action == "towing"]
+        if towing.shape[0] == 0:
+            # If this is accessed in an in-situ only scenario, or no tows were activated
+            # then return back 0
+            return pd.DataFrame([[0]], columns=["total_tows"])
         towing.loc[:, "direction"] = "to_site"
         ix_to_port = towing.reason.str.contains("triggered tow-to-port")
         towing.loc[ix_to_port, "direction"] = "to_port"
