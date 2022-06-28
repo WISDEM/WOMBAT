@@ -103,8 +103,8 @@ def test_format_events_log_message():
         "2021-12-20 09:45:00 :: 9.750000 :: unit_tests :: unit testing"
         " :: utilities_tests :: utilities testing :: 1.000000 :: 1.000000 :: pytest"
         " :: test for errors :: software quality"
-        " :: testing the software for correctness :: 1.000000 :: M00004 :: 0.000000"
-        " :: 0.000000 :: 140.000000 :: 0.000000 :: 140.000000 :: 140.000000"
+        " :: testing the software for correctness :: 1.000000 :: M00004 :: na"
+        " :: 0.000000 :: 0.000000 :: 140.000000 :: 0.000000 :: 140.000000 :: 140.000000"
     )
     assert message == correct_message
 

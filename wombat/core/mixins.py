@@ -102,6 +102,11 @@ class RepairsMixin:
             "additional", "work shift has ended; waiting for next shift to start"
         )
         kwargs["action"] = kwargs.get("action", "delay")
+
+        # Assume at port, unless otherwise indicated
+        if "location" not in kwargs:
+            kwargs["location"] = "port"
+
         delay = self.env.hours_to_next_shift(workday_start=self.settings.workday_start)
         salary_cost = self.calculate_salary_cost(delay)
         hourly_cost = self.calculate_hourly_cost(0)
@@ -143,6 +148,7 @@ class RepairsMixin:
             hourly_labor_cost=hourly_cost,
             equipment_cost=equipment_cost,
             additional=action,
+            location="port" if isinstance(self.settings, PortConfig) else "site",
             **kwargs,
         )
         yield self.env.timeout(hours)

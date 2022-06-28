@@ -1,5 +1,6 @@
-name: humboldt
+name: sample port
 tugboats: [tugboat1.yaml, tugboat2.yaml, tugboat3.yaml]
+annual_fee: 2e6
 max_operations: 1  # max number of turbines at the port at one time
 workday_start: 7
 workday_end: 19

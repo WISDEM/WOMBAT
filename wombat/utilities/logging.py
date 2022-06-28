@@ -55,6 +55,7 @@ def format_events_log_message(
     additional: str,
     duration: float,
     request_id: str,
+    location: str = "na",
     materials_cost: int | float = 0,
     hourly_labor_cost: int | float = 0,
     salary_labor_cost: int | float = 0,
@@ -93,6 +94,9 @@ def format_events_log_message(
         Length of time the action lasted.
     request_id : str
         The ``RepairRequest.request_id`` or "na".
+    location : str
+        The location of where the event ocurred: should be one of site, port,
+        enroute, or system, by default "na".
     materials_cost : int | float, optional
         Total cost of materials for action, in USD, by default 0.
     hourly_labor_cost : int | float, optional
@@ -125,6 +129,7 @@ def format_events_log_message(
             f"{additional}",
             f"{duration:f}",
             f"{request_id}",
+            f"{location}",
             f"{materials_cost:f}",
             f"{hourly_labor_cost:f}",
             f"{salary_labor_cost:f}",

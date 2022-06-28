@@ -856,6 +856,340 @@ class Metrics:
             return pd.DataFrame(operating_df / total_df).T
         return operating_df / total_df
 
+    def vessel_crew_hours_at_sea(
+        self,
+        frequency: str,
+        by_equipment: bool = False,
+        vessel_crew_assumption: dict[str, float] = {},
+    ) -> pd.DataFrame:
+        """Calculates the total number of crew hours at sea that occurred during a
+        simulation at a project, annual, or monthly level that can be broken out by
+        servicing equipment. This includes time mobilizing, delayed at sea, servicing,
+        towing, and traveling.
+
+        ... note:: This metric is intended to be used for offshore wind simulations.
+
+        Parameters
+        ----------
+        frequency : str
+            One of "project", "annual", "monthly", or "month-year".
+        by_equipment : bool, optional
+            Indicates whether the values are with resepect to each tugboat (True) or not
+            (False), by default False.
+        vessel_crew_assumption : dict[str, float], optional
+            Dictionary of vessel names (``ServiceEquipment.settings.name``) and number
+            of crew members aboard to trannsform the results from vessel hours at sea
+            to crew hours at sea.
+
+        Returns
+        -------
+        pd.DataFrame
+            Returns a pandas ``DataFrame`` with columns:
+
+             - year (if appropriate for frequency)
+             - month (if appropriate for frequency)
+             - Total Crew Hours at Sea
+             - {ServiceEquipment.settings.name} (if broken out)
+
+        Raises
+        ------
+        ValueError
+            If ``frequency`` is not one of "project", "annual", "monthly", or "month-year".
+        ValueError
+            If ``by_equipment`` is not one of ``True`` or ``False``.
+        ValueError
+            If ``vessel_crew_assumption`` is not a dictionary.
+        """
+        frequency = _check_frequency(frequency, which="all")
+
+        if not isinstance(by_equipment, bool):
+            raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
+
+        if not isinstance(vessel_crew_assumption, dict):
+            raise ValueError(
+                "`vessel_crew_assumption` must be a dictionary of vessel name (keys) and number of crew (values)"
+            )
+
+        # Filter by the at sea indicators and required columns
+        at_sea = self.events
+        at_sea = at_sea.loc[
+            at_sea.location.isin(("enroute", "site", "system"))
+            & at_sea.agent.isin(self.service_equipment_names),
+            ["agent", "year", "month", "action", "reason", "additional", "duration"],
+        ].reset_index(drop=True)
+
+        # Create a shell for the final results
+        total_hours = self.events.groupby(["year", "month"]).count()[["env_time"]]
+        total_hours = total_hours.reset_index().rename(columns={"env_time": "N"})
+        total_hours.N = 0
+
+        # Apply the vessel crew assumptions
+        vessels = at_sea.agent.unique()
+        if vessel_crew_assumption != {}:
+            for name, n_crew in vessel_crew_assumption.items():
+                if name not in vessels:
+                    print(f"{name} not a valid `agent`")
+                    continue
+                ix_vessel = at_sea.agent == name
+                at_sea.loc[ix_vessel, "duration"] *= n_crew
+
+        group_cols = ["agent"]
+        columns = ["Total Crew Hours at Sea"] + vessels.tolist()
+        if not by_equipment:
+            group_cols.pop(0)
+            columns = ["Total Crew Hours at Sea"]
+            at_sea = at_sea.groupby(["year", "month"]).sum()[["duration"]].reset_index()
+
+        if frequency == "project":
+            total_hours = pd.DataFrame([[0]], columns=["duration"])
+            if by_equipment:
+                total_hours = (
+                    at_sea.groupby(["agent"])
+                    .sum()[["duration"]]
+                    .T.reset_index(drop=True)
+                )
+                total_hours.loc[:, "Total Crew Hours at Sea"] = total_hours.sum().sum()
+                return total_hours[columns]
+            else:
+                return pd.DataFrame(at_sea.sum()[["duration"]]).T.rename(
+                    columns={"duration": "Total Crew Hours at Sea"}
+                )
+
+        elif frequency == "annual":
+            additional_cols = ["year"]
+            total_hours = total_hours.groupby("year")[["N"]].sum()
+        elif frequency == "monthly":
+            additional_cols = ["month"]
+            total_hours = total_hours.groupby("month")[["N"]].sum()
+        elif frequency == "month-year":
+            additional_cols = ["year", "month"]
+            total_hours = total_hours.groupby(["year", "month"])[["N"]].sum()
+
+        columns = additional_cols + columns
+        group_cols.extend(additional_cols)
+        at_sea = at_sea.groupby(group_cols).sum()[["duration"]]
+        if by_equipment:
+            total = []
+            for v in vessels:
+                total.append(at_sea.loc[v].rename(columns={"duration": v}))
+            total_hours = total_hours.join(
+                pd.concat(total, axis=1), how="outer"
+            ).fillna(0)
+            total_hours.N = total_hours.sum(axis=1)
+            total_hours = total_hours.rename(
+                columns={"N": "Total Crew Hours at Sea"}
+            ).reset_index()[columns]
+            return total_hours
+
+        return at_sea.reset_index().rename(
+            columns={"duration": "Total Crew Hours at Sea"}
+        )
+
+    def number_of_tows(
+        self, frequency: str, by_tug: bool = False, by_direction: bool = False
+    ) -> float | pd.DataFrame:
+        """Calculates the total number of tows that occurred during a simulation at a
+        project, annual, or monthly level that can be broken out by tugboat.
+
+        Parameters
+        ----------
+        frequency : str
+            One of "project", "annual", "monthly", or "month-year".
+        by_tug : bool, optional
+            Indicates whether the values are with resepect to each tugboat (True) or not
+            (False), by default False.
+        by_direction : bool, optional
+            Indicates whether the values are with respect to the direction a turbine is
+            towed (True) or not (False), by default False.
+
+        Returns
+        -------
+        float | pd.DataFrame
+            Returns either a float for whole project-level costs or a pandas ``DataFrame``
+            with columns:
+
+             - year (if appropriate for frequency)
+             - month (if appropriate for frequency)
+             - total_tows
+             - total_tows_to_port (if broken out)
+             - total_tows_to_site (if broken out)
+             - {ServiceEquipment.settings.name}_total_tows (if broken out)
+             - {ServiceEquipment.settings.name}_to_port (if broken out)
+             - {ServiceEquipment.settings.name}_to_site (if broken out)
+
+        Raises
+        ------
+        ValueError
+            If ``frequency`` is not one of "project", "annual", "monthly", or "month-year".
+        ValueError
+            If ``by_tug`` is not one of ``True`` or ``False``.
+        ValueError
+            If ``by_direction`` is not one of ``True`` or ``False``.
+        """
+        frequency = _check_frequency(frequency, which="all")
+
+        if not isinstance(by_tug, bool):
+            raise ValueError("``by_tug`` must be one of ``True`` or ``False``")
+
+        if not isinstance(by_direction, bool):
+            raise ValueError("``by_direction`` must be one of ``True`` or ``False``")
+
+        # Filter out only the towing events
+        towing = self.events.loc[self.events.action == "towing"]
+        if towing.shape[0] == 0:
+            # If this is accessed in an in-situ only scenario, or no tows were activated
+            # then return back 0
+            return pd.DataFrame([[0]], columns=["total_tows"])
+        towing.loc[:, "direction"] = "to_site"
+        ix_to_port = towing.reason.str.contains("triggered tow-to-port")
+        towing.loc[ix_to_port, "direction"] = "to_port"
+
+        # Get the unique directions and tugboat names
+        direction_suffix = ("to_port", "to_site")
+        tugboats = towing.agent.unique().tolist()
+
+        # Create the final column names
+        columns = ["total_tows"]
+        if by_direction:
+            columns.extend([f"{c}_{s}" for c in columns for s in direction_suffix])
+
+        if by_tug:
+            tug_columns = [f"{t}_total_tows" for t in tugboats]
+            if by_direction:
+                _columns = [f"{t}_{s}" for t in tugboats for s in direction_suffix]
+                tug_columns.extend(_columns)
+                tug_columns.sort()
+            columns.extend(tug_columns)
+
+        # Count the total number of tows by each possibly category
+        n_tows = towing.groupby(["agent", "year", "month", "direction"]).count()
+        n_tows = n_tows.rename(columns={"env_time": "N"})["N"].reset_index()
+
+        # Create a shell for the total tows
+        total_tows = self.events.groupby(["year", "month"]).count()["env_time"]
+        total_tows = total_tows.reset_index().rename(columns={"env_time": "N"})
+        total_tows.N = 0
+
+        # Create the correct time frequency for the number of tows and shell total
+        group_cols = ["agent", "direction"]
+        if frequency == "project":
+            n_tows = n_tows.groupby(group_cols).sum()[["N"]]
+
+            # If no further work is required, then return the sum as a 1x1 data frame
+            if not by_tug and not by_direction:
+                return pd.DataFrame(
+                    [n_tows.reset_index().N.sum()], columns=["total_tows"]
+                )
+
+            total_tows = pd.DataFrame([[0]], columns=["N"])
+        elif frequency == "annual":
+            columns = ["year"] + columns
+            group_cols.append("year")
+            n_tows = n_tows.groupby(group_cols).sum()[["N"]]
+            total_tows = total_tows.groupby(["year"]).sum()[["N"]].reset_index()
+        elif frequency == "monthly":
+            group_cols.append("month")
+            columns = ["month"] + columns
+            n_tows = n_tows.groupby(group_cols).sum()[["N"]]
+            total_tows = total_tows.groupby(["month"]).sum()[["N"]].reset_index()
+        elif frequency == "month-year":
+            # Already have month-year by default, so skip the n_tows refinement
+            group_cols.extend(["year", "month"])
+            columns = ["year", "month"] + columns
+            n_tows = n_tows.set_index(group_cols, drop=True)
+
+        # Create a list of the columns needed for creating the broken down totals
+        if frequency == "project":
+            total_cols = ["N"]
+        else:
+            total_cols = total_tows.drop(columns=["N"]).columns.tolist()
+
+        # Sum the number of tows by tugboat, if needed
+        if by_tug:
+            tug_sums = []
+            for tug in tugboats:
+                tug_sum = n_tows.loc[tug]
+                tug_sums.append(tug_sum.rename(columns={"N": tug}))
+            tug_sums_by_direction = pd.concat(tug_sums, axis=1).fillna(0)
+
+            if frequency == "project":
+                tug_sums = pd.DataFrame(tug_sums_by_direction.sum()).T
+            else:
+                tug_sums = tug_sums_by_direction.reset_index().groupby(total_cols).sum()
+            assert isinstance(tug_sums, pd.DataFrame)  # mypy checking
+            tug_sums = tug_sums.rename(
+                columns=dict((t, f"{t}_total_tows") for t in tug_sums.columns)
+            )
+            assert isinstance(tug_sums, pd.DataFrame)  # mypy checking
+            total = pd.DataFrame(
+                tug_sums.sum(axis=1), columns=["total_tows"]
+            ).reset_index()
+        else:
+            if not by_direction:
+                # Sum the totals, then merge the results with the shell data frame,
+                # and cleanup the columns
+                total = n_tows.reset_index().groupby(total_cols).sum().reset_index()
+                total_tows = total_tows.merge(total, on=total_cols, how="outer")
+                total_tows = total_tows.fillna(0).rename(columns={"N_y": "total_tows"})
+                return total_tows[columns]
+            else:
+                total = (
+                    n_tows.groupby(total_cols)
+                    .sum()
+                    .reset_index()
+                    .rename(columns={"N": "total_tows"})
+                )
+
+        # Create the full total tows data
+        if frequency == "project":
+            if "index" in total.columns:
+                total_tows = total.drop(columns=["index"])
+        else:
+            total_tows = (
+                total_tows.merge(total, how="outer").drop(columns=["N"]).fillna(0)
+            )
+            total_tows = total_tows.set_index(total_cols)
+
+        # Get the sums by each direction towed, if needed
+        if by_direction:
+            if frequency == "project":
+                direction_sums = n_tows.reset_index().groupby("direction").sum()
+                for s in direction_suffix:
+                    total_tows.loc[:, f"total_tows_{s}"] = direction_sums.loc[s, "N"]
+            else:
+                direction_sums = (
+                    n_tows.reset_index().groupby(["direction"] + total_cols).sum()
+                )
+                for s in direction_suffix:
+                    total_tows = total_tows.join(
+                        direction_sums.loc[s].rename(columns={"N": f"total_tows_{s}"})
+                    ).fillna(0)
+
+            # Add in the tugboat breakdown as needed
+            if by_tug:
+                total_tows = total_tows.join(tug_sums, how="outer").fillna(0)
+                for s in direction_suffix:
+                    if frequency == "project":
+                        _total = pd.DataFrame(
+                            tug_sums_by_direction.loc[s]
+                        ).T.reset_index(drop=True)
+                    else:
+                        _total = tug_sums_by_direction.loc[s]
+                    total_tows = total_tows.join(
+                        _total.rename(columns=dict((t, f"{t}_{s}") for t in tugboats)),
+                        how="outer",
+                    ).fillna(0)
+                return total_tows.reset_index()[columns]
+            total_tows.N = total_tows.sum(axis=1)
+            return total_tows.rename(columns={"N": "total_tows"}).reset_index()[columns]
+
+        if by_tug:
+            return (
+                total_tows.join(tug_sums, how="outer").fillna(0).reset_index()[columns]
+            )
+
+        return total_tows.reset_index()[columns]
+
     def labor_costs(
         self, frequency: str, by_type: bool = False
     ) -> float | pd.DataFrame:
@@ -892,7 +1226,7 @@ class Metrics:
         frequency = _check_frequency(frequency, which="all")
 
         if not isinstance(by_type, bool):
-            raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
+            raise ValueError("``by_type`` must be one of ``True`` or ``False``")
 
         labor_cols = [self._hourly_cost, self._salary_cost, self._labor_cost]
         if frequency == "project":
