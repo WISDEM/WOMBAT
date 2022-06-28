@@ -455,7 +455,7 @@ class WombatEnvironment(simpy.Environment):
         equipment_cost : Union[int, float], optional
             Total cost of equipment for action, in USD, by default 0.
         """
-        valid_locations = ("site", "system", "port", "enroute")
+        valid_locations = ("site", "system", "port", "enroute", "na")
         if location not in valid_locations:
             raise ValueError(
                 f"Event logging `location` must be one of: {valid_locations}"
