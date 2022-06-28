@@ -433,6 +433,7 @@ class ServiceEquipment(RepairsMixin):
             reason="work is complete",
             additional=additional,
             duration=hours_to_next_shift,
+            location="enroute",
         )
 
         yield self.env.timeout(hours_to_next_shift)
@@ -460,6 +461,7 @@ class ServiceEquipment(RepairsMixin):
             action="mobilization",
             reason=f"{self.settings.name} is being mobilized",
             additional="mobilization",
+            location="enroute",
         )
 
         self.enroute = True
@@ -474,6 +476,7 @@ class ServiceEquipment(RepairsMixin):
             additional="mobilization",
             duration=mobilization_hours,
             equipment_cost=self.settings.mobilization_cost,
+            location="site",
         )
 
     def mobilize(self) -> Generator[Timeout, None, None]:
@@ -492,6 +495,7 @@ class ServiceEquipment(RepairsMixin):
             action="mobilization",
             reason=f"{self.settings.name} is being mobilized",
             additional="mobilization",
+            location="enroute",
         )
 
         self.enroute = True
@@ -507,6 +511,7 @@ class ServiceEquipment(RepairsMixin):
             additional="mobilization",
             duration=mobilization_hours,
             equipment_cost=self.settings.mobilization_cost,
+            location="site",
         )
 
     def find_uninterrupted_weather_window(
@@ -863,6 +868,7 @@ class ServiceEquipment(RepairsMixin):
             salary_labor_cost=salary_cost,
             hourly_labor_cost=hourly_cost,
             equipment_cost=equipment_cost,
+            location="enroute",
             **kwargs,
         )
         yield self.env.timeout(hours)
@@ -871,6 +877,7 @@ class ServiceEquipment(RepairsMixin):
         self.env.log_action(
             action="complete travel",
             additional=f"arrived at {set_current if set_current is not None else end}",
+            location=end,
             **kwargs,
         )
 
@@ -905,9 +912,7 @@ class ServiceEquipment(RepairsMixin):
         if delay == -1:
             if start == "site":
                 kw = deepcopy(kwargs)
-                kw.update(
-                    {"reason": "Insufficient weather windows, need to return to port"}
-                )
+                kw.update({"reason": "Insufficient weather window, returne to port"})
                 yield self.env.process(self.travel("site", "port", **kw))
                 yield self.env.timeout(HOURS_IN_DAY * 4)
                 yield self.env.process(
@@ -916,7 +921,7 @@ class ServiceEquipment(RepairsMixin):
             elif start == "port":
                 kw = deepcopy(kwargs)
                 kw.update(
-                    {"reason": "Insufficient weather windows, will try again later"}
+                    {"reason": "Insufficient weather window, will try again later"}
                 )
                 yield self.env.timeout(HOURS_IN_DAY * 4)
                 yield self.env.process(
@@ -924,7 +929,7 @@ class ServiceEquipment(RepairsMixin):
                 )
 
         if delay > 0:
-            yield self.env.process(self.weather_delay(delay, **kwargs))
+            yield self.env.process(self.weather_delay(delay, location=end, **kwargs))
 
         salary_labor_cost = self.calculate_salary_cost(hours)
         hourly_labor_cost = self.calculate_hourly_cost(hours)
@@ -935,18 +940,19 @@ class ServiceEquipment(RepairsMixin):
             salary_labor_cost=salary_labor_cost,
             hourly_labor_cost=hourly_labor_cost,
             equipment_cost=equipment_cost,
+            location="enroute",
             **kwargs,
         )
 
         yield self.env.timeout(hours)
         self._set_location(end, set_current)
         self.env.log_action(
-            duration=hours,
             action="complete towing",
             salary_labor_cost=salary_labor_cost,
             hourly_labor_cost=hourly_labor_cost,
             equipment_cost=equipment_cost,
             additional="complete",
+            location=end,
             **kwargs,
         )
 
@@ -1011,7 +1017,9 @@ class ServiceEquipment(RepairsMixin):
             travel_time -= self.env.now  # will be negative value, but is flipped
             delay -= abs(travel_time)  # decrement the delay by the travel time
             if delay > 0:
-                yield self.env.process(self.weather_delay(delay, **shared_logging))
+                yield self.env.process(
+                    self.weather_delay(delay, location="port", **shared_logging)
+                )
             yield self.env.process(
                 self.wait_until_next_shift(
                     **shared_logging,
@@ -1028,7 +1036,11 @@ class ServiceEquipment(RepairsMixin):
             )
             return
 
-        yield self.env.process(self.weather_delay(delay, **shared_logging))
+        yield self.env.process(
+            self.weather_delay(
+                delay, location="site" if to_system else "system", **shared_logging
+            )
+        )
 
         if to_system:
             additional = f"transferring crew from {self.settings.name} to {system.id}"
@@ -1041,6 +1053,7 @@ class ServiceEquipment(RepairsMixin):
             salary_labor_cost=salary_cost,
             hourly_labor_cost=hourly_cost,
             equipment_cost=equipment_cost,
+            location="system",
             **shared_logging,
         )
         self.transferring_crew = True
@@ -1052,7 +1065,10 @@ class ServiceEquipment(RepairsMixin):
             self.current_system = None
             self.at_system = False
         self.env.log_action(
-            action="complete transfer", additional="complete", **shared_logging
+            action="complete transfer",
+            additional="complete",
+            location="system" if to_system else "site",
+            **shared_logging,
         )
 
     def mooring_connection(
@@ -1111,14 +1127,19 @@ class ServiceEquipment(RepairsMixin):
         which_text = "unmooring" if which == "unmoor" else "mooring reconnection"
 
         delay, shift_delay = self.find_uninterrupted_weather_window(hours_to_process)
-        # If there is a shift delay, then travel to port, wait, and travel back, and finally try again.
+        # If there is a shift delay, then wait try again.
         if shift_delay:
             if delay > 0:
-                yield self.env.process(self.weather_delay(delay, **shared_logging))
+                yield self.env.process(
+                    self.weather_delay(delay, location="site", **shared_logging)
+                )
             yield self.env.process(
                 self.wait_until_next_shift(
                     **shared_logging,
-                    **{"additional": f"weather unsuitable for {which_text}"},
+                    **{
+                        "location": "site",
+                        "additional": f"weather unsuitable for {which_text}",
+                    },
                 )
             )
             yield self.env.process(
@@ -1127,7 +1148,9 @@ class ServiceEquipment(RepairsMixin):
             return
 
         # If no shift delay, then process any weather delays before dis/connection
-        yield self.env.process(self.weather_delay(delay, **shared_logging))
+        yield self.env.process(
+            self.weather_delay(delay, location="site", **shared_logging)
+        )
 
         if which == "unmoor":
             additional = f"Unmooring {system.id} to tow to port"
@@ -1140,6 +1163,7 @@ class ServiceEquipment(RepairsMixin):
             salary_labor_cost=salary_cost,
             hourly_labor_cost=hourly_cost,
             equipment_cost=equipment_cost,
+            location="site",
             **shared_logging,  # type: ignore
         )
 
@@ -1333,7 +1357,9 @@ class ServiceEquipment(RepairsMixin):
                     current, current.hour + delay
                 )
                 yield self.env.process(
-                    self.weather_delay(hours_to_process, **shared_logging)
+                    self.weather_delay(
+                        hours_to_process, location="system", **shared_logging
+                    )
                 )
                 hours_available -= hours_to_process
 

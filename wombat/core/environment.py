@@ -408,6 +408,7 @@ class WombatEnvironment(simpy.Environment):
         part_ol: float | int = 0,
         duration: float = 0,
         request_id: str = "na",
+        location: str = "na",
         materials_cost: Union[int, float] = 0,
         hourly_labor_cost: Union[int, float] = 0,
         salary_labor_cost: Union[int, float] = 0,
@@ -440,6 +441,9 @@ class WombatEnvironment(simpy.Environment):
             an empty string for n/a, by default 0.
         request_id : str
             The ``RepairManager`` assigned request_id found in ``RepairRequest.request_id``, by default "na".
+        location : str
+            The location of where the event ocurred: should be one of site, port,
+            enroute, or system, by default "na".
         duration : float
             Length of time the action lasted, by default 0.
         materials_cost : Union[int, float], optional
@@ -451,6 +455,11 @@ class WombatEnvironment(simpy.Environment):
         equipment_cost : Union[int, float], optional
             Total cost of equipment for action, in USD, by default 0.
         """
+        valid_locations = ("site", "system", "port", "enroute")
+        if location not in valid_locations:
+            raise ValueError(
+                f"Event logging `location` must be one of: {valid_locations}"
+            )
         self._events_logger.info(
             format_events_log_message(
                 self.simulation_time,
@@ -467,6 +476,7 @@ class WombatEnvironment(simpy.Environment):
                 additional,
                 duration,
                 request_id,
+                location,
                 materials_cost,
                 hourly_labor_cost,
                 salary_labor_cost,
@@ -501,6 +511,7 @@ class WombatEnvironment(simpy.Environment):
             "additional",
             "duration",
             "request_id",
+            "location",
             "materials_cost",
             "hourly_labor_cost",
             "salary_labor_cost",
