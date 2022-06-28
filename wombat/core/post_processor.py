@@ -856,6 +856,135 @@ class Metrics:
             return pd.DataFrame(operating_df / total_df).T
         return operating_df / total_df
 
+    def vessel_crew_hours_at_sea(
+        self,
+        frequency: str,
+        by_equipment: bool = False,
+        vessel_crew_assumption: dict[str, float] = {},
+    ) -> pd.DataFrame:
+        """Calculates the total number of crew hours at sea that occurred during a
+        simulation at a project, annual, or monthly level that can be broken out by
+        servicing equipment. This includes time mobilizing, delayed at sea, servicing,
+        towing, and traveling.
+
+        ... note:: This metric is intended to be used for offshore wind simulations.
+
+        Parameters
+        ----------
+        frequency : str
+            One of "project", "annual", "monthly", or "month-year".
+        by_equipment : bool, optional
+            Indicates whether the values are with resepect to each tugboat (True) or not
+            (False), by default False.
+        vessel_crew_assumption : dict[str, float], optional
+            Dictionary of vessel names (``ServiceEquipment.settings.name``) and number
+            of crew members aboard to trannsform the results from vessel hours at sea
+            to crew hours at sea.
+
+        Returns
+        -------
+        pd.DataFrame
+            Returns a pandas ``DataFrame`` with columns:
+
+             - year (if appropriate for frequency)
+             - month (if appropriate for frequency)
+             - Total Crew Hours at Sea
+             - {ServiceEquipment.settings.name} (if broken out)
+
+        Raises
+        ------
+        ValueError
+            If ``frequency`` is not one of "project", "annual", "monthly", or "month-year".
+        ValueError
+            If ``by_equipment`` is not one of ``True`` or ``False``.
+        ValueError
+            If ``vessel_crew_assumption`` is not a dictionary.
+        """
+        frequency = _check_frequency(frequency, which="all")
+
+        if not isinstance(by_equipment, bool):
+            raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
+
+        if not isinstance(vessel_crew_assumption, dict):
+            raise ValueError(
+                "`vessel_crew_assumption` must be a dictionary of vessel name (keys) and number of crew (values)"
+            )
+
+        # Filter by the at sea indicators and required columns
+        at_sea = self.events
+        at_sea = at_sea.loc[
+            at_sea.location.isin(("enroute", "site", "system"))
+            & at_sea.agent.isin(self.service_equipment_names),
+            ["agent", "year", "month", "action", "reason", "additional", "duration"],
+        ].reset_index(drop=True)
+
+        # Create a shell for the final results
+        total_hours = self.events.groupby(["year", "month"]).count()[["env_time"]]
+        total_hours = total_hours.reset_index().rename(columns={"env_time": "N"})
+        total_hours.N = 0
+
+        # Apply the vessel crew assumptions
+        vessels = at_sea.agent.unique()
+        if vessel_crew_assumption != {}:
+            for name, n_crew in vessel_crew_assumption.items():
+                if name not in vessels:
+                    print(f"{name} not a valid `agent`")
+                    continue
+                ix_vessel = at_sea.agent == name
+                at_sea.loc[ix_vessel, "duration"] *= n_crew
+
+        group_cols = ["agent"]
+        columns = ["Total Crew Hours at Sea"] + vessels.tolist()
+        if not by_equipment:
+            group_cols.pop(0)
+            columns = ["Total Crew Hours at Sea"]
+            at_sea = at_sea.groupby(["year", "month"]).sum()[["duration"]].reset_index()
+
+        if frequency == "project":
+            total_hours = pd.DataFrame([[0]], columns=["duration"])
+            if by_equipment:
+                total_hours = (
+                    at_sea.groupby(["agent"])
+                    .sum()[["duration"]]
+                    .T.reset_index(drop=True)
+                )
+                total_hours.loc[:, "Total Crew Hours at Sea"] = total_hours.sum().sum()
+                return total_hours[columns]
+            else:
+                return pd.DataFrame(at_sea.sum()[["duration"]]).T.rename(
+                    columns={"duration": "Total Crew Hours at Sea"}
+                )
+
+        elif frequency == "annual":
+            additional_cols = ["year"]
+            total_hours = total_hours.groupby("year")[["N"]].sum()
+        elif frequency == "monthly":
+            additional_cols = ["month"]
+            total_hours = total_hours.groupby("month")[["N"]].sum()
+        elif frequency == "month-year":
+            additional_cols = ["year", "month"]
+            total_hours = total_hours.groupby(["year", "month"])[["N"]].sum()
+
+        columns = additional_cols + columns
+        group_cols.extend(additional_cols)
+        at_sea = at_sea.groupby(group_cols).sum()[["duration"]]
+        if by_equipment:
+            total = []
+            for v in vessels:
+                total.append(at_sea.loc[v].rename(columns={"duration": v}))
+            total_hours = total_hours.join(
+                pd.concat(total, axis=1), how="outer"
+            ).fillna(0)
+            total_hours.N = total_hours.sum(axis=1)
+            total_hours = total_hours.rename(
+                columns={"N": "Total Crew Hours at Sea"}
+            ).reset_index()[columns]
+            return total_hours
+
+        return at_sea.reset_index().rename(
+            columns={"duration": "Total Crew Hours at Sea"}
+        )
+
     def number_of_tows(
         self, frequency: str, by_tug: bool = False, by_direction: bool = False
     ) -> float | pd.DataFrame:
@@ -894,6 +1023,8 @@ class Metrics:
             If ``frequency`` is not one of "project", "annual", "monthly", or "month-year".
         ValueError
             If ``by_tug`` is not one of ``True`` or ``False``.
+        ValueError
+            If ``by_direction`` is not one of ``True`` or ``False``.
         """
         frequency = _check_frequency(frequency, which="all")
 
