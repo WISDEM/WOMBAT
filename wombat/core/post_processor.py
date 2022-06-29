@@ -1573,7 +1573,7 @@ class Metrics:
         Parameters
         ----------
         frequency : str
-            One of "project" or "annual".
+            One of "project" or "annual", "monthly", ".
         resolution : st
             One of "low", "medium", or "high", where the values correspond to:
 
@@ -1597,7 +1597,7 @@ class Metrics:
         ValueError
             If ``resolution`` must be one of "low", "medium", or "high".
         """
-        frequency = _check_frequency(frequency, which="annual")
+        frequency = _check_frequency(frequency, which="all")
 
         resolution = resolution.lower().strip()
         if resolution not in ("low", "medium", "high"):
@@ -1605,28 +1605,41 @@ class Metrics:
                 '``resolution`` must be one of "low", "medium", or "high".'
             )
 
+        # Get the appropriate values and convert to the currency base
         keys = self.fixed_costs.resolution[resolution]
-        vals = [[getattr(self.fixed_costs, key) for key in keys]]
+        vals = (
+            np.array([[getattr(self.fixed_costs, key) for key in keys]])
+            * self.project_capacity
+            * 1000
+        )
         costs = pd.DataFrame(vals, columns=keys)
 
+        total = self.events.groupby(["year", "month"]).count()[["env_time"]]
+        total = total.rename(columns={"env_time": "N"})
+        total.N = 1.0
+
+        operation_hours = self.operations.groupby(["year", "month"]).count()[
+            ["env_time"]
+        ]
+        operation_hours = operation_hours.rename(columns={"env_time": "N"})
+
+        costs = pd.DataFrame(total.values * vals, index=total.index, columns=keys)
+        costs *= operation_hours.values.reshape(-1, 1) / 8760.0
+
         years = self.events.year.unique()
-        years.sort()
-        adjusted_inflation = deepcopy(self.inflation_rate)
-        vals = np.array(vals[0]) * self.project_capacity * 1000
-        for ix, year in enumerate(years):
-            hours = self.operations[self.operations.year == year].shape[0]
-            costs.loc[ix] = vals * min(1, hours / 8760.0)
-            if ix == 0:
-                continue
-            costs.loc[ix] *= adjusted_inflation
-            adjusted_inflation *= self.inflation_rate
+        adjusted_inflation = np.array(
+            [self.inflation_rate**i for i in range(len(years)) for j in range(12)]
+        )
+        adjusted_inflation = adjusted_inflation[: costs.shape[0]]
+        costs *= adjusted_inflation.reshape(-1, 1)
 
         if frequency == "project":
-            return pd.DataFrame(costs.sum(axis=0).values.reshape(1, -1), columns=keys)
+            costs = pd.DataFrame(costs.reset_index(drop=True).sum()).T
+        elif frequency == "annual":
+            costs = costs.reset_index().groupby("year").sum().drop(columns=["month"])
+        elif frequency == "monthly":
+            costs = costs.reset_index().groupby("month").sum().drop(columns=["year"])
 
-        costs["year"] = years
-        costs = costs.set_index("year")
-        costs = costs[keys]
         return costs
 
     def process_times(self) -> pd.DataFrame:
