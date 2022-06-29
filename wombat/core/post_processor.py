@@ -693,6 +693,8 @@ class Metrics:
     ) -> float | pd.DataFrame:
         """Calculates the equipment costs for the simulation at a project, annual, or
         monthly level with (or without) respect to equipment utilized in the simulation.
+        This excludes any port fees that might apply, which are included in:
+        ``port_fees``.
 
         Parameters
         ----------
@@ -730,10 +732,11 @@ class Metrics:
         elif frequency == "month-year":
             col_filter = ["year", "month"]
 
+        events = self.events.loc[self.events.action != "monthly lease fee"]
         if by_equipment:
             if frequency == "project":
                 costs = (
-                    self.events[self.events[self._equipment_cost] > 0]
+                    events[events[self._equipment_cost] > 0]
                     .groupby(["agent"])
                     .sum()[[self._equipment_cost]]
                     .fillna(0)
@@ -749,7 +752,7 @@ class Metrics:
 
             col_filter = ["agent"] + col_filter
             costs = (
-                self.events[self.events[self._equipment_cost] > 0]
+                events[events[self._equipment_cost] > 0]
                 .groupby(col_filter)
                 .sum()[[self._equipment_cost]]
                 .reset_index(level=0)
@@ -766,9 +769,9 @@ class Metrics:
             return costs.fillna(value=0)
 
         if frequency == "project":
-            return self.events[self._equipment_cost].sum()
+            return events[self._equipment_cost].sum()
 
-        costs = self.events.groupby(col_filter).sum()[[self._equipment_cost]]
+        costs = events.groupby(col_filter).sum()[[self._equipment_cost]]
         return costs.fillna(0)
 
     def service_equipment_utilization(self, frequency: str) -> pd.DataFrame:
@@ -1471,8 +1474,7 @@ class Metrics:
         if not isinstance(by_action, bool):
             raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
 
-        events = deepcopy(self.events)
-        events = events[~events.part_id.isna()]
+        events = self.events.loc[~self.events.part_id.isna()]
 
         # Need to simplify the cable identifiers to not include the connection information
         events["component"] = [el.split("::")[0] for el in events.part_id.values]
@@ -1565,6 +1567,47 @@ class Metrics:
                 costs.loc[costs.shape[0]] = row
         costs = costs.sort_values(group_filter)[group_filter + cost_cols]
         return costs.reset_index(drop=True).set_index(group_filter)
+
+    def port_fees(self, frequency: str) -> pd.DataFrame:
+        """Calculates the port fees for the simulation at a project, annual, or monthly
+        level. This excludes any equipment or labor costs, which are included in:
+        ``equipment_costs``.
+
+        Parameters
+        ----------
+        frequency : str
+            One of "project" or "annual", "monthly", ".
+
+        Returns
+        -------
+        pd.DataFrame
+            The broken out by time port fees with
+
+        Raises
+        ------
+        ValueError
+            If ``frequency`` not one of "project" or "annual".
+        """
+        frequency = _check_frequency(frequency, which="all")
+
+        column = "Port Fees"
+        port_fee = self.events.loc[
+            self.events.action == "monthly lease fee",
+            ["year", "month", "equipment_cost"],
+        ].rename(columns={"equipment_cost": column})
+
+        if port_fee.shape[0] == 0:
+            return pd.DataFrame([[0]], columns=[column])
+
+        if frequency == "project":
+            return pd.DataFrame([port_fee.sum(axis=0).loc[column]], columns=[column])
+        elif frequency == "annual":
+            port_fee = port_fee.groupby(["year"]).sum()[[column]]
+        elif frequency == "monthly":
+            port_fee = port_fee.groupby(["month"]).sum()[[column]]
+        elif frequency == "month-year":
+            port_fee = port_fee.groupby(["year", "month"]).sum()[[column]]
+        return port_fee.reset_index()
 
     def project_fixed_costs(self, frequency: str, resolution: str) -> pd.DataFrame:
         """Calculates the fixed costs of a project at the project and annual frequencies
