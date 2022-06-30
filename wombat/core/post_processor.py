@@ -769,7 +769,9 @@ class Metrics:
             return costs.fillna(value=0)
 
         if frequency == "project":
-            return events[self._equipment_cost].sum()
+            return pd.DataFrame(
+                [events[self._equipment_cost].sum()], columns=[self._equipment_cost]
+            )
 
         costs = events.groupby(col_filter).sum()[[self._equipment_cost]]
         return costs.fillna(0)
@@ -1238,7 +1240,7 @@ class Metrics:
                 columns=labor_cols,
             )
             if not by_type:
-                return costs[self._labor_cost].values[0]
+                return costs[[self._labor_cost]]
             return costs
 
         if frequency == "annual":
@@ -1477,20 +1479,24 @@ class Metrics:
         events = self.events.loc[~self.events.part_id.isna()]
 
         # Need to simplify the cable identifiers to not include the connection information
-        events["component"] = [el.split("::")[0] for el in events.part_id.values]
-
-        cost_cols = ["total_cost"]
-        if by_category:
-            cost_cols[0:0] = ["materials_cost", "total_labor_cost", "equipment_cost"]
+        events.loc[:, "component"] = [el.split("::")[0] for el in events.part_id.values]
 
         group_filter = []
         if frequency == "annual":
-            group_filter = ["year"]
+            group_filter.extend(["year"])
         elif frequency == "monthly":
-            group_filter = ["month"]
+            group_filter.extend(["month"])
         elif frequency == "month-year":
-            group_filter = ["year", "month"]
+            group_filter.extend(["year", "month"])
+
         group_filter.append("component")
+        cost_cols = ["total_cost"]
+        if by_category:
+            cost_cols[0:0] = [
+                self._materials_cost,
+                self._labor_cost,
+                self._equipment_cost,
+            ]
 
         if by_action:
             repair_map = {
@@ -1565,8 +1571,13 @@ class Metrics:
                 if costs.loc[row_filter].size > 0:
                     continue
                 costs.loc[costs.shape[0]] = row
-        costs = costs.sort_values(group_filter)[group_filter + cost_cols]
-        return costs.reset_index(drop=True).set_index(group_filter)
+        sort_cols = group_filter + cost_cols
+        if group_filter != []:
+            costs = costs.sort_values(group_filter)
+        if sort_cols != []:
+            costs = costs[sort_cols]
+        costs = costs.reset_index(drop=True)
+        return costs if group_filter == [] else costs.set_index(group_filter)
 
     def port_fees(self, frequency: str) -> pd.DataFrame:
         """Calculates the port fees for the simulation at a project, annual, or monthly
@@ -1590,7 +1601,7 @@ class Metrics:
         """
         frequency = _check_frequency(frequency, which="all")
 
-        column = "Port Fees"
+        column = "port_fees"
         port_fee = self.events.loc[
             self.events.action == "monthly lease fee",
             ["year", "month", "equipment_cost"],
@@ -1602,12 +1613,11 @@ class Metrics:
         if frequency == "project":
             return pd.DataFrame([port_fee.sum(axis=0).loc[column]], columns=[column])
         elif frequency == "annual":
-            port_fee = port_fee.groupby(["year"]).sum()[[column]]
+            return port_fee.groupby(["year"]).sum()[[column]]
         elif frequency == "monthly":
-            port_fee = port_fee.groupby(["month"]).sum()[[column]]
+            return port_fee.groupby(["month"]).sum()[[column]]
         elif frequency == "month-year":
-            port_fee = port_fee.groupby(["year", "month"]).sum()[[column]]
-        return port_fee.reset_index()
+            return port_fee.groupby(["year", "month"]).sum()[[column]]
 
     def project_fixed_costs(self, frequency: str, resolution: str) -> pd.DataFrame:
         """Calculates the fixed costs of a project at the project and annual frequencies
