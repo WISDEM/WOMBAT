@@ -1725,6 +1725,7 @@ class Metrics:
                 group_col = ["year", "month"]
             materials = materials.groupby(group_col)[["materials_cost"]].sum()
 
+        # Create a list of data frames for the OpEx components
         opex_items = [
             self.project_fixed_costs(frequency=frequency, resolution="low"),
             self.port_fees(frequency=frequency),
@@ -1733,6 +1734,7 @@ class Metrics:
             materials,
         ]
 
+        # Join the data frames and sum along the time axis and return
         column = "OpEx"
         opex = pd.concat(opex_items, axis=1)
         opex.loc[:, column] = opex.sum(axis=1)

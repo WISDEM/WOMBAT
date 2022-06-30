@@ -10,6 +10,10 @@
 - Adds a `location` flag to the events logging infrastructure and implements its usage across the simulation architecture
 - Creates the metric `Metrics.number_of_tows` to track the number of tows and provides breakdowns as needed
 - Creates the metric `Metrics.vessel_crew_hours_at_sea` to track the number of vessel or crew hours at sea
+- Creates the metric `Metrics.port_fees` to calculate any port fees associated with a project
+- Creates the metric `Metrics.opex` to calculate a project's OpEx
+- Modifies `Metrics.project_fixed_costs` to have more time resolutions to align with the OpEx calculation options
+- Fixes some results formatting inconsistencies in the `Metrics` class
 
 ## 0.4.1 (2022-March-8)
 - Adds code diagrams to demonstrate how the various components connect
