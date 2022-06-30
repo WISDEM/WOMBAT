@@ -574,13 +574,13 @@ print(f"Gross Capacity Factor: {gross_cf:2.1f}%")
 ```{code-cell} ipython3
 # Report back a subset of the metrics
 total = sim.metrics.time_based_availability(frequency="project", by="windfarm")
-print(f"  Project time-based availability: {total * 100:.1f}%")
+print(f"  Project time-based availability: {total.values[0][0] * 100:.1f}%")
 
 total = sim.metrics.production_based_availability(frequency="project", by="windfarm")
-print(f"Project energy-based availability: {total * 100:.1f}%")
+print(f"Project energy-based availability: {total.values[0][0] * 100:.1f}%")
 
 total = sim.metrics.equipment_costs(frequency="project", by_equipment=False)
-print(f"          Project equipment costs: ${total / sim.metrics.project_capacity:,.2f}/MW")
+print(f"          Project equipment costs: ${total.values[0][0] / sim.metrics.project_capacity:,.2f}/MW")
 
 ```
 

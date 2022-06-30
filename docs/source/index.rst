@@ -37,6 +37,13 @@ functionality surrounding unscheduled maintenance in addition to added documenta
 For any questions, feel free to open up an issue in the repository or email:
 rob.hammond@nrel.gov.
 
+What's New in v0.5?
+-------------------
+- Tow-to-port for offshore wind farms!
+- More metrics!
+- Bug fixes!
+- See the changelog for full details
+
 
 The Model in 30 Seconds Or Less
 -------------------------------
@@ -77,7 +84,7 @@ lifecycle of a single failure.
    timeseries data is provided for the simulation.
 2) Each subassemly failure model is a random sampling from a Weibull distribution, so
    for the sake of clarity we'll consider this to be a catastrophic drivetrain failure.
-   When the timeout is reached in the simulation, the subassembly's operating level is
+   When the timeout (time to failure) is reached in the simulation, the subassembly's operating level is
    reduced to 0%, and a message is passed to the turbine level (the overarching system
    model).
 3) From there, the turbine will shut off, and signal to all other subassembly models to

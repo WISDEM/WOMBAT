@@ -1024,69 +1024,66 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
 @define(frozen=True, auto_attribs=True)
 class ServiceEquipmentData(FromDictMixin):
     """Helps to determine the type ServiceEquipment that should be used, based on the
-        repair strategy for its operation. See
-        :py:class:`~data_classes.ScheduledServiceEquipmentData` or
-        :py:class:`~data_classes.UnscheduledServiceEquipmentData` for more details on each
-        classifcation.
+    repair strategy for its operation. See
+    :py:class:`~data_classes.ScheduledServiceEquipmentData` or
+    :py:class:`~data_classes.UnscheduledServiceEquipmentData` for more details on each
+    classifcation.
 
-        Parameters
-        ----------
-        data_dict : dict
-            The dictionary that will be used to create the appropriate ServiceEquipmentData.
-            This should contain a field called 'strategy' with either "scheduled" or
-            "unscheduled" as a value if strategy is not provided as a keyword argument.
-        strategy : str, optional
-            Should be one of "scheduled", "requests", "downtime". If nothing is provided,
-            the equipment configuration will be checked.
+    Parameters
+    ----------
+    data_dict : dict
+        The dictionary that will be used to create the appropriate ServiceEquipmentData.
+        This should contain a field called 'strategy' with either "scheduled" or
+        "unscheduled" as a value if strategy is not provided as a keyword argument.
+    strategy : str, optional
+        Should be one of "scheduled", "requests", "downtime". If nothing is provided,
+        the equipment configuration will be checked.
 
-        Raises
-        ------
-        ValueError
-            If ``strategy`` is not one of "scheduled" or "unscheduled" an error will be raised.
+    Raises
+    ------
+    ValueError
+        If ``strategy`` is not one of "scheduled" or "unscheduled" an error will be raised.
 
-        Examples
-        --------
-        The below workflow is how a new data :py:class:`~data_classes.ScheduledServiceEquipmentData`
-        object could be created via a generic/routinized creation method, and is how the
-        :py:class:`~service_equipment.ServiceEquipment`'s ``__init__`` method creates the
-        settings data.
+    Examples
+    --------
+    The below workflow is how a new data :py:class:`~data_classes.ScheduledServiceEquipmentData`
+    object could be created via a generic/routinized creation method, and is how the
+    :py:class:`~service_equipment.ServiceEquipment`'s ``__init__`` method creates the
+    settings data.
 
-        >>> from wombat.core.data_classes import  ServiceEquipmentData
-        >>>
-        >>> data_dict = {
-        >>>     "name": "Crew Transfer Vessel 1",
-        >>>     "equipment_rate": 1750,
-        >>>     "start_month": 1,
-        >>>     "start_day": 1,
-        >>>     "end_month": 12,
-        >>>     "end_day": 31,
-        >>>     "start_year": 2002,
-        >>>     "end_year": 2014,
-        >>>     "onsite": True,
-        >>>     "capability": "CTV",
-        >>>     "max_severity": 10,
-        >>>     "mobilization_cost": 0,
-        >>>     "mobilization_days": 0,
-        >>>     "speed": 37.04,
-        >>>     "max_windspeed_transport": 99,
-        >>>     "max_windspeed_repair": 99,
-        >>>     "max_waveheight_transport": 1.5,
-        >>>     "max_waveheight_repair": 1.5,
-        >>>     "strategy": scheduled,
-        >>>     "crew_transfer_time": 0.25,
-        >>>     "n_crews": 1,
-        >>>     "crew": {
-        >>>         "day_rate": 0,
-        >>>         "n_day_rate": 0,
-        >>>         "hourly_rate": 0,
-        >>>         "n_hourly_rate": 0,
-        >>>     },
-        >>> }
-        >>> equipment = ServiceEquipmentData(data_dict).determine_type()
-    <<<<<<< HEAD
-    =======
-        >>> type(equipment)
-    >>>>>>> 989bab1a5ac84c0769d0c238166a34787e7d2f02
+    >>> from wombat.core.data_classes import  ServiceEquipmentData
+    >>>
+    >>> data_dict = {
+    >>>     "name": "Crew Transfer Vessel 1",
+    >>>     "equipment_rate": 1750,
+    >>>     "start_month": 1,
+    >>>     "start_day": 1,
+    >>>     "end_month": 12,
+    >>>     "end_day": 31,
+    >>>     "start_year": 2002,
+    >>>     "end_year": 2014,
+    >>>     "onsite": True,
+    >>>     "capability": "CTV",
+    >>>     "max_severity": 10,
+    >>>     "mobilization_cost": 0,
+    >>>     "mobilization_days": 0,
+    >>>     "speed": 37.04,
+    >>>     "max_windspeed_transport": 99,
+    >>>     "max_windspeed_repair": 99,
+    >>>     "max_waveheight_transport": 1.5,
+    >>>     "max_waveheight_repair": 1.5,
+    >>>     "strategy": scheduled,
+    >>>     "crew_transfer_time": 0.25,
+    >>>     "n_crews": 1,
+    >>>     "crew": {
+    >>>         "day_rate": 0,
+    >>>         "n_day_rate": 0,
+    >>>         "hourly_rate": 0,
+    >>>         "n_hourly_rate": 0,
+    >>>     },
+    >>> }
+    >>> equipment = ServiceEquipmentData(data_dict).determine_type()
+    >>> type(equipment)
     """
 
     data_dict: dict

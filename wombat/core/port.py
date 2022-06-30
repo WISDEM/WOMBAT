@@ -142,9 +142,12 @@ class Port(RepairsMixin, FilterStore):
             equipment_cost=monthly_fee,
         )
 
-        for month_start in ix_month_starts:
+        for i, ix_month in enumerate(ix_month_starts):
+            # Get the time to the start of the next month
+            time_to_next = ix_month if i == 0 else ix_month - ix_month_starts[i - 1]
+
             # Log the fee at the start of each month at midnight
-            yield self.env.timeout(month_start)
+            yield self.env.timeout(time_to_next)
             self.env.log_action(
                 agent=self.settings.name,
                 action="monthly lease fee",

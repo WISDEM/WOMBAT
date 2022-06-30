@@ -96,11 +96,27 @@ classDiagram
         mobilization_cost: float
         mobilization_days: int
         speed: float
+        tow_sped: float
+        speed_reduction_factor: float
         max_waveheight_repair: float
         max_waveheight_transport: float
         max_windspeed_repair: float
         max_windspeed_transport: float
+        port_distance: float
+        unmoor_hours: float
+        reconnection_hours: float
         onsite: bool
+    }
+    class PortConfig{
+        name: str
+        tugboats: list[UnscheduledServiceEquipmentData]
+        crew: ServiceCrew
+        n_crews: int
+        max_operations: int
+        workday_start: int
+        workday_end: int
+        site_distance: float
+        annual_fee: float
     }
     class SubassemblyData{
         name: str
@@ -131,6 +147,24 @@ classDiagram
         hierarchy: dict
         resolution: dict
         cost_category_validator(name: str, sub_name: list[str])
+    }
+
+    class Port{
+        env: WombatEnvironment
+        manager: RepairManager
+        windfarm: Windfarm
+        settings: PortConfig
+        turbine_manager: simpy.Resource
+        crew_manager: simpy.Resource
+        tugboat_manager: simpy.Resource
+        active_repairs: dict[str, dict[str, simpy.events.Event]]
+        wait_until_next_shift()
+        proces_repair(request: RepairRequest, time_processed: float, prior_operational_level: float)
+        repair_single(request: RepairRequest)
+        transfer_requests_from_manager(system_id: str)
+        run_repairs(system_id: str)
+        run_tow_to_port(request: RepairRequest)
+        run_unscheduled_in_situ(request: RepairRequest)
     }
 
     class ServiceEquipment{
@@ -371,10 +405,12 @@ classDiagram
     ServiceCrew *-- FromDictMixin
     ScheduledServiceEquipmentData *-- FromDictMixin
     UnscheduledServiceEquipmentData *-- FromDictMixin
+    PortConfig *-- FromDictMixin
     FixedCosts *-- FromDictMixin
     SubassemblyData *-- FromDictMixin
 
     ServiceEquipment *-- ServiceEquipmentData
+    Port *-- PortConfig
 
     RepairRequest <.. Failure
     RepairRequest <.. Maintenance
@@ -384,6 +420,8 @@ classDiagram
     EquipmentMap *-- ServiceEquipment
     StrategyMap o-- EquipmentMap
     RepairManager o-- ServiceEquipment
+    Port o-- RepairRequest
+    Port o-- ServiceEquipment
 
     RepairRequest <-- Subassembly
     RepairRequest <-- System
@@ -403,6 +441,7 @@ classDiagram
     Simulation *-- WombatEnvironment
     Simulation *-- Windfarm
     Simulation *-- RepairManager
+    Simulation *-- Port
     Simulation *-- ServiceEquipment
 
 

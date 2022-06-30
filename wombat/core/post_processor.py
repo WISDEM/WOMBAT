@@ -693,6 +693,8 @@ class Metrics:
     ) -> float | pd.DataFrame:
         """Calculates the equipment costs for the simulation at a project, annual, or
         monthly level with (or without) respect to equipment utilized in the simulation.
+        This excludes any port fees that might apply, which are included in:
+        ``port_fees``.
 
         Parameters
         ----------
@@ -730,10 +732,11 @@ class Metrics:
         elif frequency == "month-year":
             col_filter = ["year", "month"]
 
+        events = self.events.loc[self.events.action != "monthly lease fee"]
         if by_equipment:
             if frequency == "project":
                 costs = (
-                    self.events[self.events[self._equipment_cost] > 0]
+                    events[events[self._equipment_cost] > 0]
                     .groupby(["agent"])
                     .sum()[[self._equipment_cost]]
                     .fillna(0)
@@ -749,7 +752,7 @@ class Metrics:
 
             col_filter = ["agent"] + col_filter
             costs = (
-                self.events[self.events[self._equipment_cost] > 0]
+                events[events[self._equipment_cost] > 0]
                 .groupby(col_filter)
                 .sum()[[self._equipment_cost]]
                 .reset_index(level=0)
@@ -766,9 +769,11 @@ class Metrics:
             return costs.fillna(value=0)
 
         if frequency == "project":
-            return self.events[self._equipment_cost].sum()
+            return pd.DataFrame(
+                [events[self._equipment_cost].sum()], columns=[self._equipment_cost]
+            )
 
-        costs = self.events.groupby(col_filter).sum()[[self._equipment_cost]]
+        costs = events.groupby(col_filter).sum()[[self._equipment_cost]]
         return costs.fillna(0)
 
     def service_equipment_utilization(self, frequency: str) -> pd.DataFrame:
@@ -1235,7 +1240,7 @@ class Metrics:
                 columns=labor_cols,
             )
             if not by_type:
-                return costs[self._labor_cost].values[0]
+                return costs[[self._labor_cost]]
             return costs
 
         if frequency == "annual":
@@ -1471,24 +1476,27 @@ class Metrics:
         if not isinstance(by_action, bool):
             raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
 
-        events = deepcopy(self.events)
-        events = events[~events.part_id.isna()]
+        events = self.events.loc[~self.events.part_id.isna()].copy()
 
         # Need to simplify the cable identifiers to not include the connection information
-        events["component"] = [el.split("::")[0] for el in events.part_id.values]
-
-        cost_cols = ["total_cost"]
-        if by_category:
-            cost_cols[0:0] = ["materials_cost", "total_labor_cost", "equipment_cost"]
+        events.loc[:, "component"] = [el.split("::")[0] for el in events.part_id.values]
 
         group_filter = []
         if frequency == "annual":
-            group_filter = ["year"]
+            group_filter.extend(["year"])
         elif frequency == "monthly":
-            group_filter = ["month"]
+            group_filter.extend(["month"])
         elif frequency == "month-year":
-            group_filter = ["year", "month"]
+            group_filter.extend(["year", "month"])
+
         group_filter.append("component")
+        cost_cols = ["total_cost"]
+        if by_category:
+            cost_cols[0:0] = [
+                self._materials_cost,
+                self._labor_cost,
+                self._equipment_cost,
+            ]
 
         if by_action:
             repair_map = {
@@ -1511,12 +1519,12 @@ class Metrics:
         zeros = np.zeros(len(cost_cols)).tolist()
         costs = events.groupby(group_filter).sum()[cost_cols].reset_index()
         if not by_action:
-            costs["action"] = np.zeros(costs.shape[0])
+            costs.loc[:, "action"] = np.zeros(costs.shape[0])
             cols = costs.columns.to_list()
             _ix = cols.index("component") + 1
             cols[_ix:_ix] = ["action"]
             cols.pop(-1)
-            costs = costs[cols]
+            costs = costs.loc[:, cols]
         if frequency in ("annual", "month-year"):
             years = costs.year.unique()
             components = costs.component.unique()
@@ -1563,8 +1571,53 @@ class Metrics:
                 if costs.loc[row_filter].size > 0:
                     continue
                 costs.loc[costs.shape[0]] = row
-        costs = costs.sort_values(group_filter)[group_filter + cost_cols]
-        return costs.reset_index(drop=True).set_index(group_filter)
+        sort_cols = group_filter + cost_cols
+        if group_filter != []:
+            costs = costs.sort_values(group_filter)
+        if sort_cols != []:
+            costs = costs.loc[:, sort_cols]
+        costs = costs.reset_index(drop=True)
+        return costs if group_filter == [] else costs.set_index(group_filter)
+
+    def port_fees(self, frequency: str) -> pd.DataFrame:
+        """Calculates the port fees for the simulation at a project, annual, or monthly
+        level. This excludes any equipment or labor costs, which are included in:
+        ``equipment_costs``.
+
+        Parameters
+        ----------
+        frequency : str
+            One of "project" or "annual", "monthly", ".
+
+        Returns
+        -------
+        pd.DataFrame
+            The broken out by time port fees with
+
+        Raises
+        ------
+        ValueError
+            If ``frequency`` not one of "project" or "annual".
+        """
+        frequency = _check_frequency(frequency, which="all")
+
+        column = "port_fees"
+        port_fee = self.events.loc[
+            self.events.action == "monthly lease fee",
+            ["year", "month", "equipment_cost"],
+        ].rename(columns={"equipment_cost": column})
+
+        if port_fee.shape[0] == 0:
+            return pd.DataFrame([[0]], columns=[column])
+
+        if frequency == "project":
+            return pd.DataFrame([port_fee.sum(axis=0).loc[column]], columns=[column])
+        elif frequency == "annual":
+            return port_fee.groupby(["year"]).sum()[[column]]
+        elif frequency == "monthly":
+            return port_fee.groupby(["month"]).sum()[[column]]
+        elif frequency == "month-year":
+            return port_fee.groupby(["year", "month"]).sum()[[column]]
 
     def project_fixed_costs(self, frequency: str, resolution: str) -> pd.DataFrame:
         """Calculates the fixed costs of a project at the project and annual frequencies
@@ -1573,7 +1626,7 @@ class Metrics:
         Parameters
         ----------
         frequency : str
-            One of "project" or "annual".
+            One of "project" or "annual", "monthly", ".
         resolution : st
             One of "low", "medium", or "high", where the values correspond to:
 
@@ -1597,7 +1650,7 @@ class Metrics:
         ValueError
             If ``resolution`` must be one of "low", "medium", or "high".
         """
-        frequency = _check_frequency(frequency, which="annual")
+        frequency = _check_frequency(frequency, which="all")
 
         resolution = resolution.lower().strip()
         if resolution not in ("low", "medium", "high"):
@@ -1605,29 +1658,94 @@ class Metrics:
                 '``resolution`` must be one of "low", "medium", or "high".'
             )
 
+        # Get the appropriate values and convert to the currency base
         keys = self.fixed_costs.resolution[resolution]
-        vals = [[getattr(self.fixed_costs, key) for key in keys]]
+        vals = (
+            np.array([[getattr(self.fixed_costs, key) for key in keys]])
+            * self.project_capacity
+            * 1000
+        )
         costs = pd.DataFrame(vals, columns=keys)
 
+        total = self.operations.groupby(["year", "month"]).count()[["env_time"]]
+        total = total.rename(columns={"env_time": "N"})
+        total.N = 1.0
+
+        operation_hours = self.operations.groupby(["year", "month"]).count()[
+            ["env_time"]
+        ]
+        operation_hours = operation_hours.rename(columns={"env_time": "N"})
+
+        costs = pd.DataFrame(total.values * vals, index=total.index, columns=keys)
+        costs *= operation_hours.values.reshape(-1, 1) / 8760.0
+
         years = self.events.year.unique()
-        years.sort()
-        adjusted_inflation = deepcopy(self.inflation_rate)
-        vals = np.array(vals[0]) * self.project_capacity * 1000
-        for ix, year in enumerate(years):
-            hours = self.operations[self.operations.year == year].shape[0]
-            costs.loc[ix] = vals * min(1, hours / 8760.0)
-            if ix == 0:
-                continue
-            costs.loc[ix] *= adjusted_inflation
-            adjusted_inflation *= self.inflation_rate
+        adjusted_inflation = np.array(
+            [self.inflation_rate**i for i in range(len(years)) for j in range(12)]
+        )
+        adjusted_inflation = adjusted_inflation[: costs.shape[0]]
+        costs *= adjusted_inflation.reshape(-1, 1)
 
         if frequency == "project":
-            return pd.DataFrame(costs.sum(axis=0).values.reshape(1, -1), columns=keys)
+            costs = pd.DataFrame(costs.reset_index(drop=True).sum()).T
+        elif frequency == "annual":
+            costs = costs.reset_index().groupby("year").sum().drop(columns=["month"])
+        elif frequency == "monthly":
+            costs = costs.reset_index().groupby("month").sum().drop(columns=["year"])
 
-        costs["year"] = years
-        costs = costs.set_index("year")
-        costs = costs[keys]
         return costs
+
+    def opex(self, frequency: str) -> pd.DataFrame:
+        """Calculates the project's OpEx for the simulation at a project, annual, or
+        monthly level.
+
+        Parameters
+        ----------
+        frequency : str
+            One of project, annual, monthly, or month-year.
+
+        Returns
+        -------
+        pd.DataFrame
+            The project's OpEx broken out at the desired time resolution.
+        """
+        frequency = _check_frequency(frequency, which="all")
+
+        # Get the materials costs and remove the component-level breakdown
+        materials = self.component_costs(frequency=frequency, by_category=True)
+        materials = materials.loc[:, ["materials_cost"]].reset_index()
+        if frequency == "project":
+            materials = pd.DataFrame(materials.loc[:, ["materials_cost"]].sum()).T
+        else:
+            if frequency == "annual":
+                group_col = ["year"]
+            elif frequency == "monthly":
+                group_col = ["month"]
+            elif frequency == "month-year":
+                group_col = ["year", "month"]
+            materials = materials.groupby(group_col).sum().loc[:, ["materials_cost"]]
+
+        # Port fees will produce an 1x1 dataframe if values aren't present, so recreate
+        # it with the appropriate dimension
+        port_fees = self.port_fees(frequency=frequency)
+        if frequency != "project" and port_fees.shape == (1, 1):
+            port_fees = pd.DataFrame([], columns=["port_fees"], index=materials.index)
+            port_fees = port_fees.fillna(0)
+
+        # Create a list of data frames for the OpEx components
+        opex_items = [
+            self.project_fixed_costs(frequency=frequency, resolution="low"),
+            port_fees,
+            self.equipment_costs(frequency=frequency),
+            self.labor_costs(frequency=frequency),
+            materials,
+        ]
+
+        # Join the data frames and sum along the time axis and return
+        column = "OpEx"
+        opex = pd.concat(opex_items, axis=1)
+        opex.loc[:, column] = opex.sum(axis=1)
+        return opex[[column]]
 
     def process_times(self) -> pd.DataFrame:
         """Calculates the time, in hours, to complete a repair/maintenance request, on both a
@@ -1662,7 +1780,7 @@ class Metrics:
         self, frequency: str, by_turbine: bool = False
     ) -> float | pd.DataFrame:
         """Calculates the power production for the simulation at a project, annual, or
-        monthly level that can be broken out by hourly and salary labor costs.
+        monthly level that can be broken out by turbine.
 
         Parameters
         ----------
@@ -1717,6 +1835,52 @@ class Metrics:
         return self.production.groupby(by=group_cols).sum()[col_filter]
 
     # Windfarm Financials
+
+    def npv(
+        self, frequency: str, discount_rate: float = 0.025, offtake_price: float = 80
+    ) -> pd.DataFrame:
+        """Calculates the net present value of the windfarm at a project, annual, or
+        monthly resolution given a base discount rate and offtake price.
+
+        ... note: This function will be improved over time to incorporate more of the
+            financial parameter at play, such as PPAs.
+
+        Parameters
+        ----------
+        frequency : str
+            One of "project", "annual", "monthly", or "month-year".
+        discount_rate : float, optional
+            The rate of return that could be earned on alternative investments, by
+            default 0.025.
+        offtake_price : float, optional
+            Price of energy, per MWh, by default 80.
+
+        Returns
+        -------
+        pd.DataFrame
+            The project net prsent value at the desired time resolution.
+        """
+        frequency = _check_frequency(frequency, which="all")
+
+        # Gather the OpEx, and revenues
+        expenditures = self.opex("month-year")
+        production = self.power_production("month-year")
+        revenue: pd.DataFrame = production / 1000 * offtake_price  # MWh
+
+        # Instantiate the NPV with the required calculated data and compute the result
+        npv = revenue.join(expenditures).rename(columns={"windfarm": "revenue"})
+        N = npv.shape[0]
+        npv.loc[:, "discount"] = np.full(N, 1 + discount_rate) ** np.arange(N)
+        npv.loc[:, "NPV"] = (npv.revenue.values - npv.OpEx.values) / npv.discount.values
+
+        # Aggregate the results to the required resolution
+        if frequency == "project":
+            return pd.DataFrame(npv.reset_index().sum()).T[["NPV"]]
+        elif frequency == "annual":
+            return npv.reset_index().groupby("year").sum()[["NPV"]]
+        elif frequency == "monthly":
+            return npv.reset_index().groupby("month").sum()[["NPV"]]
+        return npv[["NPV"]]
 
     def pysam_npv(self) -> float | pd.DataFrame:
         """Returns the project-level after-tax net present values (NPV).
