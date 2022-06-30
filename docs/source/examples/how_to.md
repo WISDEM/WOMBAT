@@ -11,7 +11,8 @@ kernelspec:
 
 # How To Use WOMBAT
 
-This tutorial will walk through the setup, running, and results stages of a WOMBAT simulation.
+This tutorial will walk through the setup, running, and results stages of a WOMBAT
+simulation while providing background information about how each component is related.
 
 ## Imports
 
@@ -20,7 +21,6 @@ analyses.
 
 ```{code-cell} ipython3
 from time import perf_counter  # timing purposes only
-from pprint import pprint
 
 import numpy as np
 import pandas as pd
@@ -31,7 +31,7 @@ from wombat.core.library import load_yaml, DINWOODIE
 # Seed the random variable for consistently randomized results
 np.random.seed(0)
 
-# Improve ability to read longer outputs
+# Improve the legibility of DataFrames
 pd.set_option("display.float_format", '{:,.2f}'.format)
 pd.set_option("display.max_rows", 1000)
 pd.set_option("display.max_columns", 1000)
@@ -56,7 +56,7 @@ data must be placed in the appropriate locations in your analysis' library as fo
 │   ├── logs              <- The raw anaylsis log files
 │   ├── metrics           <- A place to save metrics/computed outputs.
 │   ├── <self-defined>    <- Any other folder you choose for saving outputs (not enforced)
-├── repair
+├── repair                <- Overarching folder for repair configurations, such as ports
 │   ├── transport         <- Servicing equipment configurations
 ├── weather               <- Weather profiles
 ```
@@ -64,6 +64,9 @@ data must be placed in the appropriate locations in your analysis' library as fo
 As a convenience feature you can import the provided validation data libraries as
 `DINWOODIE` or `IEA_26` as is seen in the imports above, and a consistent path will be
 enabled.
+
+In practice, any folder location can be used so long as it follows the subfolder structure provided
+here.
 ````
 
 
@@ -136,10 +139,10 @@ datetime (required)
 : A date and time stamp, any format.
 
 windspeed (required)
-: Unique identifier for the asset; no spaces allowed.
+: The hourly, mean windspeed, in meters per second at the time stamp.
 
 waveheight (optional)
-: The hourly, mean waveheight, in meters, for the time stamp. If waves are not required,
+: The hourly, mean waveheight, in meters, at the time stamp. If waves are not required,
     this can be filled with zeros, or be left out entirely.
 
 
@@ -161,6 +164,9 @@ Below, is a demonstration of what `weather/alpha_ventus_weather_2002_2014.csv` l
 Please see the [`FixedCosts` API documentation](../API/types.md#fixed-cost-model) for
 details on this optional piece of financial modeling.
 
+For modeling a tow-to-port strategy that the port rental costs should be included in
+this category, and not in the port configuration.
+
 
 ### Financial Model (SAM)
 
@@ -169,26 +175,112 @@ metrics only data is passed into the `SAM_settings` filed in the main configurat
 input file exists, but is only for demonstration purposes, and does not contain
 meaningful inputs.
 
+```{warning}
+This does not currently work due to updates in PySAM that need to be remapped in the
+post-processing module.
+```
+
+
+### Servicing Equipment
+
+The servicing equipment control the actual repairs within a simulation, and as of v0.5,
+there are four different repair strategies that can be used: scheduled, downtime-based
+unscheduled, repair-based unscheduled, and tow-to-port. These are options are controlled
+through the `capability` settings in each equipment's configuration in conjunction with
+the `service_equipment` setting in the maintenance and failure configurations for each
+subassembly.
+
+For complete documentation of how the servicing equipment parameters are defined, please
+see the [ServiceEquipmentData API documentation](../API/types.md#service-equipment)
+
+Below is an definition of the different equipment codes and their designations to show
+the breadth of what can be simulated. These codes do not have separate operating models,
+but instead allow the user to specify the types of operations the servicing equipment
+will be able to operate on. This model should be aligned with the `service_equipment`
+requirements in the subassembly failure and maintenance models.
+
+RMT
+: remote (no actual equipment BUT no special implementation), akin to remote resets
+
+DRN
+: drone, or potentially even helicopters by changing the costs
+
+CTV
+: crew transfer vessel/onsite truck
+
+SCN
+: small crane (i.e., field support vessel or cherry picker)
+
+LCN
+: large crane (i.e., heavy lift vessel or crawler crane)
+
+CAB
+: cabling-specific vessel/vehicle
+
+DSV
+: diving support vessel
+
+TOW
+: tugboat/towing (a failure with this setting will trigger a tow-to-port scenario where
+the simulation's `Port` will dispatch the tugboats as needed)
+
+AHV
+: anchor handling vessel (this is a variation on the tugboat for mooring repairs that
+will not tow anthing between port and site, but operate at the site)
+
+Aside from the TOW and AHV capabilities there are no operations specific to each
+capability. The remaining configurations of a servicing equipment such as equipment
+rates, mobilization, labor, and operating limits will define the nature of its operation
+in tandem with a failure's `time` field. So for a remote reset (RMT), there will be a
+trivial equipment rate, if any, associated with it to account for the specific operations
+or resetting the subassembly remotely. Similarly, a drone repair or inspection (DRN)
+will not require any onboard crew, so labor will 0, or low if assuming an operator that
+is unaccounted for in the site `FixedCosts`, but will require more time than a remote
+reset in addition to a higher equipment cost.
+
+In addition to a variety of servicing equipment types, there is support for
+3 different equipment-level dispatch strategies, as described below. For a set of
+example scenarios, please see the [strategy demonstration](strategy_demonstration.ipynb).
+
+scheduled
+: dispatch servicing equipment for a specified date range each year
+
+requests
+: dispatch the servicing equipment once a `strategy_threshold` number of requests
+  that the equipment can service has been reached
+
+downtime
+: dispatch the servicing equipment once the windfarm's operating level reaches the
+  `strategy_threshold` percent downtime.
+
 
 ### The System Models
 
 The actual assets on the windfarm such as cables, turbines, and substations, are
 referred to as systems in WOMBAT, and each has their own individual model. Within each
-of these systems, there are modeled, and pre-defined, subassemblies (or componenents) that
-rely on two types of repair models:
- - maintenance: scheduled, fixed time interval-based maintenance tasks
- - failures: unscheduled, Weibull distribution-based modeled, maintenance tasks
+of these systems, there are user-defined subassemblies (or componenents) that rely on
+two types of repair models:
+
+- maintenance: scheduled, fixed time interval-based maintenance tasks
+- failures: unscheduled, Weibull distribution-based modeled, maintenance tasks
+
+```{note}
+As of v0.5, the subassemblies keys in the system YAML definition can be user-defined
+to accommodate the varying language among industry groups and generations of wind
+technologies. The only restrictions are the YAML keys must not contain any special
+characters, and cannot be repeated
+```
 
 In the example below we show a `generator` subassembly with an annual service task and
-frequent manual reset. For a thorough definition, it is recommended to read the API
+frequent manual reset. For a thorough definition, please read the API
 documentation of the [Maintenance](../API/types.md#maintenance-tasks) and
-[Failure](../API/types.md#failures) data classes. It should be noted that the yaml
-defintion below specifies that maintenance tasks are in a bulleted list format and that
-failure defintions require a dictionary-style input with keys to match the severity
-level of a given failure. For more details on the complete subassembly definition,
-please visit the [Subassembly API documentation](../API/types.md#subassembly-model).
+[Failure](../API/types.md#failures) data classes. Note that the yaml defintion below
+specifies that maintenance tasks are in a bulleted list format and that failure
+defintions require a dictionary-style input with keys to match the severity level of a
+given failure. For more details on the complete subassembly definition, please visit the
+[Subassembly API documentation](../API/types.md#subassembly-model).
 
-```
+```{code-block} yaml
 generator:
   name: generator
   maintenance:
@@ -205,7 +297,7 @@ generator:
       materials: 0
       service_equipment: CTV
       operation_reduction: 0.0
-      level: 1
+      level: 1  # Note that the "level" value matches the key "1"
       description: manual reset
 ```
 
@@ -215,17 +307,19 @@ generator:
 The substation model relies on two specific inputs, and one subassembly input (transformer).
 
 capacity_kw
-: The capacity of the system. Only needed if a $/kw cost basis is being used.
+: The capacity of all turbines in the windfarm, neglecting any losses. Only needed if
+a $/kw cost basis is being used.
 
 capex_kw
 : The $/kw cost of the machine, if not providing absolute costs.
 
-transformer
-: See the subassembly model for more details.
+Additional keys can be added to represent subassemblies, such as a transformer, in the
+same format as the generator example above. Similarly, a user can define as man or as
+few of the subassemblies as desired with their preferred naming conventions
 
-The following is an example of substation yaml definition with no modeled subasemblies.
+The following is an example of substation YAML definition with no modeled subasemblies.
 
-```
+```{code-block} yaml
 capacity_kw: 670000
 capex_kw: 140
 transformer:
@@ -266,12 +360,13 @@ power_curve: file
 : File that provides the power curve definition.
 
 power_curve: bin_width
-: Distince in (m/s) between two points on the power curve.
+The desired interval, in m/s, between adjacent points on the power curve to be used for
+power calculations.
 
 The `windfarm/vestas_v90.yaml` data file provides the following definition in addition
 to the the maintenance and failure definitions that were shown previously.
 
-```
+```{code-block} yaml
 capacity_kw: 3000
 capex_kw: 1300
 power_curve:
@@ -289,33 +384,19 @@ For an open source listing of a variety of land-based, offshore, and distributed
 turbine power curves, please visit the
 [NREL Turbine Models repository](https://github.com/NREL/turbine-models).
 
-In addition to the above, the following subassembly definitions can all be modeled,
-though, and only one is required for the model to successfully be created.
-
- - electrical_system
- - electronic_control
- - sensors
- - hydraulic_system
- - yaw_system
- - rotor_blades
- - mechanical_brake
- - rotor_hub
- - gearbox
- - generator
- - supporting_structure
- - drive_train
-
 
 #### Cables
 
 ```{note}
-Currently, only array cables are modeled, though in the future export cables will be enabled.
+Currently, only array cables are modeled, though in the future export cables will also
+be modeled.
 ```
 
 The array cable is the simplest format in that you only define a descriptive name,
-and the maintenance and failure events as below.
+and the maintenance and failure events as below. It should be noted that the scheme
+is a combination of both the system and subassembly configuration
 
-```
+```{code-block} yaml
 name: array cable
 maintenance:
   -
@@ -335,60 +416,6 @@ failures:
     level: 1
     description: n/a
 ```
-
-## Servicing Equipment
-
-The servicing equipment currently run on an scheduled visit basis for the sake of
-simplicity in this early stage of the model. This may seem to be a limitation, there are
-plenty of workarounds in this approach, by design! For instance, due to the simplicity
-of the input model, we can simulate multiple visits throughout the year for large cranes
-(e.g., heavy lift vessels, crew transfer vessels, or crawler cranes) enabling similar
-behaviors to that of an unscheduled maintenance model.
-
-For complete documentation of how the servicing equipment parameters are defined, please
-see the [ServiceEquipmentData API documentation](../API/types.md#service-equipment)
-
-Below is an definition of the different equipment codes and their designations to show
-the breadth of what can be simulated. These codes do not have separate operating models,
-but instead allow the user to specify the types of operations the servicing equipment
-will be able to operate on. This model should be aligned with the `service_equipment`
-requirements in the subassembly failure and maintenance models.
-
-RMT
-: remote (no actual equipment BUT no special implementation), akin to remote resets
-
-DRN
-: drone, or potentially even helicopters by changing the costs
-
-CTV
-: crew transfer vessel/onsite truck
-
-SCN
-: small crane (i.e., field support vessel or cherry picker)
-
-LCN
-: large crane (i.e., heavy lift vessel or crawler crane)
-
-CAB
-: cabling-specific vessel/vehicle
-
-DSV
-: diving support vessel
-
-In addition to a variety of servicing equipment types, there is support for
-3 different equipment-level dispatch strategies, as described below. For a set of
-example scenarios, please see the [strategy demonstration](strategy_demonstration.ipynb).
-
-scheduled
-: dispatch servicing equipment for a specified date range each year
-
-requests
-: dispatch the servicing equipment once a `strategy_threshold` number of requests
-  that the equipment can service has been reached
-
-downtime
-: dispatch the servicing equipment once the windfarm's operating level reaches the
-  `strategy_threshold` percent operating has been reached.
 
 
 ## Set Up the Simulation
@@ -413,22 +440,45 @@ library_path = DINWOODIE  # or user-defined path for an external data library
 ### The configuration file
 
 
-In the below configuration we've provided a number of data points that will define our
+In the configuration below, there are a number of data points that will define our
 windfarm layout, weather conditions, working hours, customized start and completion
 years, project size, financials, and the servicing equipment to be used. Note that there
-can be as many or as few of the servicing equipment as desired.
+can be as many or as few of the servicing equipment units as desired.
 
 The purpose of an overarching configuration file is to provide a single place to define
-the primary inputs for a simulation. As is seen below most of the inputs are pointers
-to other files that WOMBAT will then use to construct and validate the remaining
-simulation settings.
+the primary inputs for a simulation. Below the base configuration is loaded and displayed
+with comments to show where each of files are located in the library structure. WOMBAT
+will know where to go for these pointers when the simulation is initialized so the data
+is constructed and validated correctly.
 
 ```{code-cell} ipython3
 config = load_yaml(library_path / "config", "base.yaml")
+```
 
-for k, v in config.items():
-  print(f"\033[1m{k}\033[0m:", end="\n  ")  # make the keys bold
-  pprint(v, indent=2)
+```{code-block} yaml
+# Contents of: dinwoodie / config / base.yaml
+name: dinwoodie_base
+library: DINWOODIE
+weather: alpha_ventus_weather_2002_2014.csv  # located in: dinwoodie / weather
+service_equipment:
+# YAML-encoded list, but could also be created in standard Python list notation with
+# square brackets: [ctv1.yaml, ctv2.yaml, ..., hlv_requests.yaml]
+# All below equipment configurations are located in: dinwoodie / repair / transport
+  - ctv1.yaml
+  - ctv2.yaml
+  - ctv3.yaml
+  - fsv_requests.yaml
+  - hlv_requests.yaml
+layout: layout.csv  # located in: dinwoodie / windfarm
+inflation_rate: 0
+fixed_costs: fixed_costs.yaml  # located in: dinwoodie / windfarm
+workday_start: 7
+workday_end: 19
+start_year: 2003
+end_year: 2012
+project_capacity: 240
+# port: base_port.yaml  <- When running a tow-to-port simulation the port configuration
+#                          pointer is provided here and located in: dinwoodie / repair
 ```
 
 ## Instantiate the simulation
@@ -475,9 +525,11 @@ sim = Simulation(
 
 ## Run the analysis
 
-When the run method is called, the default run time is for the full length of the simulation, however, if a shorter run than was previously designed is required for debugging, or something similar, we can use `sum.run(until=<your-time>)` to do this. In the `run` method, not
-only is the simulation run, but the metrics class is loaded at the end to quickly transition
-to results aggregation without any further code.
+When the run method is called, the default run time is for the full length of the
+simulation, however, if a shorter run than was previously designed is required for
+debugging, or something similar, we can use `sum.run(until=<your-time>)` to do this. In
+the `run` method, not only is the simulation run, but the metrics class is loaded at the
+end to quickly transition to results aggregation without any further code.
 
 ```{warning}
 It should be noted at this stage that a run time that isn't divisible by 8760 (hours in
@@ -522,13 +574,13 @@ print(f"Gross Capacity Factor: {gross_cf:2.1f}%")
 ```{code-cell} ipython3
 # Report back a subset of the metrics
 total = sim.metrics.time_based_availability(frequency="project", by="windfarm")
-print(f"  Project time-based availability: {total * 100:.1f}%")
+print(f"  Project time-based availability: {total.values[0][0] * 100:.1f}%")
 
 total = sim.metrics.production_based_availability(frequency="project", by="windfarm")
-print(f"Project energy-based availability: {total * 100:.1f}%")
+print(f"Project energy-based availability: {total.values[0][0] * 100:.1f}%")
 
 total = sim.metrics.equipment_costs(frequency="project", by_equipment=False)
-print(f"          Project equipment costs: ${total / sim.metrics.project_capacity:,.2f}/MW")
+print(f"          Project equipment costs: ${total.values[0][0] / sim.metrics.project_capacity:,.2f}/MW")
 
 ```
 

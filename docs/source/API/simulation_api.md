@@ -30,9 +30,10 @@
 .. autoclass:: wombat.core.post_processor.Metrics
    :members: from_simulation_outputs, power_production, time_based_availability,
     production_based_availability, capacity_factor, task_completion_rate,
-    equipment_costs, service_equipment_utilization, labor_costs,
-    equipment_labor_cost_breakdowns, component_costs, project_fixed_costs, process_times,
-    pysam_npv, pysam_lcoe_real, pysam_lcoe_nominal, pysam_irr, pysam_all_outputs
+    equipment_costs, service_equipment_utilization, vessel_crew_hours_at_sea,
+    number_of_tows, labor_costs, equipment_labor_cost_breakdowns, component_costs,
+    opex, npv, project_fixed_costs, process_times, pysam_npv, pysam_lcoe_real,
+    pysam_lcoe_nominal, pysam_irr, pysam_all_outputs
    :member-order: bysource
    :undoc-members:
    :exclude-members:

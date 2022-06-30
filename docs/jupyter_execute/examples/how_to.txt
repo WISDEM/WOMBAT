@@ -1,5 +1,4 @@
 from time import perf_counter  # timing purposes only
-from pprint import pprint
 
 import numpy as np
 import pandas as pd
@@ -10,7 +9,7 @@ from wombat.core.library import load_yaml, DINWOODIE
 # Seed the random variable for consistently randomized results
 np.random.seed(0)
 
-# Improve ability to read longer outputs
+# Improve the legibility of DataFrames
 pd.set_option("display.float_format", '{:,.2f}'.format)
 pd.set_option("display.max_rows", 1000)
 pd.set_option("display.max_columns", 1000)
@@ -18,10 +17,6 @@ pd.set_option("display.max_columns", 1000)
 library_path = DINWOODIE  # or user-defined path for an external data library
 
 config = load_yaml(library_path / "config", "base.yaml")
-
-for k, v in config.items():
-  print(f"\033[1m{k}\033[0m:", end="\n  ")  # make the keys bold
-  pprint(v, indent=2)
 
 sim = Simulation.from_config(config)
 

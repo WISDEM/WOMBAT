@@ -5,25 +5,48 @@
 #
 # For a complete list of metrics and their documentation, please see the API Metrics [documentation](../API/simulation_api.md#metrics-computation).
 #
-# This demonstration will rely on the results produced in the "How To" notebook.
+# This demonstration will rely on the results produced in the "How To" notebook and serves as an extension of the API documentation to show what the results will look like depending on what inputs are provided.
 
 # In[1]:
 
 
 from pprint import pprint
-from pathlib import Path
 
 import pandas as pd
 
 from wombat.core import Metrics, Simulation
-from wombat.core.library import load_yaml
 
+
+# get_ipython().run_line_magic("load_ext", "autoreload")
+# get_ipython().run_line_magic("autoreload", "2")
 
 pd.set_option("display.float_format", "{:,.2f}".format)
 pd.set_option("display.max_rows", 1000)
 pd.set_option("display.max_columns", 1000)
 
 
+# ## Table of Contents
+#
+# Below is a list of top-level sections to demonstrate how to use WOMBAT's `Metrics` class methods and an explanation of each individual metric.
+#  - [Setup](#setup): Running a simulation to gather the results
+#  - [Availability](#availability): Time-based and energy-based availability
+#  - [Capacity Factor](#capacity-factor): Gross and net capacity factor
+#  - [Task Completion Rate](#task-completion-rate): Task completion metrics
+#  - [Equipment Costs](#equipment-costs): Cost breakdowns by servicing equipment
+#  - [Service Equipment Utilization Rate](#service-equipment-utilization-rate): Utilization of servicing equipment
+#  - [Vessel-Crew Hours at Sea](#vessel-crew-hours-at-sea): Number of crew or vessel hours spent at sea
+#  - [Number of Tows](#number-of-tows): Number of tows breakdowns
+#  - [Labor Costs](#labor-costs): Breakdown of labor costs
+#  - [Equipment and Labor Costs](#equipment-and-labor-costs): Combined servicing equipment and labor cost breakdown
+#  - [Component Costs](#component-costs): Materials costs
+#  - [Fixed Cost Impacts](#fixed-cost-impacts): Total fixed costs
+#  - [OpEx](#opex): Project OpEx
+#  - [Process Times](#process-times): Timing of various stages of repair and maintenance
+#  - [Power Production](#power-production): Potential and actually produced power
+#  - [Net Present Value](#net-present-value): Project NPV calculator
+#  - [PySAM-Powered Results](#pysam-powered-results): PySAM results, if configuration is provided
+
+# <a id="setup"></a>
 # ## Setup
 #
 # The simulations from the How To notebook are going to be rerun as it is not recommended to create a Metrics class from scratch due to the
@@ -44,11 +67,15 @@ fpath = sim.env.metrics_input_fname.parent
 fname = sim.env.metrics_input_fname.name
 metrics = Metrics.from_simulation_outputs(fpath, fname)
 
+# Delete the log files now that they're loaded in
+sim.env.cleanup_log_files(log_only=False)
+
 # Alternatively, in this case because the simulation was run, we can use the
 # following for convenience convenience only
 metrics = sim.metrics
 
 
+# <a id="availability"></a>
 # ## Availability
 #
 # There are two methods to produce availability, which have their own function calls:
@@ -104,6 +131,7 @@ metrics.time_based_availability(frequency="monthly", by="windfarm")
 metrics.time_based_availability(frequency="month-year", by="windfarm").head(24)
 
 
+# <a id="capacity-factor"></a>
 # ## Capacity Factor
 #
 # Here, we will go through the various input definitions to get capacity factor data. The inputs are very similar to that of the availability calculation.
@@ -162,6 +190,7 @@ metrics.capacity_factor(which="net", frequency="monthly", by="windfarm")
 metrics.capacity_factor(which="net", frequency="month-year", by="windfarm").head(24)
 
 
+# <a id="task-completion-rate"></a>
 # ## Task Completion Rate
 #
 # Here, we will go through the various input definitions to get the task completion rates. The inputs are very similar to that of the availability calculation.
@@ -213,6 +242,7 @@ metrics.task_completion_rate(which="both", frequency="monthly")
 metrics.task_completion_rate(which="both", frequency="month-year").head(24)
 
 
+# <a id="equipment-costs"></a>
 # ## Equipment Costs
 #
 # Here, we will go through the various input definitions to get the equipment cost data.
@@ -232,7 +262,7 @@ metrics.task_completion_rate(which="both", frequency="month-year").head(24)
 
 # Project total at the whole windfarm level
 total = metrics.equipment_costs(frequency="project", by_equipment=False)
-print(f"Project total: ${total / metrics.project_capacity:,.2f}/MW")
+print(f"Project total: ${total.values[0][0] / metrics.project_capacity:,.2f}/MW")
 
 
 # In[18]:
@@ -264,6 +294,7 @@ metrics.equipment_costs(frequency="monthly", by_equipment=True)
 metrics.equipment_costs(frequency="month-year", by_equipment=True).head(24)
 
 
+# <a id="service-equipment-utilization-rate"></a>
 # ## Service Equipment Utilization Rate
 #
 # Here, we will go through the various input definitions to get the service equipment utiliztion rates.
@@ -288,6 +319,65 @@ total = metrics.service_equipment_utilization(frequency="annual")
 total
 
 
+# <a id="vessel-crew-hours-at-sea"></a>
+# ## Vessel-Crew Hours at Sea
+#
+# The number of vessel hours or crew hours at sea for offshore wind power plant simulations.
+#
+# `frequency` options:
+#  - project: computed across the whole simulation
+#  - annual: computed on a yearly basis
+#  - monthly: computed across years on a monthly basis
+#  - month-year: computed on a month-by-year basis
+#
+# `by_equipment` options:
+#  - `True`: computed for each vessel simulated
+#  - `False`: computed only as a sum of all vessels
+#
+# `vessel_crew_assumption`: A dictionary of vessel names (`ServiceEquipment.settings.name`, but also found at `Metrics.service_equipment_names`) and the number of crew onboard at any given time. The application of this assumption transforms the results from vessel hours at sea to crew hours at sea.
+
+# In[24]:
+
+
+# Project total, not broken out by vessel
+metrics.vessel_crew_hours_at_sea(frequency="project", by_equipment=False)
+
+
+# In[25]:
+
+
+# Annual project totals, broken out by vessel
+metrics.vessel_crew_hours_at_sea(frequency="annual", by_equipment=True)
+
+
+# <a id="number-of-tows"></a>
+# ## Number of Tows
+#
+# The number of tows metric will only produce results if any towing actually occurred, otherwise a dataframe with a value of 0 is returned, as is the case in this demonstration.
+#
+# `frequency` options:
+#  - project: computed across the whole simulation
+#  - annual: computed on a yearly basis
+#  - monthly: computed across years on a monthly basis
+#  - month-year: computed on a month-by-year basis
+#
+# `by_tug` options:
+#  - `True`: computed for each tugboat (towing vessel)
+#  - `False`: computed only as a sum of all tugboats
+#
+# `by_direction` options:
+#  - `True`: computed for each direction (to port or to site)
+#  - `False`: computed as a sum for both directions
+
+# In[26]:
+
+
+# Project Total
+# NOTE: This example has no towing, so it will return 0
+metrics.number_of_tows(frequency="project")
+
+
+# <a id="labor-costs"></a>
 # ## Labor Costs
 #
 # Here, we will go through the various input definitions to get the labor cost data.
@@ -302,15 +392,15 @@ total
 #  - `True`: computed across each labor type
 #  - `False`: computed for both labor types used
 
-# In[24]:
+# In[27]:
 
 
 # Project total at the whole windfarm level
 total = metrics.labor_costs(frequency="project", by_type=False)
-print(f"Project total: ${total / metrics.project_capacity:,.2f}/MW")
+print(f"Project total: ${total.values[0][0] / metrics.project_capacity:,.2f}/MW")
 
 
-# In[25]:
+# In[28]:
 
 
 # Project totals for each type of labor
@@ -318,21 +408,21 @@ print(f"Project total: ${total / metrics.project_capacity:,.2f}/MW")
 metrics.labor_costs(frequency="project", by_type=True)
 
 
-# In[26]:
+# In[29]:
 
 
 # Project annual totals for all labor
 metrics.labor_costs(frequency="annual", by_type=False)
 
 
-# In[27]:
+# In[30]:
 
 
 # Project monthly totals for all labor
 metrics.labor_costs(frequency="monthly", by_type=False)
 
 
-# In[28]:
+# In[31]:
 
 
 # Project month-by-year totals for all labor
@@ -340,6 +430,7 @@ metrics.labor_costs(frequency="monthly", by_type=False)
 metrics.labor_costs(frequency="month-year", by_type=False).head(24)
 
 
+# <a id="equipment-and-labor-costs"></a>
 # ## Equipment and Labor Costs
 #
 # Here, we will go through the various input definitions to get the equipment and labor cost data broken out by expense categories.
@@ -364,21 +455,21 @@ metrics.labor_costs(frequency="month-year", by_type=False).head(24)
 #  - No Requests: Equipment and labor is active, but there are no repairs or maintenance tasks to be completed
 #  - Not in Shift: Any time outside of the operating hours of the windfarm
 
-# In[29]:
+# In[32]:
 
 
 # Project totals
 metrics.equipment_labor_cost_breakdowns(frequency="project", by_category=False)
 
 
-# In[30]:
+# In[33]:
 
 
 # Project totals by each category
 metrics.equipment_labor_cost_breakdowns(frequency="project", by_category=True)
 
 
-# In[31]:
+# In[34]:
 
 
 # Project annual totals
@@ -386,7 +477,7 @@ metrics.equipment_labor_cost_breakdowns(frequency="project", by_category=True)
 metrics.equipment_labor_cost_breakdowns(frequency="annual", by_category=False).head(10)
 
 
-# In[32]:
+# In[35]:
 
 
 # Project monthly totals
@@ -394,7 +485,7 @@ metrics.equipment_labor_cost_breakdowns(frequency="annual", by_category=False).h
 metrics.equipment_labor_cost_breakdowns(frequency="monthly", by_category=False).head(10)
 
 
-# In[33]:
+# In[36]:
 
 
 # Project month-by-year totals
@@ -404,7 +495,8 @@ metrics.equipment_labor_cost_breakdowns(frequency="month-year", by_category=Fals
 )
 
 
-# ## Component
+# <a id="component-costs"></a>
+# ## Component Costs
 #
 # Here, we will go through the various input definitions to get the component cost data broken out by various categories.
 #
@@ -432,21 +524,21 @@ metrics.equipment_labor_cost_breakdowns(frequency="month-year", by_category=Fals
 #  - repair: unscheduled maintenance, ranging from inspections to replacements
 #  - delay: Any delays caused by unsafe weather conditions or not being able to finish a process within a single shift
 
-# In[34]:
+# In[37]:
 
 
 # Project totals by component
 metrics.component_costs(frequency="project", by_category=False, by_action=False)
 
 
-# In[35]:
+# In[38]:
 
 
 # Project totals by each category and action type
 metrics.component_costs(frequency="project", by_category=True, by_action=True)
 
 
-# In[36]:
+# In[39]:
 
 
 # Project annual totals by category
@@ -454,7 +546,7 @@ metrics.component_costs(frequency="project", by_category=True, by_action=True)
 metrics.component_costs(frequency="annual", by_category=True, by_action=False).head(28)
 
 
-# In[37]:
+# In[40]:
 
 
 # Project monthly totals
@@ -462,7 +554,7 @@ metrics.component_costs(frequency="annual", by_category=True, by_action=False).h
 metrics.component_costs(frequency="monthly", by_category=True, by_action=False).head(28)
 
 
-# In[38]:
+# In[41]:
 
 
 # Project month-by-year totals
@@ -472,6 +564,7 @@ metrics.component_costs(frequency="month-year", by_category=True, by_action=Fals
 )
 
 
+# <a id="fixed-cost-impacts"></a>
 # ## Fixed Cost Impacts
 #
 # Here, we will go through the various input definitions to get the fixed cost data
@@ -479,52 +572,115 @@ metrics.component_costs(frequency="month-year", by_category=True, by_action=Fals
 # `frequency` options:
 #  - project: computed across the whole simulation
 #  - annual: computed on a yearly basis
+#  - monthly: computed across years on a monthly basis
+#  - month-year: computed on a month-by-year basis
 #
 # `resolution` options:
 #  - high: computed across the lowest itemized cost levels
 #  - medium: computed across overarching cost levels
 #  - low: computed as single total
 
-# In[39]:
+# In[42]:
 
 
 # The resolution hierarchy for fixed costs
 pprint(metrics.fixed_costs.hierarchy)
 
 
-# In[40]:
+# In[43]:
 
 
 # Project totals at the highest level
 metrics.project_fixed_costs(frequency="project", resolution="low")
 
 
-# In[41]:
+# In[44]:
 
 
 # Project totals at the medium level
 metrics.project_fixed_costs(frequency="project", resolution="medium")
 
 
-# In[42]:
+# In[45]:
 
 
 # Project totals at the lowest level
 metrics.project_fixed_costs(frequency="project", resolution="high")
 
 
-# In[43]:
+# In[46]:
 
 
 # Project annualized totals at the medium level
 metrics.project_fixed_costs(frequency="annual", resolution="medium")
 
 
+# In[47]:
+
+
+# Project annualized totals at the low level by month
+metrics.project_fixed_costs(frequency="annual", resolution="low")
+
+
+# In[48]:
+
+
+# Project annualized totals at the low level by year and month
+metrics.project_fixed_costs(frequency="month-year", resolution="low").head(28)
+
+
+# <a id="opex"></a>
+# ## OpEx
+#
+# Here, we will go through the various input definitions to get the project OpEx
+#
+# `frequency` options:
+#  - project: computed across the whole simulation
+#  - annual: computed on a yearly basis
+#  - monthly: computed across years on a monthly basis
+#  - month-year: computed on a month-by-year basis
+
+# In[49]:
+
+
+metrics.opex("project")
+
+
+# In[50]:
+
+
+metrics.opex("annual")
+
+
+# In[51]:
+
+
+metrics.opex("monthly")
+
+
+# In[52]:
+
+
+metrics.opex("month-year").head(28)
+
+
+# In[53]:
+
+
+port_fees = pd.DataFrame(
+    [],
+    columns=["port_fees"],
+    index=metrics.labor_costs(frequency="month-year", by_type=False).index,
+)
+port_fees.fillna(0)
+
+
+# <a id="process-times"></a>
 # ## Process Times
 #
 # There are no inputs for the process timing as it is a slow calculation, so aggregation is left to the user for now. The results corresond to the number of hours required to complete any of the repair or maintenance activities.
 
-# In[44]:
+# In[54]:
 
 
 # Project totals at the project level
@@ -532,6 +688,7 @@ total = metrics.process_times()
 total
 
 
+# <a id="power-production"></a>
 # ## Power Production
 #
 # Here, we will go through the various input definitions to get the power production data.
@@ -546,7 +703,7 @@ total
 #  - `True`: computed for each turbines
 #  - `False`: computed for the whole windfarm
 
-# In[45]:
+# In[55]:
 
 
 # Project total at the whole windfarm level
@@ -554,28 +711,28 @@ total = metrics.power_production(frequency="project", by_turbine=False)
 total
 
 
-# In[46]:
+# In[56]:
 
 
 # Project totals at the turbine level
 metrics.power_production(frequency="project", by_turbine=True)
 
 
-# In[47]:
+# In[57]:
 
 
 # Project annual totals for the windfarm
 metrics.power_production(frequency="annual", by_turbine=False)
 
 
-# In[48]:
+# In[58]:
 
 
 # Project monthly totals for the windfarm
 metrics.power_production(frequency="monthly", by_turbine=False)
 
 
-# In[49]:
+# In[59]:
 
 
 # Project month-by-year totals for the windfarm
@@ -583,6 +740,46 @@ metrics.power_production(frequency="monthly", by_turbine=False)
 metrics.power_production(frequency="month-year", by_turbine=False).head(24)
 
 
+# <a id="net-present-value"></a>
+# ## Net Present Value
+#
+# Here, we will go through the various input definitions to get the project NPV
+#
+# `frequency` options:
+#  - project: computed across the whole simulation
+#  - annual: computed on a yearly basis
+#  - monthly: computed across years on a monthly basis
+#  - month-year: computed on a month-by-year basis
+#
+# `discount_rate`: The rate of return that could be earned on alternative investments, by default 0.025.
+#
+# `offtake_price`: Price of energy, per MWh, by default 80.
+
+# In[60]:
+
+
+metrics.npv("project")
+
+
+# In[61]:
+
+
+metrics.opex("annual")
+
+
+# In[62]:
+
+
+metrics.opex("monthly")
+
+
+# In[63]:
+
+
+metrics.opex("month-year").head(28)
+
+
+# <a id="pysam-powered-results"></a>
 # ## PySAM-Powered Results
 #
 # For a number of project financial metrics, the PySAM library is utilized.
@@ -595,7 +792,7 @@ metrics.power_production(frequency="month-year", by_turbine=False).head(24)
 #
 # ### Net Present Value (NPV)
 
-# In[50]:
+# In[64]:
 
 
 try:
@@ -607,7 +804,7 @@ except NotImplementedError as e:
 
 # ### Real Levelized Cost of Energy (LCOE)
 
-# In[51]:
+# In[65]:
 
 
 try:
@@ -619,7 +816,7 @@ except NotImplementedError as e:
 
 # ### Nominal Levelized Cost of Energy (LCOE)
 
-# In[52]:
+# In[66]:
 
 
 try:
@@ -631,7 +828,7 @@ except NotImplementedError as e:
 
 # ### After-tax Internal Return Rate (IRR)
 
-# In[53]:
+# In[67]:
 
 
 try:
@@ -645,24 +842,13 @@ except NotImplementedError as e:
 #
 # For this demonstration we will manually load a PySAM settings file and trigger the setup for demonstration purposes, but it should be noted that this practice should be avoided.
 
-# In[54]:
+# In[68]:
 
 
-SAM_settings = "SAM_Singleowner_defaults.yaml"
-metrics.sam_settings = load_yaml(sim.env.data_dir / "windfarm", SAM_settings)
-metrics._setup_pysam()
-
-
-# In[55]:
-
-
-metrics.pysam_all_outputs()
-
-
-# In[56]:
-
-
-sim.env.cleanup_log_files(log_only=False)
+try:
+    metrics.pysam_all_outputs()
+except NotImplementedError as e:
+    print(e)
 
 
 # In[ ]:

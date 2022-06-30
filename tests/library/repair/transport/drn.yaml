@@ -7,7 +7,7 @@ onsite: false
 capability: DRN
 mobilization_cost: 0
 mobilization_days: 0
-speed: 0
+speed: 10
 max_windspeed_transport: 99
 max_windspeed_repair: 99
 max_waveheight_transport: 99

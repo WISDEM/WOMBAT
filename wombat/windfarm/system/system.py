@@ -10,14 +10,7 @@ import pandas as pd
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.utilities import IEC_power_curve
 from wombat.windfarm.system import Subassembly
-
-
-try:  # pylint: disable=duplicate-code
-    from functools import cache  # type: ignore
-except ImportError:  # pylint: disable=duplicate-code
-    from functools import lru_cache  # pylint: disable=duplicate-code
-
-    cache = lru_cache(None)  # pylint: disable=duplicate-code
+from wombat.utilities.utilities import cache, create_variable_from_string
 
 
 @cache
@@ -86,16 +79,14 @@ class System:
         self.servicing = False
         self.cable_failure = False
         self.capacity = subassemblies["capacity_kw"]
+        self.subassemblies: list[Subassembly] = []
 
         system = system.lower().strip()
         self._calculate_system_value(subassemblies)
-        if system == "turbine":
-            self._create_turbine_subassemblies(subassemblies)
-            self._initialize_power_curve(subassemblies.get("power_curve", None))
-        elif system == "substation":
-            self._create_substation_subassemblies(subassemblies)
-        else:
+        if system not in ("turbine", "substation"):
             raise ValueError("'system' must be one of 'turbine' or 'substation'!")
+
+        self._create_subassemblies(subassemblies, system)
 
     def _calculate_system_value(self, subassemblies: dict) -> None:
         """Calculates the turbine's value based its capex_kw and capacity.
@@ -109,7 +100,7 @@ class System:
         """
         self.value = subassemblies["capacity_kw"] * subassemblies["capex_kw"]
 
-    def _create_turbine_subassemblies(self, subassembly_data: dict) -> None:
+    def _create_subassemblies(self, subassembly_data: dict, system: str) -> None:
         """Creates each subassembly as a separate attribute and also a list for quick
         access.
 
@@ -117,150 +108,26 @@ class System:
         ----------
         subassembly_data : dict
             Dictionary providing the maintenance and failure definitions for at least
-            one of the following subassemblies:
-             - electrical_system
-             - electronic_control
-             - sensors
-             - hydraulic_system
-             - yaw_system
-             - rotor_blades
-             - mechanical_brake
-             - rotor_hub
-             - gearbox
-             - generator
-             - supporting_structure
-             - drive_train
+            one subassembly named
+        system : str
+            One of "turbine" or "substation" to indicate if the power curves should also
+            be created, or not.
         """
-        subassembly_list = [
-            "electrical_system",
-            "electronic_control",
-            "sensors",
-            "hydraulic_system",
-            "yaw_system",
-            "rotor_blades",
-            "mechanical_brake",
-            "rotor_hub",
-            "gearbox",
-            "generator",
-            "supporting_structure",
-            "drive_train",
-        ]
-
-        # define the subassemblies  source: http://www.ecs.umass.edu/~arwade/wind_reliability.pdf
-        self.subassemblies: list[Subassembly] = []
-
-        # Check if the subassembly definition has been provided in the defintion
-        # file, and if not, then skip it and move to the next subassembly
-        try:
-            self.electrical_system = Subassembly(
-                self,
-                self.env,
-                "electrical_system",
-                subassembly_data["electrical_system"],
-            )
-            self.subassemblies.append(self.electrical_system)
-        except KeyError:
-            pass
-
-        try:
-            self.electronic_control = Subassembly(
-                self,
-                self.env,
-                "electronic_control",
-                subassembly_data["electronic_control"],
-            )
-            self.subassemblies.append(self.electronic_control)
-        except KeyError:
-            pass
-
-        try:
-            self.sensors = Subassembly(
-                self, self.env, "sensors", subassembly_data["sensors"]
-            )
-            self.subassemblies.append(self.sensors)
-        except KeyError:
-            pass
-
-        try:
-            self.hydraulic_system = Subassembly(
-                self, self.env, "hydraulic_system", subassembly_data["hydraulic_system"]
-            )
-            self.subassemblies.append(self.hydraulic_system)
-        except KeyError:
-            pass
-
-        try:
-            self.yaw_system = Subassembly(
-                self, self.env, "yaw_system", subassembly_data["yaw_system"]
-            )
-            self.subassemblies.append(self.yaw_system)
-        except KeyError:
-            pass
-
-        try:
-            self.rotor_blades = Subassembly(
-                self, self.env, "rotor_blades", subassembly_data["rotor_blades"]
-            )
-            self.subassemblies.append(self.rotor_blades)
-        except KeyError:
-            pass
-
-        try:
-            self.mechanical_brake = Subassembly(
-                self, self.env, "mechanical_brake", subassembly_data["mechanical_brake"]
-            )
-            self.subassemblies.append(self.mechanical_brake)
-        except KeyError:
-            pass
-
-        try:
-            self.rotor_hub = Subassembly(
-                self, self.env, "rotor_hub", subassembly_data["rotor_hub"]
-            )
-            self.subassemblies.append(self.rotor_hub)
-        except KeyError:
-            pass
-
-        try:
-            self.gearbox = Subassembly(
-                self, self.env, "gearbox", subassembly_data["gearbox"]
-            )
-            self.subassemblies.append(self.gearbox)
-        except KeyError:
-            pass
-
-        try:
-            self.generator = Subassembly(
-                self, self.env, "generator", subassembly_data["generator"]
-            )
-            self.subassemblies.append(self.generator)
-        except KeyError:
-            pass
-
-        try:
-            self.supporting_structure = Subassembly(
-                self,
-                self.env,
-                "supporting_structure",
-                subassembly_data["supporting_structure"],
-            )
-            self.subassemblies.append(self.supporting_structure)
-        except KeyError:
-            pass
-
-        try:
-            self.drive_train = Subassembly(
-                self, self.env, "drive_train", subassembly_data["drive_train"]
-            )
-            self.subassemblies.append(self.drive_train)
-        except KeyError:
-            pass
+        # Set the subassembly data variables from the remainder of the keys in the
+        # system configuration file/dictionary
+        exclude_keys = ["capacity_kw", "capex_kw", "power_curve"]
+        for key, data in subassembly_data.items():
+            if key in exclude_keys:
+                continue
+            name = create_variable_from_string(key)
+            subassembly = Subassembly(self, self.env, name, data)
+            setattr(self, name, subassembly)
+            self.subassemblies.append(getattr(self, name))
 
         if self.subassemblies == []:
             raise ValueError(
-                "No subassembly data provided in the turbine configuration. At least"
-                " defintion for the following subassemblies must be provided:"
-                f" {subassembly_list}"
+                "At least one subassembly definition requred for ",
+                f"ID: {self.id}, Name: {self.name}.",
             )
 
         self.env.log_action(
@@ -274,7 +141,11 @@ class System:
             additional="initialization",
         )
 
-    def _initialize_power_curve(self, power_curve_dict: dict) -> None:
+        # If the system is a turbine, create the power curve, if available
+        if system == "turbine":
+            self._initialize_power_curve(subassembly_data.get("power_curve", None))
+
+    def _initialize_power_curve(self, power_curve_dict: dict | None) -> None:
         """Creates the power curve function based on the ``power_curve`` input in the
         ``subassembly_data`` dictionary. If there is no valid input, then 0 will always
         be reutrned.
@@ -302,41 +173,6 @@ class System:
                 windspeed_end=power_curve.windspeed_ms.max(),
                 bin_width=bin_width,
             )
-
-    def _create_substation_subassemblies(self, subassembly_data: dict) -> None:
-        """Creates each subassembly as a separate attribute and also a list for quick
-        access.
-
-        Parameters
-        ----------
-        subassembly_data : dict
-            Dictionary containing the transformer maintenance and failure configurations.
-        """
-        self.subassemblies = []
-        try:
-            self.transformer = Subassembly(
-                self, self.env, "transformer", subassembly_data["transformer"]
-            )
-            self.subassemblies = [self.transformer]
-        except KeyError:
-            pass
-
-        if self.subassemblies == []:
-            raise ValueError(
-                "No subassembly data provided in the substation configuration; a"
-                " transformer definition must be provided."
-            )
-
-        self.env.log_action(
-            system_id=self.id,
-            system_name=self.name,
-            system_ol=self.operating_level,
-            part_ol=1,
-            agent=self.name,
-            action="subassemblies created",
-            reason="windfarm initialization",
-            additional="initialization",
-        )
 
     def interrupt_all_subassembly_processes(self) -> None:
         """Interrupts the running processes in all of the system's subassemblies."""

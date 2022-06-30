@@ -16,6 +16,40 @@ from wombat.core import FixedCosts
 from wombat.core.library import load_yaml
 
 
+def _check_frequency(frequency: str, which: str = "all") -> str:
+    """Checks the frequency input to ensure it meets the correct criteria according
+    to the ``which`` flag.
+
+    Parameters
+    ----------
+    frequency : str
+        The user-provided value.
+    which : str, optional
+        Designation for which combinations to check for, by default "all".
+        - "all": project, annual, monthly, adn month-year
+
+    Returns
+    -------
+    str
+        The lower-case, input with white spaces removed.
+
+    Raises
+    ------
+    ValueError
+        Raised if an invalid value was raised
+    """
+    if which == "all":
+        opts = ("project", "annual", "monthly", "month-year")  # type: ignore
+    elif which == "monthly":
+        opts = ("project", "annual", "monthly")  # type: ignore
+    elif which == "annual":  # type: ignore
+        opts = ("project", "annual")  # type: ignore
+    frequency = frequency.lower().strip()  # type: ignore
+    if frequency not in opts:
+        raise ValueError(f"``frequency`` must be one of {opts}.")  # type: ignore
+    return frequency
+
+
 def _calculate_time_availability(
     availability: np.ndarray, by_turbine: bool = False
 ) -> float | np.ndarray:
@@ -141,6 +175,10 @@ class Metrics:
             that should end in ".yaml". If no input is provided, then the model will
             raise a ``NotImplementedError`` when the SAM-powered metrics are attempted to
             be accessed.
+
+            ... warning:: This functionality relies heavily on the user to configure
+                correctly. More information can be found at:
+                https://nrel-pysam.readthedocs.io/en/master/modules/Singleowner.html
         """
         self.data_dir = Path(data_dir)
         if not self.data_dir.is_dir():
@@ -355,11 +393,7 @@ class Metrics:
         float | pd.DataFrame
             The time-based availability at the desired aggregation level.
         """
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual", "monthly", "month-year"):
-            raise ValueError(
-                '``frequency`` must be one of "project", "annual", "monthly", or "month-year".'
-            )
+        frequency = _check_frequency(frequency, which="all")
 
         by = by.lower().strip()
         if by not in ("windfarm", "turbine"):
@@ -437,11 +471,7 @@ class Metrics:
         float | pd.DataFrame
             The production-based availability at the desired aggregation level.
         """
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual", "monthly", "month-year"):
-            raise ValueError(
-                '``frequency`` must be one of "project", "annual", "monthly", or "month-year".'
-            )
+        frequency = _check_frequency(frequency, which="all")
 
         by = by.lower().strip()
         if by not in ("windfarm", "turbine"):
@@ -464,14 +494,11 @@ class Metrics:
             )
             return availability
 
-        production[["year", "month"]] = [
-            production.index.year.values.reshape(-1, 1),
-            production.index.month.values.reshape(-1, 1),
-        ]
-        potential[["year", "month"]] = [
-            potential.index.year.values.reshape(-1, 1),
-            potential.index.month.values.reshape(-1, 1),
-        ]
+        production["year"] = production.index.year.values
+        production["month"] = production.index.month.values
+
+        potential["year"] = potential.index.year.values
+        potential["month"] = potential.index.month.values
 
         if frequency == "annual":
             production = production.groupby("year").sum()[self.turbine_id]
@@ -522,11 +549,7 @@ class Metrics:
         if which not in ("net", "gross"):
             raise ValueError('``which`` must be one of "net" or "gross".')
 
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual", "monthly", "month-year"):
-            raise ValueError(
-                '``frequency`` must be one of "project", "annual", "monthly", or "month-year".'
-            )
+        frequency = _check_frequency(frequency, which="all")
 
         by = by.lower().strip()
         if by not in ("windfarm", "turbine"):
@@ -601,11 +624,7 @@ class Metrics:
                 '``which`` must be one of "scheduled", "unscheduled", or "both".'
             )
 
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual", "monthly", "month-year"):
-            raise ValueError(
-                '``frequency`` must be one of "project", "annual", "monthly", or "month-year".'
-            )
+        frequency = _check_frequency(frequency, which="all")
 
         if which == "scheduled":
             task_filter = ["maintenance"]
@@ -674,6 +693,8 @@ class Metrics:
     ) -> float | pd.DataFrame:
         """Calculates the equipment costs for the simulation at a project, annual, or
         monthly level with (or without) respect to equipment utilized in the simulation.
+        This excludes any port fees that might apply, which are included in:
+        ``port_fees``.
 
         Parameters
         ----------
@@ -699,11 +720,7 @@ class Metrics:
         ValueError
             If ``by_equipment`` is not one of ``True`` or ``False``.
         """
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual", "monthly", "month-year"):
-            raise ValueError(
-                '``frequency`` must be one of "project", "annual", or "monthly".'
-            )
+        frequency = _check_frequency(frequency, which="all")
 
         if not isinstance(by_equipment, bool):
             raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
@@ -715,10 +732,11 @@ class Metrics:
         elif frequency == "month-year":
             col_filter = ["year", "month"]
 
+        events = self.events.loc[self.events.action != "monthly lease fee"]
         if by_equipment:
             if frequency == "project":
                 costs = (
-                    self.events[self.events[self._equipment_cost] > 0]
+                    events[events[self._equipment_cost] > 0]
                     .groupby(["agent"])
                     .sum()[[self._equipment_cost]]
                     .fillna(0)
@@ -734,7 +752,7 @@ class Metrics:
 
             col_filter = ["agent"] + col_filter
             costs = (
-                self.events[self.events[self._equipment_cost] > 0]
+                events[events[self._equipment_cost] > 0]
                 .groupby(col_filter)
                 .sum()[[self._equipment_cost]]
                 .reset_index(level=0)
@@ -751,15 +769,23 @@ class Metrics:
             return costs.fillna(value=0)
 
         if frequency == "project":
-            return self.events[self._equipment_cost].sum()
+            return pd.DataFrame(
+                [events[self._equipment_cost].sum()], columns=[self._equipment_cost]
+            )
 
-        costs = self.events.groupby(col_filter).sum()[[self._equipment_cost]]
+        costs = events.groupby(col_filter).sum()[[self._equipment_cost]]
         return costs.fillna(0)
 
     def service_equipment_utilization(self, frequency: str) -> pd.DataFrame:
         """Calculates the utilization rate for each of the service equipment in the
         simulation  as the ratio of total number of days each of the servicing
-        equipment is in operation over the total number of days in the simulation.
+        equipment is in operation over the total number of days it's present in the
+        simulation. This number excludes mobilization time and the time between
+        visits for scheduled servicing equipment strategies.
+
+        .. note:: For tugboats in a tow-to-port scenario, this ratio will be near
+        100% because they are considered to be operating on an as-needed basis per the
+        port contracting assumptions
 
         Parameters
         ----------
@@ -776,13 +802,20 @@ class Metrics:
         ValueError
             If ``frequency`` is not one of "project" or "annual".
         """
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual"):
-            raise ValueError('``frequency`` must be one of "project" or "annual".')
+        frequency = _check_frequency(frequency, which="annual")
 
         operation_days = []
         total_days = []
-        operating_filter = self.events.action.isin(["repair", "maintenance"])
+        operating_actions = [
+            "traveling",  # traveling between port/site or on-site
+            "repair",
+            "maintenance",
+            "delay",  # performing work
+            "unmooring",
+            "mooring_reconnection",
+            "towing",  # tugboat classifications
+        ]
+        operating_filter = self.events.action.isin(operating_actions)
         return_filter = self.events.action == "delay"
         return_filter &= self.events.reason == "work is complete"
         return_filter &= self.events.additional == "will return next year"
@@ -828,6 +861,340 @@ class Metrics:
             return pd.DataFrame(operating_df / total_df).T
         return operating_df / total_df
 
+    def vessel_crew_hours_at_sea(
+        self,
+        frequency: str,
+        by_equipment: bool = False,
+        vessel_crew_assumption: dict[str, float] = {},
+    ) -> pd.DataFrame:
+        """Calculates the total number of crew hours at sea that occurred during a
+        simulation at a project, annual, or monthly level that can be broken out by
+        servicing equipment. This includes time mobilizing, delayed at sea, servicing,
+        towing, and traveling.
+
+        ... note:: This metric is intended to be used for offshore wind simulations.
+
+        Parameters
+        ----------
+        frequency : str
+            One of "project", "annual", "monthly", or "month-year".
+        by_equipment : bool, optional
+            Indicates whether the values are with resepect to each tugboat (True) or not
+            (False), by default False.
+        vessel_crew_assumption : dict[str, float], optional
+            Dictionary of vessel names (``ServiceEquipment.settings.name``) and number
+            of crew members aboard to trannsform the results from vessel hours at sea
+            to crew hours at sea.
+
+        Returns
+        -------
+        pd.DataFrame
+            Returns a pandas ``DataFrame`` with columns:
+
+             - year (if appropriate for frequency)
+             - month (if appropriate for frequency)
+             - Total Crew Hours at Sea
+             - {ServiceEquipment.settings.name} (if broken out)
+
+        Raises
+        ------
+        ValueError
+            If ``frequency`` is not one of "project", "annual", "monthly", or "month-year".
+        ValueError
+            If ``by_equipment`` is not one of ``True`` or ``False``.
+        ValueError
+            If ``vessel_crew_assumption`` is not a dictionary.
+        """
+        frequency = _check_frequency(frequency, which="all")
+
+        if not isinstance(by_equipment, bool):
+            raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
+
+        if not isinstance(vessel_crew_assumption, dict):
+            raise ValueError(
+                "`vessel_crew_assumption` must be a dictionary of vessel name (keys) and number of crew (values)"
+            )
+
+        # Filter by the at sea indicators and required columns
+        at_sea = self.events
+        at_sea = at_sea.loc[
+            at_sea.location.isin(("enroute", "site", "system"))
+            & at_sea.agent.isin(self.service_equipment_names),
+            ["agent", "year", "month", "action", "reason", "additional", "duration"],
+        ].reset_index(drop=True)
+
+        # Create a shell for the final results
+        total_hours = self.events.groupby(["year", "month"]).count()[["env_time"]]
+        total_hours = total_hours.reset_index().rename(columns={"env_time": "N"})
+        total_hours.N = 0
+
+        # Apply the vessel crew assumptions
+        vessels = at_sea.agent.unique()
+        if vessel_crew_assumption != {}:
+            for name, n_crew in vessel_crew_assumption.items():
+                if name not in vessels:
+                    print(f"{name} not a valid `agent`")
+                    continue
+                ix_vessel = at_sea.agent == name
+                at_sea.loc[ix_vessel, "duration"] *= n_crew
+
+        group_cols = ["agent"]
+        columns = ["Total Crew Hours at Sea"] + vessels.tolist()
+        if not by_equipment:
+            group_cols.pop(0)
+            columns = ["Total Crew Hours at Sea"]
+            at_sea = at_sea.groupby(["year", "month"]).sum()[["duration"]].reset_index()
+
+        if frequency == "project":
+            total_hours = pd.DataFrame([[0]], columns=["duration"])
+            if by_equipment:
+                total_hours = (
+                    at_sea.groupby(["agent"])
+                    .sum()[["duration"]]
+                    .T.reset_index(drop=True)
+                )
+                total_hours.loc[:, "Total Crew Hours at Sea"] = total_hours.sum().sum()
+                return total_hours[columns]
+            else:
+                return pd.DataFrame(at_sea.sum()[["duration"]]).T.rename(
+                    columns={"duration": "Total Crew Hours at Sea"}
+                )
+
+        elif frequency == "annual":
+            additional_cols = ["year"]
+            total_hours = total_hours.groupby("year")[["N"]].sum()
+        elif frequency == "monthly":
+            additional_cols = ["month"]
+            total_hours = total_hours.groupby("month")[["N"]].sum()
+        elif frequency == "month-year":
+            additional_cols = ["year", "month"]
+            total_hours = total_hours.groupby(["year", "month"])[["N"]].sum()
+
+        columns = additional_cols + columns
+        group_cols.extend(additional_cols)
+        at_sea = at_sea.groupby(group_cols).sum()[["duration"]]
+        if by_equipment:
+            total = []
+            for v in vessels:
+                total.append(at_sea.loc[v].rename(columns={"duration": v}))
+            total_hours = total_hours.join(
+                pd.concat(total, axis=1), how="outer"
+            ).fillna(0)
+            total_hours.N = total_hours.sum(axis=1)
+            total_hours = total_hours.rename(
+                columns={"N": "Total Crew Hours at Sea"}
+            ).reset_index()[columns]
+            return total_hours
+
+        return at_sea.reset_index().rename(
+            columns={"duration": "Total Crew Hours at Sea"}
+        )
+
+    def number_of_tows(
+        self, frequency: str, by_tug: bool = False, by_direction: bool = False
+    ) -> float | pd.DataFrame:
+        """Calculates the total number of tows that occurred during a simulation at a
+        project, annual, or monthly level that can be broken out by tugboat.
+
+        Parameters
+        ----------
+        frequency : str
+            One of "project", "annual", "monthly", or "month-year".
+        by_tug : bool, optional
+            Indicates whether the values are with resepect to each tugboat (True) or not
+            (False), by default False.
+        by_direction : bool, optional
+            Indicates whether the values are with respect to the direction a turbine is
+            towed (True) or not (False), by default False.
+
+        Returns
+        -------
+        float | pd.DataFrame
+            Returns either a float for whole project-level costs or a pandas ``DataFrame``
+            with columns:
+
+             - year (if appropriate for frequency)
+             - month (if appropriate for frequency)
+             - total_tows
+             - total_tows_to_port (if broken out)
+             - total_tows_to_site (if broken out)
+             - {ServiceEquipment.settings.name}_total_tows (if broken out)
+             - {ServiceEquipment.settings.name}_to_port (if broken out)
+             - {ServiceEquipment.settings.name}_to_site (if broken out)
+
+        Raises
+        ------
+        ValueError
+            If ``frequency`` is not one of "project", "annual", "monthly", or "month-year".
+        ValueError
+            If ``by_tug`` is not one of ``True`` or ``False``.
+        ValueError
+            If ``by_direction`` is not one of ``True`` or ``False``.
+        """
+        frequency = _check_frequency(frequency, which="all")
+
+        if not isinstance(by_tug, bool):
+            raise ValueError("``by_tug`` must be one of ``True`` or ``False``")
+
+        if not isinstance(by_direction, bool):
+            raise ValueError("``by_direction`` must be one of ``True`` or ``False``")
+
+        # Filter out only the towing events
+        towing = self.events.loc[self.events.action == "towing"]
+        if towing.shape[0] == 0:
+            # If this is accessed in an in-situ only scenario, or no tows were activated
+            # then return back 0
+            return pd.DataFrame([[0]], columns=["total_tows"])
+        towing.loc[:, "direction"] = "to_site"
+        ix_to_port = towing.reason.str.contains("triggered tow-to-port")
+        towing.loc[ix_to_port, "direction"] = "to_port"
+
+        # Get the unique directions and tugboat names
+        direction_suffix = ("to_port", "to_site")
+        tugboats = towing.agent.unique().tolist()
+
+        # Create the final column names
+        columns = ["total_tows"]
+        if by_direction:
+            columns.extend([f"{c}_{s}" for c in columns for s in direction_suffix])
+
+        if by_tug:
+            tug_columns = [f"{t}_total_tows" for t in tugboats]
+            if by_direction:
+                _columns = [f"{t}_{s}" for t in tugboats for s in direction_suffix]
+                tug_columns.extend(_columns)
+                tug_columns.sort()
+            columns.extend(tug_columns)
+
+        # Count the total number of tows by each possibly category
+        n_tows = towing.groupby(["agent", "year", "month", "direction"]).count()
+        n_tows = n_tows.rename(columns={"env_time": "N"})["N"].reset_index()
+
+        # Create a shell for the total tows
+        total_tows = self.events.groupby(["year", "month"]).count()["env_time"]
+        total_tows = total_tows.reset_index().rename(columns={"env_time": "N"})
+        total_tows.N = 0
+
+        # Create the correct time frequency for the number of tows and shell total
+        group_cols = ["agent", "direction"]
+        if frequency == "project":
+            n_tows = n_tows.groupby(group_cols).sum()[["N"]]
+
+            # If no further work is required, then return the sum as a 1x1 data frame
+            if not by_tug and not by_direction:
+                return pd.DataFrame(
+                    [n_tows.reset_index().N.sum()], columns=["total_tows"]
+                )
+
+            total_tows = pd.DataFrame([[0]], columns=["N"])
+        elif frequency == "annual":
+            columns = ["year"] + columns
+            group_cols.append("year")
+            n_tows = n_tows.groupby(group_cols).sum()[["N"]]
+            total_tows = total_tows.groupby(["year"]).sum()[["N"]].reset_index()
+        elif frequency == "monthly":
+            group_cols.append("month")
+            columns = ["month"] + columns
+            n_tows = n_tows.groupby(group_cols).sum()[["N"]]
+            total_tows = total_tows.groupby(["month"]).sum()[["N"]].reset_index()
+        elif frequency == "month-year":
+            # Already have month-year by default, so skip the n_tows refinement
+            group_cols.extend(["year", "month"])
+            columns = ["year", "month"] + columns
+            n_tows = n_tows.set_index(group_cols, drop=True)
+
+        # Create a list of the columns needed for creating the broken down totals
+        if frequency == "project":
+            total_cols = ["N"]
+        else:
+            total_cols = total_tows.drop(columns=["N"]).columns.tolist()
+
+        # Sum the number of tows by tugboat, if needed
+        if by_tug:
+            tug_sums = []
+            for tug in tugboats:
+                tug_sum = n_tows.loc[tug]
+                tug_sums.append(tug_sum.rename(columns={"N": tug}))
+            tug_sums_by_direction = pd.concat(tug_sums, axis=1).fillna(0)
+
+            if frequency == "project":
+                tug_sums = pd.DataFrame(tug_sums_by_direction.sum()).T
+            else:
+                tug_sums = tug_sums_by_direction.reset_index().groupby(total_cols).sum()
+            assert isinstance(tug_sums, pd.DataFrame)  # mypy checking
+            tug_sums = tug_sums.rename(
+                columns=dict((t, f"{t}_total_tows") for t in tug_sums.columns)
+            )
+            assert isinstance(tug_sums, pd.DataFrame)  # mypy checking
+            total = pd.DataFrame(
+                tug_sums.sum(axis=1), columns=["total_tows"]
+            ).reset_index()
+        else:
+            if not by_direction:
+                # Sum the totals, then merge the results with the shell data frame,
+                # and cleanup the columns
+                total = n_tows.reset_index().groupby(total_cols).sum().reset_index()
+                total_tows = total_tows.merge(total, on=total_cols, how="outer")
+                total_tows = total_tows.fillna(0).rename(columns={"N_y": "total_tows"})
+                return total_tows[columns]
+            else:
+                total = (
+                    n_tows.groupby(total_cols)
+                    .sum()
+                    .reset_index()
+                    .rename(columns={"N": "total_tows"})
+                )
+
+        # Create the full total tows data
+        if frequency == "project":
+            if "index" in total.columns:
+                total_tows = total.drop(columns=["index"])
+        else:
+            total_tows = (
+                total_tows.merge(total, how="outer").drop(columns=["N"]).fillna(0)
+            )
+            total_tows = total_tows.set_index(total_cols)
+
+        # Get the sums by each direction towed, if needed
+        if by_direction:
+            if frequency == "project":
+                direction_sums = n_tows.reset_index().groupby("direction").sum()
+                for s in direction_suffix:
+                    total_tows.loc[:, f"total_tows_{s}"] = direction_sums.loc[s, "N"]
+            else:
+                direction_sums = (
+                    n_tows.reset_index().groupby(["direction"] + total_cols).sum()
+                )
+                for s in direction_suffix:
+                    total_tows = total_tows.join(
+                        direction_sums.loc[s].rename(columns={"N": f"total_tows_{s}"})
+                    ).fillna(0)
+
+            # Add in the tugboat breakdown as needed
+            if by_tug:
+                total_tows = total_tows.join(tug_sums, how="outer").fillna(0)
+                for s in direction_suffix:
+                    if frequency == "project":
+                        _total = pd.DataFrame(
+                            tug_sums_by_direction.loc[s]
+                        ).T.reset_index(drop=True)
+                    else:
+                        _total = tug_sums_by_direction.loc[s]
+                    total_tows = total_tows.join(
+                        _total.rename(columns=dict((t, f"{t}_{s}") for t in tugboats)),
+                        how="outer",
+                    ).fillna(0)
+                return total_tows.reset_index()[columns]
+            total_tows.N = total_tows.sum(axis=1)
+            return total_tows.rename(columns={"N": "total_tows"}).reset_index()[columns]
+
+        if by_tug:
+            return (
+                total_tows.join(tug_sums, how="outer").fillna(0).reset_index()[columns]
+            )
+
+        return total_tows.reset_index()[columns]
+
     def labor_costs(
         self, frequency: str, by_type: bool = False
     ) -> float | pd.DataFrame:
@@ -861,14 +1228,10 @@ class Metrics:
         ValueError
             If ``by_type`` is not one of ``True`` or ``False``.
         """
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual", "monthly", "month-year"):
-            raise ValueError(
-                '``frequency`` must be one of "project", "annual", "monthly", or "month-year".'
-            )
+        frequency = _check_frequency(frequency, which="all")
 
         if not isinstance(by_type, bool):
-            raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
+            raise ValueError("``by_type`` must be one of ``True`` or ``False``")
 
         labor_cols = [self._hourly_cost, self._salary_cost, self._labor_cost]
         if frequency == "project":
@@ -877,7 +1240,7 @@ class Metrics:
                 columns=labor_cols,
             )
             if not by_type:
-                return costs[self._labor_cost].values[0]
+                return costs[[self._labor_cost]]
             return costs
 
         if frequency == "annual":
@@ -928,11 +1291,7 @@ class Metrics:
         ValueError
             If ``by_category`` is not one of ``True`` or ``False``.
         """
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual", "monthly", "month-year"):
-            raise ValueError(
-                '``frequency`` must be one of "project", "annual", or "monthly".'
-            )
+        frequency = _check_frequency(frequency, which="all")
         if not isinstance(by_category, bool):
             raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
 
@@ -1111,34 +1470,33 @@ class Metrics:
         delays and shift-to-shift delays. In the future these will be disentangled.
 
         """
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual", "monthly", "month-year"):
-            raise ValueError(
-                '``frequency`` must be one of "project", "annual", or "monthly".'
-            )
+        frequency = _check_frequency(frequency, which="all")
         if not isinstance(by_category, bool):
             raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
         if not isinstance(by_action, bool):
             raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
 
-        events = deepcopy(self.events)
-        events = events[~events.part_id.isna()]
+        events = self.events.loc[~self.events.part_id.isna()].copy()
 
         # Need to simplify the cable identifiers to not include the connection information
-        events["component"] = [el.split("::")[0] for el in events.part_id.values]
-
-        cost_cols = ["total_cost"]
-        if by_category:
-            cost_cols[0:0] = ["materials_cost", "total_labor_cost", "equipment_cost"]
+        events.loc[:, "component"] = [el.split("::")[0] for el in events.part_id.values]
 
         group_filter = []
         if frequency == "annual":
-            group_filter = ["year"]
+            group_filter.extend(["year"])
         elif frequency == "monthly":
-            group_filter = ["month"]
+            group_filter.extend(["month"])
         elif frequency == "month-year":
-            group_filter = ["year", "month"]
+            group_filter.extend(["year", "month"])
+
         group_filter.append("component")
+        cost_cols = ["total_cost"]
+        if by_category:
+            cost_cols[0:0] = [
+                self._materials_cost,
+                self._labor_cost,
+                self._equipment_cost,
+            ]
 
         if by_action:
             repair_map = {
@@ -1161,12 +1519,12 @@ class Metrics:
         zeros = np.zeros(len(cost_cols)).tolist()
         costs = events.groupby(group_filter).sum()[cost_cols].reset_index()
         if not by_action:
-            costs["action"] = np.zeros(costs.shape[0])
+            costs.loc[:, "action"] = np.zeros(costs.shape[0])
             cols = costs.columns.to_list()
             _ix = cols.index("component") + 1
             cols[_ix:_ix] = ["action"]
             cols.pop(-1)
-            costs = costs[cols]
+            costs = costs.loc[:, cols]
         if frequency in ("annual", "month-year"):
             years = costs.year.unique()
             components = costs.component.unique()
@@ -1213,8 +1571,53 @@ class Metrics:
                 if costs.loc[row_filter].size > 0:
                     continue
                 costs.loc[costs.shape[0]] = row
-        costs = costs.sort_values(group_filter)[group_filter + cost_cols]
-        return costs.reset_index(drop=True).set_index(group_filter)
+        sort_cols = group_filter + cost_cols
+        if group_filter != []:
+            costs = costs.sort_values(group_filter)
+        if sort_cols != []:
+            costs = costs.loc[:, sort_cols]
+        costs = costs.reset_index(drop=True)
+        return costs if group_filter == [] else costs.set_index(group_filter)
+
+    def port_fees(self, frequency: str) -> pd.DataFrame:
+        """Calculates the port fees for the simulation at a project, annual, or monthly
+        level. This excludes any equipment or labor costs, which are included in:
+        ``equipment_costs``.
+
+        Parameters
+        ----------
+        frequency : str
+            One of "project" or "annual", "monthly", ".
+
+        Returns
+        -------
+        pd.DataFrame
+            The broken out by time port fees with
+
+        Raises
+        ------
+        ValueError
+            If ``frequency`` not one of "project" or "annual".
+        """
+        frequency = _check_frequency(frequency, which="all")
+
+        column = "port_fees"
+        port_fee = self.events.loc[
+            self.events.action == "monthly lease fee",
+            ["year", "month", "equipment_cost"],
+        ].rename(columns={"equipment_cost": column})
+
+        if port_fee.shape[0] == 0:
+            return pd.DataFrame([[0]], columns=[column])
+
+        if frequency == "project":
+            return pd.DataFrame([port_fee.sum(axis=0).loc[column]], columns=[column])
+        elif frequency == "annual":
+            return port_fee.groupby(["year"]).sum()[[column]]
+        elif frequency == "monthly":
+            return port_fee.groupby(["month"]).sum()[[column]]
+        elif frequency == "month-year":
+            return port_fee.groupby(["year", "month"]).sum()[[column]]
 
     def project_fixed_costs(self, frequency: str, resolution: str) -> pd.DataFrame:
         """Calculates the fixed costs of a project at the project and annual frequencies
@@ -1223,7 +1626,7 @@ class Metrics:
         Parameters
         ----------
         frequency : str
-            One of "project" or "annual".
+            One of "project" or "annual", "monthly", ".
         resolution : st
             One of "low", "medium", or "high", where the values correspond to:
 
@@ -1247,9 +1650,7 @@ class Metrics:
         ValueError
             If ``resolution`` must be one of "low", "medium", or "high".
         """
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual"):
-            raise ValueError('``frequency`` must be one of "project" or "annual".')
+        frequency = _check_frequency(frequency, which="all")
 
         resolution = resolution.lower().strip()
         if resolution not in ("low", "medium", "high"):
@@ -1257,29 +1658,94 @@ class Metrics:
                 '``resolution`` must be one of "low", "medium", or "high".'
             )
 
+        # Get the appropriate values and convert to the currency base
         keys = self.fixed_costs.resolution[resolution]
-        vals = [[getattr(self.fixed_costs, key) for key in keys]]
+        vals = (
+            np.array([[getattr(self.fixed_costs, key) for key in keys]])
+            * self.project_capacity
+            * 1000
+        )
         costs = pd.DataFrame(vals, columns=keys)
 
+        total = self.operations.groupby(["year", "month"]).count()[["env_time"]]
+        total = total.rename(columns={"env_time": "N"})
+        total.N = 1.0
+
+        operation_hours = self.operations.groupby(["year", "month"]).count()[
+            ["env_time"]
+        ]
+        operation_hours = operation_hours.rename(columns={"env_time": "N"})
+
+        costs = pd.DataFrame(total.values * vals, index=total.index, columns=keys)
+        costs *= operation_hours.values.reshape(-1, 1) / 8760.0
+
         years = self.events.year.unique()
-        years.sort()
-        adjusted_inflation = deepcopy(self.inflation_rate)
-        vals = np.array(vals[0]) * self.project_capacity * 1000
-        for ix, year in enumerate(years):
-            hours = self.operations[self.operations.year == year].shape[0]
-            costs.loc[ix] = vals * min(1, hours / 8760.0)
-            if ix == 0:
-                continue
-            costs.loc[ix] *= adjusted_inflation
-            adjusted_inflation *= self.inflation_rate
+        adjusted_inflation = np.array(
+            [self.inflation_rate**i for i in range(len(years)) for j in range(12)]
+        )
+        adjusted_inflation = adjusted_inflation[: costs.shape[0]]
+        costs *= adjusted_inflation.reshape(-1, 1)
 
         if frequency == "project":
-            return pd.DataFrame(costs.sum(axis=0).values.reshape(1, -1), columns=keys)
+            costs = pd.DataFrame(costs.reset_index(drop=True).sum()).T
+        elif frequency == "annual":
+            costs = costs.reset_index().groupby("year").sum().drop(columns=["month"])
+        elif frequency == "monthly":
+            costs = costs.reset_index().groupby("month").sum().drop(columns=["year"])
 
-        costs["year"] = years
-        costs = costs.set_index("year")
-        costs = costs[keys]
         return costs
+
+    def opex(self, frequency: str) -> pd.DataFrame:
+        """Calculates the project's OpEx for the simulation at a project, annual, or
+        monthly level.
+
+        Parameters
+        ----------
+        frequency : str
+            One of project, annual, monthly, or month-year.
+
+        Returns
+        -------
+        pd.DataFrame
+            The project's OpEx broken out at the desired time resolution.
+        """
+        frequency = _check_frequency(frequency, which="all")
+
+        # Get the materials costs and remove the component-level breakdown
+        materials = self.component_costs(frequency=frequency, by_category=True)
+        materials = materials.loc[:, ["materials_cost"]].reset_index()
+        if frequency == "project":
+            materials = pd.DataFrame(materials.loc[:, ["materials_cost"]].sum()).T
+        else:
+            if frequency == "annual":
+                group_col = ["year"]
+            elif frequency == "monthly":
+                group_col = ["month"]
+            elif frequency == "month-year":
+                group_col = ["year", "month"]
+            materials = materials.groupby(group_col).sum().loc[:, ["materials_cost"]]
+
+        # Port fees will produce an 1x1 dataframe if values aren't present, so recreate
+        # it with the appropriate dimension
+        port_fees = self.port_fees(frequency=frequency)
+        if frequency != "project" and port_fees.shape == (1, 1):
+            port_fees = pd.DataFrame([], columns=["port_fees"], index=materials.index)
+            port_fees = port_fees.fillna(0)
+
+        # Create a list of data frames for the OpEx components
+        opex_items = [
+            self.project_fixed_costs(frequency=frequency, resolution="low"),
+            port_fees,
+            self.equipment_costs(frequency=frequency),
+            self.labor_costs(frequency=frequency),
+            materials,
+        ]
+
+        # Join the data frames and sum along the time axis and return
+        column = "OpEx"
+        opex = pd.concat(opex_items, axis=1)
+        opex.loc[:, column] = opex.sum(axis=1)
+        return opex[[column]]
 
     def process_times(self) -> pd.DataFrame:
         """Calculates the time, in hours, to complete a repair/maintenance request, on both a
@@ -1314,7 +1780,7 @@ class Metrics:
         self, frequency: str, by_turbine: bool = False
     ) -> float | pd.DataFrame:
         """Calculates the power production for the simulation at a project, annual, or
-        monthly level that can be broken out by hourly and salary labor costs.
+        monthly level that can be broken out by turbine.
 
         Parameters
         ----------
@@ -1342,11 +1808,7 @@ class Metrics:
         ValueError
             If ``by_turbine`` is not one of ``True`` or ``False``.
         """
-        frequency = frequency.lower().strip()
-        if frequency not in ("project", "annual", "monthly", "month-year"):
-            raise ValueError(
-                '``frequency`` must be one of "project", "annual", or "monthly".'
-            )
+        frequency = _check_frequency(frequency, which="all")
 
         if not isinstance(by_turbine, bool):
             raise ValueError("``by_turbine`` must be one of ``True`` or ``False``")
@@ -1373,6 +1835,52 @@ class Metrics:
         return self.production.groupby(by=group_cols).sum()[col_filter]
 
     # Windfarm Financials
+
+    def npv(
+        self, frequency: str, discount_rate: float = 0.025, offtake_price: float = 80
+    ) -> pd.DataFrame:
+        """Calculates the net present value of the windfarm at a project, annual, or
+        monthly resolution given a base discount rate and offtake price.
+
+        ... note: This function will be improved over time to incorporate more of the
+            financial parameter at play, such as PPAs.
+
+        Parameters
+        ----------
+        frequency : str
+            One of "project", "annual", "monthly", or "month-year".
+        discount_rate : float, optional
+            The rate of return that could be earned on alternative investments, by
+            default 0.025.
+        offtake_price : float, optional
+            Price of energy, per MWh, by default 80.
+
+        Returns
+        -------
+        pd.DataFrame
+            The project net prsent value at the desired time resolution.
+        """
+        frequency = _check_frequency(frequency, which="all")
+
+        # Gather the OpEx, and revenues
+        expenditures = self.opex("month-year")
+        production = self.power_production("month-year")
+        revenue: pd.DataFrame = production / 1000 * offtake_price  # MWh
+
+        # Instantiate the NPV with the required calculated data and compute the result
+        npv = revenue.join(expenditures).rename(columns={"windfarm": "revenue"})
+        N = npv.shape[0]
+        npv.loc[:, "discount"] = np.full(N, 1 + discount_rate) ** np.arange(N)
+        npv.loc[:, "NPV"] = (npv.revenue.values - npv.OpEx.values) / npv.discount.values
+
+        # Aggregate the results to the required resolution
+        if frequency == "project":
+            return pd.DataFrame(npv.reset_index().sum()).T[["NPV"]]
+        elif frequency == "annual":
+            return npv.reset_index().groupby("year").sum()[["NPV"]]
+        elif frequency == "monthly":
+            return npv.reset_index().groupby("month").sum()[["NPV"]]
+        return npv[["NPV"]]
 
     def pysam_npv(self) -> float | pd.DataFrame:
         """Returns the project-level after-tax net present values (NPV).

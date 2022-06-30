@@ -10,11 +10,15 @@ import numpy as np
 import pytest
 import numpy.testing as npt
 
+from wombat.core.library import load_yaml
 from wombat.core.data_classes import (
+    VALID_EQUIPMENT,
     Failure,
     FixedCosts,
     Maintenance,
     ServiceCrew,
+    StrategyMap,
+    EquipmentMap,
     FromDictMixin,
     RepairRequest,
     SubassemblyData,
@@ -24,8 +28,10 @@ from wombat.core.data_classes import (
     valid_hour,
     check_method,
     convert_to_list,
+    valid_reduction,
     check_capability,
     annual_date_range,
+    greater_than_zero,
     clean_string_input,
     convert_to_list_lower,
     convert_to_list_upper,
@@ -40,7 +46,6 @@ from tests.conftest import (
 )
 
 
-# @pytest.mark.cat("all")
 def test_convert_to_list():
     """Tests ``convert_to_list``."""
 
@@ -61,14 +66,12 @@ def test_convert_to_list():
     assert convert_to_list("word", manipulation=str.upper) == correct_conversion
 
 
-# @pytest.mark.cat("all")
 def test_clean_string_input():
     """Tests ``clean_string_input``."""
     correct = "this is a statement."
     assert clean_string_input(" THIS is a STATEMENT.    ") == correct
 
 
-# @pytest.mark.cat("all")
 def test_annual_date_range_good_endpoints():
     """Tests ``annual_date_range``."""
     correct_date_range = [
@@ -99,7 +102,6 @@ def test_annual_date_range_good_endpoints():
         annual_date_range(14, 12, 12, 12, 2019, 2021)
 
 
-# @pytest.mark.cat("all")
 def test_convert_ratio_to_absolute():
     """Tests ``convert_ratio_to_absolute``."""
 
@@ -122,7 +124,6 @@ def test_convert_ratio_to_absolute():
     assert convert_ratio_to_absolute(ratio, total) == correct_amount
 
 
-# @pytest.mark.cat("all")
 def test_valid_hour():
     """Tests ``valid_hour``. The function being checked is an attrs validator, and is
     used in conjunction with a integer conversion, so all passed values will be forced
@@ -156,7 +157,54 @@ def test_valid_hour():
     assert hour.hour == 24
 
 
-# @pytest.mark.cat("all")
+def test_valid_reduction():
+    """Tests the ``valid_reduction`` validator."""
+
+    @attr.s(auto_attribs=True)
+    class ReductionClass:
+        """Dummy class for testing ``valid_reduction``."""
+
+        speed_reduction: int = attr.ib(converter=float, validator=valid_reduction)
+
+    # Test the fringes
+    with pytest.raises(ValueError):
+        ReductionClass(-0.000001)
+    with pytest.raises(ValueError):
+        ReductionClass(-1)
+    with pytest.raises(ValueError):
+        ReductionClass(1.000001)
+    with pytest.raises(ValueError):
+        ReductionClass(2)
+
+    # Test that valid positive decimals work
+    r = ReductionClass(0.2)
+    assert r.speed_reduction == 0.2
+
+    r = ReductionClass(0.999)
+    assert r.speed_reduction == 0.999
+
+
+def test_greater_than_zero():
+    """Tests the ``greater_than_zero`` validator."""
+
+    @attr.s(auto_attribs=True)
+    class SpeedClass:
+        """Dummy class for testing ``greater_than_zero``."""
+
+        speed: int = attr.ib(converter=float, validator=greater_than_zero)
+
+    # Test the fringes
+    with pytest.raises(ValueError):
+        SpeedClass(0)
+    with pytest.raises(ValueError):
+        SpeedClass(-10)
+
+    s = SpeedClass(1)
+    assert s.speed == 1.0
+    s = SpeedClass(20.112)
+    assert s.speed == 20.112
+
+
 def test_check_capability():
     """Tests the ``check_capability`` attrs validator method. This function is an attrs
     validator method, and so a dummy class will be used for testing purposes. This class
@@ -181,18 +229,23 @@ def test_check_capability():
         CapabilityClass(capability=["snc", "nlc", "bac", "rtm", "dnr", "vds"])
 
     # Test for correct spellings and case changes
-    correct_options = ["CTV", "SCN", "LCN", "CAB", "RMT", "DRN", "DSV"]
-    inputs = ["CTV", "SCn", "LCN", "cab", "RMT", "DRN", "Dsv"]
+    correct_options = VALID_EQUIPMENT
+    inputs = ["CTV", "SCn", "LCN", "cab", "RMT", "DRN", "Dsv", "tOW", "ahv"]
     capability = CapabilityClass(capability=inputs)
     npt.assert_equal(capability.capability, correct_options)
 
     # Test for correct spellings and cases
-    correct_options = ["CTV", "SCN", "LCN", "CAB", "RMT", "DRN", "DSV"]
+    correct_options = ["CTV", "SCN", "LCN", "CAB", "RMT", "DRN", "DSV", "TOW", "AHV"]
     capability = CapabilityClass(capability=correct_options)
     npt.assert_equal(capability.capability, correct_options)
 
+    # Test that a scheduled equipment can't have the two capability
+    with pytest.raises(ValueError):
+        scheduled = deepcopy(SCHEDULED_VESSEL)
+        scheduled["capability"] = "TOW"
+        ScheduledServiceEquipmentData.from_dict(scheduled)
 
-# @pytest.mark.cat("all")
+
 def test_check_method():
     """Tests the ``check_method`` attrs validator method. This function is an attrs
     validator method, and so a dummy class will be used for testing purposes. This class
@@ -224,7 +277,6 @@ def test_check_method():
 
 
 # TODO: rearrange to a single test functionx
-# @pytest.mark.cat("all")
 def test_FromDictMixin():
     """Test the ``FromDictMixin`` mix in class."""
 
@@ -258,7 +310,6 @@ def test_FromDictMixin():
         DictClass.from_dict({})
 
 
-# @pytest.mark.cat("all")
 def test_Maintenance():
     """Tests the `Maintenance` class."""
     # Test for all inputs being provided and converted
@@ -327,7 +378,6 @@ def test_Maintenance():
         cls.time = 100
 
 
-# @pytest.mark.cat("all")
 def test_Failure():
     """Tests the `Failure` class."""
     # Test that all inputs work
@@ -437,7 +487,6 @@ def test_Failure():
     # TODO: Write a test for the weibull function
 
 
-# @pytest.mark.cat("all")
 def test_SubassemblyData():
     """Tests the `SubassemblyData` class."""
     N_maintenance = len(GENERATOR_SUBASSEMBLY["maintenance"])
@@ -476,7 +525,6 @@ def test_SubassemblyData():
     assert subassembly.failures == failure_dict
 
 
-# @pytest.mark.cat("all")
 def test_RepairRequest():
     """Tests the `RepairRequest` class"""
     failure = GENERATOR_SUBASSEMBLY["failures"][1]
@@ -544,7 +592,6 @@ def test_RepairRequest():
         cls = RepairRequest.from_dict(request)
 
 
-# @pytest.mark.cat("all")
 def test_ServiceCrew():
     """Tests the `ServiceCrew` class."""
     inputs = dict(n_day_rate=4, day_rate=100, n_hourly_rate=10, hourly_rate=6.1)
@@ -555,7 +602,6 @@ def test_ServiceCrew():
     assert crew.hourly_rate == 6.1
 
 
-# @pytest.mark.cat("all")
 def test_ServiceEquipmentData_determine_type():
     """Tests the creation of the servicing equipment data classes."""
 
@@ -609,7 +655,6 @@ def test_ServiceEquipmentData_determine_type():
         ).determine_type()
 
 
-# @pytest.mark.cat("all")
 def test_ScheduledServiceEquipmentData():
     """Tests the creation of the values of the ScheduledServicingEquipmentData object."""
 
@@ -704,7 +749,6 @@ def test_ScheduledServiceEquipmentData():
     npt.assert_equal(vessel.operating_dates, correct_date_range)
 
 
-# @pytest.mark.cat("all")
 def test_UnscheduledServiceEquipmentData():
     """Tests the creation of the values of the UnscheduledServicingEquipmentData object."""
 
@@ -820,7 +864,6 @@ def test_UnscheduledServiceEquipmentData():
     assert vessel.workday_end == end_shift
 
 
-# @pytest.mark.cat("all")
 def test_FixedCosts_operations_provided():
     """Tests high resolution inptus go to 0 when `operations` is provided"""
     high_res = FixedCosts(
@@ -866,7 +909,6 @@ def test_FixedCosts_operations_provided():
     assert high_res.labor == 0
 
 
-# @pytest.mark.cat("all")
 def test_FixedCosts_category_values_provided():
     """Test that High resolution inputs get overwritten in the case of providing
     category values.
@@ -913,7 +955,125 @@ def test_FixedCosts_category_values_provided():
     assert high_res.labor == 100
 
 
-# @pytest.mark.cat("all")
+def test_equipment_map(env_setup):
+    """Tests the ``EquipmentMap`` class."""
+    env = env_setup
+
+    # Test for a requests-based equipment
+    hlv = ServiceEquipmentData(
+        load_yaml(env.data_dir / "repair" / "transport", "hlv_requests.yaml")
+    ).determine_type()
+    mapping = EquipmentMap(equipment=hlv, strategy_threshold=hlv.strategy_threshold)
+    assert mapping.equipment == hlv
+    assert mapping.strategy_threshold == hlv.strategy_threshold
+
+    # Test for a downtime-based equipment
+    hlv = ServiceEquipmentData(
+        load_yaml(env.data_dir / "repair" / "transport", "hlv_downtime.yaml")
+    ).determine_type()
+    mapping = EquipmentMap(equipment=hlv, strategy_threshold=hlv.strategy_threshold)
+    assert mapping.equipment == hlv
+    assert mapping.strategy_threshold == hlv.strategy_threshold
+
+
+def test_strategy_map(env_setup):
+    """Tests the ``StrategyMap`` class."""
+    env = env_setup
+
+    mapping = StrategyMap()
+    assert mapping.CTV == []
+    assert mapping.SCN == []
+    assert mapping.LCN == []
+    assert mapping.CAB == []
+    assert mapping.RMT == []
+    assert mapping.DRN == []
+    assert mapping.DSV == []
+    assert not mapping.is_running
+
+    # Test for bad input
+    hlv = load_yaml(env.data_dir / "repair" / "transport", "hlv_requests.yaml")
+    hlv["capability"] = ["SCN", "LCN"]
+    hlv = ServiceEquipmentData(hlv).determine_type()
+    hlv_map = EquipmentMap(hlv.strategy_threshold, hlv)
+
+    # List of inputs will fail
+    with pytest.raises(ValueError):
+        mapping.update(hlv.capability, hlv.strategy_threshold, hlv)
+
+    # Single bad input will fail
+    with pytest.raises(ValueError):
+        mapping.update("CRV", hlv.strategy_threshold, hlv)
+
+    # Check that the update did not complete
+    assert not mapping.is_running
+
+    # Create a few equipment and test for inclusion
+
+    # HLV with multiple capabilities
+    hlv = load_yaml(env.data_dir / "repair" / "transport", "hlv_requests.yaml")
+    hlv["capability"] = ["SCN", "LCN"]
+    hlv = ServiceEquipmentData(hlv).determine_type()
+    hlv_map = EquipmentMap(hlv.strategy_threshold, hlv)
+    for capability in hlv.capability:
+        mapping.update(capability, hlv.strategy_threshold, hlv)
+    assert mapping.SCN == mapping.LCN == [hlv_map]
+    assert mapping.is_running
+
+    # Cabling vessel with one capability
+    cab = load_yaml(env.data_dir / "repair" / "transport", "cabling.yaml")
+    cab = ServiceEquipmentData(cab).determine_type()
+    for capability in cab.capability:
+        mapping.update(capability, cab.strategy_threshold, cab)
+    cab_map = EquipmentMap(cab.strategy_threshold, cab)
+    assert mapping.CAB == [cab_map]
+    assert mapping.is_running
+
+    # Diving support vessel
+    dsv = load_yaml(env.data_dir / "repair" / "transport", "dsv.yaml")
+    dsv = ServiceEquipmentData(dsv).determine_type()
+    for capability in dsv.capability:
+        mapping.update(capability, dsv.strategy_threshold, dsv)
+    dsv_map = EquipmentMap(dsv.strategy_threshold, dsv)
+    assert mapping.DSV == [dsv_map]
+    assert mapping.is_running
+
+    # Remote reset
+    rmt = load_yaml(env.data_dir / "repair" / "transport", "rmt.yaml")
+    rmt = ServiceEquipmentData(rmt).determine_type()
+    for capability in rmt.capability:
+        mapping.update(capability, rmt.strategy_threshold, rmt)
+    rmt_map = EquipmentMap(rmt.strategy_threshold, rmt)
+    assert mapping.RMT == [rmt_map]
+    assert mapping.is_running
+
+    # Drone repair
+    drn = load_yaml(env.data_dir / "repair" / "transport", "drn.yaml")
+    drn = ServiceEquipmentData(drn).determine_type()
+    for capability in drn.capability:
+        mapping.update(capability, drn.strategy_threshold, drn)
+    drn_map = EquipmentMap(drn.strategy_threshold, drn)
+    assert mapping.DRN == [drn_map]
+    assert mapping.is_running
+
+    # Crew tranfer
+    ctv = load_yaml(env.data_dir / "repair" / "transport", "ctv_requests.yaml")
+    ctv = ServiceEquipmentData(ctv).determine_type()
+    for capability in ctv.capability:
+        mapping.update(capability, ctv.strategy_threshold, ctv)
+    ctv_map = EquipmentMap(ctv.strategy_threshold, ctv)
+    assert mapping.CTV == [ctv_map]
+    assert mapping.is_running
+
+    # Update an existing category with another piece of equipment
+    fsv = load_yaml(env.data_dir / "repair" / "transport", "fsv_downtime.yaml")
+    fsv = ServiceEquipmentData(fsv).determine_type()
+    for capability in fsv.capability:
+        mapping.update(capability, fsv.strategy_threshold, fsv)
+    fsv_map = EquipmentMap(fsv.strategy_threshold, fsv)
+    assert mapping.SCN == [hlv_map, fsv_map]
+    assert mapping.is_running
+
+
 def test_FixedCosts_high_resolution_provided():
     """Test that high resolution inputs work and categories sum correctly."""
     high_res = FixedCosts(

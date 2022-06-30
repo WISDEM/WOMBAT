@@ -37,6 +37,13 @@ functionality surrounding unscheduled maintenance in addition to added documenta
 For any questions, feel free to open up an issue in the repository or email:
 rob.hammond@nrel.gov.
 
+What's New in v0.5?
+-------------------
+- Tow-to-port for offshore wind farms!
+- More metrics!
+- Bug fixes!
+- See the changelog for full details
+
 
 The Model in 30 Seconds Or Less
 -------------------------------
@@ -64,7 +71,7 @@ servicing equipment, repair manager to hold and pass on tasks, and results post-
 
 .. image:: images/high_level_diagram.svg
 
-As for how a windfarm is simulated, the below image represents the flow of events as
+The following section describes how a windfarm is simulated and the flow of events as
 they occur within the model.
 
 Simulation Architecture
@@ -77,7 +84,7 @@ lifecycle of a single failure.
    timeseries data is provided for the simulation.
 2) Each subassemly failure model is a random sampling from a Weibull distribution, so
    for the sake of clarity we'll consider this to be a catastrophic drivetrain failure.
-   When the timeout is reached in the simulation, the subassembly's operating level is
+   When the timeout (time to failure) is reached in the simulation, the subassembly's operating level is
    reduced to 0%, and a message is passed to the turbine level (the overarching system
    model).
 3) From there, the turbine will shut off, and signal to all other subassembly models to
@@ -94,7 +101,7 @@ lifecycle of a single failure.
    condition and the turbine will be reset to operating. From there all the turbine's
    and drivetrain's failure and maintenance models be turned back on, and the simulation
    will continue on in the same manner until it reaches it's user- or weather-defined
-   ending point is reached.
+   ending point.
 
 .. image:: images/simulation_diagram.png
 

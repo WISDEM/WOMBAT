@@ -110,7 +110,17 @@ class WombatEnvironment(simpy.Environment):
             until = self.max_run_time
         elif until > self.max_run_time:
             until = self.max_run_time
-        super().run(until=until)
+        try:
+            super().run(until=until)
+        except BaseException as e:
+            # Flush the logs to so the simulation up to the point of failure is logged
+            self._events_logger.handlers[0].flush()
+            self._operations_logger.handlers[0].flush()
+            raise e
+
+        # Ensure all logged events make it to their target file
+        self._events_logger.handlers[0].flush()
+        self._operations_logger.handlers[0].flush()
 
     def _logging_setup(self) -> None:
         """Completes the setup for logging data."""
@@ -137,8 +147,8 @@ class WombatEnvironment(simpy.Environment):
         if not _dir.is_dir():
             _dir.mkdir()
 
-        setup_logger("events_log", self.events_log_fname)
-        setup_logger("operations_log", self.operations_log_fname)
+        setup_logger("events_log", self.events_log_fname, capacity=7000)
+        setup_logger("operations_log", self.operations_log_fname, capacity=7000)
         self._events_logger = logging.getLogger("events_log")
         self._operations_logger = logging.getLogger("operations_log")
 
@@ -147,9 +157,14 @@ class WombatEnvironment(simpy.Environment):
         """Current time within the simulation ("datetime" column within weather)."""
         now = self.now
         minutes = now % 1 * 60
-        dt = self.weather.iloc[math.floor(now)].name.to_pydatetime()
+        if now == self.max_run_time:
+            _dt = self.weather.iloc[math.floor(now - 1)].name.to_pydatetime()
+            _dt + timedelta(hours=1)
+        else:
+            _dt = self.weather.iloc[math.floor(now)].name.to_pydatetime()
+
         minutes, seconds = math.floor(minutes), math.ceil(minutes % 1 * 60)
-        return dt + timedelta(minutes=minutes, seconds=seconds)
+        return _dt + timedelta(minutes=minutes, seconds=seconds)
 
     def is_workshift(self, workday_start: int = -1, workday_end: int = -1) -> bool:
         """Checks if the current simulation time is within the windfarm's working hours.
@@ -393,6 +408,7 @@ class WombatEnvironment(simpy.Environment):
         part_ol: float | int = 0,
         duration: float = 0,
         request_id: str = "na",
+        location: str = "na",
         materials_cost: Union[int, float] = 0,
         hourly_labor_cost: Union[int, float] = 0,
         salary_labor_cost: Union[int, float] = 0,
@@ -425,6 +441,9 @@ class WombatEnvironment(simpy.Environment):
             an empty string for n/a, by default 0.
         request_id : str
             The ``RepairManager`` assigned request_id found in ``RepairRequest.request_id``, by default "na".
+        location : str
+            The location of where the event ocurred: should be one of site, port,
+            enroute, or system, by default "na".
         duration : float
             Length of time the action lasted, by default 0.
         materials_cost : Union[int, float], optional
@@ -436,6 +455,11 @@ class WombatEnvironment(simpy.Environment):
         equipment_cost : Union[int, float], optional
             Total cost of equipment for action, in USD, by default 0.
         """
+        valid_locations = ("site", "system", "port", "enroute", "na")
+        if location not in valid_locations:
+            raise ValueError(
+                f"Event logging `location` must be one of: {valid_locations}"
+            )
         self._events_logger.info(
             format_events_log_message(
                 self.simulation_time,
@@ -452,6 +476,7 @@ class WombatEnvironment(simpy.Environment):
                 additional,
                 duration,
                 request_id,
+                location,
                 materials_cost,
                 hourly_labor_cost,
                 salary_labor_cost,
@@ -486,6 +511,7 @@ class WombatEnvironment(simpy.Environment):
             "additional",
             "duration",
             "request_id",
+            "location",
             "materials_cost",
             "hourly_labor_cost",
             "salary_labor_cost",

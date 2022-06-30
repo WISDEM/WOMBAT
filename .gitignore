@@ -157,3 +157,6 @@ ENV/
 # Text editors
 .vscode/
 .idea/
+
+# Example files & data
+*.zip

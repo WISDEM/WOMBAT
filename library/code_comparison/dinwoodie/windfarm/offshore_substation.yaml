@@ -1,7 +1,7 @@
 capacity_kw: 0
 capex_kw: 0
 transformer:
-  name: transformer
+  name: substation
   maintenance:
     -
       description: n/a

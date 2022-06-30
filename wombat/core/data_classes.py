@@ -3,9 +3,9 @@
 
 from __future__ import annotations
 
-import datetime  # type: ignore
-from math import fsum  # type: ignore
-from typing import Any, Callable, Sequence  # type: ignore
+import datetime
+from math import fsum
+from typing import TYPE_CHECKING, Any, Callable, Sequence  # type: ignore
 from functools import partial, update_wrapper  # type: ignore
 
 import attr
@@ -15,9 +15,29 @@ import pandas as pd  # type: ignore
 from attrs import Factory, Attribute, field, define  # type: ignore
 from scipy.stats import weibull_min  # type: ignore
 
+from wombat.utilities import HOURS_IN_DAY, HOURS_IN_YEAR
 
-HOURS_IN_YEAR = 8760
-HOURS_IN_DAY = 24
+
+if TYPE_CHECKING:
+    from wombat.core import ServiceEquipment
+
+
+# Define the valid servicing equipment types
+VALID_EQUIPMENT = (
+    "CTV",  # Crew tranfer vessel or onsite vehicle
+    "SCN",  # Small crane
+    "LCN",  # Large crane
+    "CAB",  # Cabling equipment
+    "RMT",  # Remote reset or anything performed remotely
+    "DRN",  # Drone
+    "DSV",  # Diving support vessel
+    "TOW",  # Tugboat or support vessel for moving a turbine to a repair facility
+    "AHV",  # Anchor handling vessel, tpyically a tugboat, but doesn't trigger tow-to-port
+)
+
+# Define the valid unscheduled and valid strategies
+UNSCHEDULED_STRATEGIES = ("requests", "downtime")
+VALID_STRATEGIES = tuple(["scheduled"] + list(UNSCHEDULED_STRATEGIES))
 
 
 def convert_to_list(
@@ -185,6 +205,72 @@ def valid_hour(
         raise ValueError(f"Input {attribute.name} must be between 0 and 24, inclusive.")
 
 
+def valid_reduction(
+    instance, attribute: Attribute, value: int | float  # pylint: disable=W0613
+) -> None:
+    """Checks to see if the reduction factor is between 0 and 1, inclusive.
+
+    Parameters
+    ----------
+    value : int | float
+        The input value for `speed_reduction_factor`.
+    """
+    if value < 0 or value > 1:
+        raise ValueError(
+            f"Input for {attribute.name}'s `speed_reduction_factor` must be between 0 and 1, inclusive."
+        )
+
+
+def greater_than_zero(
+    instance,  # pylint: disable=W0613
+    attribute: Attribute,  # pylint: disable=W0613
+    value: int | float,
+) -> None:
+    """Checks if an input is greater than 0.
+
+    Parameters
+    ----------
+    instance : Any
+        The class containing the attribute to be checked.
+    attribute : Attribute
+        The attribute's properties.
+    value : int | float
+        The user-input value for the ``attribute``.
+
+    Raises
+    ------
+    ValueError
+        Raised if ``value`` is less than or equal to zero.
+    """
+    if value <= 0:
+        raise ValueError("Input must be greater than 0.")
+
+
+def greater_than_equal_to_zero(
+    instance,  # pylint: disable=W0613
+    attribute: Attribute,  # pylint: disable=W0613
+    value: int | float,
+) -> None:
+    """Checks if an input is at least 0.
+
+    Parameters
+    ----------
+    instance : Any
+        The class containing the attribute to be checked.
+    attribute : Attribute
+        The attribute's properties.
+    value : int | float
+        The user-input value for the ``attribute``.
+
+    Raises
+    ------
+    ValueError
+        Raised if ``value`` is less than or equal to zero.
+    """
+    if value < 0:
+        raise ValueError("Input must be at least 0.")
+
+
 def check_capability(
     instance: Any,  # pylint: disable=W0613
     attribute: Attribute,
@@ -207,15 +293,24 @@ def check_capability(
          - RMT: remote reset
          - DRN: drone
          - DSV: diving support vessel
+         - TOW: tugboat or towing equipment
+         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
 
     Raises
     ------
     ValueError
+        Raised if a `ScheduledServicingEquipment` has been given the "TOW" capability.
+    ValueError
         Raised if the input is not of the valid inputs.
     """
-    valid = set(("CTV", "SCN", "LCN", "CAB", "RMT", "DRN", "DSV"))
+    valid = set(VALID_EQUIPMENT)
     values = set(value)
     invalid = values - valid
+    if isinstance(instance, ScheduledServiceEquipmentData):
+        if "TOW" in values:
+            raise ValueError(
+                f"Scheduled servicing equipment, {instance.name}, cannot have the `TOW` capability."
+            )
     if invalid:
         raise ValueError(f"Input {attribute.name} must be any combination of {valid}.")
 
@@ -315,6 +410,8 @@ class Maintenance(FromDictMixin):
          - LCN: large crane (i.e., heavy lift vessel)
          - CAB: cabling vessel/vehicle
          - DSV: diving support vessel
+         - TOW: tugboat or towing equipment
+         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
     system_value : Union[int, float]
         Turbine replacement value. Used if the materials cost is a proportional cost.
     description : str
@@ -388,6 +485,8 @@ class Failure(FromDictMixin):
          - LCN: large crane (i.e., heavy lift vessel)
          - CAB: cabling vessel/vehicle
          - DSV: diving support vessel
+         - TOW: tugboat or towing equipment
+         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
     system_value : Union[int, float]
         Turbine replacement value. Used if the materials cost is a proportional cost.
     description : str
@@ -613,12 +712,18 @@ class ScheduledServiceEquipmentData(FromDictMixin):
          - LCN: large crane (i.e., heavy lift vessel)
          - CAB: cabling vessel/vehicle
          - DSV: diving support vessel
+
+         Please note that "TOW" is unavailable for scheduled servicing equipment
     mobilization_cost : float
         Cost to mobilize the rig and crew.
     mobilization_days : int
         Number of days it takes to mobilize the equipment.
     speed : float
         Maximum transit speed, km/hr.
+    speed_reduction_factor : flaot
+        Reduction factor for traveling in inclement weather, default 0. When 0, travel
+        is stopped when either `max_windspeed_transport` or `max_waveheight_transport`
+        is reached, and when 1, `speed` is used.
     max_windspeed_transport : float
         Maximum windspeed for safe transport, m/s.
     max_windspeed_repair : float
@@ -644,6 +749,9 @@ class ScheduledServiceEquipmentData(FromDictMixin):
         Determines if the ship will do all maximum severity repairs first or do all
         the repairs at one turbine before going to the next, by default severity.
         Should by one of "severity" or "turbine".
+    port_distance : int | float
+        The distance, in km, the equipment must travel to go between port and site, by
+        default 0.
     """
 
     name: str = field(converter=str)
@@ -661,7 +769,7 @@ class ScheduledServiceEquipmentData(FromDictMixin):
     )
     mobilization_cost: float = field(converter=float)
     mobilization_days: int = field(converter=int)
-    speed: float = field(converter=float)
+    speed: float = field(converter=float, validator=greater_than_zero)
     max_windspeed_transport: float = field(converter=float)
     max_windspeed_repair: float = field(converter=float)
     max_waveheight_transport: float = field(default=1000.0, converter=float)
@@ -669,6 +777,10 @@ class ScheduledServiceEquipmentData(FromDictMixin):
     workday_start: int = field(default=-1, converter=int, validator=valid_hour)
     workday_end: int = field(default=-1, converter=int, validator=valid_hour)
     crew_transfer_time: float = field(converter=float, default=0.0)
+    speed_reduction_factor: float = field(
+        default=0.0, converter=float, validator=valid_reduction
+    )
+    port_distance: float = field(default=0, converter=float)
     onsite: bool = field(default=False, converter=bool)
     method: str = field(  # type: ignore
         default="severity",
@@ -749,12 +861,20 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
          - LCN: large crane (i.e., heavy lift vessel)
          - CAB: cabling vessel/vehicle
          - DSV: diving support vessel
-    mobilization_cost : float
-        Cost to mobilize the rig and crew.
-    mobilization_days : int
-        Number of days it takes to mobilize the equipment.
+         - TOW: tugboat or towing equipment
+         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
     speed : float
         Maximum transit speed, km/hr.
+    tow_speed : float
+        The maximum transit speed when towing, km/hr.
+
+        ... note:: This is only required for when the servicing equipment is tugboat
+        enabled for a tow-to-port scenario (capability = "TOW")
+
+    speed_reduction_factor : flaot
+        Reduction factor for traveling in inclement weather, default 0. When 0, travel
+        is stopped when either `max_windspeed_transport` or `max_waveheight_transport`
+        is reached, and when 1, `speed` is used.
     max_windspeed_transport : float
         Maximum windspeed for safe transport, m/s.
     max_windspeed_repair : float
@@ -763,6 +883,10 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         Maximum waveheight for safe transport, m, default 1000 (land-based).
     max_waveheight_repair : float
         Maximum waveheight for safe operations, m, default 1000 (land-based).
+    mobilization_cost : float
+        Cost to mobilize the rig and crew, default 0.
+    mobilization_days : int
+        Number of days it takes to mobilize the equipment, default 0.
     strategy : str
         For any unscheduled maintenance servicing equipment, this determines the
         strategy for dispatching. Should be on of "downtime" or "requests".
@@ -777,8 +901,8 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         The ending hour of a workshift, in 24 hour time.
     crew_transfer_time : float
         The number of hours it takes to transfer the crew from the equipment to the
-        system, e.g. how long does it take to transfer the crew from the CTV to the turbine,
-        default 0.
+        system, e.g. how long does it take to transfer the crew from the CTV to the
+        turbine, default 0.
     onsite : bool
         Indicator for if the rig and crew are based onsite.
         ... note:: if the rig and crew are onsite be sure that the start and end dates
@@ -788,6 +912,17 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         Determines if the ship will do all maximum severity repairs first or do all
         the repairs at one turbine before going to the next, by default severity.
         Should by one of "severity" or "turbine".
+    unmoor_hours : int | float
+        The number of hours required to unmoor a floating offshore wind turbine in order
+        to tow it to port, by default 0.
+        ... note:: Required for the tugboat/towing capability, otherwise unused.
+    reconnection_hours : int | float
+        The number of hours required to reconnect a floating offshore wind turbine after
+        being towed back to site, by default 0.
+        ... note:: Required for the tugboat/towing capability, otherwise unused.
+    port_distance : int | float
+        The distance, in km, the equipment must travel to go between port and site, by
+        default 0.
     """
 
     name: str = field(converter=str)
@@ -798,35 +933,41 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
     capability: list[str] | str = field(
         converter=convert_to_list_upper, validator=check_capability  # type: ignore
     )
-    mobilization_cost: float = field(converter=float)
-    mobilization_days: int = field(converter=int)
-    speed: float = field(converter=float)
+    speed: float = field(converter=float, validator=greater_than_zero)
     max_windspeed_transport: float = field(converter=float)
     max_windspeed_repair: float = field(converter=float)
     strategy: str | None = field(converter=clean_string_input)
     strategy_threshold: int | float = field(converter=float)
+    tow_speed: float = field(default=1, converter=float, validator=greater_than_zero)
     max_waveheight_transport: float = field(default=1000)
     max_waveheight_repair: float = field(default=1000)
+    mobilization_cost: float = field(default=0, converter=float)
+    mobilization_days: int = field(default=0, converter=int)
     workday_start: int = field(default=-1, converter=int, validator=valid_hour)
     workday_end: int = field(default=-1, converter=int, validator=valid_hour)
     crew_transfer_time: float = field(converter=float, default=0.0)
+    speed_reduction_factor: float = field(
+        default=0.0, converter=float, validator=valid_reduction
+    )
     onsite: bool = field(default=False)
     method: str = field(  # type: ignore
         default="severity",
         converter=[str, str.lower],  # type: ignore
         validator=check_method,
     )
+    port_distance: int | float = field(default=0, converter=float)
+    unmoor_hours: int | float = field(default=0, converter=float)
+    reconnection_hours: int | float = field(default=0, converter=float)
 
     @strategy.validator  # type: ignore
     def _validate_strategy(  # pylint: disable=R0201
         self, attribute: Attribute, value: str  # pylint: disable=W0613
     ) -> None:
         """Determines if the provided strategy is valid"""
-        valid = ("requests", "downtime")
-        if value not in valid:
+        if value not in UNSCHEDULED_STRATEGIES:
             raise ValueError(
                 "``strategy`` for unscheduled servicing equipment must be one of",
-                "'requests' or 'downtime'!",
+                f"{' or '.join(UNSCHEDULED_STRATEGIES)}",
             )
 
     @strategy_threshold.validator  # type: ignore
@@ -861,6 +1002,18 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         """
         object.__setattr__(self, "workday_start", start)
         object.__setattr__(self, "workday_end", end)
+
+    def _set_distance(self, distance: int | float) -> None:
+        """Method to enable the port to set a vessel's travel distance if the provided
+        input is less than or equal to zero.
+
+        Parameters
+        ----------
+        distance : int | float
+            The distance a vessel will travel, from site to port, or vice versa, in km.
+        """
+        if self.port_distance <= 0:
+            object.__setattr__(self, "port_distance", distance)
 
     def __attrs_post_init__(self) -> None:
         object.__setattr__(
@@ -930,6 +1083,7 @@ class ServiceEquipmentData(FromDictMixin):
     >>>     },
     >>> }
     >>> equipment = ServiceEquipmentData(data_dict).determine_type()
+    >>> type(equipment)
     """
 
     data_dict: dict
@@ -942,10 +1096,9 @@ class ServiceEquipmentData(FromDictMixin):
             object.__setattr__(
                 self, "strategy", clean_string_input(self.data_dict["strategy"])
             )
-        if self.strategy not in ("scheduled", "requests", "downtime"):
+        if self.strategy not in VALID_STRATEGIES:
             raise ValueError(
-                "ServiceEquipment strategy should be one of 'scheduled' or 'requests',"
-                f" or 'downtime'; input: {self.strategy}."
+                f"ServiceEquipment strategy should be one of {VALID_STRATEGIES}; input: {self.strategy}."
             )
 
     def determine_type(
@@ -961,11 +1114,146 @@ class ServiceEquipmentData(FromDictMixin):
         """
         if self.strategy == "scheduled":
             return ScheduledServiceEquipmentData.from_dict(self.data_dict)
-        elif self.strategy in ("requests", "downtime"):
+        elif self.strategy in UNSCHEDULED_STRATEGIES:
             return UnscheduledServiceEquipmentData.from_dict(self.data_dict)
         else:
             # This should not be able to be reached
             raise ValueError("Invalid strategy provided!")
+
+
+@define(auto_attribs=True)
+class EquipmentMap:
+    """Internal mapping for servicing equipment strategy information."""
+
+    strategy_threshold: int | float
+    equipment: "ServiceEquipment"  # noqa: disable=F821
+
+
+@define(auto_attribs=True)
+class StrategyMap:
+    """Internal mapping for equipment capabilities and their data."""
+
+    CTV: list[EquipmentMap] = field(factory=list)
+    SCN: list[EquipmentMap] = field(factory=list)
+    LCN: list[EquipmentMap] = field(factory=list)
+    CAB: list[EquipmentMap] = field(factory=list)
+    RMT: list[EquipmentMap] = field(factory=list)
+    DRN: list[EquipmentMap] = field(factory=list)
+    DSV: list[EquipmentMap] = field(factory=list)
+    TOW: list[EquipmentMap] = field(factory=list)
+    AHV: list[EquipmentMap] = field(factory=list)
+    is_running: bool = field(default=False, init=False)
+
+    def update(
+        self,
+        capability: str,
+        threshold: int | float,
+        equipment: "ServiceEquipment",  # noqa: disable=F821
+    ) -> None:
+        """A method to update the strategy mapping between capability types and the
+        available ``ServiceEquipment`` objects.
+
+        Parameters
+        ----------
+        capability : str
+            The ``equipment``'s capability.
+        threshold : int | float
+            The threshold for ``equipment``'s strategy.
+        equipment : ServiceEquipment
+            The actual ``ServiceEquipment`` object to be logged.
+
+        Raises
+        ------
+        ValueError
+            Raised if there is an invalid capability, though this shouldn't be able to
+            be reached.
+        """
+        # Using a mypy ignore because of an unpatched bug using data classes
+        if capability == "CTV":
+            self.CTV.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "SCN":
+            self.SCN.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "LCN":
+            self.LCN.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "CAB":
+            self.CAB.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "RMT":
+            self.RMT.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "DRN":
+            self.DRN.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "DSV":
+            self.DSV.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "TOW":
+            self.TOW.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "AHV":
+            self.AHV.append(EquipmentMap(threshold, equipment))  # type: ignore
+        else:
+            # This should not even be able to be reached
+            raise ValueError(
+                f"Invalid servicing equipment '{capability}' has been provided!"
+            )
+        self.is_running = True
+
+
+@define(frozen=True, auto_attribs=True)
+class PortConfig(FromDictMixin):
+    """Port configurations for offshore wind power plant scenarios.
+
+    Parameters
+    ----------
+    name : str
+        The name of the port, if multiple are used, then be sure this is unique.
+    tugboats : list[str]
+        file, or list of files to create the port's tugboats.
+        ... note:: Each tugboat is considered to be a tugboat + supporting vessels as
+            the primary purpose to tow turbines between a repair port and site.
+    n_crews : int
+        The number of service crews available to be working on repairs simultaneously;
+        each crew is able to service exactly one repair.
+    crew : ServiceCrew
+        The crew details, see ``ServiceCrew`` for more information.
+    max_operations : int
+        Total number of turbines the port can handle simultaneously.
+    workday_start : int
+        The starting hour of a workshift, in 24 hour time.
+    workday_end : int
+        The ending hour of a workshift, in 24 hour time.
+    site_distance : int | float
+        Distance, in km, a tugboat has to travel to get between site and port.
+    annual_fee : int | float
+        The annualized fee for access to the repair port that will be distributed
+        monthly in the simulation and accounted for on the first of the month from the
+        start of the simulation to the end of the simulation.
+
+        ... note:: Don't include this cost in both this category and either the
+        ``FixedCosts.operations_management_administration`` bucket or
+        ``FixedCosts.marine_management`` category.
+    """
+
+    name: str = field(converter=str)
+    tugboats: list[UnscheduledServiceEquipmentData] = field(converter=convert_to_list)
+    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
+    n_crews: int = field(default=1, converter=int)
+    max_operations: int = field(default=1, converter=int)
+    workday_start: int = field(default=-1, converter=int, validator=valid_hour)
+    workday_end: int = field(default=-1, converter=int, validator=valid_hour)
+    site_distance: float = field(default=0, converter=float)
+    annual_fee: float = field(
+        default=0, converter=float, validator=greater_than_equal_to_zero
+    )
+
+    def _set_environment_shift(self, start: int, end: int) -> None:
+        """Used to set the ``workday_start`` and ``workday_end`` to the environment's values.
+
+        Parameters
+        ----------
+        start : int
+            Starting hour of a workshift.
+        end : int
+            Ending hour of a workshift.
+        """
+        object.__setattr__(self, "workday_start", start)
+        object.__setattr__(self, "workday_end", end)
 
 
 @define(frozen=True, auto_attribs=True)
@@ -985,7 +1273,7 @@ class FixedCosts(FromDictMixin):
         and equipment to coordinate high voltage equipment, switching, port activities,
         and marine activities.
 
-        This should only be used when not breaking down the cost into the following
+        ... note:: This should only be used when not breaking down the cost into the following
         categories: ``project_management_administration``,
         ``operation_management_administration``, ``marine_management``, and/or
         ``weather_forecasting``
@@ -1006,13 +1294,13 @@ class FixedCosts(FromDictMixin):
         Co-located offices, parts store, quayside facilities, helipad, refueling
         facilities, hanger (if necesssary), etc.
     environmental_health_safety_monitoring : float
-        Coordination and monitoring to ensure comp0liance with HSE requirements during
+        Coordination and monitoring to ensure compliance with HSE requirements during
         operations.
     insurance : float
         Insurance policies during operational period including All Risk Property,
         Buisness Interuption, Third Party Liability, and Brokers Fee, and Storm Coverage.
 
-        This should only be used when not breaking down the cost into the following
+        ... note:: This should only be used when not breaking down the cost into the following
         categories: ``brokers_fee``, ``operations_all_risk``, ``business_interruption``,
         ``third_party_liability``, and/or ``storm_coverage``
     brokers_fee : float
@@ -1035,7 +1323,7 @@ class FixedCosts(FromDictMixin):
         Transmission Systems Operators or Transmission Asseet Owners for rights to
         transport generated power.
 
-        This should only be used when not breaking down the cost into the following
+        ... note:: This should only be used when not breaking down the cost into the following
         categories: ``submerge_land_lease_costs`` and/or ``transmission_charges_rights``
 
     submerge_land_lease_costs : float

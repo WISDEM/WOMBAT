@@ -11,13 +11,14 @@ from wombat import windfarm
 from wombat.core import repair_management, service_equipment
 from wombat.core.library import load_yaml
 from wombat.core.data_classes import (
-    Failure,
-    Maintenance,
+    VALID_EQUIPMENT,
+    StrategyMap,
+    EquipmentMap,
     RepairRequest,
     ServiceEquipmentData,
 )
 from wombat.windfarm.windfarm import Windfarm
-from wombat.core.repair_management import StrategyMap, EquipmentMap, RepairManager
+from wombat.core.repair_management import RepairManager
 from wombat.core.service_equipment import ServiceEquipment
 from wombat.windfarm.system.system import System
 from wombat.windfarm.system.subassembly import Subassembly
@@ -25,128 +26,6 @@ from wombat.windfarm.system.subassembly import Subassembly
 from tests.conftest import VESTAS_V90, GENERATOR_SUBASSEMBLY, env_setup
 
 
-# @pytest.mark.cat("all")
-def test_equipment_map(env_setup):
-    """Tests the ``EquipmentMap`` class."""
-    env = env_setup
-
-    # Test for a requests-based equipment
-    hlv = ServiceEquipmentData(
-        load_yaml(env.data_dir / "repair" / "transport", "hlv_requests.yaml")
-    ).determine_type()
-    mapping = EquipmentMap(equipment=hlv, strategy_threshold=hlv.strategy_threshold)
-    assert mapping.equipment == hlv
-    assert mapping.strategy_threshold == hlv.strategy_threshold
-
-    # Test for a downtime-based equipment
-    hlv = ServiceEquipmentData(
-        load_yaml(env.data_dir / "repair" / "transport", "hlv_downtime.yaml")
-    ).determine_type()
-    mapping = EquipmentMap(equipment=hlv, strategy_threshold=hlv.strategy_threshold)
-    assert mapping.equipment == hlv
-    assert mapping.strategy_threshold == hlv.strategy_threshold
-
-
-# @pytest.mark.cat("all")
-def test_strategy_map(env_setup):
-    """Tests the ``StrategyMap`` class."""
-    env = env_setup
-
-    mapping = StrategyMap()
-    assert mapping.CTV == []
-    assert mapping.SCN == []
-    assert mapping.LCN == []
-    assert mapping.CAB == []
-    assert mapping.RMT == []
-    assert mapping.DRN == []
-    assert mapping.DSV == []
-    assert not mapping.is_running
-
-    # Test for bad input
-    hlv = load_yaml(env.data_dir / "repair" / "transport", "hlv_requests.yaml")
-    hlv["capability"] = ["SCN", "LCN"]
-    hlv = ServiceEquipmentData(hlv).determine_type()
-    hlv_map = EquipmentMap(hlv.strategy_threshold, hlv)
-
-    # List of inputs will fail
-    with pytest.raises(ValueError):
-        mapping.update(hlv.capability, hlv.strategy_threshold, hlv)
-
-    # Single bad input will fail
-    with pytest.raises(ValueError):
-        mapping.update("CRV", hlv.strategy_threshold, hlv)
-
-    # Check that the update did not complete
-    assert not mapping.is_running
-
-    # Create a few equipment and test for inclusion
-
-    # HLV with multiple capabilities
-    hlv = load_yaml(env.data_dir / "repair" / "transport", "hlv_requests.yaml")
-    hlv["capability"] = ["SCN", "LCN"]
-    hlv = ServiceEquipmentData(hlv).determine_type()
-    hlv_map = EquipmentMap(hlv.strategy_threshold, hlv)
-    for capability in hlv.capability:
-        mapping.update(capability, hlv.strategy_threshold, hlv)
-    assert mapping.SCN == mapping.LCN == [hlv_map]
-    assert mapping.is_running
-
-    # Cabling vessel with one capability
-    cab = load_yaml(env.data_dir / "repair" / "transport", "cabling.yaml")
-    cab = ServiceEquipmentData(cab).determine_type()
-    for capability in cab.capability:
-        mapping.update(capability, cab.strategy_threshold, cab)
-    cab_map = EquipmentMap(cab.strategy_threshold, cab)
-    assert mapping.CAB == [cab_map]
-    assert mapping.is_running
-
-    # Diving support vessel
-    dsv = load_yaml(env.data_dir / "repair" / "transport", "dsv.yaml")
-    dsv = ServiceEquipmentData(dsv).determine_type()
-    for capability in dsv.capability:
-        mapping.update(capability, dsv.strategy_threshold, dsv)
-    dsv_map = EquipmentMap(dsv.strategy_threshold, dsv)
-    assert mapping.DSV == [dsv_map]
-    assert mapping.is_running
-
-    # Remote reset
-    rmt = load_yaml(env.data_dir / "repair" / "transport", "rmt.yaml")
-    rmt = ServiceEquipmentData(rmt).determine_type()
-    for capability in rmt.capability:
-        mapping.update(capability, rmt.strategy_threshold, rmt)
-    rmt_map = EquipmentMap(rmt.strategy_threshold, rmt)
-    assert mapping.RMT == [rmt_map]
-    assert mapping.is_running
-
-    # Drone repair
-    drn = load_yaml(env.data_dir / "repair" / "transport", "drn.yaml")
-    drn = ServiceEquipmentData(drn).determine_type()
-    for capability in drn.capability:
-        mapping.update(capability, drn.strategy_threshold, drn)
-    drn_map = EquipmentMap(drn.strategy_threshold, drn)
-    assert mapping.DRN == [drn_map]
-    assert mapping.is_running
-
-    # Crew tranfer
-    ctv = load_yaml(env.data_dir / "repair" / "transport", "ctv_requests.yaml")
-    ctv = ServiceEquipmentData(ctv).determine_type()
-    for capability in ctv.capability:
-        mapping.update(capability, ctv.strategy_threshold, ctv)
-    ctv_map = EquipmentMap(ctv.strategy_threshold, ctv)
-    assert mapping.CTV == [ctv_map]
-    assert mapping.is_running
-
-    # Update an existing category with another piece of equipment
-    fsv = load_yaml(env.data_dir / "repair" / "transport", "fsv_downtime.yaml")
-    fsv = ServiceEquipmentData(fsv).determine_type()
-    for capability in fsv.capability:
-        mapping.update(capability, fsv.strategy_threshold, fsv)
-    fsv_map = EquipmentMap(fsv.strategy_threshold, fsv)
-    assert mapping.SCN == [hlv_map, fsv_map]
-    assert mapping.is_running
-
-
-# @pytest.mark.cat("all")
 def test_repair_manager_init(env_setup):
     env = env_setup
 
@@ -222,8 +101,7 @@ def test_repair_manager_init(env_setup):
         manager._register_equipment(ctv)
 
 
-# @pytest.mark.cat("all")
-def test_submit_request_and_get_request(env_setup):
+def test_register_request_and_submit_request_and_get_request(env_setup):
     """Tests the ``RepairManager.submit_request`` method."""
 
     # Set up all the required infrastructure
@@ -242,11 +120,13 @@ def test_submit_request_and_get_request(env_setup):
         manual_reset.level,
         manual_reset,
     )
-    repair_request_failure = turbine.repair_manager.submit_request(
+    repair_request_failure = turbine.repair_manager.register_request(
         repair_request_failure
     )
     assert manager._current_id == 1
     assert repair_request_failure.request_id == "RPR00000000"
+
+    turbine.repair_manager.submit_request(repair_request_failure)
     assert len(manager.items) == 1
     assert not manager.downtime_based_equipment.is_running
     assert not manager.request_based_equipment.is_running
@@ -261,11 +141,13 @@ def test_submit_request_and_get_request(env_setup):
         annual_service.level,
         annual_service,
     )
-    repair_request_maintenance = turbine.repair_manager.submit_request(
+    repair_request_maintenance = turbine.repair_manager.register_request(
         repair_request_maintenance
     )
     assert manager._current_id == 2
     assert repair_request_maintenance.request_id == "MNT00000001"
+
+    turbine.repair_manager.submit_request(repair_request_maintenance)
     assert len(manager.items) == 2
     assert not manager.downtime_based_equipment.is_running
     assert not manager.request_based_equipment.is_running
@@ -282,7 +164,6 @@ def test_submit_request_and_get_request(env_setup):
     assert manager.items == []
 
 
-# @pytest.mark.cat("all")
 def test_request_map(env_setup):
     """Tests the ``RepairManager.request_map`` property."""
 
@@ -302,12 +183,12 @@ def test_request_map(env_setup):
         repair_request = RepairRequest(
             turbine.id, turbine.name, generator.id, generator.name, repair.level, repair
         )
-        repair_request = turbine.repair_manager.submit_request(repair_request)
+        repair_request = turbine.repair_manager.register_request(repair_request)
+        turbine.repair_manager.submit_request(repair_request)
 
     assert manager.request_map == correct_request_map
 
 
-# @pytest.mark.cat("all")
 def test_get_requests(env_setup):
     """Tests the ``RepairManager.get_request_by_system`` and
     ``RepairManager.get_next_highest_severity_request`` methods.
@@ -316,7 +197,7 @@ def test_get_requests(env_setup):
     # Set up all the required infrastructure
     env = env_setup
     manager = RepairManager(env)
-    capability_list = ["SCN", "LCN", "CTV", "CAB", "DSV", "RMT", "DRN"]
+    capability_list = VALID_EQUIPMENT
     turbine1 = System(env, manager, "WTG001", "Vestas V90 001", VESTAS_V90, "turbine")
     turbine2 = System(env, manager, "WTG002", "Vestas V90 002", VESTAS_V90, "turbine")
     turbine3 = System(env, manager, "WTG003", "Vestas V90 003", VESTAS_V90, "turbine")
@@ -344,7 +225,8 @@ def test_get_requests(env_setup):
         medium_repair1.level,
         medium_repair1,
     )
-    medium_repair1 = turbine1.repair_manager.submit_request(medium_repair1)
+    medium_repair1 = turbine1.repair_manager.register_request(medium_repair1)
+    turbine1.repair_manager.submit_request(medium_repair1)
 
     annual_reset2 = generator2.data.maintenance[0]
     annual_reset2 = RepairRequest(
@@ -355,7 +237,8 @@ def test_get_requests(env_setup):
         annual_reset2.level,
         annual_reset2,
     )
-    annual_reset2 = turbine2.repair_manager.submit_request(annual_reset2)
+    annual_reset2 = turbine2.repair_manager.register_request(annual_reset2)
+    turbine2.repair_manager.submit_request(annual_reset2)
 
     minor_repair2 = generator2.data.failures[2]
     minor_repair2 = RepairRequest(
@@ -366,7 +249,8 @@ def test_get_requests(env_setup):
         minor_repair2.level,
         minor_repair2,
     )
-    minor_repair2 = turbine2.repair_manager.submit_request(minor_repair2)
+    minor_repair2 = turbine2.repair_manager.register_request(minor_repair2)
+    turbine2.repair_manager.submit_request(minor_repair2)
 
     major_replacement3 = generator3.data.failures[5]
     major_replacement3 = RepairRequest(
@@ -377,7 +261,8 @@ def test_get_requests(env_setup):
         major_replacement3.level,
         major_replacement3,
     )
-    major_replacement3 = turbine3.repair_manager.submit_request(major_replacement3)
+    major_replacement3 = turbine3.repair_manager.register_request(major_replacement3)
+    turbine3.repair_manager.submit_request(major_replacement3)
 
     medium_repair3 = generator3.data.failures[3]
     medium_repair3 = RepairRequest(
@@ -388,7 +273,8 @@ def test_get_requests(env_setup):
         medium_repair3.level,
         medium_repair3,
     )
-    medium_repair3 = turbine3.repair_manager.submit_request(medium_repair3)
+    medium_repair3 = turbine3.repair_manager.register_request(medium_repair3)
+    turbine3.repair_manager.submit_request(medium_repair3)
 
     major_repair2 = generator2.data.failures[4]
     major_repair2 = RepairRequest(
@@ -399,7 +285,8 @@ def test_get_requests(env_setup):
         major_repair2.level,
         major_repair2,
     )
-    major_repair2 = turbine2.repair_manager.submit_request(major_repair2)
+    major_repair2 = turbine2.repair_manager.register_request(major_repair2)
+    turbine2.repair_manager.submit_request(major_repair2)
 
     # Basic checks that the submissions are all there
     assert len(manager.items) == 6
@@ -448,7 +335,6 @@ def test_get_requests(env_setup):
     assert request.value == medium_repair3
 
 
-# @pytest.mark.cat("all")
 def test_purge_subassembly_requests(env_setup):
     """Tests the ``RepairManager.purge_subassembly_requests`` method."""
     env = env_setup
@@ -482,7 +368,8 @@ def test_purge_subassembly_requests(env_setup):
         gen_medium_repair1.level,
         gen_medium_repair1,
     )
-    gen_medium_repair1 = turbine1.repair_manager.submit_request(gen_medium_repair1)
+    gen_medium_repair1 = turbine1.repair_manager.register_request(gen_medium_repair1)
+    turbine1.repair_manager.submit_request(gen_medium_repair1)
 
     gen_major_repair1 = generator1.data.failures[4]
     gen_major_repair1 = RepairRequest(
@@ -493,7 +380,8 @@ def test_purge_subassembly_requests(env_setup):
         gen_major_repair1.level,
         gen_major_repair1,
     )
-    gen_major_repair1 = turbine1.repair_manager.submit_request(gen_major_repair1)
+    gen_major_repair1 = turbine1.repair_manager.register_request(gen_major_repair1)
+    turbine1.repair_manager.submit_request(gen_major_repair1)
 
     gbx_medium_repair1 = gearbox1.data.failures[3]
     gbx_medium_repair1 = RepairRequest(
@@ -504,7 +392,8 @@ def test_purge_subassembly_requests(env_setup):
         gbx_medium_repair1.level,
         gbx_medium_repair1,
     )
-    gbx_medium_repair1 = turbine1.repair_manager.submit_request(gbx_medium_repair1)
+    gbx_medium_repair1 = turbine1.repair_manager.register_request(gbx_medium_repair1)
+    turbine1.repair_manager.submit_request(gbx_medium_repair1)
 
     gen_medium_repair2 = generator2.data.failures[3]
     gen_medium_repair2 = RepairRequest(
@@ -515,7 +404,8 @@ def test_purge_subassembly_requests(env_setup):
         gen_medium_repair2.level,
         gen_medium_repair2,
     )
-    gen_medium_repair2 = turbine2.repair_manager.submit_request(gen_medium_repair2)
+    gen_medium_repair2 = turbine2.repair_manager.register_request(gen_medium_repair2)
+    turbine2.repair_manager.submit_request(gen_medium_repair2)
 
     gen_major_repair2 = generator2.data.failures[4]
     gen_major_repair2 = RepairRequest(
@@ -526,7 +416,8 @@ def test_purge_subassembly_requests(env_setup):
         gen_major_repair2.level,
         gen_major_repair2,
     )
-    gen_major_repair2 = turbine2.repair_manager.submit_request(gen_major_repair2)
+    gen_major_repair2 = turbine2.repair_manager.register_request(gen_major_repair2)
+    turbine2.repair_manager.submit_request(gen_major_repair2)
 
     gbx_medium_repair2 = gearbox2.data.failures[3]
     gbx_medium_repair2 = RepairRequest(
@@ -537,7 +428,8 @@ def test_purge_subassembly_requests(env_setup):
         gbx_medium_repair2.level,
         gbx_medium_repair2,
     )
-    gbx_medium_repair2 = turbine2.repair_manager.submit_request(gbx_medium_repair2)
+    gbx_medium_repair2 = turbine2.repair_manager.register_request(gbx_medium_repair2)
+    turbine2.repair_manager.submit_request(gbx_medium_repair2)
 
     gen_medium_repair3 = generator3.data.failures[3]
     gen_medium_repair3 = RepairRequest(
@@ -548,7 +440,8 @@ def test_purge_subassembly_requests(env_setup):
         gen_medium_repair3.level,
         gen_medium_repair3,
     )
-    gen_medium_repair3 = turbine3.repair_manager.submit_request(gen_medium_repair3)
+    gen_medium_repair3 = turbine3.repair_manager.register_request(gen_medium_repair3)
+    turbine3.repair_manager.submit_request(gen_medium_repair3)
 
     gen_major_repair3 = generator3.data.failures[4]
     gen_major_repair3 = RepairRequest(
@@ -559,7 +452,8 @@ def test_purge_subassembly_requests(env_setup):
         gen_major_repair3.level,
         gen_major_repair3,
     )
-    gen_major_repair3 = turbine3.repair_manager.submit_request(gen_major_repair3)
+    gen_major_repair3 = turbine3.repair_manager.register_request(gen_major_repair3)
+    turbine3.repair_manager.submit_request(gen_major_repair3)
 
     gbx_medium_repair3 = gearbox3.data.failures[3]
     gbx_medium_repair3 = RepairRequest(
@@ -570,7 +464,8 @@ def test_purge_subassembly_requests(env_setup):
         gbx_medium_repair3.level,
         gbx_medium_repair3,
     )
-    gbx_medium_repair3 = turbine3.repair_manager.submit_request(gbx_medium_repair3)
+    gbx_medium_repair3 = turbine3.repair_manager.register_request(gbx_medium_repair3)
+    turbine3.repair_manager.submit_request(gbx_medium_repair3)
 
     # Check for the correct number of submissions
     assert len(manager.items) == 9
