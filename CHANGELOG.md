@@ -1,4 +1,4 @@
-## [UNRELEASED]
+## v.0.5.0 (30 June 2022)
 - Adds capabilities: "TOW" and "AHV" for tugboat/towing equipment and anchor-handling vessels
 - Adds a tow-to-port strategy that is activated for repairs with the "TOW" capability in the servicing
 - Adds a `Port` class to handle the tow-to-port class and tugboat-based service requests
