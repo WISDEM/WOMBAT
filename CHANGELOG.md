@@ -11,7 +11,8 @@
 - Creates the metric `Metrics.number_of_tows` to track the number of tows and provides breakdowns as needed
 - Creates the metric `Metrics.vessel_crew_hours_at_sea` to track the number of vessel or crew hours at sea
 - Creates the metric `Metrics.port_fees` to calculate any port fees associated with a project
-- Creates the metric `Metrics.opex` to calculate a project's OpEx
+- Creates the metric `Metrics.opex` to calculate a project's operational expenditures
+- Creates the metric `Metrics.NPV` to calculate a project's net present value
 - Modifies `Metrics.project_fixed_costs` to have more time resolutions to align with the OpEx calculation options
 - Fixes some results formatting inconsistencies in the `Metrics` class
 
