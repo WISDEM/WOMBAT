@@ -1695,6 +1695,49 @@ class Metrics:
 
         return costs
 
+    def opex(self, frequency: str) -> pd.DataFrame:
+        """Calculates the project's OpEx for the simulation at a project, annual, or
+        monthly level.
+
+        Parameters
+        ----------
+        frequency : str
+            One of project, annual, monthly, or month-year.
+
+        Returns
+        -------
+        pd.DataFrame
+            The project's OpEx broken out at the desired time resolution.
+        """
+        frequency = _check_frequency(frequency, which="all")
+
+        # Get the materials costs and remove the component-level breakdown
+        materials = self.component_costs(frequency=frequency, by_category=True)
+        materials = materials[["materials_cost"]].reset_index()
+        if frequency == "project":
+            materials = pd.DataFrame(materials[["materials_cost"]].sum()).T
+        else:
+            if frequency == "annual":
+                group_col = ["year"]
+            elif frequency == "monthly":
+                group_col = ["month"]
+            elif frequency == "month-year":
+                group_col = ["year", "month"]
+            materials = materials.groupby(group_col)[["materials_cost"]].sum()
+
+        opex_items = [
+            self.project_fixed_costs(frequency=frequency, resolution="low"),
+            self.port_fees(frequency=frequency),
+            self.equipment_costs(frequency=frequency),
+            self.labor_costs(frequency=frequency),
+            materials,
+        ]
+
+        column = "OpEx"
+        opex = pd.concat(opex_items, axis=1)
+        opex.loc[:, column] = opex.sum(axis=1)
+        return opex[[column]]
+
     def process_times(self) -> pd.DataFrame:
         """Calculates the time, in hours, to complete a repair/maintenance request, on both a
         request to completion basis, and the actual time to complete the repair.
