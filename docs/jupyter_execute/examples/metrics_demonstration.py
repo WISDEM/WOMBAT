@@ -5,22 +5,20 @@
 #
 # For a complete list of metrics and their documentation, please see the API Metrics [documentation](../API/simulation_api.md#metrics-computation).
 #
-# This demonstration will rely on the results produced in the "How To" notebook.
+# This demonstration will rely on the results produced in the "How To" notebook and serves as an extension of the API documentation to show what the results will look like depending on what inputs are provided.
 
 # In[1]:
 
 
 from pprint import pprint
-from pathlib import Path
 
 import pandas as pd
 
 from wombat.core import Metrics, Simulation
-from wombat.core.library import load_yaml
 
 
-get_ipython().run_line_magic("load_ext", "autoreload")
-get_ipython().run_line_magic("autoreload", "2")
+# get_ipython().run_line_magic("load_ext", "autoreload")
+# get_ipython().run_line_magic("autoreload", "2")
 
 pd.set_option("display.float_format", "{:,.2f}".format)
 pd.set_option("display.max_rows", 1000)
@@ -32,21 +30,21 @@ pd.set_option("display.max_columns", 1000)
 # Below is a list of top-level sections to demonstrate how to use WOMBAT's `Metrics` class methods and an explanation of each individual metric.
 #  - [Setup](#setup): Running a simulation to gather the results
 #  - [Availability](#availability): Time-based and energy-based availability
-#  - [Capacity Factor](#cf): Gross and net capacity factor
+#  - [Capacity Factor](#capacity-factor): Gross and net capacity factor
 #  - [Task Completion Rate](#task-completion-rate): Task completion metrics
 #  - [Equipment Costs](#equipment-costs): Cost breakdowns by servicing equipment
-#  - [Service Equipment Utilization Rate](#utilization-rate): Utilization of servicing equipment
-#  - [Vessel-Crew Hours at Sea](#vessel-crew-hours): Number of crew or vessel hours spent at sea
-#  - [Number of Tows](#tows): Number of tows breakdowns
+#  - [Service Equipment Utilization Rate](#service-equipment-utilization-rate): Utilization of servicing equipment
+#  - [Vessel-Crew Hours at Sea](#vessel-crew-hours-at-sea): Number of crew or vessel hours spent at sea
+#  - [Number of Tows](#number-of-tows): Number of tows breakdowns
 #  - [Labor Costs](#labor-costs): Breakdown of labor costs
-#  - [Equipment and Labor Costs](#equipment-labor-costs): Combined servicing equipment and labor cost breakdown
-#  - [Component](#component-costs): Materials costs
-#  - [Fixed Cost Impacts](#fixed-costs): Total fixed costs
+#  - [Equipment and Labor Costs](#equipment-and-labor-costs): Combined servicing equipment and labor cost breakdown
+#  - [Component Costs](#component-costs): Materials costs
+#  - [Fixed Cost Impacts](#fixed-cost-impacts): Total fixed costs
 #  - [OpEx](#opex): Project OpEx
 #  - [Process Times](#process-times): Timing of various stages of repair and maintenance
 #  - [Power Production](#power-production): Potential and actually produced power
-#  - [Net Present Value](#npv): Project NPV calculator
-#  - [PySAM-Powered Results](#pysam): PySAM results, if configuration is provided
+#  - [Net Present Value](#net-present-value): Project NPV calculator
+#  - [PySAM-Powered Results](#pysam-powered-results): PySAM results, if configuration is provided
 
 # <a id="setup"></a>
 # ## Setup
@@ -133,7 +131,7 @@ metrics.time_based_availability(frequency="monthly", by="windfarm")
 metrics.time_based_availability(frequency="month-year", by="windfarm").head(24)
 
 
-# <a id="cf"></a>
+# <a id="capacity-factor"></a>
 # ## Capacity Factor
 #
 # Here, we will go through the various input definitions to get capacity factor data. The inputs are very similar to that of the availability calculation.
@@ -296,7 +294,7 @@ metrics.equipment_costs(frequency="monthly", by_equipment=True)
 metrics.equipment_costs(frequency="month-year", by_equipment=True).head(24)
 
 
-# <a id="utilization-rate"></a>
+# <a id="service-equipment-utilization-rate"></a>
 # ## Service Equipment Utilization Rate
 #
 # Here, we will go through the various input definitions to get the service equipment utiliztion rates.
@@ -321,7 +319,7 @@ total = metrics.service_equipment_utilization(frequency="annual")
 total
 
 
-# <a id="vessel-crew-hours"></a>
+# <a id="vessel-crew-hours-at-sea"></a>
 # ## Vessel-Crew Hours at Sea
 #
 # The number of vessel hours or crew hours at sea for offshore wind power plant simulations.
@@ -352,7 +350,7 @@ metrics.vessel_crew_hours_at_sea(frequency="project", by_equipment=False)
 metrics.vessel_crew_hours_at_sea(frequency="annual", by_equipment=True)
 
 
-# <a id="tows"></a>
+# <a id="number-of-tows"></a>
 # ## Number of Tows
 #
 # The number of tows metric will only produce results if any towing actually occurred, otherwise a dataframe with a value of 0 is returned, as is the case in this demonstration.
@@ -432,7 +430,7 @@ metrics.labor_costs(frequency="monthly", by_type=False)
 metrics.labor_costs(frequency="month-year", by_type=False).head(24)
 
 
-# <a id="equipment-labor-costs"></a>
+# <a id="equipment-and-labor-costs"></a>
 # ## Equipment and Labor Costs
 #
 # Here, we will go through the various input definitions to get the equipment and labor cost data broken out by expense categories.
@@ -498,7 +496,7 @@ metrics.equipment_labor_cost_breakdowns(frequency="month-year", by_category=Fals
 
 
 # <a id="component-costs"></a>
-# ## Component
+# ## Component Costs
 #
 # Here, we will go through the various input definitions to get the component cost data broken out by various categories.
 #
@@ -566,7 +564,7 @@ metrics.component_costs(frequency="month-year", by_category=True, by_action=Fals
 )
 
 
-# <a id="fixed-costs"></a>
+# <a id="fixed-cost-impacts"></a>
 # ## Fixed Cost Impacts
 #
 # Here, we will go through the various input definitions to get the fixed cost data
@@ -742,7 +740,7 @@ metrics.power_production(frequency="monthly", by_turbine=False)
 metrics.power_production(frequency="month-year", by_turbine=False).head(24)
 
 
-# <a id="npv"></a>
+# <a id="net-present-value"></a>
 # ## Net Present Value
 #
 # Here, we will go through the various input definitions to get the project NPV
@@ -781,7 +779,7 @@ metrics.opex("monthly")
 metrics.opex("month-year").head(28)
 
 
-# <a id="pysam"></a>
+# <a id="pysam-powered-results"></a>
 # ## PySAM-Powered Results
 #
 # For a number of project financial metrics, the PySAM library is utilized.
