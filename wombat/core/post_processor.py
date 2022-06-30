@@ -1476,7 +1476,7 @@ class Metrics:
         if not isinstance(by_action, bool):
             raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
 
-        events = self.events.loc[~self.events.part_id.isna()]
+        events = self.events.loc[~self.events.part_id.isna()].copy()
 
         # Need to simplify the cable identifiers to not include the connection information
         events.loc[:, "component"] = [el.split("::")[0] for el in events.part_id.values]
@@ -1519,12 +1519,12 @@ class Metrics:
         zeros = np.zeros(len(cost_cols)).tolist()
         costs = events.groupby(group_filter).sum()[cost_cols].reset_index()
         if not by_action:
-            costs["action"] = np.zeros(costs.shape[0])
+            costs.loc[:, "action"] = np.zeros(costs.shape[0])
             cols = costs.columns.to_list()
             _ix = cols.index("component") + 1
             cols[_ix:_ix] = ["action"]
             cols.pop(-1)
-            costs = costs[cols]
+            costs = costs.loc[:, cols]
         if frequency in ("annual", "month-year"):
             years = costs.year.unique()
             components = costs.component.unique()
@@ -1575,7 +1575,7 @@ class Metrics:
         if group_filter != []:
             costs = costs.sort_values(group_filter)
         if sort_cols != []:
-            costs = costs[sort_cols]
+            costs = costs.loc[:, sort_cols]
         costs = costs.reset_index(drop=True)
         return costs if group_filter == [] else costs.set_index(group_filter)
 
@@ -1667,7 +1667,7 @@ class Metrics:
         )
         costs = pd.DataFrame(vals, columns=keys)
 
-        total = self.events.groupby(["year", "month"]).count()[["env_time"]]
+        total = self.operations.groupby(["year", "month"]).count()[["env_time"]]
         total = total.rename(columns={"env_time": "N"})
         total.N = 1.0
 
@@ -1713,9 +1713,9 @@ class Metrics:
 
         # Get the materials costs and remove the component-level breakdown
         materials = self.component_costs(frequency=frequency, by_category=True)
-        materials = materials[["materials_cost"]].reset_index()
+        materials = materials.loc[:, ["materials_cost"]].reset_index()
         if frequency == "project":
-            materials = pd.DataFrame(materials[["materials_cost"]].sum()).T
+            materials = pd.DataFrame(materials.loc[:, ["materials_cost"]].sum()).T
         else:
             if frequency == "annual":
                 group_col = ["year"]
@@ -1723,12 +1723,19 @@ class Metrics:
                 group_col = ["month"]
             elif frequency == "month-year":
                 group_col = ["year", "month"]
-            materials = materials.groupby(group_col)[["materials_cost"]].sum()
+            materials = materials.groupby(group_col).sum().loc[:, ["materials_cost"]]
+
+        # Port fees will produce an 1x1 dataframe if values aren't present, so recreate
+        # it with the appropriate dimension
+        port_fees = self.port_fees(frequency=frequency)
+        if frequency != "project" and port_fees.shape == (1, 1):
+            port_fees = pd.DataFrame([], columns=["port_fees"], index=materials.index)
+            port_fees = port_fees.fillna(0)
 
         # Create a list of data frames for the OpEx components
         opex_items = [
             self.project_fixed_costs(frequency=frequency, resolution="low"),
-            self.port_fees(frequency=frequency),
+            port_fees,
             self.equipment_costs(frequency=frequency),
             self.labor_costs(frequency=frequency),
             materials,
@@ -1844,7 +1851,7 @@ class Metrics:
             One of "project", "annual", "monthly", or "month-year".
         discount_rate : float, optional
             The rate of return that could be earned on alternative investments, by
-            default 0.025./
+            default 0.025.
         offtake_price : float, optional
             Price of energy, per MWh, by default 80.
 
