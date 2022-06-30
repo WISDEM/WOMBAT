@@ -1773,7 +1773,7 @@ class Metrics:
         self, frequency: str, by_turbine: bool = False
     ) -> float | pd.DataFrame:
         """Calculates the power production for the simulation at a project, annual, or
-        monthly level that can be broken out by hourly and salary labor costs.
+        monthly level that can be broken out by turbine.
 
         Parameters
         ----------
@@ -1828,6 +1828,52 @@ class Metrics:
         return self.production.groupby(by=group_cols).sum()[col_filter]
 
     # Windfarm Financials
+
+    def npv(
+        self, frequency: str, discount_rate: float = 0.025, offtake_price: float = 80
+    ) -> pd.DataFrame:
+        """Calculates the net present value of the windfarm at a project, annual, or
+        monthly resolution given a base discount rate and offtake price.
+
+        ... note: This function will be improved over time to incorporate more of the
+            financial parameter at play, such as PPAs.
+
+        Parameters
+        ----------
+        frequency : str
+            One of "project", "annual", "monthly", or "month-year".
+        discount_rate : float, optional
+            The rate of return that could be earned on alternative investments, by
+            default 0.025./
+        offtake_price : float, optional
+            Price of energy, per MWh, by default 80.
+
+        Returns
+        -------
+        pd.DataFrame
+            _description_
+        """
+        frequency = _check_frequency(frequency, which="all")
+
+        # Gather the OpEx, and revenues
+        expenditures = self.opex("month-year")
+        production = self.power_production("month-year")
+        revenue: pd.DataFrame = production / 1000 * offtake_price  # MWh
+
+        # Instantiate the NPV with the required calculated data and compute the result
+        npv = revenue.join(expenditures).rename(columns={"windfarm": "revenue"})
+        N = npv.shape[0]
+        npv.loc[:, "discount"] = np.full(N, 1 + discount_rate) ** np.arange(N)
+        npv.loc[:, "NPV"] = (npv.revenue.values - npv.OpEx.values) / npv.discount.values
+
+        # Aggregate the results to the required resolution
+        if frequency == "project":
+            return pd.DataFrame(npv.reset_index().sum()).T[["NPV"]]
+        elif frequency == "annual":
+            return npv.reset_index().groupby("year").sum()[["NPV"]]
+        elif frequency == "monthly":
+            return npv.reset_index().groupby("month").sum()[["NPV"]]
+        return npv[["NPV"]]
 
     def pysam_npv(self) -> float | pd.DataFrame:
         """Returns the project-level after-tax net present values (NPV).
