@@ -1858,7 +1858,7 @@ class Metrics:
         Returns
         -------
         pd.DataFrame
-            _description_
+            The project net prsent value at the desired time resolution.
         """
         frequency = _check_frequency(frequency, which="all")
 
