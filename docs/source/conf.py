@@ -88,9 +88,9 @@ source_suffix = {
 }
 
 # toggle this between auto/off to rerun full documentation build
-jupyter_execute_notebooks = "off"
-execution_timeout = -1
-execution_allow_errors = True
+nb_execution_mode = "off"
+nb_execution_timeout = -1
+nb_execution_allow_errors = True
 # execution_excludepatterns = ["*_demonstration.ipynb"]  # only used for quick docs building when updating the how to example
 
 myst_heading_anchors = 3
@@ -111,14 +111,7 @@ html_theme_options = {
     "path_to_docs": "docs/",
     "show_navbar_depth": 2,
     "home_page_in_toc": True,
-}
-html_sidebars = {
-    "**": [
-        "search-field.html",
-        "sidebar-logo.html",
-        "sbt-sidebar-nav.html",
-        "sbt-sidebar-footer.html",
-    ]
+    "show_toc_level": 2,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
