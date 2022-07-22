@@ -372,9 +372,7 @@ class Metrics:
         # Run the financial model
         self.financial_model.execute()
 
-    def time_based_availability(  # type: ignore
-        self, frequency: str, by: str
-    ) -> float | pd.DataFrame:
+    def time_based_availability(self, frequency: str, by: str) -> pd.DataFrame:
         """Calculates the time-based availabiliy over a project's lifetime as a single
         value, annual average, or monthly average for the whole windfarm or by turbine.
 
@@ -390,7 +388,7 @@ class Metrics:
 
         Returns
         -------
-        float | pd.DataFrame
+        pd.DataFrame
             The time-based availability at the desired aggregation level.
         """
         frequency = _check_frequency(frequency, which="all")
@@ -409,7 +407,7 @@ class Metrics:
         if frequency == "project":
             availability = _calculate_time_availability(hourly, by_turbine=by_turbine)
             if by == "windfarm":
-                return availability
+                return pd.DataFrame([availability], columns=["windfarm"])
             availability = pd.DataFrame(
                 availability.reshape(1, -1), columns=self.turbine_id  # type: ignore
             )
@@ -449,9 +447,7 @@ class Metrics:
             ]
             return pd.DataFrame(month_year, index=counts.index, columns=counts.columns)
 
-    def production_based_availability(  # type: ignore
-        self, frequency: str, by: str
-    ) -> float | pd.DataFrame:
+    def production_based_availability(self, frequency: str, by: str) -> pd.DataFrame:
         """Calculates the production-based availabiliy over a project's lifetime as a
         single value, annual average, or monthly average for the whole windfarm or by
         turbine.
@@ -468,7 +464,7 @@ class Metrics:
 
         Returns
         -------
-        float | pd.DataFrame
+        pd.DataFrame
             The production-based availability at the desired aggregation level.
         """
         frequency = _check_frequency(frequency, which="all")
@@ -487,7 +483,9 @@ class Metrics:
             if (potential == 0).sum() > 0:
                 potential[potential == 0] = 1
             if not by_turbine:
-                return production.sum() / potential.sum()
+                return pd.DataFrame(
+                    [production.sum() / potential.sum()], columns=["windfarm"]
+                )
             availability = pd.DataFrame(
                 (production.sum(axis=0) / potential.sum(axis=0)).reshape(1, -1),
                 columns=self.turbine_id,
@@ -523,7 +521,7 @@ class Metrics:
 
     def capacity_factor(  # type: ignore
         self, which: str, frequency: str, by: str
-    ) -> float | pd.DataFrame:
+    ) -> pd.DataFrame:
         """Calculates the capacity factor over a project's lifetime as a single value,
         annual average, or monthly average for the whole windfarm or by turbine.
 
@@ -542,7 +540,7 @@ class Metrics:
 
         Returns
         -------
-        float | pd.DataFrame
+        pd.DataFrame
             The capacity factor at the desired aggregation level.
         """
         which = which.lower().strip()
@@ -644,6 +642,8 @@ class Metrics:
         ].reset_index(drop=True)
 
         if frequency == "project":
+            if requests.shape[0] == 0:
+                return 0.0
             return completions.shape[0] / requests.shape[0]
 
         requests[["year", "month"]] = [
@@ -706,9 +706,8 @@ class Metrics:
 
         Returns
         -------
-        float | pd.DataFrame
-            Returns either a float for whole project-level costs or a pandas ``DataFrame``
-            with columns:
+        pd.DataFrame
+            Returns pandas ``DataFrame``with columns:
                 - year (if appropriate for frequency)
                 - month (if appropriate for frequency)
                 - then any equipment names as they appear in the logs
@@ -743,12 +742,8 @@ class Metrics:
                     .reset_index(level=0)
                 )
                 costs = costs.fillna(costs.max(axis=0)).T
-                costs = (
-                    costs.rename(columns=costs.iloc[0])
-                    .drop(index="agent")
-                    .reset_index(drop=True)
-                )
-                return costs
+                costs = costs.rename(columns=costs.iloc[0]).drop(index="agent")
+                return costs.reset_index(drop=True)
 
             col_filter = ["agent"] + col_filter
             costs = (
@@ -1665,7 +1660,6 @@ class Metrics:
             * self.project_capacity
             * 1000
         )
-        costs = pd.DataFrame(vals, columns=keys)
 
         total = self.operations.groupby(["year", "month"]).count()[["env_time"]]
         total = total.rename(columns={"env_time": "N"})
@@ -1679,11 +1673,9 @@ class Metrics:
         costs = pd.DataFrame(total.values * vals, index=total.index, columns=keys)
         costs *= operation_hours.values.reshape(-1, 1) / 8760.0
 
-        years = self.events.year.unique()
         adjusted_inflation = np.array(
-            [self.inflation_rate**i for i in range(len(years)) for j in range(12)]
+            [self.inflation_rate ** (i // 12) for i in range(costs.shape[0])]
         )
-        adjusted_inflation = adjusted_inflation[: costs.shape[0]]
         costs *= adjusted_inflation.reshape(-1, 1)
 
         if frequency == "project":
