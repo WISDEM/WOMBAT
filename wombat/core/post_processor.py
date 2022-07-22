@@ -284,9 +284,9 @@ class Metrics:
             data.index = data.datetime
             data = data.drop(labels="datetime", axis=1)
         data.env_datetime = pd.to_datetime(data.env_datetime)
-        data["year"] = data.env_datetime.dt.year
-        data["month"] = data.env_datetime.dt.month
-        data["day"] = data.env_datetime.dt.day
+        data["year"] = data.env_datetime.dt.year.values
+        data["month"] = data.env_datetime.dt.month.values
+        data["day"] = data.env_datetime.dt.day.values
         if kind == "operations":
             data["windfarm"] = data[self.substation_id].mean(axis=1) * data[
                 self.turbine_id
