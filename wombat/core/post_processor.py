@@ -564,15 +564,15 @@ class Metrics:
             potential = production.shape[0]
             if not by_turbine:
                 production = production.values.sum() / 1000  # convert to MWh
-                return production / (potential * capacity)
+                return pd.DataFrame(
+                    [production / (potential * capacity)], columns=["windfarm"]
+                )
             potential = potential * capacity / 1000
             cf = pd.DataFrame((production.sum(axis=0) / 1000 / potential)).T
             return cf
 
-        production[["year", "month"]] = [
-            production.index.year.values.reshape(-1, 1),
-            production.index.month.values.reshape(-1, 1),
-        ]
+        production["year"] = production.index.year.values
+        production["month"] = production.index.month.valuess
 
         if frequency == "annual":
             potential = production.groupby("year").count()[self.turbine_id]
@@ -643,18 +643,16 @@ class Metrics:
 
         if frequency == "project":
             if requests.shape[0] == 0:
-                return 0.0
-            return completions.shape[0] / requests.shape[0]
+                return pd.DataFrame([0.0], columns=["windfarm"])
+            return pd.DataFrame(
+                [completions.shape[0] / requests.shape[0]], columns=["windfarm"]
+            )
 
-        requests[["year", "month"]] = [
-            requests.env_datetime.dt.year.values.reshape(-1, 1),
-            requests.env_datetime.dt.month.values.reshape(-1, 1),
-        ]
+        requests["year"] = requests.env_datetime.dt.year.values
+        requests["month"] = requests.env_datetime.dt.month.values
 
-        completions[["year", "month"]] = [
-            completions.env_datetime.dt.year.values.reshape(-1, 1),
-            completions.env_datetime.dt.month.values.reshape(-1, 1),
-        ]
+        completions["year"] = completions.env_datetime.dt.year.values
+        completions["month"] = completions.env_datetime.dt.month.values
 
         if frequency == "annual":
             group_filter = ["year"]
@@ -673,12 +671,14 @@ class Metrics:
         completions = completions.groupby(group_filter).count()["request_id"]
 
         missing = [ix for ix in indices if ix not in requests]
-        requests = requests.append(pd.Series(np.ones(len(missing)), index=missing))
+        requests = pd.concat(
+            [requests, pd.Series(np.ones(len(missing)), index=missing)]
+        )
         requests = requests.sort_index()
 
         missing = [ix for ix in indices if ix not in completions]
-        completions = completions.append(
-            pd.Series(np.zeros(len(missing)), index=missing)
+        completions = pd.concat(
+            [completions, pd.Series(np.zeros(len(missing)), index=missing)]
         )
         completions = completions.sort_index()
 
@@ -690,7 +690,7 @@ class Metrics:
 
     def equipment_costs(
         self, frequency: str, by_equipment: bool = False
-    ) -> float | pd.DataFrame:
+    ) -> pd.DataFrame:
         """Calculates the equipment costs for the simulation at a project, annual, or
         monthly level with (or without) respect to equipment utilized in the simulation.
         This excludes any port fees that might apply, which are included in:
@@ -722,7 +722,7 @@ class Metrics:
         frequency = _check_frequency(frequency, which="all")
 
         if not isinstance(by_equipment, bool):
-            raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
+            raise ValueError("`by_equipment` must be one of `True` or `False`")
 
         if frequency == "annual":
             col_filter = ["year"]
@@ -779,8 +779,8 @@ class Metrics:
         visits for scheduled servicing equipment strategies.
 
         .. note:: For tugboats in a tow-to-port scenario, this ratio will be near
-        100% because they are considered to be operating on an as-needed basis per the
-        port contracting assumptions
+            100% because they are considered to be operating on an as-needed basis per
+            the port contracting assumptions
 
         Parameters
         ----------
@@ -1817,14 +1817,14 @@ class Metrics:
             col_filter.extend(self.turbine_id)
 
         if frequency == "project":
-            production = self.production.sum(axis=0)[col_filter]
+            production = self.production[col_filter].sum(axis=0)
             production = pd.DataFrame(
                 production.values.reshape(1, -1),
                 columns=col_filter,
                 index=["Project Energy Production (kWh)"],
             )
             return production
-        return self.production.groupby(by=group_cols).sum()[col_filter]
+        return self.production.groupby(by=group_cols)[col_filter].sum()
 
     # Windfarm Financials
 
