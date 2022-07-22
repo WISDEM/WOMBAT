@@ -10,7 +10,7 @@ onsite: false
 capability: RMT
 mobilization_cost: 0
 mobilization_days: 0
-speed: 0
+speed: 1  # ensures this doesn't fail validation
 max_windspeed_transport: 99
 max_windspeed_repair: 99
 max_waveheight_transport: 99
