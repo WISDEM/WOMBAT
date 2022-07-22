@@ -572,7 +572,7 @@ class Metrics:
             return cf
 
         production["year"] = production.index.year.values
-        production["month"] = production.index.month.valuess
+        production["month"] = production.index.month.values
 
         if frequency == "annual":
             potential = production.groupby("year").count()[self.turbine_id]
