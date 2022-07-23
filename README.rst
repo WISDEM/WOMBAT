@@ -56,7 +56,7 @@ Setup
 Requirements
 ~~~~~~~~~~~~
 
-* Python 3.7+, see the next section for more.
+* Python 3.8+, see the next section for more.
 
 Environment Setup
 ~~~~~~~~~~~~~~~~~
