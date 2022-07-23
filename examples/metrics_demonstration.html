@@ -1,0 +1,5929 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Demonstration of the Metrics To-Date &#8212; WOMBAT v0.5.1</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="WOMBAT API" href="../API/index.html" />
+    <link rel="prev" title="Servicing Strategies" href="strategy_demonstration.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+<!-- Checkboxes to toggle the left sidebar -->
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
+<label class="overlay overlay-navbar" for="__navigation">
+    <div class="visually-hidden">Toggle navigation sidebar</div>
+</label>
+<!-- Checkboxes to toggle the in-page toc -->
+<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
+<label class="overlay overlay-pagetoc" for="__page-toc">
+    <div class="visually-hidden">Toggle in-page Table of Contents</div>
+</label>
+<!-- Headers at the top -->
+<div class="announcement header-item noprint"></div>
+<div class="header header-item noprint"></div>
+
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<!-- Sidebar -->
+<div class="bd-sidebar noprint" id="site-navigation">
+    <div class="bd-sidebar__content">
+        <div class="bd-sidebar__top"><div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../index.html">
+      
+      
+      
+      <h1 class="site-logo" id="site-title">WOMBAT v0.5.1</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    WOMBAT - Windfarm Operations and Maintenance cost-Benefit Analysis Tool
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Getting Started
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../install.html">
+   Installation
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../presentations.html">
+   Presentations and Publications
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../team.html">
+   Team
+  </a>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Working with the code base
+ </span>
+</p>
+<ul class="current nav bd-sidenav">
+ <li class="toctree-l1 current active has-children">
+  <a class="reference internal" href="index.html">
+   Examples
+  </a>
+  <input checked class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="how_to.html">
+     How To Use WOMBAT
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="strategy_demonstration.html">
+     Servicing Strategies
+    </a>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="current reference internal" href="#">
+     Demonstration of the Metrics To-Date
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../API/index.html">
+   WOMBAT API
+  </a>
+  <input checked class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <label for="toctree-checkbox-2">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../API/simulation_api.html">
+     Simulation API
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../API/simulation.html">
+     Simulation Tools and Methodology
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../API/types.html">
+     Data Classes
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../changelog.html">
+   Change Log
+  </a>
+ </li>
+</ul>
+
+    </div>
+</nav></div>
+        <div class="bd-sidebar__bottom">
+             <!-- To handle the deprecated key -->
+            
+            <div class="navbar_extra_footer">
+            Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+            </div>
+            
+        </div>
+    </div>
+    <div id="rtd-footer-container"></div>
+</div>
+
+
+          
+
+
+          
+<!-- A tiny helper pixel to detect if we've scrolled -->
+<div class="sbt-scroll-pixel-helper"></div>
+<!-- Main content -->
+<div class="col py-0 content-container">
+    
+    <div class="header-article row sticky-top noprint">
+        
+
+
+
+<div class="col py-1 d-flex header-article-main">
+    <div class="header-article__left">
+        
+        <label for="__navigation"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="right"
+title="Toggle navigation"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-bars"></i>
+  </span>
+
+</label>
+
+        
+    </div>
+    <div class="header-article__right">
+<button onclick="toggleFullScreen()"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="bottom"
+title="Fullscreen mode"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+<div class="menu-dropdown menu-dropdown-repository-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Source repositories">
+      <i class="fab fa-github"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="https://github.com/WISDEM/WOMBAT"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Source repository"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="headerbtn__text-container">repository</span>
+</a>
+
+      </li>
+      
+      <li>
+        <a href="https://github.com/WISDEM/WOMBAT/issues/new?title=Issue%20on%20page%20%2Fexamples/metrics_demonstration.html&body=Your%20issue%20content%20here."
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Open an issue"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="headerbtn__text-container">open issue</span>
+</a>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+<div class="menu-dropdown menu-dropdown-download-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Download this page">
+      <i class="fas fa-download"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="../_sources/examples/metrics_demonstration.ipynb.txt"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Download source file"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="headerbtn__text-container">.ipynb</span>
+</a>
+
+      </li>
+      
+      <li>
+        
+<button onclick="printPdf(this)"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="left"
+title="Print to PDF"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="headerbtn__text-container">.pdf</span>
+</button>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+<label for="__page-toc"
+  class="headerbtn headerbtn-page-toc"
+  
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-list"></i>
+  </span>
+
+</label>
+
+    </div>
+</div>
+
+<!-- Table of contents -->
+<div class="col-md-3 bd-toc show noprint">
+    <div class="tocsection onthispage pt-5 pb-3">
+        <i class="fas fa-list"></i> Contents
+    </div>
+    <nav id="bd-toc-nav" aria-label="Page">
+        <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#table-of-contents">
+   Table of Contents
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#setup">
+   Setup
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#availability">
+   Availability
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#capacity-factor">
+   Capacity Factor
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#task-completion-rate">
+   Task Completion Rate
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#equipment-costs">
+   Equipment Costs
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#service-equipment-utilization-rate">
+   Service Equipment Utilization Rate
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#vessel-crew-hours-at-sea">
+   Vessel-Crew Hours at Sea
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#number-of-tows">
+   Number of Tows
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#labor-costs">
+   Labor Costs
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#equipment-and-labor-costs">
+   Equipment and Labor Costs
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#component-costs">
+   Component Costs
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#fixed-cost-impacts">
+   Fixed Cost Impacts
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#opex">
+   OpEx
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#process-times">
+   Process Times
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#power-production">
+   Power Production
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#net-present-value">
+   Net Present Value
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#pysam-powered-results">
+   PySAM-Powered Results
+  </a>
+  <ul class="visible nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#net-present-value-npv">
+     Net Present Value (NPV)
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#real-levelized-cost-of-energy-lcoe">
+     Real Levelized Cost of Energy (LCOE)
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#nominal-levelized-cost-of-energy-lcoe">
+     Nominal Levelized Cost of Energy (LCOE)
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#after-tax-internal-return-rate-irr">
+     After-tax Internal Return Rate (IRR)
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#one-data-frame-to-rule-them-all">
+     One Data Frame to Rule Them All
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+    </nav>
+</div>
+    </div>
+    <div class="article row">
+        <div class="col pl-md-3 pl-lg-5 content-container">
+            <!-- Table of contents that is only displayed when printing the page -->
+            <div id="jb-print-docs-body" class="onlyprint">
+                <h1>Demonstration of the Metrics To-Date</h1>
+                <!-- Table of contents -->
+                <div id="print-main-content">
+                    <div id="jb-print-toc">
+                        
+                        <div>
+                            <h2> Contents </h2>
+                        </div>
+                        <nav aria-label="Page">
+                            <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#table-of-contents">
+   Table of Contents
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#setup">
+   Setup
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#availability">
+   Availability
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#capacity-factor">
+   Capacity Factor
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#task-completion-rate">
+   Task Completion Rate
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#equipment-costs">
+   Equipment Costs
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#service-equipment-utilization-rate">
+   Service Equipment Utilization Rate
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#vessel-crew-hours-at-sea">
+   Vessel-Crew Hours at Sea
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#number-of-tows">
+   Number of Tows
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#labor-costs">
+   Labor Costs
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#equipment-and-labor-costs">
+   Equipment and Labor Costs
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#component-costs">
+   Component Costs
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#fixed-cost-impacts">
+   Fixed Cost Impacts
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#opex">
+   OpEx
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#process-times">
+   Process Times
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#power-production">
+   Power Production
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#net-present-value">
+   Net Present Value
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#pysam-powered-results">
+   PySAM-Powered Results
+  </a>
+  <ul class="visible nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#net-present-value-npv">
+     Net Present Value (NPV)
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#real-levelized-cost-of-energy-lcoe">
+     Real Levelized Cost of Energy (LCOE)
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#nominal-levelized-cost-of-energy-lcoe">
+     Nominal Levelized Cost of Energy (LCOE)
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#after-tax-internal-return-rate-irr">
+     After-tax Internal Return Rate (IRR)
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#one-data-frame-to-rule-them-all">
+     One Data Frame to Rule Them All
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            <main id="main-content" role="main">
+                
+              <div>
+                
+  <section id="demonstration-of-the-metrics-to-date">
+<h1>Demonstration of the Metrics To-Date<a class="headerlink" href="#demonstration-of-the-metrics-to-date" title="Permalink to this headline">#</a></h1>
+<p>For a complete list of metrics and their documentation, please see the API Metrics <a class="reference internal" href="../API/simulation_api.html#metrics-computation"><span class="std std-doc">documentation</span></a>.</p>
+<p>This demonstration will rely on the results produced in the “How To” notebook and serves as an extension of the API documentation to show what the results will look like depending on what inputs are provided.</p>
+<div class="alert alert-block alert-warning">
+<b>Note:</b>
+As of v0.5, most outputs, including availability, return values as a pandas DataFrame, regardless of the aggregation level.
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">wombat.core</span> <span class="kn">import</span> <span class="n">Simulation</span><span class="p">,</span> <span class="n">Metrics</span>
+
+<span class="c1"># Clean up the aesthetics for the pandas outputs</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">&quot;display.float_format&quot;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{:,.2f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">&quot;display.max_rows&quot;</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">&quot;display.max_columns&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<section id="table-of-contents">
+<h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this headline">#</a></h2>
+<p>Below is a list of top-level sections to demonstrate how to use WOMBAT’s <code class="docutils literal notranslate"><span class="pre">Metrics</span></code> class methods and an explanation of each individual metric.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#setup"><span class="std std-doc">Setup</span></a>: Running a simulation to gather the results</p></li>
+<li><p><a class="reference internal" href="#availability"><span class="std std-doc">Availability</span></a>: Time-based and energy-based availability</p></li>
+<li><p><a class="reference internal" href="#capacity-factor"><span class="std std-doc">Capacity Factor</span></a>: Gross and net capacity factor</p></li>
+<li><p><a class="reference internal" href="#task-completion-rate"><span class="std std-doc">Task Completion Rate</span></a>: Task completion metrics</p></li>
+<li><p><a class="reference internal" href="#equipment-costs"><span class="std std-doc">Equipment Costs</span></a>: Cost breakdowns by servicing equipment</p></li>
+<li><p><a class="reference internal" href="#service-equipment-utilization-rate"><span class="std std-doc">Service Equipment Utilization Rate</span></a>: Utilization of servicing equipment</p></li>
+<li><p><a class="reference internal" href="#vessel-crew-hours-at-sea"><span class="std std-doc">Vessel-Crew Hours at Sea</span></a>: Number of crew or vessel hours spent at sea</p></li>
+<li><p><a class="reference internal" href="#number-of-tows"><span class="std std-doc">Number of Tows</span></a>: Number of tows breakdowns</p></li>
+<li><p><a class="reference internal" href="#labor-costs"><span class="std std-doc">Labor Costs</span></a>: Breakdown of labor costs</p></li>
+<li><p><a class="reference internal" href="#equipment-and-labor-costs"><span class="std std-doc">Equipment and Labor Costs</span></a>: Combined servicing equipment and labor cost breakdown</p></li>
+<li><p><a class="reference internal" href="#component-costs"><span class="std std-doc">Component Costs</span></a>: Materials costs</p></li>
+<li><p><a class="reference internal" href="#fixed-cost-impacts"><span class="std std-doc">Fixed Cost Impacts</span></a>: Total fixed costs</p></li>
+<li><p><a class="reference internal" href="#opex"><span class="std std-doc">OpEx</span></a>: Project OpEx</p></li>
+<li><p><a class="reference internal" href="#process-times"><span class="std std-doc">Process Times</span></a>: Timing of various stages of repair and maintenance</p></li>
+<li><p><a class="reference internal" href="#power-production"><span class="std std-doc">Power Production</span></a>: Potential and actually produced power</p></li>
+<li><p><a class="reference internal" href="#net-present-value"><span class="std std-doc">Net Present Value</span></a>: Project NPV calculator</p></li>
+<li><p><a class="reference internal" href="#pysam-powered-results"><span class="std std-doc">PySAM-Powered Results</span></a>: PySAM results, if configuration is provided</p></li>
+</ul>
+<p><a id="setup"></a></p>
+</section>
+<section id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">#</a></h2>
+<p>The simulations from the How To notebook are going to be rerun as it is not recommended to create a Metrics class from scratch due to the
+large number of inputs that are required and the initialization is provided in the simulation API’s run method.</p>
+<p>To simplify this process, a feature has been added to save the simulation outputs required to generate the Metrics inputs and a method to reload those outputs as inputs.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="s2">&quot;DINWOODIE&quot;</span><span class="p">,</span> <span class="s2">&quot;base.yaml&quot;</span><span class="p">)</span>
+
+<span class="c1"># Both of these parameters are True by default for convenience</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">create_metrics</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">save_metrics_inputs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Load the metrics data</span>
+<span class="n">fpath</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">metrics_input_fname</span><span class="o">.</span><span class="n">parent</span>
+<span class="n">fname</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">metrics_input_fname</span><span class="o">.</span><span class="n">name</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">Metrics</span><span class="o">.</span><span class="n">from_simulation_outputs</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+
+<span class="c1"># Delete the log files now that they&#39;re loaded in</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">cleanup_log_files</span><span class="p">(</span><span class="n">log_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Alternatively, in this case because the simulation was run, we can use the</span>
+<span class="c1"># following for convenience convenience only</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">metrics</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p><a id="availability"></a></p>
+</section>
+<section id="availability">
+<h2>Availability<a class="headerlink" href="#availability" title="Permalink to this headline">#</a></h2>
+<p>There are two methods to produce availability, which have their own function calls:</p>
+<ul class="simple">
+<li><p>energy: <code class="docutils literal notranslate"><span class="pre">production_based_availability</span></code></p></li>
+<li><p>time: <code class="docutils literal notranslate"><span class="pre">time_based_availability</span></code></p></li>
+</ul>
+<p>Here, we will go through the various input definitions to get time-based availability data as both methods use the same inputs, and provide outputs in the same format.</p>
+<p><code class="docutils literal notranslate"><span class="pre">frequency</span></code> options:</p>
+<ul class="simple">
+<li><p>project: computed across the whole simulation</p></li>
+<li><p>annual: computed on a yearly basis</p></li>
+<li><p>monthly: computed across years on a monthly basis</p></li>
+<li><p>month-year: computed on a month-by-year basis</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">by</span></code> options:</p>
+<ul class="simple">
+<li><p>windfarm: computed across all turbines</p></li>
+<li><p>turbine: computed for each turbine</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project total at the whole windfarm level</span>
+<span class="n">total</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">time_based_availability</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">&quot;windfarm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Project total: </span><span class="si">{</span><span class="n">total</span> <span class="o">*</span> <span class="mi">100</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Project total: 96.1%
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project total at the turbine level</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">time_based_availability</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">&quot;turbine&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>S00T1</th>
+      <th>S00T2</th>
+      <th>S00T3</th>
+      <th>S00T4</th>
+      <th>S00T5</th>
+      <th>...</th>
+      <th>S00T76</th>
+      <th>S00T77</th>
+      <th>S00T78</th>
+      <th>S00T79</th>
+      <th>S00T80</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.87</td>
+      <td>0.94</td>
+      <td>0.98</td>
+      <td>0.96</td>
+      <td>0.98</td>
+      <td>...</td>
+      <td>0.93</td>
+      <td>0.98</td>
+      <td>0.98</td>
+      <td>0.98</td>
+      <td>0.86</td>
+    </tr>
+  </tbody>
+</table>
+<p>1 rows × 80 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project annual totals at the windfarm level</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">time_based_availability</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;annual&quot;</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">&quot;windfarm&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>windfarm</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2003</th>
+      <td>0.96</td>
+    </tr>
+    <tr>
+      <th>2004</th>
+      <td>0.95</td>
+    </tr>
+    <tr>
+      <th>2005</th>
+      <td>0.96</td>
+    </tr>
+    <tr>
+      <th>2006</th>
+      <td>0.96</td>
+    </tr>
+    <tr>
+      <th>2007</th>
+      <td>0.97</td>
+    </tr>
+    <tr>
+      <th>2008</th>
+      <td>0.96</td>
+    </tr>
+    <tr>
+      <th>2009</th>
+      <td>0.97</td>
+    </tr>
+    <tr>
+      <th>2010</th>
+      <td>0.96</td>
+    </tr>
+    <tr>
+      <th>2011</th>
+      <td>0.96</td>
+    </tr>
+    <tr>
+      <th>2012</th>
+      <td>0.96</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project monthly totals at the windfarm level</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">time_based_availability</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;monthly&quot;</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">&quot;windfarm&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>windfarm</th>
+    </tr>
+    <tr>
+      <th>month</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>0.96</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>0.96</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>0.96</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>0.95</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>0.96</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>0.97</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>0.97</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>0.96</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>0.96</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>0.96</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>0.96</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>0.95</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project month-by-year totals at the windfarm level</span>
+<span class="c1"># NOTE: This is limited to the first two years for cleanliness of the notebook</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">time_based_availability</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;month-year&quot;</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">&quot;windfarm&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>windfarm</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th>month</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="5" valign="top">2003</th>
+      <th>1</th>
+      <td>0.99</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>0.97</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>0.97</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>0.97</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>0.95</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <th>...</th>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th rowspan="5" valign="top">2012</th>
+      <th>8</th>
+      <td>0.97</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>0.96</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>0.95</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>0.95</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>0.95</td>
+    </tr>
+  </tbody>
+</table>
+<p>120 rows × 1 columns</p>
+</div></div></div>
+</div>
+<p><a id="capacity-factor"></a></p>
+</section>
+<section id="capacity-factor">
+<h2>Capacity Factor<a class="headerlink" href="#capacity-factor" title="Permalink to this headline">#</a></h2>
+<p>Here, we will go through the various input definitions to get capacity factor data. The inputs are very similar to that of the availability calculation.</p>
+<p><code class="docutils literal notranslate"><span class="pre">which</span></code> options:</p>
+<ul class="simple">
+<li><p>net: net capcity factor, actual production</p></li>
+<li><p>gross: gross capacity factor, potential production</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">frequency</span></code> options:</p>
+<ul class="simple">
+<li><p>project: computed across the whole simulation</p></li>
+<li><p>annual: computed on a yearly basis</p></li>
+<li><p>monthly: computed across years on a monthly basis</p></li>
+<li><p>month-year: computed on a month-by-year basis</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">by</span></code> options:</p>
+<ul class="simple">
+<li><p>windfarm: computed across all turbines</p></li>
+<li><p>turbine: computed for each turbine</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project total at the whole windfarm level</span>
+<span class="n">cf</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">capacity_factor</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;net&quot;</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">&quot;windfarm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Net Capacity Factor: </span><span class="si">{</span><span class="n">cf</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+
+<span class="n">cf</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">capacity_factor</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;gross&quot;</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">&quot;windfarm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gross Capacity Factor: </span><span class="si">{</span><span class="n">cf</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Net Capacity Factor: 0.46%
+Gross Capacity Factor: 0.48%
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project total at the turbine level</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">capacity_factor</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;net&quot;</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">&quot;turbine&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>S00T1</th>
+      <th>S00T2</th>
+      <th>S00T3</th>
+      <th>S00T4</th>
+      <th>S00T5</th>
+      <th>...</th>
+      <th>S00T76</th>
+      <th>S00T77</th>
+      <th>S00T78</th>
+      <th>S00T79</th>
+      <th>S00T80</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.42</td>
+      <td>0.45</td>
+      <td>0.47</td>
+      <td>0.46</td>
+      <td>0.47</td>
+      <td>...</td>
+      <td>0.44</td>
+      <td>0.47</td>
+      <td>0.46</td>
+      <td>0.47</td>
+      <td>0.41</td>
+    </tr>
+  </tbody>
+</table>
+<p>1 rows × 80 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project annual totals at the windfarm level</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">capacity_factor</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;net&quot;</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;annual&quot;</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">&quot;windfarm&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>windfarm</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2003</th>
+      <td>0.40</td>
+    </tr>
+    <tr>
+      <th>2004</th>
+      <td>0.44</td>
+    </tr>
+    <tr>
+      <th>2005</th>
+      <td>0.47</td>
+    </tr>
+    <tr>
+      <th>2006</th>
+      <td>0.45</td>
+    </tr>
+    <tr>
+      <th>2007</th>
+      <td>0.49</td>
+    </tr>
+    <tr>
+      <th>2008</th>
+      <td>0.50</td>
+    </tr>
+    <tr>
+      <th>2009</th>
+      <td>0.46</td>
+    </tr>
+    <tr>
+      <th>2010</th>
+      <td>0.41</td>
+    </tr>
+    <tr>
+      <th>2011</th>
+      <td>0.49</td>
+    </tr>
+    <tr>
+      <th>2012</th>
+      <td>0.47</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project monthly totals at the windfarm level</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">capacity_factor</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;net&quot;</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;monthly&quot;</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">&quot;windfarm&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>windfarm</th>
+    </tr>
+    <tr>
+      <th>month</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>0.60</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>0.51</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>0.50</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>0.41</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>0.39</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>0.32</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>0.33</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>0.36</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>0.46</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>0.51</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>0.56</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>0.55</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project month-by-year totals at the windfarm level</span>
+<span class="c1"># NOTE: This is limited to the first two years for cleanliness of the notebook</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">capacity_factor</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;net&quot;</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;month-year&quot;</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">&quot;windfarm&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>windfarm</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th>month</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="5" valign="top">2003</th>
+      <th>1</th>
+      <td>0.63</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>0.36</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>0.37</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>0.52</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>0.34</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <th>...</th>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th rowspan="5" valign="top">2012</th>
+      <th>8</th>
+      <td>0.31</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>0.54</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>0.51</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>0.52</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>0.60</td>
+    </tr>
+  </tbody>
+</table>
+<p>120 rows × 1 columns</p>
+</div></div></div>
+</div>
+<p><a id="task-completion-rate"></a></p>
+</section>
+<section id="task-completion-rate">
+<h2>Task Completion Rate<a class="headerlink" href="#task-completion-rate" title="Permalink to this headline">#</a></h2>
+<p>Here, we will go through the various input definitions to get the task completion rates. The inputs are very similar to that of the availability calculation.</p>
+<p><code class="docutils literal notranslate"><span class="pre">which</span></code> options:</p>
+<ul class="simple">
+<li><p>scheduled: scheduled maintenance only (classified as maintenace tasks in inputs)</p></li>
+<li><p>unscheduled: unscheduled maintenance only (classified as failure events in inputs)</p></li>
+<li><p>both:</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">frequency</span></code> options:</p>
+<ul class="simple">
+<li><p>project: computed across the whole simulation</p></li>
+<li><p>annual: computed on a yearly basis</p></li>
+<li><p>monthly: computed across years on a monthly basis</p></li>
+<li><p>month-year: computed on a month-by-year basis</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project total at the whole windfarm level</span>
+<span class="n">total</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">task_completion_rate</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;scheduled&quot;</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Scheduled Task Completion Rate: </span><span class="si">{</span><span class="n">total</span> <span class="o">*</span> <span class="mi">100</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+
+<span class="n">total</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">task_completion_rate</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;unscheduled&quot;</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unscheduled Task Completion Rate: </span><span class="si">{</span><span class="n">total</span> <span class="o">*</span> <span class="mi">100</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+
+<span class="n">total</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">task_completion_rate</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Overall Task Completion Rate: </span><span class="si">{</span><span class="n">total</span> <span class="o">*</span> <span class="mi">100</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Scheduled Task Completion Rate: 100%
+Unscheduled Task Completion Rate: 100%
+    Overall Task Completion Rate: 100%
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project annual totals at the windfarm level</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">task_completion_rate</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;annual&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Completion Rate</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2003</th>
+      <td>0.99</td>
+    </tr>
+    <tr>
+      <th>2004</th>
+      <td>0.98</td>
+    </tr>
+    <tr>
+      <th>2005</th>
+      <td>1.02</td>
+    </tr>
+    <tr>
+      <th>2006</th>
+      <td>1.00</td>
+    </tr>
+    <tr>
+      <th>2007</th>
+      <td>1.01</td>
+    </tr>
+    <tr>
+      <th>2008</th>
+      <td>0.99</td>
+    </tr>
+    <tr>
+      <th>2009</th>
+      <td>1.00</td>
+    </tr>
+    <tr>
+      <th>2010</th>
+      <td>0.99</td>
+    </tr>
+    <tr>
+      <th>2011</th>
+      <td>1.00</td>
+    </tr>
+    <tr>
+      <th>2012</th>
+      <td>1.00</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project monthly totals at the windfarm level</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">task_completion_rate</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;monthly&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Completion Rate</th>
+    </tr>
+    <tr>
+      <th>month</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>0.94</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>1.03</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>1.00</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>1.01</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>1.04</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>1.01</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>0.98</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>0.98</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>0.99</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>1.02</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>0.99</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>0.99</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project month-by-year totals at the windfarm level</span>
+<span class="c1"># NOTE: This is limited to the first two years for cleanliness of the notebook</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">task_completion_rate</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;month-year&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>Completion Rate</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th>month</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="5" valign="top">2003</th>
+      <th>1</th>
+      <td>0.89</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>1.03</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>0.92</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>1.09</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>1.04</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <th>...</th>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th rowspan="5" valign="top">2012</th>
+      <th>8</th>
+      <td>0.95</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>1.01</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>0.97</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>1.00</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>1.04</td>
+    </tr>
+  </tbody>
+</table>
+<p>120 rows × 1 columns</p>
+</div></div></div>
+</div>
+<p><a id="equipment-costs"></a></p>
+</section>
+<section id="equipment-costs">
+<h2>Equipment Costs<a class="headerlink" href="#equipment-costs" title="Permalink to this headline">#</a></h2>
+<p>Here, we will go through the various input definitions to get the equipment cost data.</p>
+<p><code class="docutils literal notranslate"><span class="pre">frequency</span></code> options:</p>
+<ul class="simple">
+<li><p>project: computed across the whole simulation</p></li>
+<li><p>annual: computed on a yearly basis</p></li>
+<li><p>monthly: computed across years on a monthly basis</p></li>
+<li><p>month-year: computed on a month-by-year basis</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">by_equipment</span></code> options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">True</span></code>: computed across all equipment used</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">False</span></code>: computed for each piece of equipment</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project total at the whole windfarm level</span>
+<span class="n">total</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">equipment_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by_equipment</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Project total: $</span><span class="si">{</span><span class="n">total</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">metrics</span><span class="o">.</span><span class="n">project_capacity</span><span class="si">:</span><span class="s2">,.2f</span><span class="si">}</span><span class="s2">/MW&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Project total: $461,396.45/MW
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project totals at the equipment level</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">equipment_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by_equipment</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Crew Transfer Vessel 1</th>
+      <th>Crew Transfer Vessel 2</th>
+      <th>Crew Transfer Vessel 3</th>
+      <th>Field Support Vessel</th>
+      <th>Heavy Lift Vessel</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>6,393,260.42</td>
+      <td>6,393,260.42</td>
+      <td>6,393,260.42</td>
+      <td>1,303,653.99</td>
+      <td>90,251,713.54</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project annual totals at the windfarm level</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">equipment_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;annual&quot;</span><span class="p">,</span> <span class="n">by_equipment</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>equipment_cost</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2003</th>
+      <td>9,918,178.67</td>
+    </tr>
+    <tr>
+      <th>2004</th>
+      <td>16,347,568.97</td>
+    </tr>
+    <tr>
+      <th>2005</th>
+      <td>7,012,759.95</td>
+    </tr>
+    <tr>
+      <th>2006</th>
+      <td>15,626,456.25</td>
+    </tr>
+    <tr>
+      <th>2007</th>
+      <td>10,862,081.96</td>
+    </tr>
+    <tr>
+      <th>2008</th>
+      <td>7,034,253.47</td>
+    </tr>
+    <tr>
+      <th>2009</th>
+      <td>12,146,461.83</td>
+    </tr>
+    <tr>
+      <th>2010</th>
+      <td>7,498,282.99</td>
+    </tr>
+    <tr>
+      <th>2011</th>
+      <td>12,734,616.52</td>
+    </tr>
+    <tr>
+      <th>2012</th>
+      <td>11,404,488.18</td>
+    </tr>
+    <tr>
+      <th>2013</th>
+      <td>150,000.00</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project monthly totals at the equipment level</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">equipment_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;monthly&quot;</span><span class="p">,</span> <span class="n">by_equipment</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Crew Transfer Vessel 1</th>
+      <th>Crew Transfer Vessel 2</th>
+      <th>Crew Transfer Vessel 3</th>
+      <th>Field Support Vessel</th>
+      <th>Heavy Lift Vessel</th>
+    </tr>
+    <tr>
+      <th>month</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>543,010.42</td>
+      <td>543,010.42</td>
+      <td>543,010.42</td>
+      <td>228,000.00</td>
+      <td>16,289,208.33</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>496,125.00</td>
+      <td>495,250.00</td>
+      <td>495,250.00</td>
+      <td>76,633.88</td>
+      <td>5,420,312.50</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>541,989.58</td>
+      <td>542,500.00</td>
+      <td>542,864.58</td>
+      <td>14,250.00</td>
+      <td>1,183,652.78</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>524,635.42</td>
+      <td>525,000.00</td>
+      <td>524,635.42</td>
+      <td>31,206.62</td>
+      <td>13,293,052.08</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>542,500.00</td>
+      <td>542,500.00</td>
+      <td>542,500.00</td>
+      <td>209,810.14</td>
+      <td>13,977,862.85</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>525,000.00</td>
+      <td>525,000.00</td>
+      <td>525,000.00</td>
+      <td>323,998.60</td>
+      <td>8,411,722.22</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>542,500.00</td>
+      <td>542,500.00</td>
+      <td>542,500.00</td>
+      <td>19,000.00</td>
+      <td>4,800,000.00</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>542,500.00</td>
+      <td>542,500.00</td>
+      <td>542,500.00</td>
+      <td>0.00</td>
+      <td>4,950,180.56</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>525,000.00</td>
+      <td>525,000.00</td>
+      <td>525,000.00</td>
+      <td>0.00</td>
+      <td>1,132,812.50</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>542,500.00</td>
+      <td>542,500.00</td>
+      <td>542,500.00</td>
+      <td>29,511.68</td>
+      <td>4,846,887.15</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>525,000.00</td>
+      <td>525,000.00</td>
+      <td>525,000.00</td>
+      <td>57,000.00</td>
+      <td>6,918,664.93</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>542,500.00</td>
+      <td>542,500.00</td>
+      <td>542,500.00</td>
+      <td>314,243.07</td>
+      <td>9,027,357.64</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project month-by-year totals at the equipment level</span>
+<span class="c1"># NOTE: This is limited to the two years only</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">equipment_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;month-year&quot;</span><span class="p">,</span> <span class="n">by_equipment</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>Crew Transfer Vessel 1</th>
+      <th>Crew Transfer Vessel 2</th>
+      <th>Crew Transfer Vessel 3</th>
+      <th>Field Support Vessel</th>
+      <th>Heavy Lift Vessel</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th>month</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="5" valign="top">2003</th>
+      <th>1</th>
+      <td>54,760.42</td>
+      <td>54,760.42</td>
+      <td>54,760.42</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>49,000.00</td>
+      <td>49,000.00</td>
+      <td>49,000.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>54,250.00</td>
+      <td>54,250.00</td>
+      <td>54,250.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>52,500.00</td>
+      <td>52,500.00</td>
+      <td>52,500.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>54,250.00</td>
+      <td>54,250.00</td>
+      <td>54,250.00</td>
+      <td>75,180.41</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th rowspan="4" valign="top">2012</th>
+      <th>9</th>
+      <td>52,500.00</td>
+      <td>52,500.00</td>
+      <td>52,500.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>54,250.00</td>
+      <td>54,250.00</td>
+      <td>54,250.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>52,500.00</td>
+      <td>52,500.00</td>
+      <td>52,500.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>54,250.00</td>
+      <td>54,250.00</td>
+      <td>54,250.00</td>
+      <td>0.00</td>
+      <td>3,950,177.08</td>
+    </tr>
+    <tr>
+      <th>2013</th>
+      <th>1</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>150,000.00</td>
+    </tr>
+  </tbody>
+</table>
+<p>121 rows × 5 columns</p>
+</div></div></div>
+</div>
+<p><a id="service-equipment-utilization-rate"></a></p>
+</section>
+<section id="service-equipment-utilization-rate">
+<h2>Service Equipment Utilization Rate<a class="headerlink" href="#service-equipment-utilization-rate" title="Permalink to this headline">#</a></h2>
+<p>Here, we will go through the various input definitions to get the service equipment utiliztion rates.</p>
+<p><code class="docutils literal notranslate"><span class="pre">frequency</span></code> options:</p>
+<ul class="simple">
+<li><p>project: computed across the whole simulation</p></li>
+<li><p>annual: computed on a yearly basis</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project totals at the project level</span>
+<span class="n">total</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">service_equipment_utilization</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">)</span>
+<span class="n">total</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Crew Transfer Vessel 1</th>
+      <th>Crew Transfer Vessel 2</th>
+      <th>Crew Transfer Vessel 3</th>
+      <th>Field Support Vessel</th>
+      <th>Heavy Lift Vessel</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>0.89</td>
+      <td>0.96</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Annualized project totals</span>
+<span class="n">total</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">service_equipment_utilization</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;annual&quot;</span><span class="p">)</span>
+<span class="n">total</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Crew Transfer Vessel 1</th>
+      <th>Crew Transfer Vessel 2</th>
+      <th>Crew Transfer Vessel 3</th>
+      <th>Field Support Vessel</th>
+      <th>Heavy Lift Vessel</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2003</th>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>0.85</td>
+      <td>0.93</td>
+    </tr>
+    <tr>
+      <th>2004</th>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>0.87</td>
+      <td>0.97</td>
+    </tr>
+    <tr>
+      <th>2005</th>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>0.83</td>
+      <td>0.91</td>
+    </tr>
+    <tr>
+      <th>2006</th>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>0.83</td>
+      <td>0.97</td>
+    </tr>
+    <tr>
+      <th>2007</th>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>0.95</td>
+      <td>0.98</td>
+    </tr>
+    <tr>
+      <th>2008</th>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>0.00</td>
+      <td>0.91</td>
+    </tr>
+    <tr>
+      <th>2009</th>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>0.93</td>
+      <td>0.97</td>
+    </tr>
+    <tr>
+      <th>2010</th>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>0.00</td>
+      <td>0.95</td>
+    </tr>
+    <tr>
+      <th>2011</th>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>0.85</td>
+      <td>0.97</td>
+    </tr>
+    <tr>
+      <th>2012</th>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>0.94</td>
+      <td>0.96</td>
+    </tr>
+    <tr>
+      <th>2013</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>1.00</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<p><a id="vessel-crew-hours-at-sea"></a></p>
+</section>
+<section id="vessel-crew-hours-at-sea">
+<h2>Vessel-Crew Hours at Sea<a class="headerlink" href="#vessel-crew-hours-at-sea" title="Permalink to this headline">#</a></h2>
+<p>The number of vessel hours or crew hours at sea for offshore wind power plant simulations.</p>
+<p><code class="docutils literal notranslate"><span class="pre">frequency</span></code> options:</p>
+<ul class="simple">
+<li><p>project: computed across the whole simulation</p></li>
+<li><p>annual: computed on a yearly basis</p></li>
+<li><p>monthly: computed across years on a monthly basis</p></li>
+<li><p>month-year: computed on a month-by-year basis</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">by_equipment</span></code> options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">True</span></code>: computed for each vessel simulated</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">False</span></code>: computed only as a sum of all vessels</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">vessel_crew_assumption</span></code>: A dictionary of vessel names (<code class="docutils literal notranslate"><span class="pre">ServiceEquipment.settings.name</span></code>, but also found at <code class="docutils literal notranslate"><span class="pre">Metrics.service_equipment_names</span></code>) and the number of crew onboard at any given time. The application of this assumption transforms the results from vessel hours at sea to crew hours at sea.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project total, not broken out by vessel</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">vessel_crew_hours_at_sea</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by_equipment</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Total Crew Hours at Sea</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>121,407.22</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Annual project totals, broken out by vessel</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">vessel_crew_hours_at_sea</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;annual&quot;</span><span class="p">,</span> <span class="n">by_equipment</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>year</th>
+      <th>Total Crew Hours at Sea</th>
+      <th>Crew Transfer Vessel 1</th>
+      <th>Crew Transfer Vessel 2</th>
+      <th>Crew Transfer Vessel 3</th>
+      <th>Heavy Lift Vessel</th>
+      <th>Field Support Vessel</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2003</td>
+      <td>11,218.25</td>
+      <td>2,159.00</td>
+      <td>2,223.75</td>
+      <td>2,141.75</td>
+      <td>3,589.75</td>
+      <td>1,104.00</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2004</td>
+      <td>16,369.19</td>
+      <td>3,748.00</td>
+      <td>3,690.50</td>
+      <td>3,840.00</td>
+      <td>3,955.69</td>
+      <td>1,135.00</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2005</td>
+      <td>12,581.25</td>
+      <td>3,209.50</td>
+      <td>3,243.25</td>
+      <td>3,213.50</td>
+      <td>1,811.00</td>
+      <td>1,104.00</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2006</td>
+      <td>14,353.71</td>
+      <td>2,724.50</td>
+      <td>2,645.75</td>
+      <td>2,733.00</td>
+      <td>5,708.96</td>
+      <td>541.50</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>2007</td>
+      <td>11,612.49</td>
+      <td>2,889.25</td>
+      <td>2,863.75</td>
+      <td>2,910.75</td>
+      <td>2,235.24</td>
+      <td>713.50</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>2008</td>
+      <td>9,484.29</td>
+      <td>2,441.00</td>
+      <td>2,529.75</td>
+      <td>2,811.25</td>
+      <td>1,702.29</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>2009</td>
+      <td>11,896.16</td>
+      <td>2,265.50</td>
+      <td>2,472.25</td>
+      <td>2,557.75</td>
+      <td>3,452.66</td>
+      <td>1,148.00</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>2010</td>
+      <td>9,560.38</td>
+      <td>2,561.00</td>
+      <td>2,545.00</td>
+      <td>2,515.00</td>
+      <td>1,939.38</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>2011</td>
+      <td>12,274.24</td>
+      <td>2,540.00</td>
+      <td>2,564.00</td>
+      <td>2,513.50</td>
+      <td>3,552.74</td>
+      <td>1,104.00</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>2012</td>
+      <td>12,057.27</td>
+      <td>2,659.50</td>
+      <td>2,422.25</td>
+      <td>2,495.25</td>
+      <td>3,871.27</td>
+      <td>609.00</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>2013</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<p><a id="number-of-tows"></a></p>
+</section>
+<section id="number-of-tows">
+<h2>Number of Tows<a class="headerlink" href="#number-of-tows" title="Permalink to this headline">#</a></h2>
+<p>The number of tows metric will only produce results if any towing actually occurred, otherwise a dataframe with a value of 0 is returned, as is the case in this demonstration.</p>
+<p><code class="docutils literal notranslate"><span class="pre">frequency</span></code> options:</p>
+<ul class="simple">
+<li><p>project: computed across the whole simulation</p></li>
+<li><p>annual: computed on a yearly basis</p></li>
+<li><p>monthly: computed across years on a monthly basis</p></li>
+<li><p>month-year: computed on a month-by-year basis</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">by_tug</span></code> options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">True</span></code>: computed for each tugboat (towing vessel)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">False</span></code>: computed only as a sum of all tugboats</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">by_direction</span></code> options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">True</span></code>: computed for each direction (to port or to site)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">False</span></code>: computed as a sum for both directions</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project Total</span>
+<span class="c1"># NOTE: This example has no towing, so it will return 0</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">number_of_tows</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>total_tows</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<p><a id="labor-costs"></a></p>
+</section>
+<section id="labor-costs">
+<h2>Labor Costs<a class="headerlink" href="#labor-costs" title="Permalink to this headline">#</a></h2>
+<p>Here, we will go through the various input definitions to get the labor cost data.</p>
+<p><code class="docutils literal notranslate"><span class="pre">frequency</span></code> options:</p>
+<ul class="simple">
+<li><p>project: computed across the whole simulation</p></li>
+<li><p>annual: computed on a yearly basis</p></li>
+<li><p>monthly: computed across years on a monthly basis</p></li>
+<li><p>month-year: computed on a month-by-year basis</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">by_type</span></code> options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">True</span></code>: computed across each labor type</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">False</span></code>: computed for both labor types used</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project total at the whole windfarm level</span>
+<span class="n">total</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">labor_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by_type</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Project total: $</span><span class="si">{</span><span class="n">total</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">metrics</span><span class="o">.</span><span class="n">project_capacity</span><span class="si">:</span><span class="s2">,.2f</span><span class="si">}</span><span class="s2">/MW&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Project total: $0.00/MW
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project totals for each type of labor</span>
+<span class="c1"># NOTE: Only salaried labor was defined for thesese analyses</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">labor_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by_type</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>hourly_labor_cost</th>
+      <th>salary_labor_cost</th>
+      <th>total_labor_cost</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project annual totals for all labor</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">labor_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;annual&quot;</span><span class="p">,</span> <span class="n">by_type</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>total_labor_cost</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2003</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>2004</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>2005</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>2006</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>2007</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>2008</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>2009</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>2010</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>2011</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>2012</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>2013</th>
+      <td>0.00</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project monthly totals for all labor</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">labor_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;monthly&quot;</span><span class="p">,</span> <span class="n">by_type</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>total_labor_cost</th>
+    </tr>
+    <tr>
+      <th>month</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>0.00</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project month-by-year totals for all labor</span>
+<span class="c1"># NOTE: This is limited to the first two years only</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">labor_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;month-year&quot;</span><span class="p">,</span> <span class="n">by_type</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>total_labor_cost</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th>month</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="5" valign="top">2003</th>
+      <th>1</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <th>...</th>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th rowspan="4" valign="top">2012</th>
+      <th>9</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>2013</th>
+      <th>1</th>
+      <td>0.00</td>
+    </tr>
+  </tbody>
+</table>
+<p>121 rows × 1 columns</p>
+</div></div></div>
+</div>
+<p><a id="equipment-and-labor-costs"></a></p>
+</section>
+<section id="equipment-and-labor-costs">
+<h2>Equipment and Labor Costs<a class="headerlink" href="#equipment-and-labor-costs" title="Permalink to this headline">#</a></h2>
+<p>Here, we will go through the various input definitions to get the equipment and labor cost data broken out by expense categories.</p>
+<p><code class="docutils literal notranslate"><span class="pre">frequency</span></code> options:</p>
+<ul class="simple">
+<li><p>project: computed across the whole simulation</p></li>
+<li><p>annual: computed on a yearly basis</p></li>
+<li><p>monthly: computed across years on a monthly basis</p></li>
+<li><p>month-year: computed on a month-by-year basis</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">by_category</span></code> options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">True</span></code>: computed across as equipment, plus each labor type, plus totals</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">False</span></code>: computed as single total</p></li>
+</ul>
+<p><strong>NOTE:</strong> For this breakdown the expense category (reason) is distributed across the rows in addition to time.</p>
+<p><code class="docutils literal notranslate"><span class="pre">reason</span></code> definitions:</p>
+<ul class="simple">
+<li><p>Maintenance: routine maintenance</p></li>
+<li><p>Repair: unscheduled maintenance, ranging from inspections to replacements</p></li>
+<li><p>Weather Delay: Any delays caused by unsafe weather conditions</p></li>
+<li><p>No Requests: Equipment and labor is active, but there are no repairs or maintenance tasks to be completed</p></li>
+<li><p>Not in Shift: Any time outside of the operating hours of the windfarm</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project totals</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">equipment_labor_cost_breakdowns</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by_category</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>total_cost</th>
+    </tr>
+    <tr>
+      <th>reason</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Maintenance</th>
+      <td>2,145,372.40</td>
+    </tr>
+    <tr>
+      <th>Repair</th>
+      <td>23,794,806.42</td>
+    </tr>
+    <tr>
+      <th>Crew Transfer</th>
+      <td>1,197,765.63</td>
+    </tr>
+    <tr>
+      <th>Site Travel</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>Mobilization</th>
+      <td>8,500,000.00</td>
+    </tr>
+    <tr>
+      <th>Weather Delay</th>
+      <td>34,584,818.58</td>
+    </tr>
+    <tr>
+      <th>No Requests</th>
+      <td>19,047,042.00</td>
+    </tr>
+    <tr>
+      <th>Not in Shift</th>
+      <td>21,465,343.76</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project totals by each category</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">equipment_labor_cost_breakdowns</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by_category</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>hourly_labor_cost</th>
+      <th>salary_labor_cost</th>
+      <th>total_labor_cost</th>
+      <th>equipment_cost</th>
+      <th>total_cost</th>
+    </tr>
+    <tr>
+      <th>reason</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Maintenance</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>2,145,372.40</td>
+      <td>2,145,372.40</td>
+    </tr>
+    <tr>
+      <th>Repair</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>23,794,806.42</td>
+      <td>23,794,806.42</td>
+    </tr>
+    <tr>
+      <th>Crew Transfer</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>1,197,765.63</td>
+      <td>1,197,765.63</td>
+    </tr>
+    <tr>
+      <th>Site Travel</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>Mobilization</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>8,500,000.00</td>
+      <td>8,500,000.00</td>
+    </tr>
+    <tr>
+      <th>Weather Delay</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>34,584,818.58</td>
+      <td>34,584,818.58</td>
+    </tr>
+    <tr>
+      <th>No Requests</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>19,047,042.00</td>
+      <td>19,047,042.00</td>
+    </tr>
+    <tr>
+      <th>Not in Shift</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>21,465,343.76</td>
+      <td>21,465,343.76</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project annual totals</span>
+<span class="c1"># NOTE: This is limited to the first two years</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">equipment_labor_cost_breakdowns</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;annual&quot;</span><span class="p">,</span> <span class="n">by_category</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>total_cost</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th>reason</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="5" valign="top">2003</th>
+      <th>Maintenance</th>
+      <td>91,747.40</td>
+    </tr>
+    <tr>
+      <th>Repair</th>
+      <td>2,309,925.35</td>
+    </tr>
+    <tr>
+      <th>Crew Transfer</th>
+      <td>110,703.13</td>
+    </tr>
+    <tr>
+      <th>Site Travel</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>Mobilization</th>
+      <td>1,000,000.00</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <th>...</th>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th rowspan="5" valign="top">2013</th>
+      <th>Site Travel</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>Mobilization</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>Weather Delay</th>
+      <td>150,000.00</td>
+    </tr>
+    <tr>
+      <th>No Requests</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>Not in Shift</th>
+      <td>0.00</td>
+    </tr>
+  </tbody>
+</table>
+<p>88 rows × 1 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project monthly totals</span>
+<span class="c1"># NOTE: This is limited to the first two years</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">equipment_labor_cost_breakdowns</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;monthly&quot;</span><span class="p">,</span> <span class="n">by_category</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>total_cost</th>
+    </tr>
+    <tr>
+      <th>month</th>
+      <th>reason</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="5" valign="top">1</th>
+      <th>Maintenance</th>
+      <td>151,466.15</td>
+    </tr>
+    <tr>
+      <th>Repair</th>
+      <td>3,801,934.90</td>
+    </tr>
+    <tr>
+      <th>Crew Transfer</th>
+      <td>167,591.15</td>
+    </tr>
+    <tr>
+      <th>Site Travel</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>Mobilization</th>
+      <td>1,500,000.00</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <th>...</th>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th rowspan="5" valign="top">12</th>
+      <th>Site Travel</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>Mobilization</th>
+      <td>1,500,000.00</td>
+    </tr>
+    <tr>
+      <th>Weather Delay</th>
+      <td>5,212,104.17</td>
+    </tr>
+    <tr>
+      <th>No Requests</th>
+      <td>930,955.73</td>
+    </tr>
+    <tr>
+      <th>Not in Shift</th>
+      <td>1,520,349.84</td>
+    </tr>
+  </tbody>
+</table>
+<p>96 rows × 1 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project month-by-year totals</span>
+<span class="c1"># NOTE: This is limited to the first two years</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">equipment_labor_cost_breakdowns</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;month-year&quot;</span><span class="p">,</span> <span class="n">by_category</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th></th>
+      <th>total_cost</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th>month</th>
+      <th>reason</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="5" valign="top">2003</th>
+      <th rowspan="5" valign="top">1</th>
+      <th>Maintenance</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>Repair</th>
+      <td>22,731.77</td>
+    </tr>
+    <tr>
+      <th>Crew Transfer</th>
+      <td>2,570.31</td>
+    </tr>
+    <tr>
+      <th>Site Travel</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>Mobilization</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <th>...</th>
+      <th>...</th>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th rowspan="5" valign="top">2013</th>
+      <th rowspan="5" valign="top">12</th>
+      <th>Site Travel</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>Mobilization</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>Weather Delay</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>No Requests</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>Not in Shift</th>
+      <td>0.00</td>
+    </tr>
+  </tbody>
+</table>
+<p>1056 rows × 1 columns</p>
+</div></div></div>
+</div>
+<p><a id="component-costs"></a></p>
+</section>
+<section id="component-costs">
+<h2>Component Costs<a class="headerlink" href="#component-costs" title="Permalink to this headline">#</a></h2>
+<p>Here, we will go through the various input definitions to get the component cost data broken out by various categories.</p>
+<p><strong>NOTE</strong>: It should be noted that the the component costs will not sum up to the whole project operations costs because of delays that are not associated with any repair or maintenance task, such as no requests needing to be processed.</p>
+<p><code class="docutils literal notranslate"><span class="pre">frequency</span></code> options:</p>
+<ul class="simple">
+<li><p>project: computed across the whole simulation</p></li>
+<li><p>annual: computed on a yearly basis</p></li>
+<li><p>monthly: computed across years on a monthly basis</p></li>
+<li><p>month-year: computed on a month-by-year basis</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">by_category</span></code> options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">True</span></code>: computed across each cost category (includes total)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">False</span></code>: computed as single total</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">by_action</span></code> options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">True</span></code>: computed by each of “repair”, “maintenance”, and “delay”</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">False</span></code>: computed as single total</p></li>
+</ul>
+<p><strong>NOTE:</strong> For this breakdown the expense category (reason) is distributed across the rows in addition to time.</p>
+<p><code class="docutils literal notranslate"><span class="pre">action</span></code> definitions:</p>
+<ul class="simple">
+<li><p>maintenance: routine maintenance</p></li>
+<li><p>repair: unscheduled maintenance, ranging from inspections to replacements</p></li>
+<li><p>delay: Any delays caused by unsafe weather conditions or not being able to finish a process within a single shift</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project totals by component</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">component_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by_category</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">by_action</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>total_cost</th>
+    </tr>
+    <tr>
+      <th>component</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>turbine</th>
+      <td>122,300,801.83</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project totals by each category and action type</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">component_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by_category</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">by_action</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>materials_cost</th>
+      <th>total_labor_cost</th>
+      <th>equipment_cost</th>
+      <th>total_cost</th>
+    </tr>
+    <tr>
+      <th>component</th>
+      <th>action</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="3" valign="top">turbine</th>
+      <th>delay</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>55,914,857.38</td>
+      <td>55,914,857.38</td>
+    </tr>
+    <tr>
+      <th>maintenance</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>2,145,372.40</td>
+      <td>2,145,372.40</td>
+    </tr>
+    <tr>
+      <th>repair</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>23,794,806.42</td>
+      <td>23,794,806.42</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project annual totals by category</span>
+<span class="c1"># NOTE: This is limited to the first two years</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">component_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;annual&quot;</span><span class="p">,</span> <span class="n">by_category</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">by_action</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">28</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>materials_cost</th>
+      <th>total_labor_cost</th>
+      <th>equipment_cost</th>
+      <th>total_cost</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th>component</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2003</th>
+      <th>turbine</th>
+      <td>3,376,000.00</td>
+      <td>0.00</td>
+      <td>7,421,474.83</td>
+      <td>10,797,474.83</td>
+    </tr>
+    <tr>
+      <th>2004</th>
+      <th>turbine</th>
+      <td>5,524,000.00</td>
+      <td>0.00</td>
+      <td>12,649,081.99</td>
+      <td>18,173,081.99</td>
+    </tr>
+    <tr>
+      <th>2005</th>
+      <th>turbine</th>
+      <td>3,907,000.00</td>
+      <td>0.00</td>
+      <td>5,044,039.93</td>
+      <td>8,951,039.93</td>
+    </tr>
+    <tr>
+      <th>2006</th>
+      <th>turbine</th>
+      <td>5,342,500.00</td>
+      <td>0.00</td>
+      <td>13,265,091.66</td>
+      <td>18,607,591.66</td>
+    </tr>
+    <tr>
+      <th>2007</th>
+      <th>turbine</th>
+      <td>4,203,000.00</td>
+      <td>0.00</td>
+      <td>9,241,009.05</td>
+      <td>13,444,009.05</td>
+    </tr>
+    <tr>
+      <th>2008</th>
+      <th>turbine</th>
+      <td>2,804,000.00</td>
+      <td>0.00</td>
+      <td>4,440,907.12</td>
+      <td>7,244,907.12</td>
+    </tr>
+    <tr>
+      <th>2009</th>
+      <th>turbine</th>
+      <td>3,683,500.00</td>
+      <td>0.00</td>
+      <td>6,334,532.12</td>
+      <td>10,018,032.12</td>
+    </tr>
+    <tr>
+      <th>2010</th>
+      <th>turbine</th>
+      <td>3,046,500.00</td>
+      <td>0.00</td>
+      <td>6,019,978.30</td>
+      <td>9,066,478.30</td>
+    </tr>
+    <tr>
+      <th>2011</th>
+      <th>turbine</th>
+      <td>3,448,000.00</td>
+      <td>0.00</td>
+      <td>9,247,994.13</td>
+      <td>12,695,994.13</td>
+    </tr>
+    <tr>
+      <th>2012</th>
+      <th>turbine</th>
+      <td>3,913,500.00</td>
+      <td>0.00</td>
+      <td>9,238,692.71</td>
+      <td>13,152,192.71</td>
+    </tr>
+    <tr>
+      <th>2013</th>
+      <th>turbine</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>150,000.00</td>
+      <td>150,000.00</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project monthly totals</span>
+<span class="c1"># NOTE: This is limited to the first two months</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">component_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;monthly&quot;</span><span class="p">,</span> <span class="n">by_category</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">by_action</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">28</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>materials_cost</th>
+      <th>total_labor_cost</th>
+      <th>equipment_cost</th>
+      <th>total_cost</th>
+    </tr>
+    <tr>
+      <th>month</th>
+      <th>component</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <th>turbine</th>
+      <td>4,955,500.00</td>
+      <td>0.00</td>
+      <td>15,810,463.54</td>
+      <td>20,765,963.54</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <th>turbine</th>
+      <td>2,994,000.00</td>
+      <td>0.00</td>
+      <td>4,219,935.97</td>
+      <td>7,213,935.97</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <th>turbine</th>
+      <td>1,281,500.00</td>
+      <td>0.00</td>
+      <td>1,675,501.74</td>
+      <td>2,957,001.74</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <th>turbine</th>
+      <td>3,925,000.00</td>
+      <td>0.00</td>
+      <td>9,534,105.04</td>
+      <td>13,459,105.04</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <th>turbine</th>
+      <td>7,449,500.00</td>
+      <td>0.00</td>
+      <td>13,528,997.79</td>
+      <td>20,978,497.79</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <th>turbine</th>
+      <td>3,455,500.00</td>
+      <td>0.00</td>
+      <td>5,482,774.31</td>
+      <td>8,938,274.31</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <th>turbine</th>
+      <td>3,297,500.00</td>
+      <td>0.00</td>
+      <td>4,317,434.90</td>
+      <td>7,614,934.90</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <th>turbine</th>
+      <td>3,057,000.00</td>
+      <td>0.00</td>
+      <td>5,369,696.18</td>
+      <td>8,426,696.18</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <th>turbine</th>
+      <td>1,661,000.00</td>
+      <td>0.00</td>
+      <td>2,058,835.94</td>
+      <td>3,719,835.94</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <th>turbine</th>
+      <td>1,863,500.00</td>
+      <td>0.00</td>
+      <td>4,861,749.13</td>
+      <td>6,725,249.13</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <th>turbine</th>
+      <td>3,030,000.00</td>
+      <td>0.00</td>
+      <td>7,664,787.33</td>
+      <td>10,694,787.33</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <th>turbine</th>
+      <td>2,278,000.00</td>
+      <td>0.00</td>
+      <td>8,528,519.98</td>
+      <td>10,806,519.98</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project month-by-year totals</span>
+<span class="c1"># NOTE: This is limited to the first two months</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">component_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;month-year&quot;</span><span class="p">,</span> <span class="n">by_category</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">by_action</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">28</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th></th>
+      <th>materials_cost</th>
+      <th>total_labor_cost</th>
+      <th>equipment_cost</th>
+      <th>total_cost</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th>month</th>
+      <th>component</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="12" valign="top">2003</th>
+      <th>1</th>
+      <th>turbine</th>
+      <td>55,000.00</td>
+      <td>0.00</td>
+      <td>49,401.04</td>
+      <td>104,401.04</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <th>turbine</th>
+      <td>58,000.00</td>
+      <td>0.00</td>
+      <td>52,117.19</td>
+      <td>110,117.19</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <th>turbine</th>
+      <td>57,000.00</td>
+      <td>0.00</td>
+      <td>54,395.83</td>
+      <td>111,395.83</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <th>turbine</th>
+      <td>108,500.00</td>
+      <td>0.00</td>
+      <td>41,580.73</td>
+      <td>150,080.73</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <th>turbine</th>
+      <td>320,500.00</td>
+      <td>0.00</td>
+      <td>117,953.13</td>
+      <td>438,453.13</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <th>turbine</th>
+      <td>78,500.00</td>
+      <td>0.00</td>
+      <td>848,494.79</td>
+      <td>926,994.79</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <th>turbine</th>
+      <td>1,712,000.00</td>
+      <td>0.00</td>
+      <td>3,410,963.54</td>
+      <td>5,122,963.54</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <th>turbine</th>
+      <td>101,000.00</td>
+      <td>0.00</td>
+      <td>77,018.23</td>
+      <td>178,018.23</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <th>turbine</th>
+      <td>76,500.00</td>
+      <td>0.00</td>
+      <td>50,731.77</td>
+      <td>127,231.77</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <th>turbine</th>
+      <td>178,500.00</td>
+      <td>0.00</td>
+      <td>149,351.56</td>
+      <td>327,851.56</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <th>turbine</th>
+      <td>168,000.00</td>
+      <td>0.00</td>
+      <td>97,671.88</td>
+      <td>265,671.88</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <th>turbine</th>
+      <td>462,500.00</td>
+      <td>0.00</td>
+      <td>2,471,795.14</td>
+      <td>2,934,295.14</td>
+    </tr>
+    <tr>
+      <th rowspan="12" valign="top">2004</th>
+      <th>1</th>
+      <th>turbine</th>
+      <td>890,500.00</td>
+      <td>0.00</td>
+      <td>3,203,387.15</td>
+      <td>4,093,887.15</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <th>turbine</th>
+      <td>141,500.00</td>
+      <td>0.00</td>
+      <td>148,750.00</td>
+      <td>290,250.00</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <th>turbine</th>
+      <td>210,000.00</td>
+      <td>0.00</td>
+      <td>161,000.00</td>
+      <td>371,000.00</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <th>turbine</th>
+      <td>272,000.00</td>
+      <td>0.00</td>
+      <td>157,500.00</td>
+      <td>429,500.00</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <th>turbine</th>
+      <td>1,388,500.00</td>
+      <td>0.00</td>
+      <td>2,398,160.98</td>
+      <td>3,786,660.98</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <th>turbine</th>
+      <td>255,500.00</td>
+      <td>0.00</td>
+      <td>115,575.52</td>
+      <td>371,075.52</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <th>turbine</th>
+      <td>130,000.00</td>
+      <td>0.00</td>
+      <td>67,940.10</td>
+      <td>197,940.10</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <th>turbine</th>
+      <td>162,000.00</td>
+      <td>0.00</td>
+      <td>104,052.08</td>
+      <td>266,052.08</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <th>turbine</th>
+      <td>184,500.00</td>
+      <td>0.00</td>
+      <td>134,294.27</td>
+      <td>318,794.27</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <th>turbine</th>
+      <td>571,500.00</td>
+      <td>0.00</td>
+      <td>1,890,802.08</td>
+      <td>2,462,302.08</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <th>turbine</th>
+      <td>1,152,000.00</td>
+      <td>0.00</td>
+      <td>4,104,869.79</td>
+      <td>5,256,869.79</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <th>turbine</th>
+      <td>166,000.00</td>
+      <td>0.00</td>
+      <td>162,750.00</td>
+      <td>328,750.00</td>
+    </tr>
+    <tr>
+      <th rowspan="4" valign="top">2005</th>
+      <th>1</th>
+      <th>turbine</th>
+      <td>185,500.00</td>
+      <td>0.00</td>
+      <td>161,000.00</td>
+      <td>346,500.00</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <th>turbine</th>
+      <td>134,000.00</td>
+      <td>0.00</td>
+      <td>144,375.00</td>
+      <td>278,375.00</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <th>turbine</th>
+      <td>147,500.00</td>
+      <td>0.00</td>
+      <td>105,473.96</td>
+      <td>252,973.96</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <th>turbine</th>
+      <td>70,500.00</td>
+      <td>0.00</td>
+      <td>50,859.38</td>
+      <td>121,359.38</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<p><a id="fixed-cost-impacts"></a></p>
+</section>
+<section id="fixed-cost-impacts">
+<h2>Fixed Cost Impacts<a class="headerlink" href="#fixed-cost-impacts" title="Permalink to this headline">#</a></h2>
+<p>Here, we will go through the various input definitions to get the fixed cost data</p>
+<p><code class="docutils literal notranslate"><span class="pre">frequency</span></code> options:</p>
+<ul class="simple">
+<li><p>project: computed across the whole simulation</p></li>
+<li><p>annual: computed on a yearly basis</p></li>
+<li><p>monthly: computed across years on a monthly basis</p></li>
+<li><p>month-year: computed on a month-by-year basis</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">resolution</span></code> options:</p>
+<ul class="simple">
+<li><p>high: computed across the lowest itemized cost levels</p></li>
+<li><p>medium: computed across overarching cost levels</p></li>
+<li><p>low: computed as single total</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># The resolution hierarchy for fixed costs</span>
+<span class="n">pprint</span><span class="p">(</span><span class="n">metrics</span><span class="o">.</span><span class="n">fixed_costs</span><span class="o">.</span><span class="n">hierarchy</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;operations&#39;: {&#39;annual_leases_fees&#39;: [&#39;submerge_land_lease_costs&#39;,
+                                       &#39;transmission_charges_rights&#39;],
+                &#39;environmental_health_safety_monitoring&#39;: [],
+                &#39;insurance&#39;: [&#39;brokers_fee&#39;,
+                              &#39;operations_all_risk&#39;,
+                              &#39;business_interruption&#39;,
+                              &#39;third_party_liability&#39;,
+                              &#39;storm_coverage&#39;],
+                &#39;labor&#39;: [],
+                &#39;onshore_electrical_maintenance&#39;: [],
+                &#39;operating_facilities&#39;: [],
+                &#39;operations_management_administration&#39;: [&#39;project_management_administration&#39;,
+                                                         &#39;marine_management&#39;,
+                                                         &#39;weather_forecasting&#39;,
+                                                         &#39;condition_monitoring&#39;]}}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project totals at the highest level</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">project_fixed_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="s2">&quot;low&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>operations</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>16,013,230.75</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project totals at the medium level</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">project_fixed_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="s2">&quot;medium&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>operations_management_administration</th>
+      <th>insurance</th>
+      <th>annual_leases_fees</th>
+      <th>operating_facilities</th>
+      <th>environmental_health_safety_monitoring</th>
+      <th>onshore_electrical_maintenance</th>
+      <th>labor</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>16,013,230.75</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project totals at the lowest level</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">project_fixed_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="s2">&quot;high&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>project_management_administration</th>
+      <th>marine_management</th>
+      <th>weather_forecasting</th>
+      <th>condition_monitoring</th>
+      <th>brokers_fee</th>
+      <th>...</th>
+      <th>transmission_charges_rights</th>
+      <th>operating_facilities</th>
+      <th>environmental_health_safety_monitoring</th>
+      <th>onshore_electrical_maintenance</th>
+      <th>labor</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>...</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>16,013,230.75</td>
+    </tr>
+  </tbody>
+</table>
+<p>1 rows × 15 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project annualized totals at the medium level</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">project_fixed_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;annual&quot;</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="s2">&quot;medium&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>operations_management_administration</th>
+      <th>insurance</th>
+      <th>annual_leases_fees</th>
+      <th>operating_facilities</th>
+      <th>environmental_health_safety_monitoring</th>
+      <th>onshore_electrical_maintenance</th>
+      <th>labor</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2003</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>1,600,008.00</td>
+    </tr>
+    <tr>
+      <th>2004</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>1,604,391.58</td>
+    </tr>
+    <tr>
+      <th>2005</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>1,600,008.00</td>
+    </tr>
+    <tr>
+      <th>2006</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>1,600,008.00</td>
+    </tr>
+    <tr>
+      <th>2007</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>1,600,008.00</td>
+    </tr>
+    <tr>
+      <th>2008</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>1,604,391.58</td>
+    </tr>
+    <tr>
+      <th>2009</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>1,600,008.00</td>
+    </tr>
+    <tr>
+      <th>2010</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>1,600,008.00</td>
+    </tr>
+    <tr>
+      <th>2011</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>1,600,008.00</td>
+    </tr>
+    <tr>
+      <th>2012</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>1,604,391.58</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project annualized totals at the low level by month</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">project_fixed_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;annual&quot;</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="s2">&quot;low&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>operations</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2003</th>
+      <td>1,600,008.00</td>
+    </tr>
+    <tr>
+      <th>2004</th>
+      <td>1,604,391.58</td>
+    </tr>
+    <tr>
+      <th>2005</th>
+      <td>1,600,008.00</td>
+    </tr>
+    <tr>
+      <th>2006</th>
+      <td>1,600,008.00</td>
+    </tr>
+    <tr>
+      <th>2007</th>
+      <td>1,600,008.00</td>
+    </tr>
+    <tr>
+      <th>2008</th>
+      <td>1,604,391.58</td>
+    </tr>
+    <tr>
+      <th>2009</th>
+      <td>1,600,008.00</td>
+    </tr>
+    <tr>
+      <th>2010</th>
+      <td>1,600,008.00</td>
+    </tr>
+    <tr>
+      <th>2011</th>
+      <td>1,600,008.00</td>
+    </tr>
+    <tr>
+      <th>2012</th>
+      <td>1,604,391.58</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project annualized totals at the low level by year and month</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">project_fixed_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;month-year&quot;</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="s2">&quot;low&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>operations</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th>month</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="5" valign="top">2003</th>
+      <th>1</th>
+      <td>135,891.09</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>122,740.34</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>135,891.09</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>131,507.51</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>135,891.09</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <th>...</th>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th rowspan="5" valign="top">2012</th>
+      <th>8</th>
+      <td>135,891.09</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>131,507.51</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>135,891.09</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>131,507.51</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>135,891.09</td>
+    </tr>
+  </tbody>
+</table>
+<p>120 rows × 1 columns</p>
+</div></div></div>
+</div>
+<p><a id="opex"></a></p>
+</section>
+<section id="opex">
+<h2>OpEx<a class="headerlink" href="#opex" title="Permalink to this headline">#</a></h2>
+<p>Here, we will go through the various input definitions to get the project OpEx</p>
+<p><code class="docutils literal notranslate"><span class="pre">frequency</span></code> options:</p>
+<ul class="simple">
+<li><p>project: computed across the whole simulation</p></li>
+<li><p>annual: computed on a yearly basis</p></li>
+<li><p>monthly: computed across years on a monthly basis</p></li>
+<li><p>month-year: computed on a month-by-year basis</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">metrics</span><span class="o">.</span><span class="n">opex</span><span class="p">(</span><span class="s2">&quot;project&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>OpEx</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>165,996,379.54</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">metrics</span><span class="o">.</span><span class="n">opex</span><span class="p">(</span><span class="s2">&quot;annual&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>OpEx</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2003</th>
+      <td>14,894,186.67</td>
+    </tr>
+    <tr>
+      <th>2004</th>
+      <td>23,475,960.55</td>
+    </tr>
+    <tr>
+      <th>2005</th>
+      <td>12,519,767.95</td>
+    </tr>
+    <tr>
+      <th>2006</th>
+      <td>22,568,964.25</td>
+    </tr>
+    <tr>
+      <th>2007</th>
+      <td>16,665,089.96</td>
+    </tr>
+    <tr>
+      <th>2008</th>
+      <td>11,442,645.06</td>
+    </tr>
+    <tr>
+      <th>2009</th>
+      <td>17,429,969.83</td>
+    </tr>
+    <tr>
+      <th>2010</th>
+      <td>12,144,790.99</td>
+    </tr>
+    <tr>
+      <th>2011</th>
+      <td>17,782,624.52</td>
+    </tr>
+    <tr>
+      <th>2012</th>
+      <td>16,922,379.77</td>
+    </tr>
+    <tr>
+      <th>2013</th>
+      <td>150,000.00</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">metrics</span><span class="o">.</span><span class="n">opex</span><span class="p">(</span><span class="s2">&quot;monthly&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>OpEx</th>
+    </tr>
+    <tr>
+      <th>month</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>24,460,650.49</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>11,218,125.53</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>5,465,667.85</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>20,138,604.61</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>24,623,583.89</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>15,081,295.89</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>11,102,910.90</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>10,993,591.46</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>5,683,887.57</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>9,726,309.74</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>12,895,740.00</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>14,606,011.61</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">metrics</span><span class="o">.</span><span class="n">opex</span><span class="p">(</span><span class="s2">&quot;month-year&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>OpEx</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th>month</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="5" valign="top">2003</th>
+      <th>1</th>
+      <td>355,172.34</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>327,740.34</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>355,641.09</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>397,507.51</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>694,321.50</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <th>...</th>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th rowspan="5" valign="top">2013</th>
+      <th>8</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>0.00</td>
+    </tr>
+  </tbody>
+</table>
+<p>132 rows × 1 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">port_fees</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([],</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;port_fees&quot;</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="n">metrics</span><span class="o">.</span><span class="n">labor_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;month-year&quot;</span><span class="p">,</span> <span class="n">by_type</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+<span class="n">port_fees</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>port_fees</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th>month</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="5" valign="top">2003</th>
+      <th>1</th>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <th>...</th>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th rowspan="4" valign="top">2012</th>
+      <th>9</th>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>2013</th>
+      <th>1</th>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+<p>121 rows × 1 columns</p>
+</div></div></div>
+</div>
+<p><a id="process-times"></a></p>
+</section>
+<section id="process-times">
+<h2>Process Times<a class="headerlink" href="#process-times" title="Permalink to this headline">#</a></h2>
+<p>There are no inputs for the process timing as it is a slow calculation, so aggregation is left to the user for now. The results corresond to the number of hours required to complete any of the repair or maintenance activities.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project totals at the project level</span>
+<span class="n">total</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">process_times</span><span class="p">()</span>
+<span class="n">total</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/Users/rhammond/Documents/GitHub/WOMBAT/wombat/core/post_processor.py:1754: FutureWarning: Could not cast to float64, falling back to object. This behavior is deprecated. In a future version, when a dtype is passed to &#39;DataFrame&#39;, either all columns will be cast to that dtype, or a TypeError will be raised.
+  process_single = partial(_process_single, events)
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>time_to_completion</th>
+      <th>process_time</th>
+      <th>downtime</th>
+      <th>N</th>
+    </tr>
+    <tr>
+      <th>category</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>annual service</th>
+      <td>179,110.80</td>
+      <td>69,178.25</td>
+      <td>62,541.25</td>
+      <td>492.00</td>
+    </tr>
+    <tr>
+      <th>major repair</th>
+      <td>81,892.73</td>
+      <td>1,846.10</td>
+      <td>1,389.81</td>
+      <td>31.00</td>
+    </tr>
+    <tr>
+      <th>major replacement</th>
+      <td>171,090.85</td>
+      <td>11,458.39</td>
+      <td>171,090.85</td>
+      <td>68.00</td>
+    </tr>
+    <tr>
+      <th>manual reset</th>
+      <td>171,891.68</td>
+      <td>36,574.50</td>
+      <td>14,804.00</td>
+      <td>5,692.00</td>
+    </tr>
+    <tr>
+      <th>medium repair</th>
+      <td>12,456.97</td>
+      <td>10,110.00</td>
+      <td>8,090.25</td>
+      <td>214.00</td>
+    </tr>
+    <tr>
+      <th>minor repair</th>
+      <td>60,980.74</td>
+      <td>30,977.75</td>
+      <td>15,830.00</td>
+      <td>2,236.00</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<p><a id="power-production"></a></p>
+</section>
+<section id="power-production">
+<h2>Power Production<a class="headerlink" href="#power-production" title="Permalink to this headline">#</a></h2>
+<p>Here, we will go through the various input definitions to get the power production data.</p>
+<p><code class="docutils literal notranslate"><span class="pre">frequency</span></code> options:</p>
+<ul class="simple">
+<li><p>project: computed across the whole simulation</p></li>
+<li><p>annual: computed on a yearly basis</p></li>
+<li><p>monthly: computed across years on a monthly basis</p></li>
+<li><p>month-year: computed on a month-by-year basis</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">by_turbine</span></code> options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">True</span></code>: computed for each turbines</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">False</span></code>: computed for the whole windfarm</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project total at the whole windfarm level</span>
+<span class="n">total</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">power_production</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by_turbine</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">total</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/Users/rhammond/Documents/GitHub/WOMBAT/wombat/core/post_processor.py:1812: FutureWarning: Dropping of nuisance columns in DataFrame reductions (with &#39;numeric_only=None&#39;) is deprecated; in a future version this will raise TypeError.  Select only valid columns before calling the reduction.
+  
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>windfarm</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Project Energy Production (kWh)</th>
+      <td>9,639,053,164.50</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project totals at the turbine level</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">power_production</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by_turbine</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/Users/rhammond/Documents/GitHub/WOMBAT/wombat/core/post_processor.py:1812: FutureWarning: Dropping of nuisance columns in DataFrame reductions (with &#39;numeric_only=None&#39;) is deprecated; in a future version this will raise TypeError.  Select only valid columns before calling the reduction.
+  
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>windfarm</th>
+      <th>S00T1</th>
+      <th>S00T2</th>
+      <th>S00T3</th>
+      <th>S00T4</th>
+      <th>...</th>
+      <th>S00T76</th>
+      <th>S00T77</th>
+      <th>S00T78</th>
+      <th>S00T79</th>
+      <th>S00T80</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Project Energy Production (kWh)</th>
+      <td>9,639,053,164.50</td>
+      <td>110,293,643.50</td>
+      <td>118,918,659.50</td>
+      <td>122,710,249.00</td>
+      <td>121,660,839.00</td>
+      <td>...</td>
+      <td>116,916,521.50</td>
+      <td>122,653,962.50</td>
+      <td>122,088,967.50</td>
+      <td>122,834,446.00</td>
+      <td>106,751,513.50</td>
+    </tr>
+  </tbody>
+</table>
+<p>1 rows × 81 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project annual totals for the windfarm</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">power_production</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;annual&quot;</span><span class="p">,</span> <span class="n">by_turbine</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>windfarm</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2003</th>
+      <td>847,619,445.50</td>
+    </tr>
+    <tr>
+      <th>2004</th>
+      <td>934,215,733.00</td>
+    </tr>
+    <tr>
+      <th>2005</th>
+      <td>986,381,500.00</td>
+    </tr>
+    <tr>
+      <th>2006</th>
+      <td>947,356,160.00</td>
+    </tr>
+    <tr>
+      <th>2007</th>
+      <td>1,034,009,887.50</td>
+    </tr>
+    <tr>
+      <th>2008</th>
+      <td>1,056,948,280.00</td>
+    </tr>
+    <tr>
+      <th>2009</th>
+      <td>962,611,969.00</td>
+    </tr>
+    <tr>
+      <th>2010</th>
+      <td>857,735,629.00</td>
+    </tr>
+    <tr>
+      <th>2011</th>
+      <td>1,021,160,049.00</td>
+    </tr>
+    <tr>
+      <th>2012</th>
+      <td>991,014,511.50</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project monthly totals for the windfarm</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">power_production</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;monthly&quot;</span><span class="p">,</span> <span class="n">by_turbine</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>windfarm</th>
+    </tr>
+    <tr>
+      <th>month</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>1,074,470,433.50</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>823,411,948.00</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>898,918,028.50</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>705,201,314.50</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>691,411,930.50</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>561,022,725.00</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>592,332,889.50</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>644,255,742.00</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>794,370,125.00</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>902,051,678.00</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>969,226,685.50</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>982,379,664.50</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Project month-by-year totals for the windfarm</span>
+<span class="c1"># NOTE: This is limited to the first two years only</span>
+<span class="n">metrics</span><span class="o">.</span><span class="n">power_production</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;month-year&quot;</span><span class="p">,</span> <span class="n">by_turbine</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>windfarm</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th>month</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="5" valign="top">2003</th>
+      <th>1</th>
+      <td>111,754,613.00</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>58,290,600.50</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>65,858,903.00</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>90,362,816.50</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>59,848,567.00</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <th>...</th>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th rowspan="5" valign="top">2012</th>
+      <th>8</th>
+      <td>54,977,094.50</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>94,027,326.00</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>91,765,963.00</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>89,758,331.00</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>106,554,560.00</td>
+    </tr>
+  </tbody>
+</table>
+<p>120 rows × 1 columns</p>
+</div></div></div>
+</div>
+<p><a id="net-present-value"></a></p>
+</section>
+<section id="net-present-value">
+<h2>Net Present Value<a class="headerlink" href="#net-present-value" title="Permalink to this headline">#</a></h2>
+<p>Here, we will go through the various input definitions to get the project NPV</p>
+<p><code class="docutils literal notranslate"><span class="pre">frequency</span></code> options:</p>
+<ul class="simple">
+<li><p>project: computed across the whole simulation</p></li>
+<li><p>annual: computed on a yearly basis</p></li>
+<li><p>monthly: computed across years on a monthly basis</p></li>
+<li><p>month-year: computed on a month-by-year basis</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">discount_rate</span></code>: The rate of return that could be earned on alternative investments, by default 0.025.</p>
+<p><code class="docutils literal notranslate"><span class="pre">offtake_price</span></code>: Price of energy, per MWh, by default 80.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">metrics</span><span class="o">.</span><span class="n">npv</span><span class="p">(</span><span class="s2">&quot;project&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>NPV</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>187,532,698.93</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">metrics</span><span class="o">.</span><span class="n">opex</span><span class="p">(</span><span class="s2">&quot;annual&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>OpEx</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2003</th>
+      <td>14,894,186.67</td>
+    </tr>
+    <tr>
+      <th>2004</th>
+      <td>23,475,960.55</td>
+    </tr>
+    <tr>
+      <th>2005</th>
+      <td>12,519,767.95</td>
+    </tr>
+    <tr>
+      <th>2006</th>
+      <td>22,568,964.25</td>
+    </tr>
+    <tr>
+      <th>2007</th>
+      <td>16,665,089.96</td>
+    </tr>
+    <tr>
+      <th>2008</th>
+      <td>11,442,645.06</td>
+    </tr>
+    <tr>
+      <th>2009</th>
+      <td>17,429,969.83</td>
+    </tr>
+    <tr>
+      <th>2010</th>
+      <td>12,144,790.99</td>
+    </tr>
+    <tr>
+      <th>2011</th>
+      <td>17,782,624.52</td>
+    </tr>
+    <tr>
+      <th>2012</th>
+      <td>16,922,379.77</td>
+    </tr>
+    <tr>
+      <th>2013</th>
+      <td>150,000.00</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">metrics</span><span class="o">.</span><span class="n">opex</span><span class="p">(</span><span class="s2">&quot;monthly&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>OpEx</th>
+    </tr>
+    <tr>
+      <th>month</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>24,460,650.49</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>11,218,125.53</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>5,465,667.85</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>20,138,604.61</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>24,623,583.89</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>15,081,295.89</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>11,102,910.90</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>10,993,591.46</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>5,683,887.57</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>9,726,309.74</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>12,895,740.00</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>14,606,011.61</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">metrics</span><span class="o">.</span><span class="n">opex</span><span class="p">(</span><span class="s2">&quot;month-year&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>OpEx</th>
+    </tr>
+    <tr>
+      <th>year</th>
+      <th>month</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="5" valign="top">2003</th>
+      <th>1</th>
+      <td>355,172.34</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>327,740.34</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>355,641.09</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>397,507.51</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>694,321.50</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <th>...</th>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th rowspan="5" valign="top">2013</th>
+      <th>8</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>0.00</td>
+    </tr>
+  </tbody>
+</table>
+<p>132 rows × 1 columns</p>
+</div></div></div>
+</div>
+<p><a id="pysam-powered-results"></a></p>
+</section>
+<section id="pysam-powered-results">
+<h2>PySAM-Powered Results<a class="headerlink" href="#pysam-powered-results" title="Permalink to this headline">#</a></h2>
+<p>For a number of project financial metrics, the PySAM library is utilized.</p>
+<div class="alert alert-block alert-warning">
+<b>NOTE:</b> If a "SAM_settings" file is not provided to the simulation, then the following metrics will not be able to be calculated and will raise a `NotImplementedError`.
+</div>
+<p>With the above warning in mind, the appropriate simulation outputs are provided as inputs to PySAM upon initialization to ensure all values are aligned.</p>
+<section id="net-present-value-npv">
+<h3>Net Present Value (NPV)<a class="headerlink" href="#net-present-value-npv" title="Permalink to this headline">#</a></h3>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">npv</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">pysam_npv</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;NPV: $</span><span class="si">{</span><span class="n">npv</span><span class="si">:</span><span class="s2">,.0f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">NotImplementedError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No SAM inputs were provided, and &#39;pysam_npv()&#39; cannot be calculated!
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="real-levelized-cost-of-energy-lcoe">
+<h3>Real Levelized Cost of Energy (LCOE)<a class="headerlink" href="#real-levelized-cost-of-energy-lcoe" title="Permalink to this headline">#</a></h3>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">lcoe</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">pysam_lcoe_real</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Real LCOE: $</span><span class="si">{</span><span class="n">lcoe</span><span class="si">:</span><span class="s2">,.2f</span><span class="si">}</span><span class="s2">/kW&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">NotImplementedError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No SAM inputs were provided, and &#39;pysam_lcoe_real()&#39; cannot be calculated!
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="nominal-levelized-cost-of-energy-lcoe">
+<h3>Nominal Levelized Cost of Energy (LCOE)<a class="headerlink" href="#nominal-levelized-cost-of-energy-lcoe" title="Permalink to this headline">#</a></h3>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">lcoe</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">pysam_lcoe_nominal</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Nominal LCOE: $</span><span class="si">{</span><span class="n">lcoe</span><span class="si">:</span><span class="s2">,.2f</span><span class="si">}</span><span class="s2">/kW&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">NotImplementedError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No SAM inputs were provided, and &#39;pysam_lcoe_nominal()&#39; cannot be calculated!
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="after-tax-internal-return-rate-irr">
+<h3>After-tax Internal Return Rate (IRR)<a class="headerlink" href="#after-tax-internal-return-rate-irr" title="Permalink to this headline">#</a></h3>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">npv</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">pysam_irr</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;IRR: </span><span class="si">{</span><span class="n">npv</span><span class="si">:</span><span class="s2">,.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">NotImplementedError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No SAM inputs were provided, and &#39;pysam_irr()&#39; cannot be calculated!
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="one-data-frame-to-rule-them-all">
+<h3>One Data Frame to Rule Them All<a class="headerlink" href="#one-data-frame-to-rule-them-all" title="Permalink to this headline">#</a></h3>
+<p>For this demonstration we will manually load a PySAM settings file and trigger the setup for demonstration purposes, but it should be noted that this practice should be avoided.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">metrics</span><span class="o">.</span><span class="n">pysam_all_outputs</span><span class="p">()</span>
+<span class="k">except</span> <span class="ne">NotImplementedError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No SAM inputs were provided, and &#39;pysam_all_outputs()&#39; cannot be calculated!
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+</section>
+
+
+              </div>
+              
+            </main>
+            <footer class="footer-article noprint">
+                
+    <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="strategy_demonstration.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">Servicing Strategies</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="../API/index.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">WOMBAT API</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+            </footer>
+        </div>
+    </div>
+    <div class="footer-content row">
+        <footer class="col footer"><p>
+  
+    By Rob Hammond, Aubryn Cooperman, Aaron Barker, Alicia Key, Matt Shields, Annika Eberle<br/>
+  
+      &copy; Copyright 2022 Alliance for Sustainable Energy, LLC.<br/>
+</p>
+        </footer>
+    </div>
+    
+</div>
+
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+
+
+  </body>
+</html>

@@ -1,0 +1,657 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>WOMBAT - Windfarm Operations and Maintenance cost-Benefit Analysis Tool &#8212; WOMBAT v0.5.1</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="install.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+<!-- Checkboxes to toggle the left sidebar -->
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
+<label class="overlay overlay-navbar" for="__navigation">
+    <div class="visually-hidden">Toggle navigation sidebar</div>
+</label>
+<!-- Checkboxes to toggle the in-page toc -->
+<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
+<label class="overlay overlay-pagetoc" for="__page-toc">
+    <div class="visually-hidden">Toggle in-page Table of Contents</div>
+</label>
+<!-- Headers at the top -->
+<div class="announcement header-item noprint"></div>
+<div class="header header-item noprint"></div>
+
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<!-- Sidebar -->
+<div class="bd-sidebar noprint" id="site-navigation">
+    <div class="bd-sidebar__content">
+        <div class="bd-sidebar__top"><div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="#">
+      
+      
+      
+      <h1 class="site-logo" id="site-title">WOMBAT v0.5.1</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1 current active">
+                <a class="reference internal" href="#">
+                    WOMBAT - Windfarm Operations and Maintenance cost-Benefit Analysis Tool
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Getting Started
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="install.html">
+   Installation
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="presentations.html">
+   Presentations and Publications
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="team.html">
+   Team
+  </a>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Working with the code base
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="examples/index.html">
+   Examples
+  </a>
+  <input checked class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="examples/how_to.html">
+     How To Use WOMBAT
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="examples/strategy_demonstration.html">
+     Servicing Strategies
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="examples/metrics_demonstration.html">
+     Demonstration of the Metrics To-Date
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="API/index.html">
+   WOMBAT API
+  </a>
+  <input checked class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <label for="toctree-checkbox-2">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="API/simulation_api.html">
+     Simulation API
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="API/simulation.html">
+     Simulation Tools and Methodology
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="API/types.html">
+     Data Classes
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="changelog.html">
+   Change Log
+  </a>
+ </li>
+</ul>
+
+    </div>
+</nav></div>
+        <div class="bd-sidebar__bottom">
+             <!-- To handle the deprecated key -->
+            
+            <div class="navbar_extra_footer">
+            Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+            </div>
+            
+        </div>
+    </div>
+    <div id="rtd-footer-container"></div>
+</div>
+
+
+          
+
+
+          
+<!-- A tiny helper pixel to detect if we've scrolled -->
+<div class="sbt-scroll-pixel-helper"></div>
+<!-- Main content -->
+<div class="col py-0 content-container">
+    
+    <div class="header-article row sticky-top noprint">
+        
+
+
+
+<div class="col py-1 d-flex header-article-main">
+    <div class="header-article__left">
+        
+        <label for="__navigation"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="right"
+title="Toggle navigation"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-bars"></i>
+  </span>
+
+</label>
+
+        
+    </div>
+    <div class="header-article__right">
+<button onclick="toggleFullScreen()"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="bottom"
+title="Fullscreen mode"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+<div class="menu-dropdown menu-dropdown-repository-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Source repositories">
+      <i class="fab fa-github"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="https://github.com/WISDEM/WOMBAT"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Source repository"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="headerbtn__text-container">repository</span>
+</a>
+
+      </li>
+      
+      <li>
+        <a href="https://github.com/WISDEM/WOMBAT/issues/new?title=Issue%20on%20page%20%2Findex.html&body=Your%20issue%20content%20here."
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Open an issue"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="headerbtn__text-container">open issue</span>
+</a>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+<div class="menu-dropdown menu-dropdown-download-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Download this page">
+      <i class="fas fa-download"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="_sources/index.rst.txt"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Download source file"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="headerbtn__text-container">.rst</span>
+</a>
+
+      </li>
+      
+      <li>
+        
+<button onclick="printPdf(this)"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="left"
+title="Print to PDF"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="headerbtn__text-container">.pdf</span>
+</button>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+<label for="__page-toc"
+  class="headerbtn headerbtn-page-toc"
+  
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-list"></i>
+  </span>
+
+</label>
+
+    </div>
+</div>
+
+<!-- Table of contents -->
+<div class="col-md-3 bd-toc show noprint">
+    <div class="tocsection onthispage pt-5 pb-3">
+        <i class="fas fa-list"></i> Contents
+    </div>
+    <nav id="bd-toc-nav" aria-label="Page">
+        <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#overview">
+   Overview
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#what-s-new-in-v0-5">
+   What’s New in v0.5?
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#the-model-in-30-seconds-or-less">
+   The Model in 30 Seconds Or Less
+  </a>
+  <ul class="visible nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#high-level-architecture">
+     High Level Architecture
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#simulation-architecture">
+     Simulation Architecture
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#welcome">
+   Welcome
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#using-wombat">
+   Using WOMBAT
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#license">
+   License
+  </a>
+ </li>
+</ul>
+
+    </nav>
+</div>
+    </div>
+    <div class="article row">
+        <div class="col pl-md-3 pl-lg-5 content-container">
+            <!-- Table of contents that is only displayed when printing the page -->
+            <div id="jb-print-docs-body" class="onlyprint">
+                <h1>WOMBAT - Windfarm Operations and Maintenance cost-Benefit Analysis Tool</h1>
+                <!-- Table of contents -->
+                <div id="print-main-content">
+                    <div id="jb-print-toc">
+                        
+                        <div>
+                            <h2> Contents </h2>
+                        </div>
+                        <nav aria-label="Page">
+                            <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#overview">
+   Overview
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#what-s-new-in-v0-5">
+   What’s New in v0.5?
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#the-model-in-30-seconds-or-less">
+   The Model in 30 Seconds Or Less
+  </a>
+  <ul class="visible nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#high-level-architecture">
+     High Level Architecture
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#simulation-architecture">
+     Simulation Architecture
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#welcome">
+   Welcome
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#using-wombat">
+   Using WOMBAT
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#license">
+   License
+  </a>
+ </li>
+</ul>
+
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            <main id="main-content" role="main">
+                
+              <div>
+                
+  <section id="wombat-windfarm-operations-and-maintenance-cost-benefit-analysis-tool">
+<h1>WOMBAT - Windfarm Operations and Maintenance cost-Benefit Analysis Tool<a class="headerlink" href="#wombat-windfarm-operations-and-maintenance-cost-benefit-analysis-tool" title="Permalink to this headline">#</a></h1>
+<a class="reference external image-reference" href="https://badge.fury.io/py/wombat"><img alt="https://badge.fury.io/py/wombat.svg" src="https://badge.fury.io/py/wombat.svg" /></a>
+<a class="reference external image-reference" href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples"><img alt="https://mybinder.org/badge_logo.svg" src="https://mybinder.org/badge_logo.svg" /></a>
+<a class="reference external image-reference" href="https://opensource.org/licenses/Apache-2.0"><img alt="https://img.shields.io/badge/License-Apache%202.0-blue.svg" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" /></a>
+<a class="reference external image-reference" href="https://github.com/pre-commit/pre-commit"><img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&amp;logoColor=white" /></a>
+<a class="reference external image-reference" href="https://github.com/psf/black"><img alt="https://img.shields.io/badge/code%20style-black-000000.svg" src="https://img.shields.io/badge/code%20style-black-000000.svg" /></a>
+<a class="reference external image-reference" href="https://pycqa.github.io/isort/"><img alt="https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&amp;labelColor=ef8336" src="https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&amp;labelColor=ef8336" /></a>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">#</a></h2>
+<p>The WOMBAT framework is designed to provide an open source tool adhering to FLOSS principles
+for the windfarm lifecycle research community. Specifically, WOMBAT is meant to serve as
+a what-if, or scenario-based, simulation tool, so that you can model the trade-offs in
+decision making for the operations and maintenance phase of a windfarm.</p>
+<p>Please note that for the current version, the documentation is fairly sparse outside of
+the core API documentation. This will be updated, along with the model by the end of the
+summer when more development is completed. By that point the model should include more
+functionality surrounding unscheduled maintenance in addition to added documentation.</p>
+<p>For any questions, feel free to open up an issue in the repository or email:
+<a class="reference external" href="mailto:rob&#46;hammond&#37;&#52;&#48;nrel&#46;gov">rob<span>&#46;</span>hammond<span>&#64;</span>nrel<span>&#46;</span>gov</a>.</p>
+</section>
+<section id="what-s-new-in-v0-5">
+<h2>What’s New in v0.5?<a class="headerlink" href="#what-s-new-in-v0-5" title="Permalink to this headline">#</a></h2>
+<ul class="simple">
+<li><p>Tow-to-port for offshore wind farms!</p></li>
+<li><p>More metrics!</p></li>
+<li><p>Bug fixes!</p></li>
+<li><p>See the changelog for full details</p></li>
+</ul>
+</section>
+<section id="the-model-in-30-seconds-or-less">
+<h2>The Model in 30 Seconds Or Less<a class="headerlink" href="#the-model-in-30-seconds-or-less" title="Permalink to this headline">#</a></h2>
+<p>In general, the model has 2 overarching branches: the windfarm itself, and the
+simulation environment. For the wind farm model we can control the varying assets
+(or system in the code) as well as the components (or subassemblies in the code). This
+separation allows for each turbine, cable, or substation component to have its own unique
+failure and maintenance models.</p>
+<p>As for the environment, this is where the discrete event simulation itself happens in
+addition to logging, repair logic, and other necessary modeling pieces. The image
+below provides a more visual representation of this description.</p>
+<section id="high-level-architecture">
+<h3>High Level Architecture<a class="headerlink" href="#high-level-architecture" title="Permalink to this headline">#</a></h3>
+<p>The code is largely broken up into two categories: the windfarm and objects contained
+within it, and the simulation and simulation evironment components. The windfarm is
+composed of systems: substation(s), cables, and turbines, and each of those systems is
+composed of subassemblies (a conglomerate of components). For the simulation environment,
+we consider all of the pieces that allow the simulation to happen such as the API,
+servicing equipment, repair manager to hold and pass on tasks, and results post-processing.</p>
+<img alt="_images/high_level_diagram.svg" src="_images/high_level_diagram.svg" /><p>The following section describes how a windfarm is simulated and the flow of events as
+they occur within the model.</p>
+</section>
+<section id="simulation-architecture">
+<h3>Simulation Architecture<a class="headerlink" href="#simulation-architecture" title="Permalink to this headline">#</a></h3>
+<p>In the diagram below, we demonstrate the lifecycle of the simulation through the
+lifecycle of a single failure.</p>
+<ol class="arabic simple">
+<li><p>The maximum length of the simulation is defined by the amount of wind and wave
+timeseries data is provided for the simulation.</p></li>
+<li><p>Each subassemly failure model is a random sampling from a Weibull distribution, so
+for the sake of clarity we’ll consider this to be a catastrophic drivetrain failure.
+When the timeout (time to failure) is reached in the simulation, the subassembly’s operating level is
+reduced to 0%, and a message is passed to the turbine level (the overarching system
+model).</p></li>
+<li><p>From there, the turbine will shut off, and signal to all other subassembly models to
+not accrue time for their respective maintenance and failure timeouts. Then, the
+turbine creates a repair request and passes that to the repair manager.</p></li>
+<li><p>The repair manager will store the submitted task and depending on the servicing
+equipment’s maintenance strategy, a crane or vessel will be called to site.</p></li>
+<li><p>The vessel (or crane) will mobilize and accrue time there, all the while, the turbine
+and wind power plant will accrue downtime. When the servicing equipment arrives at
+the site it will operate according to its operation limits, current weather
+conditions, and site/equipment-specific working hours and continue to log costs and
+downtime.</p></li>
+<li><p>When the servicing is complete, the subassembly will be placed back to good-as-new
+condition and the turbine will be reset to operating. From there all the turbine’s
+and drivetrain’s failure and maintenance models be turned back on, and the simulation
+will continue on in the same manner until it reaches it’s user- or weather-defined
+ending point.</p></li>
+</ol>
+<img alt="_images/simulation_diagram.png" src="_images/simulation_diagram.png" />
+</section>
+</section>
+<section id="welcome">
+<h2>Welcome<a class="headerlink" href="#welcome" title="Permalink to this headline">#</a></h2>
+<div class="toctree-wrapper compound">
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="install.html#create-a-conda-environoment">Create a conda environoment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#installing">Installing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="presentations.html">Presentations and Publications</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="presentations.html#fy20-doe-presentation">FY20 DOE Presentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="presentations.html#code-to-code-comparison">Code-to-Code Comparison</a></li>
+<li class="toctree-l2"><a class="reference internal" href="presentations.html#iea-task-26-presentation">IEA Task 26 Presentation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="team.html">Team</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="team.html#software">Software</a></li>
+<li class="toctree-l2"><a class="reference internal" href="team.html#methodology">Methodology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="team.html#leadership">Leadership</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="using-wombat">
+<h2>Using WOMBAT<a class="headerlink" href="#using-wombat" title="Permalink to this headline">#</a></h2>
+<div class="toctree-wrapper compound">
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Working with the code base</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/how_to.html">How To Use WOMBAT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/strategy_demonstration.html">Servicing Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/metrics_demonstration.html">Demonstration of the Metrics To-Date</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="API/index.html">WOMBAT API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="API/index.html#package-hierarchy">Package Hierarchy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API/index.html#class-hierarchy">Class Hierarchy</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Change Log</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#july-2022">0.5.1 (22 July 2022)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#june-2022">0.5.0 (30 June 2022)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#march-8">0.4.1 (2022-March-8)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#february-4">0.4.0 (2022-February-4)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#december-9">0.3.5 (2021-December-9)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#march-2">0.3.1 (2021-March-2)</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="license">
+<h2>License<a class="headerlink" href="#license" title="Permalink to this headline">#</a></h2>
+<p>Apache 2.0; please see the repository for license information:
+<a class="reference external" href="https://github.com/WISDEM/WOMBAT/blob/master/LICENSE">https://github.com/WISDEM/WOMBAT/blob/master/LICENSE</a></p>
+</section>
+</section>
+
+
+              </div>
+              
+            </main>
+            <footer class="footer-article noprint">
+                
+    <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='right-next' id="next-link" href="install.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Installation</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+            </footer>
+        </div>
+    </div>
+    <div class="footer-content row">
+        <footer class="col footer"><p>
+  
+    By Rob Hammond, Aubryn Cooperman, Aaron Barker, Alicia Key, Matt Shields, Annika Eberle<br/>
+  
+      &copy; Copyright 2022 Alliance for Sustainable Energy, LLC.<br/>
+</p>
+        </footer>
+    </div>
+    
+</div>
+
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+
+
+  </body>
+</html>
