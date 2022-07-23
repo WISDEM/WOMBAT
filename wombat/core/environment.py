@@ -658,6 +658,9 @@ class WombatEnvironment(simpy.Environment):
         """This is a convenience method to clear the output log files in case a large
         batch of simulations is being run and there are space limitations.
 
+        ... warning:: This shuts down the loggers, so no more logging will be able
+            to be performed.
+
         Parameters
         ----------
         log_only : bool, optional
@@ -668,6 +671,8 @@ class WombatEnvironment(simpy.Environment):
         # NOTE: Everything is wrapped in a try/except clause to protect against failure
         # when inevitably a file has already been deleted on accident, or if in the
         # dataframe generation step, the original logs were deleted
+
+        logging.shutdown()
 
         try:
             self.events_log_fname.unlink()

@@ -90,6 +90,7 @@ def _process_single(
     tuple[str, float, float, float, int]
         The timing values. See ``process_times``.
     """
+    # TODO: Test if this can be sped up by passing the filtered array data frame
     request = events.iloc[request_filter]
     downtime = request[request.system_operating_level < 1]
     vals = (
@@ -284,9 +285,11 @@ class Metrics:
             data.index = data.datetime
             data = data.drop(labels="datetime", axis=1)
         data.env_datetime = pd.to_datetime(data.env_datetime)
-        data["year"] = data.env_datetime.dt.year
-        data["month"] = data.env_datetime.dt.month
-        data["day"] = data.env_datetime.dt.day
+        data = data.assign(
+            year=data.env_datetime.dt.year,
+            month=data.env_datetime.dt.month,
+            day=data.env_datetime.dt.day,
+        )
         if kind == "operations":
             data["windfarm"] = data[self.substation_id].mean(axis=1) * data[
                 self.turbine_id
@@ -372,9 +375,7 @@ class Metrics:
         # Run the financial model
         self.financial_model.execute()
 
-    def time_based_availability(  # type: ignore
-        self, frequency: str, by: str
-    ) -> float | pd.DataFrame:
+    def time_based_availability(self, frequency: str, by: str) -> pd.DataFrame:
         """Calculates the time-based availabiliy over a project's lifetime as a single
         value, annual average, or monthly average for the whole windfarm or by turbine.
 
@@ -390,7 +391,7 @@ class Metrics:
 
         Returns
         -------
-        float | pd.DataFrame
+        pd.DataFrame
             The time-based availability at the desired aggregation level.
         """
         frequency = _check_frequency(frequency, which="all")
@@ -409,7 +410,7 @@ class Metrics:
         if frequency == "project":
             availability = _calculate_time_availability(hourly, by_turbine=by_turbine)
             if by == "windfarm":
-                return availability
+                return pd.DataFrame([availability], columns=["windfarm"])
             availability = pd.DataFrame(
                 availability.reshape(1, -1), columns=self.turbine_id  # type: ignore
             )
@@ -449,9 +450,7 @@ class Metrics:
             ]
             return pd.DataFrame(month_year, index=counts.index, columns=counts.columns)
 
-    def production_based_availability(  # type: ignore
-        self, frequency: str, by: str
-    ) -> float | pd.DataFrame:
+    def production_based_availability(self, frequency: str, by: str) -> pd.DataFrame:
         """Calculates the production-based availabiliy over a project's lifetime as a
         single value, annual average, or monthly average for the whole windfarm or by
         turbine.
@@ -468,7 +467,7 @@ class Metrics:
 
         Returns
         -------
-        float | pd.DataFrame
+        pd.DataFrame
             The production-based availability at the desired aggregation level.
         """
         frequency = _check_frequency(frequency, which="all")
@@ -487,7 +486,9 @@ class Metrics:
             if (potential == 0).sum() > 0:
                 potential[potential == 0] = 1
             if not by_turbine:
-                return production.sum() / potential.sum()
+                return pd.DataFrame(
+                    [production.sum() / potential.sum()], columns=["windfarm"]
+                )
             availability = pd.DataFrame(
                 (production.sum(axis=0) / potential.sum(axis=0)).reshape(1, -1),
                 columns=self.turbine_id,
@@ -523,7 +524,7 @@ class Metrics:
 
     def capacity_factor(  # type: ignore
         self, which: str, frequency: str, by: str
-    ) -> float | pd.DataFrame:
+    ) -> pd.DataFrame:
         """Calculates the capacity factor over a project's lifetime as a single value,
         annual average, or monthly average for the whole windfarm or by turbine.
 
@@ -542,7 +543,7 @@ class Metrics:
 
         Returns
         -------
-        float | pd.DataFrame
+        pd.DataFrame
             The capacity factor at the desired aggregation level.
         """
         which = which.lower().strip()
@@ -566,15 +567,15 @@ class Metrics:
             potential = production.shape[0]
             if not by_turbine:
                 production = production.values.sum() / 1000  # convert to MWh
-                return production / (potential * capacity)
+                return pd.DataFrame(
+                    [production / (potential * capacity)], columns=["windfarm"]
+                )
             potential = potential * capacity / 1000
             cf = pd.DataFrame((production.sum(axis=0) / 1000 / potential)).T
             return cf
 
-        production[["year", "month"]] = [
-            production.index.year.values.reshape(-1, 1),
-            production.index.month.values.reshape(-1, 1),
-        ]
+        production["year"] = production.index.year.values
+        production["month"] = production.index.month.values
 
         if frequency == "annual":
             potential = production.groupby("year").count()[self.turbine_id]
@@ -644,17 +645,17 @@ class Metrics:
         ].reset_index(drop=True)
 
         if frequency == "project":
-            return completions.shape[0] / requests.shape[0]
+            if requests.shape[0] == 0:
+                return pd.DataFrame([0.0], columns=["windfarm"])
+            return pd.DataFrame(
+                [completions.shape[0] / requests.shape[0]], columns=["windfarm"]
+            )
 
-        requests[["year", "month"]] = [
-            requests.env_datetime.dt.year.values.reshape(-1, 1),
-            requests.env_datetime.dt.month.values.reshape(-1, 1),
-        ]
+        requests["year"] = requests.env_datetime.dt.year.values
+        requests["month"] = requests.env_datetime.dt.month.values
 
-        completions[["year", "month"]] = [
-            completions.env_datetime.dt.year.values.reshape(-1, 1),
-            completions.env_datetime.dt.month.values.reshape(-1, 1),
-        ]
+        completions["year"] = completions.env_datetime.dt.year.values
+        completions["month"] = completions.env_datetime.dt.month.values
 
         if frequency == "annual":
             group_filter = ["year"]
@@ -673,12 +674,14 @@ class Metrics:
         completions = completions.groupby(group_filter).count()["request_id"]
 
         missing = [ix for ix in indices if ix not in requests]
-        requests = requests.append(pd.Series(np.ones(len(missing)), index=missing))
+        requests = pd.concat(
+            [requests, pd.Series(np.ones(len(missing)), index=missing)]
+        )
         requests = requests.sort_index()
 
         missing = [ix for ix in indices if ix not in completions]
-        completions = completions.append(
-            pd.Series(np.zeros(len(missing)), index=missing)
+        completions = pd.concat(
+            [completions, pd.Series(np.zeros(len(missing)), index=missing)]
         )
         completions = completions.sort_index()
 
@@ -690,7 +693,7 @@ class Metrics:
 
     def equipment_costs(
         self, frequency: str, by_equipment: bool = False
-    ) -> float | pd.DataFrame:
+    ) -> pd.DataFrame:
         """Calculates the equipment costs for the simulation at a project, annual, or
         monthly level with (or without) respect to equipment utilized in the simulation.
         This excludes any port fees that might apply, which are included in:
@@ -706,9 +709,8 @@ class Metrics:
 
         Returns
         -------
-        float | pd.DataFrame
-            Returns either a float for whole project-level costs or a pandas ``DataFrame``
-            with columns:
+        pd.DataFrame
+            Returns pandas ``DataFrame``with columns:
                 - year (if appropriate for frequency)
                 - month (if appropriate for frequency)
                 - then any equipment names as they appear in the logs
@@ -723,7 +725,7 @@ class Metrics:
         frequency = _check_frequency(frequency, which="all")
 
         if not isinstance(by_equipment, bool):
-            raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
+            raise ValueError("`by_equipment` must be one of `True` or `False`")
 
         if frequency == "annual":
             col_filter = ["year"]
@@ -743,12 +745,8 @@ class Metrics:
                     .reset_index(level=0)
                 )
                 costs = costs.fillna(costs.max(axis=0)).T
-                costs = (
-                    costs.rename(columns=costs.iloc[0])
-                    .drop(index="agent")
-                    .reset_index(drop=True)
-                )
-                return costs
+                costs = costs.rename(columns=costs.iloc[0]).drop(index="agent")
+                return costs.reset_index(drop=True)
 
             col_filter = ["agent"] + col_filter
             costs = (
@@ -784,8 +782,8 @@ class Metrics:
         visits for scheduled servicing equipment strategies.
 
         .. note:: For tugboats in a tow-to-port scenario, this ratio will be near
-        100% because they are considered to be operating on an as-needed basis per the
-        port contracting assumptions
+            100% because they are considered to be operating on an as-needed basis per
+            the port contracting assumptions
 
         Parameters
         ----------
@@ -1665,7 +1663,6 @@ class Metrics:
             * self.project_capacity
             * 1000
         )
-        costs = pd.DataFrame(vals, columns=keys)
 
         total = self.operations.groupby(["year", "month"]).count()[["env_time"]]
         total = total.rename(columns={"env_time": "N"})
@@ -1679,11 +1676,9 @@ class Metrics:
         costs = pd.DataFrame(total.values * vals, index=total.index, columns=keys)
         costs *= operation_hours.values.reshape(-1, 1) / 8760.0
 
-        years = self.events.year.unique()
         adjusted_inflation = np.array(
-            [self.inflation_rate**i for i in range(len(years)) for j in range(12)]
+            [self.inflation_rate ** (i // 12) for i in range(costs.shape[0])]
         )
-        adjusted_inflation = adjusted_inflation[: costs.shape[0]]
         costs *= adjusted_inflation.reshape(-1, 1)
 
         if frequency == "project":
@@ -1765,12 +1760,13 @@ class Metrics:
         events = self.events.loc[self.events.request_id != "na"]
         requests = events.request_id.values
         unique = events.request_id.unique()
+
+        # TODO: Test if filtering the dataframe within the loop is faster/more efficient
         process_single = partial(_process_single, events)
         timing = [process_single(np.where(requests == rid)[0]) for rid in unique]
         df = pd.DataFrame(
             timing,
             columns=["category", "time_to_completion", "process_time", "downtime", "N"],
-            dtype=float,
         )
         df = df.groupby("category").sum()
         df = df.sort_index()
@@ -1825,14 +1821,14 @@ class Metrics:
             col_filter.extend(self.turbine_id)
 
         if frequency == "project":
-            production = self.production.sum(axis=0)[col_filter]
+            production = self.production[col_filter].sum(axis=0)
             production = pd.DataFrame(
                 production.values.reshape(1, -1),
                 columns=col_filter,
                 index=["Project Energy Production (kWh)"],
             )
             return production
-        return self.production.groupby(by=group_cols).sum()[col_filter]
+        return self.production.groupby(by=group_cols)[col_filter].sum()
 
     # Windfarm Financials
 
