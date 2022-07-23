@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.abspath("."))
 # -- Project information -----------------------------------------------------
 
 project = "WOMBAT"
-copyright = "2020 Alliance for Sustainable Energy, LLC"
+copyright = "2022 Alliance for Sustainable Energy, LLC"
 author = "Rob Hammond, Aubryn Cooperman, Aaron Barker, Alicia Key, Matt Shields, Annika Eberle"
 
 # The full version, including alpha/beta/rc tags
