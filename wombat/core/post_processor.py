@@ -90,6 +90,7 @@ def _process_single(
     tuple[str, float, float, float, int]
         The timing values. See ``process_times``.
     """
+    # TODO: Test if this can be sped up by passing the filtered array data frame
     request = events.iloc[request_filter]
     downtime = request[request.system_operating_level < 1]
     vals = (
@@ -284,9 +285,11 @@ class Metrics:
             data.index = data.datetime
             data = data.drop(labels="datetime", axis=1)
         data.env_datetime = pd.to_datetime(data.env_datetime)
-        data["year"] = data.env_datetime.dt.year.values
-        data["month"] = data.env_datetime.dt.month.values
-        data["day"] = data.env_datetime.dt.day.values
+        data = data.assign(
+            year=data.env_datetime.dt.year,
+            month=data.env_datetime.dt.month,
+            day=data.env_datetime.dt.day,
+        )
         if kind == "operations":
             data["windfarm"] = data[self.substation_id].mean(axis=1) * data[
                 self.turbine_id
@@ -1757,12 +1760,13 @@ class Metrics:
         events = self.events.loc[self.events.request_id != "na"]
         requests = events.request_id.values
         unique = events.request_id.unique()
+
+        # TODO: Test if filtering the dataframe within the loop is faster/more efficient
         process_single = partial(_process_single, events)
         timing = [process_single(np.where(requests == rid)[0]) for rid in unique]
         df = pd.DataFrame(
             timing,
             columns=["category", "time_to_completion", "process_time", "downtime", "N"],
-            dtype=float,
         )
         df = df.groupby("category").sum()
         df = df.sort_index()
