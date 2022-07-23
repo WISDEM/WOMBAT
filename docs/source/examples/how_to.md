@@ -565,8 +565,8 @@ For a more complete view of what metrics can be compiled, please see the [metric
 be shown here
 
 ```{code-cell} ipython3
-net_cf = sim.metrics.capacity_factor(which="net", frequency="project", by="windfarm")
-gross_cf = sim.metrics.capacity_factor(which="gross", frequency="project", by="windfarm")
+net_cf = sim.metrics.capacity_factor(which="net", frequency="project", by="windfarm").values[0][0]
+gross_cf = sim.metrics.capacity_factor(which="gross", frequency="project", by="windfarm").values[0][0]
 print(f"  Net Capacity Factor: {net_cf:2.1f}%")
 print(f"Gross Capacity Factor: {gross_cf:2.1f}%")
 ```

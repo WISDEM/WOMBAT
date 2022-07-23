@@ -1,4 +1,11 @@
-## v.0.5.0 (30 June 2022)
+## 0.5.1 (22 July 2022)
+- Updates to use the most recent pandas API/recommendations, which fixes numerous warnings in the `Metrics` class
+- Fixes inconsistency in returning floats vs `DataFrame`s in the  `Metrics` class
+- Updates the examples to work with the returned `DataFrame` values, and adds warnings about the change in usage
+- Updates the documenation configuration to be compatible with the latest sphinx book theme API usage
+- Adds a potential fix to an occasional issue where the logging files can't be deleted using `WombatEnvironment.cleanup_log_files()` because the file is still considered to be in use
+
+## 0.5.0 (30 June 2022)
 - Adds capabilities: "TOW" and "AHV" for tugboat/towing equipment and anchor-handling vessels
 - Adds a tow-to-port strategy that is activated for repairs with the "TOW" capability in the servicing
 - Adds a `Port` class to handle the tow-to-port class and tugboat-based service requests
