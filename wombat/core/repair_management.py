@@ -310,7 +310,9 @@ class RepairManager(FilterStore):
         requests = sorted(requests, key=lambda x: x.severity_level, reverse=True)
         for request in requests:
             if equipment_capability.intersection(request.details.service_equipment):  # type: ignore
-                return self.get(lambda x: x == request)
+                if not request.system_id in self.invalid_systems:
+                    self.halt_requests_for_system(request.system_id)
+                    return self.get(lambda x: x == request)
 
         # This return statement ensures there is always a known return type,
         # but consider raising an error here if the loop is always assumed to

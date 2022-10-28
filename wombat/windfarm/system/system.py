@@ -76,7 +76,6 @@ class System:
         self.repair_manager = repair_manager
         self.id = t_id
         self.name = name
-        # self.servicing = False
         self.cable_failure = False
         self.capacity = subassemblies["capacity_kw"]
         self.subassemblies: list[Subassembly] = []

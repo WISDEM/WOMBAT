@@ -137,8 +137,6 @@ def reset_system_operations(system: System) -> None:
     for subassembly in system.subassemblies:
         subassembly.operating_level = 1.0
         subassembly.recreate_processes()
-    # system.servicing = False
-    print(f"successful & resetting: {system.id}")
     system.servicing.succeed()
 
 
@@ -375,16 +373,14 @@ class ServiceEquipment(RepairsMixin):
 
         # Register that the servicing is now over
         if isinstance(subassembly, Subassembly):
-            # subassembly.system.servicing = False
-            print(f"successful: {self.env.now} {subassembly.system.id} {repair.details.request_id}")
             subassembly.system.servicing.succeed()
         elif isinstance(subassembly, Cable):
-            # subassembly.servicing = False
             subassembly.servicing.succeed()
         else:
             raise ValueError(
                 f"Passed subassembly of type: `{type(subassembly)}` invalid."
             )
+        self.manager.enable_requests_for_system(repair.system_id)
 
     def wait_until_next_operational_period(
         self, *, less_mobilization_hours: int = 0
@@ -1277,9 +1273,7 @@ class ServiceEquipment(RepairsMixin):
             )
             # First turn off the turbine, then proceed with the servicing so the
             # turbine is not registered as operating when the turbine is being worked on
-            # system.servicing = True
             if system.servicing.triggered:
-                print(f"creating event 1a: {self.env.now} {subassembly.system.id} {request.details.request_id}")
                 system.servicing = self.env.event()
                 subassembly.interrupt_all_subassembly_processes()
             yield self.env.process(
@@ -1296,9 +1290,7 @@ class ServiceEquipment(RepairsMixin):
             )
             # First turn off the turbine, then proceed with the servicing so the
             # turbine is not registered as operating when the turbine is being worked on
-            # system.servicing = True
             if system.servicing.triggered:
-                print(f"creating event 1b: {self.env.now} {subassembly.system.id} {request.details.request_id}")
                 system.servicing = self.env.event()
                 subassembly.interrupt_all_subassembly_processes()
             yield self.env.process(
@@ -1576,8 +1568,6 @@ class ServiceEquipment(RepairsMixin):
             self.travel("port", "site", set_current=system.id, **shared_logging)  # type: ignore
         )
         self.manager.halt_requests_for_system(system.id)
-        # system.servicing = True
-        print(f"creating event 1port: {self.env.now} {request.system_id} {request.details.request_id}")
         system.servicing = self.env.event()
 
         # Unmoor the turbine and tow it back to port

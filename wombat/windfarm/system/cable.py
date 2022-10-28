@@ -89,7 +89,6 @@ class Cable:
 
         self.downstream_failure = False
         self.operating_level = 1.0
-        # self.servicing = False
         self.broken = False
         self.servicing = self.env.event()
         self.servicing.succeed()  # ensure this starts in a not-in-service status

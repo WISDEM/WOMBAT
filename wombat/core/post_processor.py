@@ -931,7 +931,6 @@ class Metrics:
         if vessel_crew_assumption != {}:
             for name, n_crew in vessel_crew_assumption.items():
                 if name not in vessels:
-                    print(f"{name} not a valid `agent`")
                     continue
                 ix_vessel = at_sea.agent == name
                 at_sea.loc[ix_vessel, "duration"] *= n_crew
