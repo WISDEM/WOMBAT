@@ -76,7 +76,7 @@ class System:
         self.repair_manager = repair_manager
         self.id = t_id
         self.name = name
-        self.servicing = False
+        # self.servicing = False
         self.cable_failure = False
         self.capacity = subassemblies["capacity_kw"]
         self.subassemblies: list[Subassembly] = []
@@ -189,7 +189,7 @@ class System:
         float
             Operating level of the turbine.
         """
-        if self.cable_failure or self.servicing or self._servicing.processed:
+        if self.cable_failure or not self._servicing.triggered:# or self.servicing:
             return 0.0
         else:
             return reduce(_product, [sub.operating_level for sub in self.subassemblies])

@@ -122,7 +122,7 @@ class Subassembly:
             while hours_to_next > 0:
                 try:
                     # If the replacement has not been completed, then wait another minute
-                    if self.system.operating_level == 0 or self.system.servicing or self.system._servicing.processed:
+                    if self.system.operating_level == 0 or not self.system._servicing.triggered:# or self.system.servicing:
                         yield self.env.timeout(HOURS_IN_DAY)
                         continue
 
@@ -193,7 +193,7 @@ class Subassembly:
             else:
                 while hours_to_next > 0:  # type: ignore
                     try:
-                        if self.system.operating_level == 0 or self.system.servicing or self.system._servicing.processed:
+                        if self.system.operating_level == 0 or not self.system._servicing.triggered:# or self.system.servicing:
                             yield self.env.timeout(HOURS_IN_DAY)
                             continue
 
