@@ -138,6 +138,7 @@ def reset_system_operations(system: System) -> None:
         subassembly.operating_level = 1.0
         subassembly.recreate_processes()
     system.servicing = False
+    system._servicing.succeed()
 
 
 class ServiceEquipment(RepairsMixin):
@@ -374,8 +375,10 @@ class ServiceEquipment(RepairsMixin):
         # Register that the servicing is now over
         if isinstance(subassembly, Subassembly):
             subassembly.system.servicing = False
+            subassembly.system._servicing.succeed()
         elif isinstance(subassembly, Cable):
             subassembly.servicing = False
+            subassembly._servicing.succeed()
         else:
             raise ValueError(
                 f"Passed subassembly of type: `{type(subassembly)}` invalid."
@@ -1273,6 +1276,7 @@ class ServiceEquipment(RepairsMixin):
             # First turn off the turbine, then proceed with the servicing so the
             # turbine is not registered as operating when the turbine is being worked on
             system.servicing = True
+            system._servicing = self.env.event()
             subassembly.interrupt_all_subassembly_processes()
             yield self.env.process(
                 self.crew_transfer(system, subassembly, request, to_system=True)
@@ -1286,6 +1290,11 @@ class ServiceEquipment(RepairsMixin):
                     **shared_logging,
                 )
             )
+            # First turn off the turbine, then proceed with the servicing so the
+            # turbine is not registered as operating when the turbine is being worked on
+            system.servicing = True
+            system._servicing = self.env.event()
+            subassembly.interrupt_all_subassembly_processes()
             yield self.env.process(
                 self.crew_transfer(system, subassembly, request, to_system=True)
             )
@@ -1562,6 +1571,7 @@ class ServiceEquipment(RepairsMixin):
         )
         self.manager.halt_requests_for_system(system.id)
         system.servicing = True
+        system._servicing = self.env.event()
 
         # Unmoor the turbine and tow it back to port
         yield self.env.process(self.mooring_connection(system, request, which="unmoor"))  # type: ignore
