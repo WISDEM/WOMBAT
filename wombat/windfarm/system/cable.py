@@ -87,11 +87,15 @@ class Cable:
         self.data = SubassemblyData.from_dict(cable_data)
         self.name = self.data.name
 
-        self.downstream_failure = False
         self.operating_level = 1.0
-        self.broken = False
         self.servicing = self.env.event()
-        self.servicing.succeed()  # ensure this starts in a not-in-service status
+        self.downstream_failure = self.env.event()
+        self.broken = self.env.event()
+        
+        # Ensure events start as processed and inactive
+        self.servicing.succeed()
+        self.downstream_failure.succeed()
+        self.broken.succeed()
 
         # TODO: need to get the time scale of a distribution like this
         self.processes = dict(self._create_processes())
@@ -160,7 +164,7 @@ class Cable:
         for edge in self.upstream_cables:
             cable = self.windfarm.cable(edge)
             cable.interrupt_processes()
-            cable.downstream_failure = True
+            cable.downstream_failure = self.env.event()
             self.env.log_action(
                 part_id=cable.id,
                 part_name=cable.name,
@@ -198,7 +202,7 @@ class Cable:
             while hours_to_next > 0:
                 try:
                     # If the replacement has not been completed, then wait another minute
-                    if self.broken or self.downstream_failure or not self.servicing.triggered:
+                    if not self.broken.triggered or not self.downstream_failure.triggered or not self.servicing.triggered:
                         yield self.env.timeout(TIMEOUT)
                         continue
 
@@ -237,7 +241,7 @@ class Cable:
                     self.system.repair_manager.submit_request(repair_request)
 
                 except simpy.Interrupt:
-                    if self.broken:
+                    if not self.broken.triggered:
                         # The subassembly had so restart the maintenance cycle
                         hours_to_next = 0
                         continue
@@ -270,7 +274,7 @@ class Cable:
 
             while hours_to_next > 0:  # type: ignore
                 try:
-                    if self.operating_level == 0 or self.downstream_failure:
+                    if self.operating_level == 0 or not self.downstream_failure.triggered:
                         yield self.env.timeout(TIMEOUT)
                         continue
 
@@ -296,7 +300,7 @@ class Cable:
                     )
 
                     if failure.operation_reduction == 1:
-                        self.broken = True
+                        self.broken = self.env.event()
 
                         # Remove previously submitted requests as a replacement is required
                         _ = self.system.repair_manager.purge_subassembly_requests(
@@ -321,7 +325,7 @@ class Cable:
                     self.system.repair_manager.submit_request(repair_request)
 
                 except simpy.Interrupt:
-                    if self.broken:
+                    if not self.broken.triggered:
                         # The subassembly had to be replaced so the timing to next failure
                         # will reset
                         hours_to_next = 0

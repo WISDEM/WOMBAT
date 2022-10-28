@@ -51,8 +51,9 @@ class Subassembly:
         self.data = SubassemblyData.from_dict(subassembly_data)
         self.name = self.data.name
 
-        self.broken = False
         self.operating_level = 1.0
+        self.broken = self.env.event()
+        self.broken.succeed()  # start the event as inactive
 
         self.processes = dict(self._create_processes())
 
@@ -159,7 +160,7 @@ class Subassembly:
                     self.system.repair_manager.submit_request(repair_request)
 
                 except simpy.Interrupt:
-                    if self.broken:
+                    if not self.broken.triggered:
                         # The subassembly had so restart the maintenance cycle
                         hours_to_next = 0
                         continue
@@ -202,7 +203,7 @@ class Subassembly:
                         hours_to_next = 0
                         self.operating_level *= 1 - failure.operation_reduction
                         if failure.operation_reduction == 1:
-                            self.broken = True
+                            self.broken = self.env.event()
                             self.interrupt_all_subassembly_processes()
 
                             # Remove previously submitted requests as a replacement is required
@@ -239,7 +240,7 @@ class Subassembly:
                         self.system.repair_manager.submit_request(repair_request)
 
                     except simpy.Interrupt:
-                        if self.broken:
+                        if not self.broken.triggered:
                             # The subassembly had to be replaced so the timing to next failure
                             # will reset
                             hours_to_next = 0
