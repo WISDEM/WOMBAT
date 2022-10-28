@@ -144,7 +144,7 @@ class Cable:
         for node in self.upstream_nodes:
             system = self.windfarm.system(node)
             system.interrupt_all_subassembly_processes()
-            system.cable_failure = True
+            system.cable_failure = self.env.event()
             self.env.log_action(
                 system_id=node,
                 system_name=system.name,

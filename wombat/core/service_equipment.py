@@ -357,7 +357,7 @@ class ServiceEquipment(RepairsMixin):
                     if cable.operating_level == 0:
                         break
                 turbine = self.windfarm.system(turbine_id)
-                turbine.cable_failure = False
+                turbine.cable_failure.succeed()
                 start = turbine_id
 
         # Put the subassembly/component back to good as new condition

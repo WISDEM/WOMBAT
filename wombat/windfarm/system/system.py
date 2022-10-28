@@ -76,11 +76,14 @@ class System:
         self.repair_manager = repair_manager
         self.id = t_id
         self.name = name
-        self.cable_failure = False
         self.capacity = subassemblies["capacity_kw"]
         self.subassemblies: list[Subassembly] = []
         self.servicing = self.env.event()
-        self.servicing.succeed()  # ensure it starts as processed, not in active servicing
+        self.cable_failure = self.env.event()
+        
+        # Ensure servicing statuses starts as processed and inactive
+        self.servicing.succeed()
+        self.cable_failure.succeed()
 
         system = system.lower().strip()
         self._calculate_system_value(subassemblies)
@@ -188,7 +191,7 @@ class System:
         float
             Operating level of the turbine.
         """
-        if self.cable_failure or not self.servicing.triggered:
+        if not self.cable_failure.triggered or not self.servicing.triggered:
             return 0.0
         else:
             return reduce(_product, [sub.operating_level for sub in self.subassemblies])
@@ -203,7 +206,7 @@ class System:
         float
             Operating level of the turbine.
         """
-        if self.cable_failure:
+        if not self.cable_failure.triggered:
             return 0.0
         else:
             return reduce(_product, [sub.operating_level for sub in self.subassemblies])
