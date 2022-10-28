@@ -91,8 +91,8 @@ class Cable:
         self.operating_level = 1.0
         # self.servicing = False
         self.broken = False
-        self._servicing = self.env.event()
-        self._servicing.succeed()  # ensure this starts in a not-in-service status
+        self.servicing = self.env.event()
+        self.servicing.succeed()  # ensure this starts in a not-in-service status
 
         # TODO: need to get the time scale of a distribution like this
         self.processes = dict(self._create_processes())
@@ -199,7 +199,7 @@ class Cable:
             while hours_to_next > 0:
                 try:
                     # If the replacement has not been completed, then wait another minute
-                    if self.broken or self.downstream_failure or not self._servicing.triggered:# or self.servicing:
+                    if self.broken or self.downstream_failure or not self.servicing.triggered:
                         yield self.env.timeout(TIMEOUT)
                         continue
 
