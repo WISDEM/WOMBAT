@@ -89,6 +89,7 @@ class WombatEnvironment(simpy.Environment):
             )
 
         self.weather = self._weather_setup(weather_file, start_year, end_year)
+        self.weather_dates = self.weather.index.to_pydatetime()
         self.max_run_time = self.weather.shape[0]
         self.shift_length = self.workday_end - self.workday_start
 
@@ -158,10 +159,10 @@ class WombatEnvironment(simpy.Environment):
         now = self.now
         minutes = now % 1 * 60
         if now == self.max_run_time:
-            _dt = self.weather.iloc[math.floor(now - 1)].name.to_pydatetime()
+            _dt = self.weather_dates[math.floor(now - 1)]
             _dt + timedelta(hours=1)
         else:
-            _dt = self.weather.iloc[math.floor(now)].name.to_pydatetime()
+            _dt = self.weather_dates[math.floor(now)]
 
         minutes, seconds = math.floor(minutes), math.ceil(minutes % 1 * 60)
         return _dt + timedelta(minutes=minutes, seconds=seconds)
@@ -299,8 +300,16 @@ class WombatEnvironment(simpy.Environment):
             The wind (and  wave) timeseries.
         """
         weather_path = self.data_dir / "weather" / weather_file
-        weather = pd.read_csv(
-            weather_path, parse_dates=["datetime"], index_col="datetime"
+        # weather = pd.read_csv(
+        #     weather_path, parse_dates=["datetime"], index_col="datetime"
+        # )
+        weather = pd.concat(
+            pd.read_csv(
+                weather_path,
+                parse_dates=["datetime"],
+                index_col="datetime",
+                chunksize=50000,
+            )
         )
         weather = weather.fillna(0.0)
         weather = weather.resample("H").interpolate(limit_direction="both", limit=5)
@@ -318,12 +327,12 @@ class WombatEnvironment(simpy.Environment):
             pass
         elif start_year > self.end_year:
             raise ValueError(
-                f"'stary_year' ({start_year}) occurs after the last available year"
+                f"'start_year' ({start_year}) occurs after the last available year"
                 f" in the weather data (range: {self.end_year})"
             )
         else:
             # Filter for the provided, validated starting year and update the attribute
-            weather = weather[weather.index.year >= start_year]
+            weather = weather.loc[weather.index.year >= start_year]
             self.start_datetime = weather.index[0].to_pydatetime()
             start_year = self.start_year = self.start_datetime.year
 
@@ -342,12 +351,12 @@ class WombatEnvironment(simpy.Environment):
                 )
             else:
                 # Filter for the provided, validated ending year and update the attribute
-                weather = weather[weather.index.year <= end_year]
+                weather = weather.loc[weather.index.year <= end_year]
                 self.end_datetime = weather.index[-1].to_pydatetime()
                 self.end_year = self.end_datetime.year
         else:
             # Filter for the provided, validated ending year and update the attribute
-            weather = weather[weather.index.year <= end_year]
+            weather = weather.loc[weather.index.year <= end_year]
             self.end_datetime = weather.index[-1].to_pydatetime()
             self.end_year = self.end_datetime.year
 
@@ -384,14 +393,13 @@ class WombatEnvironment(simpy.Environment):
             hours requested, each with shape (``hours`` + 1).
         """
         start = math.floor(self.now)
-        end = start + math.ceil(hours)
 
         # If it's not on the hour, ensure we're looking ``hours`` hours into the future
-        if self.now % 1:
-            end += 1
+        end = start + math.ceil(hours) + math.ceil(self.now % 1)
 
         weather = self.weather.iloc[start:end]
-        return (weather.index, weather.windspeed.values, weather.waveheight.values)
+        wind, wave = weather.values.T
+        return weather.index, wind, wave
 
     def log_action(
         self,
