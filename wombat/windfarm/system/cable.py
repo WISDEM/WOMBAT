@@ -202,9 +202,7 @@ class Cable:
             while hours_to_next > 0:
                 try:
                     # If the replacement has not been completed, then wait another minute
-                    if not self.broken.triggered or not self.downstream_failure.triggered or not self.servicing.triggered:
-                        yield self.env.timeout(TIMEOUT)
-                        continue
+                    yield self.servicing & self.downstream_failure & self.broken
 
                     start = self.env.now
                     yield self.env.timeout(hours_to_next)
@@ -239,17 +237,14 @@ class Cable:
                         request_id=repair_request.request_id,
                     )
                     self.system.repair_manager.submit_request(repair_request)
-
                 except simpy.Interrupt:
                     if not self.broken.triggered:
-                        # The subassembly had so restart the maintenance cycle
+                        # The subassembly had to restart the maintenance cycle
                         hours_to_next = 0
-                        continue
                     else:
-                        # A different subassembly failed so we need to subtract the
-                        # amount of passed time
+                        # A different interruption occurred, so subtract the elapsed time
                         hours_to_next -= self.env.now - start
-
+        
     def run_single_failure(self, failure: Failure) -> Generator:
         """Runs a process to trigger one type of failure repair request throughout the simulation.
 
@@ -274,9 +269,7 @@ class Cable:
 
             while hours_to_next > 0:  # type: ignore
                 try:
-                    if self.operating_level == 0 or not self.downstream_failure.triggered:
-                        yield self.env.timeout(TIMEOUT)
-                        continue
+                    yield self.servicing & self.downstream_failure & self.broken
 
                     start = self.env.now
                     yield self.env.timeout(hours_to_next)
@@ -323,14 +316,10 @@ class Cable:
                         request_id=repair_request.request_id,
                     )
                     self.system.repair_manager.submit_request(repair_request)
-
                 except simpy.Interrupt:
                     if not self.broken.triggered:
-                        # The subassembly had to be replaced so the timing to next failure
-                        # will reset
+                        # Restart after fixing
                         hours_to_next = 0
-                        continue
                     else:
-                        # A different subassembly failed so we need to subtract the
-                        # amount of passed time
+                        # A different interruption occurred, so subtract the elapsed time
                         hours_to_next -= self.env.now - start
