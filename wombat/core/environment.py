@@ -266,9 +266,12 @@ class WombatEnvironment(simpy.Environment):
         int
             Index of the weather profile corresponds to the first hour of ``date``.
         """
-        if isinstance(date, dt.datetime):
-            date = date.date()
-        return np.where(self.weather.index.date == date)[0][0]
+        ix = self.weather.index.get_loc(date.strftime("%Y-%m-%d"))
+
+        # If the index is consecutive a slice is returned, else a numpy array
+        if isinstance(ix, slice):
+            return ix.start
+        return ix[0]
 
     def _weather_setup(
         self,
@@ -299,13 +302,9 @@ class WombatEnvironment(simpy.Environment):
         pd.DataFrame
             The wind (and  wave) timeseries.
         """
-        weather_path = self.data_dir / "weather" / weather_file
-        # weather = pd.read_csv(
-        #     weather_path, parse_dates=["datetime"], index_col="datetime"
-        # )
         weather = pd.concat(
             pd.read_csv(
-                weather_path,
+                self.data_dir / "weather" / weather_file,
                 parse_dates=["datetime"],
                 index_col="datetime",
                 chunksize=50000,

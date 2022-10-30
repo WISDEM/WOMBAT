@@ -1432,7 +1432,7 @@ class ServiceEquipment(RepairsMixin):
 
         while True:
             # Wait for a valid operational period to start
-            if self.env.simulation_time.date() not in self.settings.operating_dates:  # type: ignore
+            if self.env.simulation_time.date() not in self.settings._operating_dates_set:  # type: ignore
                 yield self.env.process(self.mobilize_scheduled())
 
             # Wait for next shift to start

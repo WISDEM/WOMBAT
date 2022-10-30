@@ -788,6 +788,7 @@ class ScheduledServiceEquipmentData(FromDictMixin):
         validator=check_method,
     )
     operating_dates: np.ndarray = field(init=False)
+    _operating_dates_set: set = field(init=False)
     strategy: str = field(default="scheduled")
 
     def create_date_range(self) -> np.ndarray:
@@ -831,6 +832,7 @@ class ScheduledServiceEquipmentData(FromDictMixin):
             self, "capability", convert_to_list(self.capability, str.upper)
         )
         object.__setattr__(self, "operating_dates", self.create_date_range())
+        object.__setattr__(self, "_operating_dates_set", set(self.operating_dates))
 
 
 @define(frozen=True, auto_attribs=True)
