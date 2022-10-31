@@ -396,9 +396,9 @@ class WombatEnvironment(simpy.Environment):
         # If it's not on the hour, ensure we're looking ``hours`` hours into the future
         end = start + math.ceil(hours) + math.ceil(self.now % 1)
 
-        weather = self.weather.iloc[start:end]
-        wind, wave = weather.values.T
-        return weather.index, wind, wave
+        wind, wave = self.weather.values[start: end].T
+        ix = self.weather.index[start: end]
+        return ix, wind, wave
 
     def log_action(
         self,
