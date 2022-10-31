@@ -27,7 +27,7 @@ def setup_logger(
     """
     logger = logging.getLogger(logger_name)
     formatter = logging.Formatter(
-        "%(asctime)s :: %(name)s :: %(levelname)s :: %(message)s"
+        "%(asctime)s|%(name)s|%(levelname)s|%(message)s"
     )
     fileHandler = logging.FileHandler(log_file, mode="w")
     fileHandler.setFormatter(formatter)
@@ -113,29 +113,11 @@ def format_events_log_message(
     """
     total_labor_cost = hourly_labor_cost + salary_labor_cost
     total_cost = total_labor_cost + equipment_cost + materials_cost
-    message = " :: ".join(
-        (
-            f"{simulation_time}",
-            f"{env_time:f}",
-            f"{system_id}",
-            f"{system_name}",
-            f"{part_id}",
-            f"{part_name}",
-            f"{system_ol:f}",
-            f"{part_ol:f}",
-            f"{agent}",
-            f"{action}",
-            f"{reason}",
-            f"{additional}",
-            f"{duration:f}",
-            f"{request_id}",
-            f"{location}",
-            f"{materials_cost:f}",
-            f"{hourly_labor_cost:f}",
-            f"{salary_labor_cost:f}",
-            f"{equipment_cost:f}",
-            f"{total_labor_cost:f}",
-            f"{total_cost:f}",
-        )
+    message = (
+        f"{simulation_time}|{env_time:f}|{system_id}|{system_name}|{part_id}"
+        f"|{part_name}|{system_ol:f}|{part_ol:f}|{agent}|{action}"
+        f"|{reason}|{additional}|{duration:f}|{request_id}|{location}"
+        f"|{materials_cost:f}|{hourly_labor_cost:f}|{salary_labor_cost:f}"
+        f"|{equipment_cost:f}|{total_labor_cost:f}|{total_cost:f}"
     )
     return message

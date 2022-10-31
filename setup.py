@@ -87,6 +87,7 @@ setup(
         "numpy>=1.21",
         "scipy",
         "pandas",
+        "pyarrow",
         "jupyterlab",
         "simpy>=4.0.1",
         "pyyaml",

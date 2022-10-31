@@ -11,6 +11,7 @@ from datetime import datetime, timedelta  # type: ignore
 import numpy as np  # type: ignore
 import simpy  # type: ignore
 import pandas as pd  # type: ignore
+from pyarrow import csv
 from simpy.events import Event  # type: ignore
 from pandas.core.indexes.datetimes import DatetimeIndex
 
@@ -45,7 +46,10 @@ class WombatEnvironment(simpy.Environment):
         data_dir : pathlib.Path | str
             Directory where the inputs are stored and where to save outputs.
         weather_file : str
-            Name of the weather file. Should be contained within ``data_dir``/weather/.
+            Name of the weather file. Should be contained within ``data_dir``/weather/,
+            with columns "datetime", "windspeed", and, optionally, "waveheight". The
+            datetime column should adhere to the following format: "MM/DD/YY HH:MM", in
+            24-hour time.
         workday_start : int
             Starting time for the repair crew, in 24 hour local time. This can be
             overridden by an ``ServiceEquipmentData`` object that operates outside of the "typical"
@@ -302,14 +306,19 @@ class WombatEnvironment(simpy.Environment):
         pd.DataFrame
             The wind (and  wave) timeseries.
         """
-        weather = pd.concat(
-            pd.read_csv(
-                self.data_dir / "weather" / weather_file,
-                parse_dates=["datetime"],
-                index_col="datetime",
-                chunksize=50000,
-            )
+        # PyArrow datetime conversion setup
+        convert_options = csv.ConvertOptions(
+            timestamp_parsers=[
+                "%m/%d/%y %H:%M",
+                "%m/%d/%y %I:%M",
+                "%m/%d/%Y %H:%M",
+                "%m/%d/%Y %I:%M"
+            ]
         )
+        weather = csv.read_csv(
+            self.data_dir / "weather" / weather_file,
+            convert_options=convert_options,
+        ).to_pandas().set_index("datetime")
         weather = weather.fillna(0.0)
         weather = weather.resample("H").interpolate(limit_direction="both", limit=5)
 
@@ -526,12 +535,15 @@ class WombatEnvironment(simpy.Environment):
             "total_labor_cost",
             "total_cost",
         ]
-        log_df = pd.read_csv(
-            self.events_log_fname,
-            names=log_columns,
-            sep=" :: ",
-            index_col=False,
-            engine="python",
+        log_df = pd.concat(
+            pd.read_csv(
+                self.events_log_fname,
+                names=log_columns,
+                sep="|",
+                index_col=False,
+                engine="python",
+                chunksize=20000,
+            )
         )
         log_df = log_df.loc[log_df.level == "INFO"]
         log_df = log_df.drop(labels=["name", "level"], axis=1)
@@ -551,16 +563,19 @@ class WombatEnvironment(simpy.Environment):
             The formatted logging data from a simulation.
         """
         with open(self.operations_log_fname) as f:
-            first_line = f.readline().strip().split(" :: ")
+            first_line = f.readline().strip().split("|")
             column_names = first_line[3:]
 
-        log_df = pd.read_csv(
-            self.operations_log_fname,
-            names=column_names,
-            skiprows=1,
-            sep=" :: ",
-            index_col=False,
-            engine="python",
+        log_df = pd.concat(
+            pd.read_csv(
+                self.operations_log_fname,
+                names=column_names,
+                skiprows=1,
+                sep="|",
+                index_col=False,
+                engine="python",
+                chunksize=20000,
+            )
         )
 
         log_df = log_df.loc[log_df.level == "INFO"]
