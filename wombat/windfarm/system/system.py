@@ -62,7 +62,7 @@ class System:
         self.subassemblies: list[Subassembly] = []
         self.servicing = self.env.event()
         self.cable_failure = self.env.event()
-        
+
         # Ensure servicing statuses starts as processed and inactive
         self.servicing.succeed()
         self.cable_failure.succeed()
