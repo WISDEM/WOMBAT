@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from typing import Callable  # type: ignore
+from operator import mul
 from functools import reduce
 
 import numpy as np
@@ -14,8 +15,9 @@ from wombat.utilities.utilities import cache, create_variable_from_string
 
 
 @cache
-def _product(x: float, y: float) -> float:
-    """Multiplies two numbers. Used for a reduce operation.
+def _mul(x: float, y: float) -> float:
+    """Multiplies two numbers using Python's ``operator.mul``. Used in a reduce operation
+    for better memory usage.
 
     Parameters
     ----------
@@ -29,7 +31,7 @@ def _product(x: float, y: float) -> float:
     float
         The product of the two numbers.
     """
-    return x * y
+    return mul(x, y)
 
 
 class System:
@@ -194,7 +196,7 @@ class System:
         if not self.cable_failure.triggered or not self.servicing.triggered:
             return 0.0
         else:
-            return reduce(_product, [sub.operating_level for sub in self.subassemblies])
+            return reduce(_mul, [sub.operating_level for sub in self.subassemblies])
 
     @property
     def operating_level_wo_servicing(self) -> float:
@@ -209,7 +211,7 @@ class System:
         if not self.cable_failure.triggered:
             return 0.0
         else:
-            return reduce(_product, [sub.operating_level for sub in self.subassemblies])
+            return reduce(_mul, [sub.operating_level for sub in self.subassemblies])
 
     def power(self, windspeed: list[float] | np.ndarray) -> np.ndarray:
         """Generates the power output for an iterable of windspeed values.
