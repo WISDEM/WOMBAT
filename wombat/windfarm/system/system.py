@@ -11,27 +11,7 @@ import pandas as pd
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.utilities import IEC_power_curve
 from wombat.windfarm.system import Subassembly
-from wombat.utilities.utilities import cache, create_variable_from_string
-
-
-@cache
-def _mul(x: float, y: float) -> float:
-    """Multiplies two numbers using Python's ``operator.mul``. Used in a reduce operation
-    for better memory usage.
-
-    Parameters
-    ----------
-    x : float
-        The first number.
-    y : float
-        The second number.
-
-    Returns
-    -------
-    float
-        The product of the two numbers.
-    """
-    return mul(x, y)
+from wombat.utilities.utilities import create_variable_from_string
 
 
 class System:
@@ -196,7 +176,7 @@ class System:
         if not self.cable_failure.triggered or not self.servicing.triggered:
             return 0.0
         else:
-            return reduce(_mul, [sub.operating_level for sub in self.subassemblies])
+            return reduce(mul, [sub.operating_level for sub in self.subassemblies])
 
     @property
     def operating_level_wo_servicing(self) -> float:
@@ -211,7 +191,7 @@ class System:
         if not self.cable_failure.triggered:
             return 0.0
         else:
-            return reduce(_mul, [sub.operating_level for sub in self.subassemblies])
+            return reduce(mul, [sub.operating_level for sub in self.subassemblies])
 
     def power(self, windspeed: list[float] | np.ndarray) -> np.ndarray:
         """Generates the power output for an iterable of windspeed values.
