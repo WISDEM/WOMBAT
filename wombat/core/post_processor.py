@@ -314,7 +314,7 @@ class Metrics:
         pd.DataFrame
             Dataframe of either the events or operations data.
         """
-        data = pd.read_csv(self.data_dir / "outputs" / "logs" / fname)
+        data = pd.read_csv(self.data_dir / "outputs" / "logs" / fname, engine="pyarrow")
         return data
 
     def _apply_inflation_rate(self, events: pd.DataFrame) -> pd.DataFrame:

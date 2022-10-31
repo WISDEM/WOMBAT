@@ -11,6 +11,7 @@ from datetime import datetime, timedelta  # type: ignore
 import numpy as np  # type: ignore
 import simpy  # type: ignore
 import pandas as pd  # type: ignore
+import pyarrow as pa
 from pyarrow import csv
 from simpy.events import Event  # type: ignore
 from pandas.core.indexes.datetimes import DatetimeIndex
@@ -665,14 +666,14 @@ class WombatEnvironment(simpy.Environment):
         potential_df.windfarm = potential.sum(axis=1)
         potential_df.env_time = operations.env_time.values
         potential_df.env_datetime = operations.env_datetime.values
-        potential_df.to_csv(self.power_potential_fname, index_label="env_datetime")
+        csv.write_csv(pa.Table.from_pandas(potential_df),self.power_potential_fname)
 
         production_df = potential_df.copy()
         production_df[turbines] = (
             production_df[turbines].values * operations[turbines].values
         )
         production_df.windfarm = production_df[turbines].sum(axis=1)
-        production_df.to_csv(self.power_production_fname, index_label="env_datetime")
+        csv.write_csv(pa.Table.from_pandas(production_df),self.power_production_fname)
         if return_df:
             return potential_df, production_df
 
