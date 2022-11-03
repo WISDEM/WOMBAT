@@ -1274,8 +1274,7 @@ class ServiceEquipment(RepairsMixin):
             # First turn off the turbine, then proceed with the servicing so the
             # turbine is not registered as operating when the turbine is being worked on
             if system.servicing.triggered:
-                system.servicing = self.env.event()
-                subassembly.interrupt_all_subassembly_processes()
+                self.manager.halt_requests_for_system(system)
             yield self.env.process(
                 self.crew_transfer(system, subassembly, request, to_system=True)
             )
@@ -1291,8 +1290,7 @@ class ServiceEquipment(RepairsMixin):
             # First turn off the turbine, then proceed with the servicing so the
             # turbine is not registered as operating when the turbine is being worked on
             if system.servicing.triggered:
-                system.servicing = self.env.event()
-                subassembly.interrupt_all_subassembly_processes()
+                self.manager.halt_requests_for_system(system)
             yield self.env.process(
                 self.crew_transfer(system, subassembly, request, to_system=True)
             )
@@ -1549,10 +1547,6 @@ class ServiceEquipment(RepairsMixin):
         ValueError
             Raised if the equipment is not currently at port
         """
-
-        # if not self.at_port:
-        #     raise ValueError(f"{self.settings.name} cannot run tow-to-port if not at port")
-
         system = self.windfarm.system(request.system_id)
 
         shared_logging = dict(
@@ -1563,12 +1557,10 @@ class ServiceEquipment(RepairsMixin):
             reason=f"{request.details.description} has triggered tow-to-port",
         )
 
-        # Travel to the turbine and shut it down
+        # Travel to the turbine
         yield self.env.process(
             self.travel("port", "site", set_current=system.id, **shared_logging)  # type: ignore
         )
-        self.manager.halt_requests_for_system(system.id)
-        system.servicing = self.env.event()
 
         # Unmoor the turbine and tow it back to port
         yield self.env.process(self.mooring_connection(system, request, which="unmoor"))  # type: ignore
@@ -1593,9 +1585,6 @@ class ServiceEquipment(RepairsMixin):
         ValueError
             Raised if the equipment is not currently at port
         """
-        # if not self.at_port:
-        #     raise ValueError(f"{self.settings.name} cannot run tow-to-site if not at port")
-
         system = self.windfarm.system(request.system_id)
         shared_logging = dict(
             agent=self.settings.name,
@@ -1619,8 +1608,8 @@ class ServiceEquipment(RepairsMixin):
         )
 
         # Reset the turbine back to operating and return to port
-        self.manager.enable_requests_for_system(system.id)
         reset_system_operations(system)
+        self.manager.enable_requests_for_system(system.id)
         yield self.env.process(
             self.travel(
                 "site",

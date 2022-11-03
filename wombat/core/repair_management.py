@@ -22,6 +22,7 @@ from wombat.core import (
 if TYPE_CHECKING:
     from wombat.core import Port, ServiceEquipment
     from wombat.windfarm import Windfarm
+    from wombat.windfarm.system import System, Cable
 
 
 class RepairManager(FilterStore):
@@ -143,6 +144,9 @@ class RepairManager(FilterStore):
                 if operating_capacity > equipment.strategy_threshold:
                     continue
                 if capability in ("TOW", "AHV"):
+                    # Don't dispatch a second piece of equipment for tow-to-port
+                    if request.system_id in self.invalid_systems and capability == "TOW":
+                        continue
                     try:
                         self.env.process(equipment.equipment.run_unscheduled(request))
                     except ValueError:
@@ -168,6 +172,9 @@ class RepairManager(FilterStore):
                 # Run only the first piece of equipment in the mapping list, but ensure
                 # that it moves to the back of the line after being used
                 if capability in ("TOW", "AHV"):
+                    # Don't dispatch a second piece of equipment for tow-to-port
+                    if request.system_id in self.invalid_systems and capability == "TOW":
+                        continue
                     try:
                         self.env.process(equipment.equipment.run_unscheduled(request))
                     except ValueError:
@@ -265,6 +272,10 @@ class RepairManager(FilterStore):
         # Filter the requests by equipment capability and return the first valid request
         for request in requests:
             if equipment_capability.intersection(request.details.service_equipment):  # type: ignore
+                # If this is the first request for the system, make sure no other servicing
+                # equipment can access it
+                if request.system_id not in self.invalid_systems:
+                    self.invalid_systems.append(request.system_id)
                 return self.get(lambda x: x == requests[0])
 
         # In case the loop above iterates all the way to the end, nothing was
@@ -310,8 +321,8 @@ class RepairManager(FilterStore):
         requests = sorted(requests, key=lambda x: x.severity_level, reverse=True)
         for request in requests:
             if equipment_capability.intersection(request.details.service_equipment):  # type: ignore
-                if not request.system_id in self.invalid_systems:
-                    self.halt_requests_for_system(request.system_id)
+                if request.system_id not in self.invalid_systems:
+                    self.invalid_systems.append(request.system_id)
                     return self.get(lambda x: x == request)
 
         # This return statement ensures there is always a known return type,
@@ -320,15 +331,20 @@ class RepairManager(FilterStore):
 
         return None
 
-    def halt_requests_for_system(self, system_id: str) -> None:
-        """Disables the ability for servicing equipment to service a specific system.
+    def halt_requests_for_system(self, system: System | Cable) -> None:
+        """Disables the ability for servicing equipment to service a specific system,
+        sets the turbine status to be in servicing, and interrupts all the processes
+        to turn off operations.
 
         Parameters
         ----------
         system_id : str
             The system to disable repairs.
         """
-        self.invalid_systems.append(system_id)
+        if system.id not in self.invalid_systems:
+            self.invalid_systems.append(system.id)
+        system.servicing = self.env.event()
+        system.interrupt_all_subassembly_processes()
 
     def enable_requests_for_system(self, system_id: str) -> None:
         """Reenables service equipment operations on the provided system.

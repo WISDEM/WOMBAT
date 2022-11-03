@@ -99,7 +99,7 @@ setup(
         "types-attrs",
         "types-PyYAML",
     ],
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     extras_require=extra_package_requirements,
     test_suite="pytest",
     tests_require=["pytest", "pytest-xdist", "pytest-cov"],
