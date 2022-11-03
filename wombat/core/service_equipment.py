@@ -8,11 +8,11 @@ from __future__ import annotations
 
 from copy import deepcopy
 from math import ceil
-from typing import TYPE_CHECKING, Optional, Generator  # type: ignore
+from typing import TYPE_CHECKING, Any, Optional, Generator  # type: ignore
 from datetime import timedelta
 
 import numpy as np  # type: ignore
-from simpy.events import Process, Timeout  # type: ignore
+from simpy.events import Event, Process, Timeout  # type: ignore
 from pandas.core.indexes.datetimes import DatetimeIndex
 
 from wombat.core import (
@@ -453,7 +453,7 @@ class ServiceEquipment(RepairsMixin):
             and when the next operational period starts.
         """
         mobilization_hours = self.settings.mobilization_days * HOURS_IN_DAY
-        yield self.env.process(
+        yield self.env.process(  # type: ignore
             self.wait_until_next_operational_period(
                 less_mobilization_hours=mobilization_hours
             )
@@ -614,28 +614,23 @@ class ServiceEquipment(RepairsMixin):
 
         return dt_ix, weather, window_found
 
-    def weather_delay(
-        self, hours: int | float, **kwargs
-    ) -> None | Generator[Timeout | Process, None, None]:
-        """Processes a weather delay of length ``hours`` hours.
+    def weather_delay(self, hours: int | float, **kwargs) -> Generator[Event, Any, Any]:
+        """Processes a weather delay of length ``hours`` hours. If ``hours`` = 0, then
+        a Timeout is still processed, but not logging is done (this is to increase
+        consistency and do better typing validation across the codebase).
 
         Parameters
         ----------
         hours : int | float
             The lenght, in hours, of the weather delay.
 
-        Returns
-        -------
-        None
-            If the delay is 0 hours, then nothing happens.
-
         Yields
         -------
-        None | Generator[Timeout | Process, None, None]
+        Generator[Event, Any, Any]
             If the delay is more than 0 hours, then a ``Timeout`` is yielded of length ``hours``.
         """
         if hours == 0:
-            return
+            yield self.env.timeout(hours)
 
         salary_cost = self.calculate_salary_cost(hours)
         hourly_cost = 0  # contractors not paid for delays
@@ -930,8 +925,7 @@ class ServiceEquipment(RepairsMixin):
                     self.tow(start, end, set_current=set_current, **kwargs)
                 )
 
-        if delay > 0:
-            yield self.env.process(self.weather_delay(delay, location=end, **kwargs))
+        yield self.env.process(self.weather_delay(delay, location=end, **kwargs))
 
         salary_labor_cost = self.calculate_salary_cost(hours)
         hourly_labor_cost = self.calculate_hourly_cost(hours)
@@ -1018,10 +1012,9 @@ class ServiceEquipment(RepairsMixin):
             )
             travel_time -= self.env.now  # will be negative value, but is flipped
             delay -= abs(travel_time)  # decrement the delay by the travel time
-            if delay > 0:
-                yield self.env.process(
-                    self.weather_delay(delay, location="port", **shared_logging)
-                )
+            yield self.env.process(
+                self.weather_delay(delay, location="port", **shared_logging)
+            )
             yield self.env.process(
                 self.wait_until_next_shift(
                     **shared_logging,
@@ -1034,7 +1027,7 @@ class ServiceEquipment(RepairsMixin):
                 )
             )
             yield self.env.process(
-                self.crew_transfer(system, subassembly, request, to_system=to_system)
+                self.crew_transfer(system, subassembly, request, to_system=to_system)  # type: ignore
             )
             return
 
@@ -1131,10 +1124,9 @@ class ServiceEquipment(RepairsMixin):
         delay, shift_delay = self.find_uninterrupted_weather_window(hours_to_process)
         # If there is a shift delay, then wait try again.
         if shift_delay:
-            if delay > 0:
-                yield self.env.process(
-                    self.weather_delay(delay, location="site", **shared_logging)
-                )
+            yield self.env.process(
+                self.weather_delay(delay, location="site", **shared_logging)
+            )
             yield self.env.process(
                 self.wait_until_next_shift(
                     **shared_logging,
@@ -1145,7 +1137,7 @@ class ServiceEquipment(RepairsMixin):
                 )
             )
             yield self.env.process(
-                self.mooring_connection(system, request, which=which)
+                self.mooring_connection(system, request, which=which)  # type: ignore
             )
             return
 
@@ -1221,7 +1213,7 @@ class ServiceEquipment(RepairsMixin):
             cable = request.subassembly_id.split("::")[1:]
             subassembly = self.windfarm.graph.edges[cable]["cable"]
         else:
-            system = self.windfarm.system(request.system_id)
+            system = self.windfarm.system(request.system_id)  # type: ignore
             subassembly = getattr(system, request.subassembly_id)
 
         starting_operational_level = max(
@@ -1276,7 +1268,7 @@ class ServiceEquipment(RepairsMixin):
             if system.servicing.triggered:
                 self.manager.halt_requests_for_system(system)
             yield self.env.process(
-                self.crew_transfer(system, subassembly, request, to_system=True)
+                self.crew_transfer(system, subassembly, request, to_system=True)  # type: ignore
             )
         elif self.at_system is not None and not self.at_port:
             yield self.env.process(
@@ -1292,7 +1284,7 @@ class ServiceEquipment(RepairsMixin):
             if system.servicing.triggered:
                 self.manager.halt_requests_for_system(system)
             yield self.env.process(
-                self.crew_transfer(system, subassembly, request, to_system=True)
+                self.crew_transfer(system, subassembly, request, to_system=True)  # type: ignore
             )
         else:
             raise RuntimeError(f"{self.settings.name} is lost!")
@@ -1347,7 +1339,7 @@ class ServiceEquipment(RepairsMixin):
                 # Ensure this gets the correct float hours to the start of the target
                 # hour, unless the hours to process is between (0, 1]
                 yield self.env.process(
-                    self.process_repair(
+                    self.process_repair(  # type: ignore
                         hours_to_process, request.details, **shared_logging
                     )
                 )
@@ -1372,7 +1364,7 @@ class ServiceEquipment(RepairsMixin):
         # Reached the end of the shift or the end of the repair, and need to unload crew
         # from the system
         yield self.env.process(
-            self.crew_transfer(system, subassembly, request, to_system=False)
+            self.crew_transfer(system, subassembly, request, to_system=False)  # type: ignore
         )
         if shift_delay:
             yield self.env.process(

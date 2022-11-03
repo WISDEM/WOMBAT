@@ -243,7 +243,7 @@ class Cable:
                         hours_to_next = 0
                     else:
                         # A different interruption occurred, so subtract the elapsed time
-                        hours_to_next -= self.env.now - start
+                        hours_to_next -= self.env.now - start  # pylint: disable=E0601
 
     def run_single_failure(self, failure: Failure) -> Generator:
         """Runs a process to trigger one type of failure repair request throughout the simulation.
@@ -267,6 +267,7 @@ class Cable:
                 except simpy.Interrupt:
                     remainder -= self.env.now
 
+            assert isinstance(hours_to_next, (int, float))  # mypy helper
             while hours_to_next > 0:  # type: ignore
                 try:
                     yield self.servicing & self.downstream_failure & self.broken
@@ -322,4 +323,4 @@ class Cable:
                         hours_to_next = 0
                     else:
                         # A different interruption occurred, so subtract the elapsed time
-                        hours_to_next -= self.env.now - start
+                        hours_to_next -= self.env.now - start  # pylint: disable=E0601

@@ -590,10 +590,10 @@ class Metrics:
             production = production.groupby(["year", "month"]).sum()[self.turbine_id]
 
         if by_turbine:
+            assert isinstance(capacity, np.ndarray)  # mypy helper
             columns = self.turbine_id
-            potential = potential.iloc[:, 0].values.reshape(-1, 1) * (
-                capacity / 1000
-            ).reshape(1, -1)
+            potential = potential.iloc[:, 0].values.reshape(-1, 1)
+            potential *= capacity.reshape(1, -1) / 1000.0
         else:
             production = production.sum(axis=1)
             potential = potential.iloc[:, 0] * capacity

@@ -369,15 +369,15 @@ class FromDictMixin:
                 The `attrs`-defined class.
         """
         # Get all parameters from the input dictionary that map to the class initialization
-        kwargs = {
-            a.name: data[a.name]
+        kwargs = {  # type: ignore
+            a.name: data[a.name]  # type: ignore
             for a in cls.__attrs_attrs__  # type: ignore
-            if a.name in data and a.init
+            if a.name in data and a.init  # type: ignore
         }
 
         # Map the inputs must be provided: 1) must be initialized, 2) no default value defined
-        required_inputs = [
-            a.name
+        required_inputs = [  # type: ignore
+            a.name  # type: ignore
             for a in cls.__attrs_attrs__  # type: ignore
             if a.init and isinstance(a.default, attr._make._Nothing)  # type: ignore
         ]

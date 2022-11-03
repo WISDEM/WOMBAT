@@ -145,7 +145,10 @@ class RepairManager(FilterStore):
                     continue
                 if capability in ("TOW", "AHV"):
                     # Don't dispatch a second piece of equipment for tow-to-port
-                    if request.system_id in self.invalid_systems and capability == "TOW":
+                    if (
+                        request.system_id in self.invalid_systems
+                        and capability == "TOW"
+                    ):
                         continue
                     try:
                         self.env.process(equipment.equipment.run_unscheduled(request))
@@ -173,7 +176,10 @@ class RepairManager(FilterStore):
                 # that it moves to the back of the line after being used
                 if capability in ("TOW", "AHV"):
                     # Don't dispatch a second piece of equipment for tow-to-port
-                    if request.system_id in self.invalid_systems and capability == "TOW":
+                    if (
+                        request.system_id in self.invalid_systems
+                        and capability == "TOW"
+                    ):
                         continue
                     try:
                         self.env.process(equipment.equipment.run_unscheduled(request))

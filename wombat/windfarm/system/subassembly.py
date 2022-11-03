@@ -12,11 +12,6 @@ from wombat.core import (
     SubassemblyData,
     WombatEnvironment,
 )
-from wombat.utilities import HOURS_IN_DAY
-
-
-# TODO: Need a better method for checking if a repair has been made to bring the
-# subassembly back online
 
 
 class Subassembly:
@@ -163,7 +158,7 @@ class Subassembly:
                         hours_to_next = 0
                     else:
                         # A different subassembly failed, so subtract the elapsed time
-                        hours_to_next -= self.env.now - start
+                        hours_to_next -= self.env.now - start  # pylint: disable=E0601
 
     def run_single_failure(self, failure: Failure) -> Generator:
         """Runs a process to trigger one type of failure repair request throughout the simulation.
@@ -237,4 +232,4 @@ class Subassembly:
                             hours_to_next = 0
                         else:
                             # A different subassembly failed, so subtract the elapsed time
-                            hours_to_next -= self.env.now - start
+                            hours_to_next -= self.env.now - start  # pylint: disable=E0601

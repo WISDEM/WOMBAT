@@ -313,13 +313,17 @@ class WombatEnvironment(simpy.Environment):
                 "%m/%d/%y %H:%M",
                 "%m/%d/%y %I:%M",
                 "%m/%d/%Y %H:%M",
-                "%m/%d/%Y %I:%M"
+                "%m/%d/%Y %I:%M",
             ]
         )
-        weather = csv.read_csv(
-            self.data_dir / "weather" / weather_file,
-            convert_options=convert_options,
-        ).to_pandas().set_index("datetime")
+        weather = (
+            csv.read_csv(
+                self.data_dir / "weather" / weather_file,
+                convert_options=convert_options,
+            )
+            .to_pandas()
+            .set_index("datetime")
+        )
         weather = weather.fillna(0.0)
         weather = weather.resample("H").interpolate(limit_direction="both", limit=5)
 
@@ -406,8 +410,8 @@ class WombatEnvironment(simpy.Environment):
         # If it's not on the hour, ensure we're looking ``hours`` hours into the future
         end = start + math.ceil(hours) + math.ceil(self.now % 1)
 
-        wind, wave = self.weather.values[start: end].T
-        ix = self.weather.index[start: end]
+        wind, wave = self.weather.values[start:end].T
+        ix = self.weather.index[start:end]
         return ix, wind, wave
 
     def log_action(
@@ -666,14 +670,14 @@ class WombatEnvironment(simpy.Environment):
         potential_df.windfarm = potential.sum(axis=1)
         potential_df.env_time = operations.env_time.values
         potential_df.env_datetime = operations.env_datetime.values
-        csv.write_csv(pa.Table.from_pandas(potential_df),self.power_potential_fname)
+        csv.write_csv(pa.Table.from_pandas(potential_df), self.power_potential_fname)
 
         production_df = potential_df.copy()
         production_df[turbines] = (
             production_df[turbines].values * operations[turbines].values
         )
         production_df.windfarm = production_df[turbines].sum(axis=1)
-        csv.write_csv(pa.Table.from_pandas(production_df),self.power_production_fname)
+        csv.write_csv(pa.Table.from_pandas(production_df), self.power_production_fname)
         if return_df:
             return potential_df, production_df
 
