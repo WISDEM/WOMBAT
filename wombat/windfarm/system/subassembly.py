@@ -124,7 +124,7 @@ class Subassembly:
                 try:
                     # Wait until these events are triggered and back to operational
                     yield self.system.servicing & self.system.cable_failure & self.broken
-                    
+
                     start = self.env.now
                     yield self.env.timeout(hours_to_next)
                     hours_to_next = 0
@@ -202,7 +202,7 @@ class Subassembly:
                             _ = self.system.repair_manager.purge_subassembly_requests(
                                 self.system.id, self.id
                             )
-                        
+
                         # Automatically submit a repair request
                         # NOTE: mypy is not caught up with attrs yet :(
                         repair_request = RepairRequest(  # type: ignore

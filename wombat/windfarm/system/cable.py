@@ -91,7 +91,7 @@ class Cable:
         self.servicing = self.env.event()
         self.downstream_failure = self.env.event()
         self.broken = self.env.event()
-        
+
         # Ensure events start as processed and inactive
         self.servicing.succeed()
         self.downstream_failure.succeed()
@@ -244,7 +244,7 @@ class Cable:
                     else:
                         # A different interruption occurred, so subtract the elapsed time
                         hours_to_next -= self.env.now - start
-        
+
     def run_single_failure(self, failure: Failure) -> Generator:
         """Runs a process to trigger one type of failure repair request throughout the simulation.
 
