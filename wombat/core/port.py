@@ -222,7 +222,7 @@ class Port(RepairsMixin, FilterStore):
             # to the remaining repair time
             hours_remaining -= hours_to_process
             hours_to_process = hours_remaining
-        
+
         # Log the completion of the repair
         action = "maintenance" if isinstance(request.details, Maintenance) else "repair"
         self.env.log_action(
@@ -329,7 +329,7 @@ class Port(RepairsMixin, FilterStore):
         # then wait until it's done being serviced
         if request.system_id in self.manager.invalid_systems:
             yield self.windfarm.system(request.system_id).servicing
-        
+
         # Halt the turbine before going further to avoid issue with requests being
         # being submitted between now and when the tugboat gets to the turbine
         self.manager.halt_requests_for_system(self.windfarm.system(request.system_id))

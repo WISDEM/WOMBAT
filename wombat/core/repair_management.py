@@ -22,7 +22,7 @@ from wombat.core import (
 if TYPE_CHECKING:
     from wombat.core import Port, ServiceEquipment
     from wombat.windfarm import Windfarm
-    from wombat.windfarm.system import System, Cable
+    from wombat.windfarm.system import Cable, System
 
 
 class RepairManager(FilterStore):
