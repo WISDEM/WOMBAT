@@ -366,6 +366,7 @@ class ServiceEquipment(RepairsMixin):
             _ = self.manager.purge_subassembly_requests(
                 repair.system_id, repair.subassembly_id
             )
+            subassembly.broken.succeed()
         elif repair.details.operation_reduction == 0:
             subassembly.operating_level = starting_operating_level
         else:
@@ -629,21 +630,21 @@ class ServiceEquipment(RepairsMixin):
         Generator[Event, Any, Any]
             If the delay is more than 0 hours, then a ``Timeout`` is yielded of length ``hours``.
         """
-        if hours == 0:
+        if hours > 0:
+            salary_cost = self.calculate_salary_cost(hours)
+            hourly_cost = 0  # contractors not paid for delays
+            equipment_cost = self.calculate_equipment_cost(hours)
+            self.env.log_action(
+                duration=hours,
+                action="delay",
+                additional="weather delay",
+                salary_labor_cost=salary_cost,
+                hourly_labor_cost=hourly_cost,
+                equipment_cost=equipment_cost,
+                **kwargs,
+            )
             yield self.env.timeout(hours)
-
-        salary_cost = self.calculate_salary_cost(hours)
-        hourly_cost = 0  # contractors not paid for delays
-        equipment_cost = self.calculate_equipment_cost(hours)
-        self.env.log_action(
-            duration=hours,
-            action="delay",
-            additional="weather delay",
-            salary_labor_cost=salary_cost,
-            hourly_labor_cost=hourly_cost,
-            equipment_cost=equipment_cost,
-            **kwargs,
-        )
+        
         yield self.env.timeout(hours)
 
     @cache
@@ -925,7 +926,8 @@ class ServiceEquipment(RepairsMixin):
                     self.tow(start, end, set_current=set_current, **kwargs)
                 )
 
-        yield self.env.process(self.weather_delay(delay, location=end, **kwargs))
+        else:
+            self.env.process(self.weather_delay(delay, location=end, **kwargs))
 
         salary_labor_cost = self.calculate_salary_cost(hours)
         hourly_labor_cost = self.calculate_hourly_cost(hours)
@@ -1388,6 +1390,7 @@ class ServiceEquipment(RepairsMixin):
         action = "maintenance" if isinstance(request.details, Maintenance) else "repair"
         self.env.log_action(
             system_id=system.id,
+            system_name=system.name,
             part_id=subassembly.id,
             part_name=subassembly.name,
             system_ol=system.operating_level,
@@ -1398,6 +1401,7 @@ class ServiceEquipment(RepairsMixin):
             materials_cost=request.details.materials,
             additional="complete",
             request_id=request.request_id,
+            location="site",
         )
 
         # If this is the end of the shift, ensure that we're traveling back to port
