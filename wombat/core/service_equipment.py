@@ -644,7 +644,7 @@ class ServiceEquipment(RepairsMixin):
                 **kwargs,
             )
             yield self.env.timeout(hours)
-        
+
         yield self.env.timeout(hours)
 
     @cache
