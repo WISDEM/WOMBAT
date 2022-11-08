@@ -17,7 +17,7 @@ def test_load_yaml():
         capacity_kw=0,
         capex_kw=0,
         transformer=dict(
-            name="transformer",
+            name="substation",
             maintenance=[
                 dict(
                     description="n/a",

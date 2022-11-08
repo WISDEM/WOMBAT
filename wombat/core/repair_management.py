@@ -284,10 +284,8 @@ class RepairManager(FilterStore):
                     self.invalid_systems.append(request.system_id)
                 return self.get(lambda x: x == requests[0])
 
-        # In case the loop above iterates all the way to the end, nothing was
-        # found so return None. This is probably an error for which an error
-        # should be raised, but this keeps the type hints correct for now.
-
+        # There were no matching equipment requirements to match the equipment
+        # attempting to retrieve its next request
         return None
 
     def get_next_highest_severity_request(
