@@ -31,7 +31,6 @@ def get_items_by_description(
     return [el for el in manager.items if el.details.description == description]
 
 
-# @pytest.mark.cat("all", "service_equipment")
 def test_consecutive_groups():
     """Tests the ``consecutive_groups`` function in a similar way that this would be used."""
     all_clear = np.array(
@@ -52,7 +51,6 @@ def test_consecutive_groups():
         npt.assert_equal(window, correct_window)
 
 
-# @pytest.mark.cat("all", "service_equipment")
 def test_service_equipment_init(env_setup):
     env = env_setup
     manager = RepairManager(env)
@@ -166,7 +164,6 @@ def test_service_equipment_init(env_setup):
         assert getattr(manager.request_based_equipment, capability) == []
 
 
-# @pytest.mark.cat("all", "service_equipment")
 def test_calculate_salary_cost(env_setup):
     """Tests the ``calculate_salary_cost`` method."""
     env = env_setup
@@ -187,7 +184,6 @@ def test_calculate_salary_cost(env_setup):
     assert cost == n_hours / 24 * ctv_crew["day_rate"] * ctv_crew["n_day_rate"]
 
 
-# @pytest.mark.cat("all", "service_equipment")
 def test_calculate_hourly_cost(env_setup):
     """Tests the ``calculate_hourly_cost`` method."""
     env = env_setup
@@ -206,7 +202,6 @@ def test_calculate_hourly_cost(env_setup):
     assert cost == n_hours * ctv_crew["hourly_rate"] * ctv_crew["n_hourly_rate"]
 
 
-# @pytest.mark.cat("all", "service_equipment")
 def test_calculate_equipment_cost(env_setup):
     """Tests the ``calculate_equipment_cost`` method."""
     env = env_setup
@@ -224,7 +219,6 @@ def test_calculate_equipment_cost(env_setup):
     assert cost == n_hours / 24 * ctv_dict["equipment_rate"]
 
 
-# @pytest.mark.cat("all", "service_equipment")
 def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     """ "Test the simulation logic of a scheduled CTV."""
     env = env_setup_full_profile
@@ -663,7 +657,6 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     assert current.minute == 1
 
 
-# @pytest.mark.cat("all", "service_equipment")
 def test_scheduled_equipment_logic(env_setup_full_profile):
     """ "Test the simulation logic of a scheduled HLV."""
     env = env_setup_full_profile
@@ -813,7 +806,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     assert len(get_items_by_description(manager, "hlv call")) == 11
 
     # Move to just past the end of the repair when the crew transfer is ongoing
-    timeout += 4  # 3 hour repair + 1 hour delay
+    timeout += 5  # 3 hour repair + 1 hour delay
     env.run(timeout)
     assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
     assert hlv.at_port is hlv.enroute is False
@@ -850,7 +843,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     assert len(get_items_by_description(manager, "hlv call")) == 10
 
     # Move to just past the end of the repair (no delays) to ensure crew is transferring
-    timeout += 3
+    timeout += 2
     env.run(timeout)
     assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
     assert hlv.at_port is hlv.enroute is False
@@ -880,7 +873,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     env.run(timeout)
     assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.current_system == "S00T3"
+    assert hlv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "hlv call")) == 9
 
     # Ensure crew is still transferring
@@ -888,7 +881,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     env.run(timeout)
     assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.current_system == "S00T3"
+    assert hlv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "hlv call")) == 9
 
     # Ensure repair is processed with a 2 hour delay
@@ -896,7 +889,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     env.run(timeout)
     assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.current_system == "S00T3"
+    assert hlv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "hlv call")) == 9
 
     # Ensure crew is transferring to the vessel
@@ -904,7 +897,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     env.run(timeout)
     assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.current_system == "S00T3"
+    assert hlv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "hlv call")) == 9
 
     # Ensure crew is transferring to the next turbine
@@ -1791,7 +1784,6 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     assert len(get_items_by_description(manager, "fsv call")) == 0
 
 
-# @pytest.mark.cat("all", "service_equipment")
 def test_unscheduled_service_equipment_call(env_setup_full_profile):
     """Tests the calling of downtime-based and requests-based service equipment. This
     test will only consider that the equipment is mobilized when required, arrives at

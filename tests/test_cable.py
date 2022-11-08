@@ -9,7 +9,6 @@ from wombat.windfarm.system import Cable
 from tests.conftest import ARRAY_33KV_240MM, ARRAY_33KV_630MM, env_setup
 
 
-
 def test_cable_init(env_setup):
     """Tests the initialization of a `Cable` object. Much of this exists in the windfarm
     tests, but is repeated here for the sake of redundnacy and clarity that tests exist.
@@ -77,7 +76,6 @@ def test_cable_init(env_setup):
 
         # Rough check of the subassemblies and maintenance/failure creation
         assert cable.processes.keys() == correct_cable.processes.keys()
-
 
 
 def test_cable_failures(env_setup):
