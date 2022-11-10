@@ -237,6 +237,12 @@ class Simulation(FromDictMixin):
             )
             self.service_equipment.extend(self.port.tugboat_manager.items)
 
+        if self.config.project_capacity != round(self.windfarm.capacity, 6):
+            raise ValueError(
+                f"Input `project_capacity`: {self.config.project_capacity:,.6f} is not"
+                " equal to the sum of turbine capacities: {self.windfarm.capacity:,.6f}"
+            )
+
     def run(
         self,
         until: Optional[int | float | Event] = None,
