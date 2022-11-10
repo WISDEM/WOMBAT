@@ -19,6 +19,7 @@ from wombat.core import (
 from wombat.windfarm import Windfarm
 from wombat.core.port import Port
 from wombat.core.library import load_yaml, library_map
+from wombat.core.data_classes import convert_to_list
 
 
 def _library_mapper(file_path: str | Path) -> Path:
@@ -72,6 +73,10 @@ class Configuration(FromDictMixin):
     port : dict | str | Path
         The port configuration file or dictionary that will be used to setup a
         tow-to-port repair strategy, default None.
+    port_distance : int | float
+        The simulation-wide daily travel distance for servicing equipment. This should
+        be used as a base setting when multiple or all servicing equipment will be
+        operating out of the same base location, but can be individually modified.
     start_year : int
         Start year of the simulation. The exact date will be determined by
         the first valid date of this year in ``weather``.
@@ -86,21 +91,18 @@ class Configuration(FromDictMixin):
     name: str
     library: Path = field(converter=_library_mapper)
     layout: str
-    service_equipment: str | list[str]
+    service_equipment: str | list[str] = field(converter=convert_to_list)
     weather: str | pd.DataFrame
-    workday_start: int
-    workday_end: int
-    inflation_rate: float
+    workday_start: int = field(converter=int)
+    workday_end: int = field(converter=int)
+    inflation_rate: float = field(converter=float)
     fixed_costs: str
-    project_capacity: int | float
+    project_capacity: int | float = field(converter=float)
     port: dict | str | Path = field(default=None)
+    port_distance: int | float = field(default=None)
     start_year: int = field(default=None)
     end_year: int = field(default=None)
     SAM_settings: str = field(default=None)
-
-    def __attrs_post_init__(self):
-        if isinstance(self.service_equipment, str):
-            object.__setattr__(self, "service_equipment", [self.service_equipment])
 
 
 @define(auto_attribs=True)
