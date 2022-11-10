@@ -111,7 +111,10 @@ def test_cable_failures(env_setup):
     # for p in cable.processes.values():
     #     pprint(p._target.__dict__)
     assert getattr(list(cable.processes.values())[0]._target, "_delay", None) is None
-    assert getattr(list(cable.processes.values())[1]._target, "_delay", None) == 1402.148783264902
+    assert (
+        getattr(list(cable.processes.values())[1]._target, "_delay", None)
+        == 1402.148783264902
+    )
 
     # Check the failure was submitted and no other items exist for this cable
     assert sum(req.system_id == "cable::OSS1::S00T1" for req in manager.items) == 1

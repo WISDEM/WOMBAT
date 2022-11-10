@@ -232,4 +232,6 @@ class Subassembly:
                             hours_to_next = 0
                         else:
                             # A different subassembly failed, so subtract the elapsed time
-                            hours_to_next -= self.env.now - start  # pylint: disable=E0601
+                            hours_to_next -= (
+                                self.env.now - start
+                            )  # pylint: disable=E0601

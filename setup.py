@@ -72,7 +72,9 @@ DOCUMENTATION = [
     "sphinxcontrib-bibtex",
 ]
 extra_package_requirements = {
-    "dev": DEVELOPER, "docs": DOCUMENTATION, "all": DEVELOPER + DOCUMENTATION,
+    "dev": DEVELOPER,
+    "docs": DOCUMENTATION,
+    "all": DEVELOPER + DOCUMENTATION,
 }
 
 
