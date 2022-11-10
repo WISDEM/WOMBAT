@@ -314,7 +314,7 @@ class Metrics:
         pd.DataFrame
             Dataframe of either the events or operations data.
         """
-        data = pd.read_csv(self.data_dir / "outputs" / "logs" / fname)
+        data = pd.read_csv(self.data_dir / "outputs" / "logs" / fname, engine="pyarrow")
         return data
 
     def _apply_inflation_rate(self, events: pd.DataFrame) -> pd.DataFrame:
@@ -590,10 +590,10 @@ class Metrics:
             production = production.groupby(["year", "month"]).sum()[self.turbine_id]
 
         if by_turbine:
+            assert isinstance(capacity, np.ndarray)  # mypy helper
             columns = self.turbine_id
-            potential = potential.iloc[:, 0].values.reshape(-1, 1) * (
-                capacity / 1000
-            ).reshape(1, -1)
+            potential = potential.iloc[:, 0].values.reshape(-1, 1)
+            potential *= capacity.reshape(1, -1) / 1000.0
         else:
             production = production.sum(axis=1)
             potential = potential.iloc[:, 0] * capacity
@@ -931,7 +931,6 @@ class Metrics:
         if vessel_crew_assumption != {}:
             for name, n_crew in vessel_crew_assumption.items():
                 if name not in vessels:
-                    print(f"{name} not a valid `agent`")
                     continue
                 ix_vessel = at_sea.agent == name
                 at_sea.loc[ix_vessel, "duration"] *= n_crew

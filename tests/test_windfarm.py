@@ -213,8 +213,12 @@ def test_windfarm_init(env_setup):
         assert cable.system == correct_cable.system
         assert cable.data.name == cable.data.name
         assert cable.operating_level == correct_cable.operating_level == 1
-        assert cable.broken == correct_cable.broken is False
-        assert cable.downstream_failure == correct_cable.downstream_failure is False
+        assert cable.broken.triggered == correct_cable.broken.triggered is True
+        assert (
+            cable.downstream_failure.triggered
+            == correct_cable.downstream_failure.triggered
+            is True
+        )
 
         # Rough check of the subassemblies and maintenance/failure creation
         assert cable.processes.keys() == correct_cable.processes.keys()

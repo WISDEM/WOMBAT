@@ -11,6 +11,8 @@ from datetime import datetime, timedelta  # type: ignore
 import numpy as np  # type: ignore
 import simpy  # type: ignore
 import pandas as pd  # type: ignore
+import pyarrow as pa
+from pyarrow import csv
 from simpy.events import Event  # type: ignore
 from pandas.core.indexes.datetimes import DatetimeIndex
 
@@ -45,7 +47,10 @@ class WombatEnvironment(simpy.Environment):
         data_dir : pathlib.Path | str
             Directory where the inputs are stored and where to save outputs.
         weather_file : str
-            Name of the weather file. Should be contained within ``data_dir``/weather/.
+            Name of the weather file. Should be contained within ``data_dir``/weather/,
+            with columns "datetime", "windspeed", and, optionally, "waveheight". The
+            datetime column should adhere to the following format: "MM/DD/YY HH:MM", in
+            24-hour time.
         workday_start : int
             Starting time for the repair crew, in 24 hour local time. This can be
             overridden by an ``ServiceEquipmentData`` object that operates outside of the "typical"
@@ -89,6 +94,7 @@ class WombatEnvironment(simpy.Environment):
             )
 
         self.weather = self._weather_setup(weather_file, start_year, end_year)
+        self.weather_dates = self.weather.index.to_pydatetime()
         self.max_run_time = self.weather.shape[0]
         self.shift_length = self.workday_end - self.workday_start
 
@@ -158,10 +164,10 @@ class WombatEnvironment(simpy.Environment):
         now = self.now
         minutes = now % 1 * 60
         if now == self.max_run_time:
-            _dt = self.weather.iloc[math.floor(now - 1)].name.to_pydatetime()
+            _dt = self.weather_dates[math.floor(now - 1)]
             _dt + timedelta(hours=1)
         else:
-            _dt = self.weather.iloc[math.floor(now)].name.to_pydatetime()
+            _dt = self.weather_dates[math.floor(now)]
 
         minutes, seconds = math.floor(minutes), math.ceil(minutes % 1 * 60)
         return _dt + timedelta(minutes=minutes, seconds=seconds)
@@ -265,9 +271,12 @@ class WombatEnvironment(simpy.Environment):
         int
             Index of the weather profile corresponds to the first hour of ``date``.
         """
-        if isinstance(date, dt.datetime):
-            date = date.date()
-        return np.where(self.weather.index.date == date)[0][0]
+        ix = self.weather.index.get_loc(date.strftime("%Y-%m-%d"))
+
+        # If the index is consecutive a slice is returned, else a numpy array
+        if isinstance(ix, slice):
+            return ix.start
+        return ix[0]
 
     def _weather_setup(
         self,
@@ -298,9 +307,22 @@ class WombatEnvironment(simpy.Environment):
         pd.DataFrame
             The wind (and  wave) timeseries.
         """
-        weather_path = self.data_dir / "weather" / weather_file
-        weather = pd.read_csv(
-            weather_path, parse_dates=["datetime"], index_col="datetime"
+        # PyArrow datetime conversion setup
+        convert_options = csv.ConvertOptions(
+            timestamp_parsers=[
+                "%m/%d/%y %H:%M",
+                "%m/%d/%y %I:%M",
+                "%m/%d/%Y %H:%M",
+                "%m/%d/%Y %I:%M",
+            ]
+        )
+        weather = (
+            csv.read_csv(
+                self.data_dir / "weather" / weather_file,
+                convert_options=convert_options,
+            )
+            .to_pandas()
+            .set_index("datetime")
         )
         weather = weather.fillna(0.0)
         weather = weather.resample("H").interpolate(limit_direction="both", limit=5)
@@ -318,12 +340,12 @@ class WombatEnvironment(simpy.Environment):
             pass
         elif start_year > self.end_year:
             raise ValueError(
-                f"'stary_year' ({start_year}) occurs after the last available year"
+                f"'start_year' ({start_year}) occurs after the last available year"
                 f" in the weather data (range: {self.end_year})"
             )
         else:
             # Filter for the provided, validated starting year and update the attribute
-            weather = weather[weather.index.year >= start_year]
+            weather = weather.loc[weather.index.year >= start_year]
             self.start_datetime = weather.index[0].to_pydatetime()
             start_year = self.start_year = self.start_datetime.year
 
@@ -342,12 +364,12 @@ class WombatEnvironment(simpy.Environment):
                 )
             else:
                 # Filter for the provided, validated ending year and update the attribute
-                weather = weather[weather.index.year <= end_year]
+                weather = weather.loc[weather.index.year <= end_year]
                 self.end_datetime = weather.index[-1].to_pydatetime()
                 self.end_year = self.end_datetime.year
         else:
             # Filter for the provided, validated ending year and update the attribute
-            weather = weather[weather.index.year <= end_year]
+            weather = weather.loc[weather.index.year <= end_year]
             self.end_datetime = weather.index[-1].to_pydatetime()
             self.end_year = self.end_datetime.year
 
@@ -384,14 +406,13 @@ class WombatEnvironment(simpy.Environment):
             hours requested, each with shape (``hours`` + 1).
         """
         start = math.floor(self.now)
-        end = start + math.ceil(hours)
 
         # If it's not on the hour, ensure we're looking ``hours`` hours into the future
-        if self.now % 1:
-            end += 1
+        end = start + math.ceil(hours) + math.ceil(self.now % 1)
 
-        weather = self.weather.iloc[start:end]
-        return (weather.index, weather.windspeed.values, weather.waveheight.values)
+        wind, wave = self.weather.values[start:end].T
+        ix = self.weather.index[start:end]
+        return ix, wind, wave
 
     def log_action(
         self,
@@ -519,12 +540,15 @@ class WombatEnvironment(simpy.Environment):
             "total_labor_cost",
             "total_cost",
         ]
-        log_df = pd.read_csv(
-            self.events_log_fname,
-            names=log_columns,
-            sep=" :: ",
-            index_col=False,
-            engine="python",
+        log_df = pd.concat(
+            pd.read_csv(
+                self.events_log_fname,
+                names=log_columns,
+                sep="|",
+                index_col=False,
+                engine="python",
+                chunksize=20000,
+            )
         )
         log_df = log_df.loc[log_df.level == "INFO"]
         log_df = log_df.drop(labels=["name", "level"], axis=1)
@@ -544,16 +568,19 @@ class WombatEnvironment(simpy.Environment):
             The formatted logging data from a simulation.
         """
         with open(self.operations_log_fname) as f:
-            first_line = f.readline().strip().split(" :: ")
+            first_line = f.readline().strip().split("|")
             column_names = first_line[3:]
 
-        log_df = pd.read_csv(
-            self.operations_log_fname,
-            names=column_names,
-            skiprows=1,
-            sep=" :: ",
-            index_col=False,
-            engine="python",
+        log_df = pd.concat(
+            pd.read_csv(
+                self.operations_log_fname,
+                names=column_names,
+                skiprows=1,
+                sep="|",
+                index_col=False,
+                engine="python",
+                chunksize=20000,
+            )
         )
 
         log_df = log_df.loc[log_df.level == "INFO"]
@@ -643,14 +670,14 @@ class WombatEnvironment(simpy.Environment):
         potential_df.windfarm = potential.sum(axis=1)
         potential_df.env_time = operations.env_time.values
         potential_df.env_datetime = operations.env_datetime.values
-        potential_df.to_csv(self.power_potential_fname, index_label="env_datetime")
+        csv.write_csv(pa.Table.from_pandas(potential_df), self.power_potential_fname)
 
         production_df = potential_df.copy()
         production_df[turbines] = (
             production_df[turbines].values * operations[turbines].values
         )
         production_df.windfarm = production_df[turbines].sum(axis=1)
-        production_df.to_csv(self.power_production_fname, index_label="env_datetime")
+        csv.write_csv(pa.Table.from_pandas(production_df), self.power_production_fname)
         if return_df:
             return potential_df, production_df
 

@@ -12,11 +12,6 @@ from wombat.core import (
     SubassemblyData,
     WombatEnvironment,
 )
-from wombat.utilities import HOURS_IN_DAY
-
-
-# TODO: Need a better method for checking if a repair has been made to bring the
-# subassembly back online
 
 
 class Subassembly:
@@ -51,8 +46,9 @@ class Subassembly:
         self.data = SubassemblyData.from_dict(subassembly_data)
         self.name = self.data.name
 
-        self.broken = False
         self.operating_level = 1.0
+        self.broken = self.env.event()
+        self.broken.succeed()  # start the event as inactive
 
         self.processes = dict(self._create_processes())
 
@@ -121,10 +117,8 @@ class Subassembly:
 
             while hours_to_next > 0:
                 try:
-                    # If the replacement has not been completed, then wait another minute
-                    if self.system.operating_level == 0 or self.system.servicing:
-                        yield self.env.timeout(HOURS_IN_DAY)
-                        continue
+                    # Wait until these events are triggered and back to operational
+                    yield self.system.servicing & self.system.cable_failure & self.broken
 
                     start = self.env.now
                     yield self.env.timeout(hours_to_next)
@@ -159,14 +153,12 @@ class Subassembly:
                     self.system.repair_manager.submit_request(repair_request)
 
                 except simpy.Interrupt:
-                    if self.broken:
-                        # The subassembly had so restart the maintenance cycle
+                    if not self.broken.triggered:
+                        # The subassembly had to restart the maintenance cycle
                         hours_to_next = 0
-                        continue
                     else:
-                        # A different subassembly failed so we need to subtract the
-                        # amount of passed time
-                        hours_to_next -= self.env.now - start
+                        # A different subassembly failed, so subtract the elapsed time
+                        hours_to_next -= self.env.now - start  # pylint: disable=E0601
 
     def run_single_failure(self, failure: Failure) -> Generator:
         """Runs a process to trigger one type of failure repair request throughout the simulation.
@@ -189,20 +181,16 @@ class Subassembly:
                     yield self.env.timeout(remainder)
                 except simpy.Interrupt:
                     remainder -= self.env.now
-
             else:
                 while hours_to_next > 0:  # type: ignore
                     try:
-                        if self.system.operating_level == 0 or self.system.servicing:
-                            yield self.env.timeout(HOURS_IN_DAY)
-                            continue
-
+                        yield self.system.servicing & self.system.cable_failure & self.broken
                         start = self.env.now
                         yield self.env.timeout(hours_to_next)
                         hours_to_next = 0
                         self.operating_level *= 1 - failure.operation_reduction
                         if failure.operation_reduction == 1:
-                            self.broken = True
+                            self.broken = self.env.event()
                             self.interrupt_all_subassembly_processes()
 
                             # Remove previously submitted requests as a replacement is required
@@ -239,12 +227,11 @@ class Subassembly:
                         self.system.repair_manager.submit_request(repair_request)
 
                     except simpy.Interrupt:
-                        if self.broken:
-                            # The subassembly had to be replaced so the timing to next failure
-                            # will reset
+                        if not self.broken.triggered:
+                            # The subassembly had to be replaced so reset the timing
                             hours_to_next = 0
-                            continue
                         else:
-                            # A different subassembly failed so we need to subtract the
-                            # amount of passed time
-                            hours_to_next -= self.env.now - start
+                            # A different subassembly failed, so subtract the elapsed time
+                            hours_to_next -= (
+                                self.env.now - start
+                            )  # pylint: disable=E0601

@@ -1,20 +1,21 @@
 """The package setup for installations."""
 
+from __future__ import annotations
 
-import os
 import codecs
+from pathlib import Path
 
 from setuptools import setup, find_packages
 
 
-def read(relative_path):
+def read(relative_path: Path | str) -> str:
     """Reads the `relative_path` file."""
-    here = os.path.abspath(os.path.dirname(__file__))
-    with codecs.open(os.path.join(here, relative_path), "r") as fp:
+    here = Path(__file__).resolve().parent
+    with codecs.open(here / relative_path, "r") as fp:
         return fp.read()
 
 
-def get_version(relative_path):
+def get_version(relative_path: Path | str) -> str:
     """Retreives the version number."""
     for line in read(relative_path).splitlines():
         if line.startswith("__version__"):
@@ -71,60 +72,46 @@ DOCUMENTATION = [
     "sphinxcontrib-bibtex",
 ]
 extra_package_requirements = {
-    "dev": [
-        "pre-commit",
-        "pylint",
-        "flake8",
-        "flake8-docstrings",
-        "black",
-        "isort",
-        "pytest",
-        "pytest-cov",
-        "pytest-xdist",
-        "mypy",
-    ],
-    "docs": [
-        "sphinx",
-        "myst-nb",
-        "myst-parser",
-        "sphinx-panels",
-        "sphinx-book-theme",
-        "sphinxcontrib-spelling",
-        "linkify-it-py",
-        "sphinxcontrib-bibtex",
-    ],
+    "dev": DEVELOPER,
+    "docs": DOCUMENTATION,
+    "all": DEVELOPER + DOCUMENTATION,
 }
-extra_package_requirements["all"] = [
-    *extra_package_requirements["dev"],
-    *extra_package_requirements["docs"],
-]
 
 
 setup(
     name=name,
     author="Rob Hammond",
     author_email="rob.hammond@nrel.gov",
-    version=get_version(os.path.join("wombat", "__init__.py")),
+    version=get_version(Path("wombat") / "__init__.py"),
     description=description,
     long_description=long_description,
     project_urls={
-        # "Documentation": "https://pip.pypa.io",
         "Source": "https://github.com/WISDEM/WOMBAT",
+        "Documentation": "https://wisdem.github.io/WOMBAT/",
     },
     classifiers=[
-        # TODO: https://pypi.org/pypi?%3Aaction=list_classifiers
-        "Development Status :: 1 - Planning",
+        # TODO: https://pypi.org/classifiers
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: Other Audience",
+        "License :: OSI Approved :: Apache Software License",
         "Natural Language :: English",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Topics :: Scientific/Engineering",
+        "Topics :: Software Development :: Libraries :: Python Modules",
+        "Typing :: Typed",
     ],
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     include_package_data=True,
     package_data={"": ["*.yaml", "*.csv"]},
     install_requires=REQUIRED,
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     extras_require=extra_package_requirements,
     test_suite="pytest",
     tests_require=["pytest", "pytest-xdist", "pytest-cov"],

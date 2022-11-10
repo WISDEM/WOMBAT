@@ -8,11 +8,11 @@ from __future__ import annotations
 
 from copy import deepcopy
 from math import ceil
-from typing import TYPE_CHECKING, Optional, Generator  # type: ignore
+from typing import TYPE_CHECKING, Any, Optional, Generator  # type: ignore
 from datetime import timedelta
 
 import numpy as np  # type: ignore
-from simpy.events import Process, Timeout  # type: ignore
+from simpy.events import Event, Process, Timeout  # type: ignore
 from pandas.core.indexes.datetimes import DatetimeIndex
 
 from wombat.core import (
@@ -137,7 +137,7 @@ def reset_system_operations(system: System) -> None:
     for subassembly in system.subassemblies:
         subassembly.operating_level = 1.0
         subassembly.recreate_processes()
-    system.servicing = False
+    system.servicing.succeed()
 
 
 class ServiceEquipment(RepairsMixin):
@@ -357,7 +357,7 @@ class ServiceEquipment(RepairsMixin):
                     if cable.operating_level == 0:
                         break
                 turbine = self.windfarm.system(turbine_id)
-                turbine.cable_failure = False
+                turbine.cable_failure.succeed()
                 start = turbine_id
 
         # Put the subassembly/component back to good as new condition
@@ -366,6 +366,7 @@ class ServiceEquipment(RepairsMixin):
             _ = self.manager.purge_subassembly_requests(
                 repair.system_id, repair.subassembly_id
             )
+            subassembly.broken.succeed()
         elif repair.details.operation_reduction == 0:
             subassembly.operating_level = starting_operating_level
         else:
@@ -373,13 +374,14 @@ class ServiceEquipment(RepairsMixin):
 
         # Register that the servicing is now over
         if isinstance(subassembly, Subassembly):
-            subassembly.system.servicing = False
+            subassembly.system.servicing.succeed()
         elif isinstance(subassembly, Cable):
-            subassembly.servicing = False
+            subassembly.servicing.succeed()
         else:
             raise ValueError(
                 f"Passed subassembly of type: `{type(subassembly)}` invalid."
             )
+        self.manager.enable_requests_for_system(repair.system_id)
 
     def wait_until_next_operational_period(
         self, *, less_mobilization_hours: int = 0
@@ -452,7 +454,7 @@ class ServiceEquipment(RepairsMixin):
             and when the next operational period starts.
         """
         mobilization_hours = self.settings.mobilization_days * HOURS_IN_DAY
-        yield self.env.process(
+        yield self.env.process(  # type: ignore
             self.wait_until_next_operational_period(
                 less_mobilization_hours=mobilization_hours
             )
@@ -613,41 +615,36 @@ class ServiceEquipment(RepairsMixin):
 
         return dt_ix, weather, window_found
 
-    def weather_delay(
-        self, hours: int | float, **kwargs
-    ) -> None | Generator[Timeout | Process, None, None]:
-        """Processes a weather delay of length ``hours`` hours.
+    def weather_delay(self, hours: int | float, **kwargs) -> Generator[Event, Any, Any]:
+        """Processes a weather delay of length ``hours`` hours. If ``hours`` = 0, then
+        a Timeout is still processed, but not logging is done (this is to increase
+        consistency and do better typing validation across the codebase).
 
         Parameters
         ----------
         hours : int | float
             The lenght, in hours, of the weather delay.
 
-        Returns
-        -------
-        None
-            If the delay is 0 hours, then nothing happens.
-
         Yields
         -------
-        None | Generator[Timeout | Process, None, None]
+        Generator[Event, Any, Any]
             If the delay is more than 0 hours, then a ``Timeout`` is yielded of length ``hours``.
         """
-        if hours == 0:
-            return
+        if hours > 0:
+            salary_cost = self.calculate_salary_cost(hours)
+            hourly_cost = 0  # contractors not paid for delays
+            equipment_cost = self.calculate_equipment_cost(hours)
+            self.env.log_action(
+                duration=hours,
+                action="delay",
+                additional="weather delay",
+                salary_labor_cost=salary_cost,
+                hourly_labor_cost=hourly_cost,
+                equipment_cost=equipment_cost,
+                **kwargs,
+            )
+            yield self.env.timeout(hours)
 
-        salary_cost = self.calculate_salary_cost(hours)
-        hourly_cost = 0  # contractors not paid for delays
-        equipment_cost = self.calculate_equipment_cost(hours)
-        self.env.log_action(
-            duration=hours,
-            action="delay",
-            additional="weather delay",
-            salary_labor_cost=salary_cost,
-            hourly_labor_cost=hourly_cost,
-            equipment_cost=equipment_cost,
-            **kwargs,
-        )
         yield self.env.timeout(hours)
 
     @cache
@@ -929,8 +926,8 @@ class ServiceEquipment(RepairsMixin):
                     self.tow(start, end, set_current=set_current, **kwargs)
                 )
 
-        if delay > 0:
-            yield self.env.process(self.weather_delay(delay, location=end, **kwargs))
+        else:
+            self.env.process(self.weather_delay(delay, location=end, **kwargs))
 
         salary_labor_cost = self.calculate_salary_cost(hours)
         hourly_labor_cost = self.calculate_hourly_cost(hours)
@@ -1017,10 +1014,9 @@ class ServiceEquipment(RepairsMixin):
             )
             travel_time -= self.env.now  # will be negative value, but is flipped
             delay -= abs(travel_time)  # decrement the delay by the travel time
-            if delay > 0:
-                yield self.env.process(
-                    self.weather_delay(delay, location="port", **shared_logging)
-                )
+            yield self.env.process(
+                self.weather_delay(delay, location="port", **shared_logging)
+            )
             yield self.env.process(
                 self.wait_until_next_shift(
                     **shared_logging,
@@ -1033,7 +1029,7 @@ class ServiceEquipment(RepairsMixin):
                 )
             )
             yield self.env.process(
-                self.crew_transfer(system, subassembly, request, to_system=to_system)
+                self.crew_transfer(system, subassembly, request, to_system=to_system)  # type: ignore
             )
             return
 
@@ -1130,10 +1126,9 @@ class ServiceEquipment(RepairsMixin):
         delay, shift_delay = self.find_uninterrupted_weather_window(hours_to_process)
         # If there is a shift delay, then wait try again.
         if shift_delay:
-            if delay > 0:
-                yield self.env.process(
-                    self.weather_delay(delay, location="site", **shared_logging)
-                )
+            yield self.env.process(
+                self.weather_delay(delay, location="site", **shared_logging)
+            )
             yield self.env.process(
                 self.wait_until_next_shift(
                     **shared_logging,
@@ -1144,7 +1139,7 @@ class ServiceEquipment(RepairsMixin):
                 )
             )
             yield self.env.process(
-                self.mooring_connection(system, request, which=which)
+                self.mooring_connection(system, request, which=which)  # type: ignore
             )
             return
 
@@ -1220,7 +1215,7 @@ class ServiceEquipment(RepairsMixin):
             cable = request.subassembly_id.split("::")[1:]
             subassembly = self.windfarm.graph.edges[cable]["cable"]
         else:
-            system = self.windfarm.system(request.system_id)
+            system = self.windfarm.system(request.system_id)  # type: ignore
             subassembly = getattr(system, request.subassembly_id)
 
         starting_operational_level = max(
@@ -1272,10 +1267,10 @@ class ServiceEquipment(RepairsMixin):
             )
             # First turn off the turbine, then proceed with the servicing so the
             # turbine is not registered as operating when the turbine is being worked on
-            system.servicing = True
-            subassembly.interrupt_all_subassembly_processes()
+            if system.servicing.triggered:
+                self.manager.halt_requests_for_system(system)
             yield self.env.process(
-                self.crew_transfer(system, subassembly, request, to_system=True)
+                self.crew_transfer(system, subassembly, request, to_system=True)  # type: ignore
             )
         elif self.at_system is not None and not self.at_port:
             yield self.env.process(
@@ -1286,8 +1281,12 @@ class ServiceEquipment(RepairsMixin):
                     **shared_logging,
                 )
             )
+            # First turn off the turbine, then proceed with the servicing so the
+            # turbine is not registered as operating when the turbine is being worked on
+            if system.servicing.triggered:
+                self.manager.halt_requests_for_system(system)
             yield self.env.process(
-                self.crew_transfer(system, subassembly, request, to_system=True)
+                self.crew_transfer(system, subassembly, request, to_system=True)  # type: ignore
             )
         else:
             raise RuntimeError(f"{self.settings.name} is lost!")
@@ -1342,7 +1341,7 @@ class ServiceEquipment(RepairsMixin):
                 # Ensure this gets the correct float hours to the start of the target
                 # hour, unless the hours to process is between (0, 1]
                 yield self.env.process(
-                    self.process_repair(
+                    self.process_repair(  # type: ignore
                         hours_to_process, request.details, **shared_logging
                     )
                 )
@@ -1367,7 +1366,7 @@ class ServiceEquipment(RepairsMixin):
         # Reached the end of the shift or the end of the repair, and need to unload crew
         # from the system
         yield self.env.process(
-            self.crew_transfer(system, subassembly, request, to_system=False)
+            self.crew_transfer(system, subassembly, request, to_system=False)  # type: ignore
         )
         if shift_delay:
             yield self.env.process(
@@ -1391,6 +1390,7 @@ class ServiceEquipment(RepairsMixin):
         action = "maintenance" if isinstance(request.details, Maintenance) else "repair"
         self.env.log_action(
             system_id=system.id,
+            system_name=system.name,
             part_id=subassembly.id,
             part_name=subassembly.name,
             system_ol=system.operating_level,
@@ -1401,6 +1401,7 @@ class ServiceEquipment(RepairsMixin):
             materials_cost=request.details.materials,
             additional="complete",
             request_id=request.request_id,
+            location="site",
         )
 
         # If this is the end of the shift, ensure that we're traveling back to port
@@ -1425,7 +1426,7 @@ class ServiceEquipment(RepairsMixin):
 
         while True:
             # Wait for a valid operational period to start
-            if self.env.simulation_time.date() not in self.settings.operating_dates:  # type: ignore
+            if self.env.simulation_time.date() not in self.settings._operating_dates_set:  # type: ignore
                 yield self.env.process(self.mobilize_scheduled())
 
             # Wait for next shift to start
@@ -1542,10 +1543,6 @@ class ServiceEquipment(RepairsMixin):
         ValueError
             Raised if the equipment is not currently at port
         """
-
-        # if not self.at_port:
-        #     raise ValueError(f"{self.settings.name} cannot run tow-to-port if not at port")
-
         system = self.windfarm.system(request.system_id)
 
         shared_logging = dict(
@@ -1556,12 +1553,10 @@ class ServiceEquipment(RepairsMixin):
             reason=f"{request.details.description} has triggered tow-to-port",
         )
 
-        # Travel to the turbine and shut it down
+        # Travel to the turbine
         yield self.env.process(
             self.travel("port", "site", set_current=system.id, **shared_logging)  # type: ignore
         )
-        self.manager.halt_requests_for_system(system.id)
-        system.servicing = True
 
         # Unmoor the turbine and tow it back to port
         yield self.env.process(self.mooring_connection(system, request, which="unmoor"))  # type: ignore
@@ -1586,9 +1581,6 @@ class ServiceEquipment(RepairsMixin):
         ValueError
             Raised if the equipment is not currently at port
         """
-        # if not self.at_port:
-        #     raise ValueError(f"{self.settings.name} cannot run tow-to-site if not at port")
-
         system = self.windfarm.system(request.system_id)
         shared_logging = dict(
             agent=self.settings.name,
@@ -1612,8 +1604,8 @@ class ServiceEquipment(RepairsMixin):
         )
 
         # Reset the turbine back to operating and return to port
-        self.manager.enable_requests_for_system(system.id)
         reset_system_operations(system)
+        self.manager.enable_requests_for_system(system.id)
         yield self.env.process(
             self.travel(
                 "site",

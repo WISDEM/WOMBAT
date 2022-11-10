@@ -229,22 +229,26 @@ class Windfarm:
 
     def _log_operations(self):
         """Logs the operational data for a simulation."""
-        self.env._operations_logger.info(" :: ".join(self._log_columns))
+        self.env._operations_logger.info("|".join(self._log_columns))
 
         message = [self.env.simulation_time, self.env.now]
         message.extend(
             [self.system(system).operating_level for system in self.system_list]
         )
-        message = " :: ".join((f"{m}" for m in message))  # type: ignore
+        message = "|".join((f"{m}" for m in message))  # type: ignore
         self.env._operations_logger.info(message)
 
         HOURS = 1
         while True:
             yield self.env.timeout(HOURS)
-            message = [f"{self.env.simulation_time}", f"{self.env.now}"] + [
-                f"{self.system(system).operating_level}" for system in self.system_list
-            ]
-            message = " :: ".join(message)  # type: ignore
+            message = [f"{self.env.simulation_time}", f"{self.env.now}"]
+            message.extend(
+                [
+                    f"{self.system(system).operating_level}"
+                    for system in self.system_list
+                ]
+            )
+            message = "|".join(message)  # type: ignore
             self.env._operations_logger.info(message)
 
     @cache
