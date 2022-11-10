@@ -29,6 +29,47 @@ with open("README.rst", "r") as fh:
 
 name = "wombat"
 description = "Windfarm operations and maintenance cost-benefit analysis tool"
+
+# Requirements
+REQUIRED = [
+    "attrs>=21",
+    "numpy>=1.21",
+    "scipy",
+    "pandas",
+    "pyarrow",
+    "jupyterlab",
+    "simpy>=4.0.1",
+    "pyyaml",
+    "geopy",
+    "networkx",
+    "matplotlib>=3.3",
+    "nrel-pysam",
+    # required for pre-commit CI
+    "types-attrs>=19",
+    "types-PyYAML>=6",
+]
+DEVELOPER = [
+    "pre-commit",
+    "pylint",
+    "flake8",
+    "flake8-docstrings",
+    "black",
+    "isort",
+    "pytest",
+    "pytest-cov",
+    "pytest-xdist",
+    "mypy",
+]
+DOCUMENTATION = [
+    "sphinx",
+    "myst-nb",
+    "myst-parser",
+    "sphinx-panels",
+    "sphinx-book-theme",
+    "sphinxcontrib-spelling",
+    "linkify-it-py",
+    "sphinxcontrib-bibtex",
+]
 extra_package_requirements = {
     "dev": [
         "pre-commit",
@@ -82,22 +123,7 @@ setup(
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     include_package_data=True,
     package_data={"": ["*.yaml", "*.csv"]},
-    install_requires=[
-        "attrs>=21",
-        "numpy>=1.21",
-        "scipy",
-        "pandas",
-        "jupyterlab",
-        "simpy>=4.0.1",
-        "pyyaml",
-        "geopy",
-        "networkx",
-        "matplotlib>=3.3",
-        "nrel-pysam",
-        # required for pre-commit CI
-        "types-attrs",
-        "types-PyYAML",
-    ],
+    install_requires=REQUIRED,
     python_requires=">=3.7",
     extras_require=extra_package_requirements,
     test_suite="pytest",
