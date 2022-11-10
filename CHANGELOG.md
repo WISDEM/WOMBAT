@@ -1,3 +1,10 @@
+## Unreleased
+- Bump Python versioning requirements to 3.8+
+- Add PyArrow dependency for fasting save/load processes for CSV reading and writing
+- Convert boolean operational statuses for `System`, `Subassembly`, `Cable`, and `ServiceEquipment` to SimPy events for more efficient processing and accurate delays for restarting
+- Fix numerous bugs in the repair logic introduced by the use of boolean checks and status switches, which also improve simulation performance. These issues were primarily caused by erroneously resetting the status, but with the new event setting and `.succeed()` logic to clear an operation, the previously incorrect resetting is much harder to do.
+- Continue to improve the performance of low-level simulation operations to realize further improvements in memory usage and simulation performance
+
 ## 0.5.1 (22 July 2022)
 - Updates to use the most recent pandas API/recommendations, which fixes numerous warnings in the `Metrics` class
 - Fixes inconsistency in returning floats vs `DataFrame`s in the  `Metrics` class

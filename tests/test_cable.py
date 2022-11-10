@@ -9,7 +9,6 @@ from wombat.windfarm.system import Cable
 from tests.conftest import ARRAY_33KV_240MM, ARRAY_33KV_630MM, env_setup
 
 
-# @pytest.mark.cat("all", "cable")
 def test_cable_init(env_setup):
     """Tests the initialization of a `Cable` object. Much of this exists in the windfarm
     tests, but is repeated here for the sake of redundnacy and clarity that tests exist.
@@ -71,14 +70,14 @@ def test_cable_init(env_setup):
         assert cable.system == correct_cable.system
         assert cable.data.name == cable.data.name
         assert cable.operating_level == correct_cable.operating_level == 1
-        assert cable.broken == correct_cable.broken is False
-        assert cable.downstream_failure == correct_cable.downstream_failure is False
+        assert cable.broken.triggered
+        assert cable.servicing.triggered
+        assert cable.downstream_failure.triggered
 
         # Rough check of the subassemblies and maintenance/failure creation
         assert cable.processes.keys() == correct_cable.processes.keys()
 
 
-# @pytest.mark.cat("all", "cable")
 def test_cable_failures(env_setup):
     """Test that failing cable disable upstream turbines"""
     env = env_setup
@@ -108,12 +107,13 @@ def test_cable_failures(env_setup):
     assert cable.broken
     assert cable.operating_level == 0
 
-    # Assert that all items are timed out for a day until the next check or
-    # until the end of the simulation
-    for p in cable.processes.values():
-        print(p._target._delay)
-    assert all(
-        p._target._delay in (24, 1402.148783264902) for p in cable.processes.values()
+    # Assert that all items are timed are non existent or set to the end of the simulation
+    # for p in cable.processes.values():
+    #     pprint(p._target.__dict__)
+    assert getattr(list(cable.processes.values())[0]._target, "_delay", None) is None
+    assert (
+        getattr(list(cable.processes.values())[1]._target, "_delay", None)
+        == 1402.148783264902
     )
 
     # Check the failure was submitted and no other items exist for this cable
@@ -121,13 +121,13 @@ def test_cable_failures(env_setup):
 
     # Check the substation is operating (no downstream nodes are shut off)
     oss = windfarm.system("OSS1")
-    assert not oss.cable_failure
+    assert oss.cable_failure.triggered
     assert oss.operating_level == 1
 
     # Check the appropriate turbines are broken
     for turbine in ("S00T1", "S00T2", "S00T3"):
         turbine = windfarm.system(turbine)
-        assert turbine.cable_failure
+        assert not turbine.cable_failure.triggered
         assert turbine.operating_level == 0
 
         # Check that operating level for subassemblies is unaffected, and 0 turbine
@@ -137,6 +137,6 @@ def test_cable_failures(env_setup):
     # Check the appropriate turbines are operating
     for turbine in ("S01T4", "S01T5", "S01T6"):
         turbine = windfarm.system(turbine)
-        assert not turbine.cable_failure
+        assert turbine.cable_failure.triggered
         assert turbine.operating_level == 1
         assert all((s.operating_level == 1 for s in turbine.subassemblies))

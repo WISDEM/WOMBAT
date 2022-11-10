@@ -41,7 +41,7 @@ def test_subassembly_initialization(env_setup):
     assert generator.id == subassembly_id
     assert generator.name == data_dict["name"]
     # assert subassembly.data == TURBINE.generator.data  # TODO: Request ID ruins equality testing
-    assert not generator.broken
+    assert generator.broken.triggered
     assert generator.operating_level == 1.0
     assert len(generator.processes) == correct_N_maintenance + correct_N_failures
     # Maintenance keys are m{i} and failure keys are integer severity
@@ -60,7 +60,7 @@ def test_subassembly_initialization(env_setup):
     assert transformer.id == subassembly_id
     assert transformer.name == data_dict["name"]
     # assert subassembly.data == OSS.transformer.data  # TODO: Request ID ruins equality testing
-    assert not transformer.broken
+    assert transformer.broken.triggered
     assert transformer.operating_level == 1.0
     assert len(transformer.processes) == correct_N_maintenance + correct_N_failures
     # Maintenance keys are m{i} and failure keys are integer severity

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from typing import Callable  # type: ignore
+from operator import mul
 from functools import reduce
 
 import numpy as np
@@ -10,26 +11,7 @@ import pandas as pd
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.utilities import IEC_power_curve
 from wombat.windfarm.system import Subassembly
-from wombat.utilities.utilities import cache, create_variable_from_string
-
-
-@cache
-def _product(x: float, y: float) -> float:
-    """Multiplies two numbers. Used for a reduce operation.
-
-    Parameters
-    ----------
-    x : float
-        The first number.
-    y : float
-        The second number.
-
-    Returns
-    -------
-    float
-        The product of the two numbers.
-    """
-    return x * y
+from wombat.utilities.utilities import create_variable_from_string
 
 
 class System:
@@ -76,10 +58,14 @@ class System:
         self.repair_manager = repair_manager
         self.id = t_id
         self.name = name
-        self.servicing = False
-        self.cable_failure = False
         self.capacity = subassemblies["capacity_kw"]
         self.subassemblies: list[Subassembly] = []
+        self.servicing = self.env.event()
+        self.cable_failure = self.env.event()
+
+        # Ensure servicing statuses starts as processed and inactive
+        self.servicing.succeed()
+        self.cable_failure.succeed()
 
         system = system.lower().strip()
         self._calculate_system_value(subassemblies)
@@ -187,10 +173,10 @@ class System:
         float
             Operating level of the turbine.
         """
-        if self.cable_failure or self.servicing:
+        if not self.cable_failure.triggered or not self.servicing.triggered:
             return 0.0
         else:
-            return reduce(_product, [sub.operating_level for sub in self.subassemblies])
+            return reduce(mul, [sub.operating_level for sub in self.subassemblies])
 
     @property
     def operating_level_wo_servicing(self) -> float:
@@ -202,10 +188,10 @@ class System:
         float
             Operating level of the turbine.
         """
-        if self.cable_failure:
+        if not self.cable_failure.triggered:
             return 0.0
         else:
-            return reduce(_product, [sub.operating_level for sub in self.subassemblies])
+            return reduce(mul, [sub.operating_level for sub in self.subassemblies])
 
     def power(self, windspeed: list[float] | np.ndarray) -> np.ndarray:
         """Generates the power output for an iterable of windspeed values.

@@ -248,9 +248,9 @@ def test_operating_level(env_setup):
     assert system.operating_level == 0.9 * 0.9
 
     # Test a cable failure
-    system.cable_failure = True
+    system.cable_failure = ENV.event()
     assert system.operating_level == 0.0
-    system.cable_failure = False
+    system.cable_failure.succeed()
 
     # Test a failed subassembly shuts down the turbine
     system.generator.operating_level = 0.0
