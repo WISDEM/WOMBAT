@@ -46,8 +46,8 @@ REQUIRED = [
     "matplotlib>=3.3",
     "nrel-pysam",
     # required for pre-commit CI
-    "types-attrs",
-    "types-PyYAML",
+    "types-attrs>=19",
+    "types-PyYAML>=6",
 ]
 DEVELOPER = [
     "pre-commit",
@@ -109,7 +109,7 @@ setup(
     ],
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     include_package_data=True,
-    package_data={"": ["*.yaml", "*.yml", "*.csv"]},
+    package_data={"": ["*.yaml", "*.csv"]},
     install_requires=REQUIRED,
     python_requires=">=3.8",
     extras_require=extra_package_requirements,
