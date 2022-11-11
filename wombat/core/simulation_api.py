@@ -244,7 +244,6 @@ class Simulation(FromDictMixin):
         # set the environment working hours and port distance for any unconfigured
         # equipment-level settings
         for equipment in self.service_equipment:
-            # assert isinstance(equipment, ServiceEquipment)  # mypy helper
             equipment.finish_setup_with_environment_variables()
 
         if self.config.project_capacity * 1000 != round(self.windfarm.capacity, 6):
