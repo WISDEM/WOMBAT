@@ -243,13 +243,15 @@ class Simulation(FromDictMixin):
         # After the port is setup and the associated servicing equipment are created,
         # set the environment working hours and port distance for any unconfigured
         # equipment-level settings
-        for service_equipment in self.config.service_equipment:
-            self.service_equipment.finish_setup_with_environment_variables()  # type: ignore
+        for equipment in self.service_equipment:
+            # assert isinstance(equipment, ServiceEquipment)  # mypy helper
+            equipment.finish_setup_with_environment_variables()
 
-        if self.config.project_capacity != round(self.windfarm.capacity, 6):
+        if self.config.project_capacity * 1000 != round(self.windfarm.capacity, 6):
             raise ValueError(
-                f"Input `project_capacity`: {self.config.project_capacity:,.6f} is not"
-                " equal to the sum of turbine capacities: {self.windfarm.capacity:,.6f}"
+                f"Input `project_capacity`: {self.config.project_capacity:,.6f} MW is"
+                f" not equal to the sum of turbine capacities:"
+                f" {self.windfarm.capacity / 1000:,.6f} MW"
             )
 
     def run(

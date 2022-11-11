@@ -612,6 +612,10 @@ class ServiceCrew(FromDictMixin):
 
 @define(frozen=True, auto_attribs=True)
 class BaseServiceEquipmentData(FromDictMixin):
+    """Base servicing equpment dataclass. Only meant to reduce repeated code across the
+    ``ScheduledServiceEquipmentData`` and ``UnscheduledServiceEquipmentData`` classes.
+    """
+
     name: str = field(converter=str)
     equipment_rate: float = field(converter=float)
     n_crews: int = field(converter=int)
