@@ -352,7 +352,11 @@ class Maintenance(FromDictMixin):
     materials: float = field(converter=float)
     frequency: float = field(converter=float)
     service_equipment: list[str] = field(
-        converter=convert_to_list_upper, validator=attrs.validators.in_(VALID_EQUIPMENT)
+        converter=convert_to_list_upper,
+        validator=attrs.validators.deep_iterable(
+            member_validator=attrs.validators.in_(VALID_EQUIPMENT),
+            iterable_validator=attrs.validators.instance_of(list),
+        ),
     )
     system_value: int | float = field(converter=float)
     description: str = field(default="routine maintenance", converter=str)
@@ -430,7 +434,11 @@ class Failure(FromDictMixin):
     operation_reduction: float = field(converter=float)
     level: int = field(converter=int)
     service_equipment: list[str] | str = field(
-        converter=convert_to_list_upper, validator=attrs.validators.in_(VALID_EQUIPMENT)
+        converter=convert_to_list_upper,
+        validator=attrs.validators.deep_iterable(
+            member_validator=attrs.validators.in_(VALID_EQUIPMENT),
+            iterable_validator=attrs.validators.instance_of(list),
+        ),
     )
     system_value: int | float = field(converter=float)
     description: str = field(default="failure", converter=str)
@@ -609,7 +617,11 @@ class BaseServiceEquipmentData(FromDictMixin):
     n_crews: int = field(converter=int)
     crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
     capability: list[str] | str = field(
-        converter=convert_to_list_upper, validator=attrs.validators.in_(VALID_EQUIPMENT)
+        converter=convert_to_list_upper,
+        validator=attrs.validators.deep_iterable(
+            member_validator=attrs.validators.in_(VALID_EQUIPMENT),
+            iterable_validator=attrs.validators.instance_of(list),
+        ),
     )
     speed: float = field(converter=float, validator=greater_than_zero)
     max_windspeed_transport: float = field(converter=float)
@@ -747,12 +759,14 @@ class ScheduledServiceEquipmentData(BaseServiceEquipmentData):
     # equipment_rate: float = field(converter=float)
     # n_crews: int = field(converter=int)
     # crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
-    start_month: int = field(converter=int)
-    start_day: int = field(converter=int)
-    start_year: int = field(converter=int)
-    end_month: int = field(converter=int)
-    end_day: int = field(converter=int)
-    end_year: int = field(converter=int)
+    start_month: int = field(
+        default=-1, converter=int, validator=attrs.validators.ge(0)
+    )
+    start_day: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
+    start_year: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
+    end_month: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
+    end_day: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
+    end_year: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
     # capability: list[str] | str = field(
     #     converter=convert_to_list_upper, validator=check_capability  # type: ignore
     # )
@@ -776,9 +790,11 @@ class ScheduledServiceEquipmentData(BaseServiceEquipmentData):
     #     converter=[str, str.lower],  # type: ignore
     #     validator=check_method,
     # )
-    operating_dates: np.ndarray = field(init=False)
-    _operating_dates_set: set = field(init=False)
-    strategy: str = field(default="scheduled")
+    strategy: str = field(
+        default="scheduled", validator=attrs.validators.in_(["scheduled"])
+    )
+    operating_dates: np.ndarray = field(factory=list, init=False)
+    _operating_dates_set: set = field(factory=set, init=False)
 
     def create_date_range(self) -> np.ndarray:
         """Creates an ``np.ndarray`` of valid operational dates for the service equipment."""
@@ -904,15 +920,21 @@ class UnscheduledServiceEquipmentData(BaseServiceEquipmentData):
     # equipment_rate: float = field(converter=float)
     # n_crews: int = field(converter=int)
     # crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
-    charter_days: int = field(converter=int)
     # capability: list[str] | str = field(
     #     converter=convert_to_list_upper, validator=check_capability  # type: ignore
     # )
     # speed: float = field(converter=float, validator=greater_than_zero)
     # max_windspeed_transport: float = field(converter=float)
     # max_windspeed_repair: float = field(converter=float)
-    strategy: str | None = field(converter=clean_string_input)
-    strategy_threshold: int | float = field(converter=float)
+    strategy: str | None = field(
+        default="unscheduled",
+        converter=clean_string_input,
+        validator=attrs.validators.in_(UNSCHEDULED_STRATEGIES),
+    )
+    strategy_threshold: int | float = field(default=-1, converter=float)
+    charter_days: int = field(
+        default=-1, converter=int, validator=attrs.validators.gt(0)
+    )
     tow_speed: float = field(default=1, converter=float, validator=greater_than_zero)
     # max_waveheight_transport: float = field(default=1000)
     # max_waveheight_repair: float = field(default=1000)
@@ -933,17 +955,6 @@ class UnscheduledServiceEquipmentData(BaseServiceEquipmentData):
     # port_distance: int | float = field(default=0, converter=float)
     unmoor_hours: int | float = field(default=0, converter=float)
     reconnection_hours: int | float = field(default=0, converter=float)
-
-    @strategy.validator  # type: ignore
-    def _validate_strategy(  # pylint: disable=R0201
-        self, attribute: Attribute, value: str  # pylint: disable=W0613
-    ) -> None:
-        """Determines if the provided strategy is valid"""
-        if value not in UNSCHEDULED_STRATEGIES:
-            raise ValueError(
-                "``strategy`` for unscheduled servicing equipment must be one of",
-                f"{' or '.join(UNSCHEDULED_STRATEGIES)}",
-            )
 
     @strategy_threshold.validator  # type: ignore
     def _validate_threshold(

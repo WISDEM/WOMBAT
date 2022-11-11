@@ -26,10 +26,8 @@ from wombat.core.data_classes import (
     ScheduledServiceEquipmentData,
     UnscheduledServiceEquipmentData,
     valid_hour,
-    check_method,
     convert_to_list,
     valid_reduction,
-    check_capability,
     annual_date_range,
     greater_than_zero,
     clean_string_input,
@@ -205,78 +203,6 @@ def test_greater_than_zero():
     assert s.speed == 20.112
 
 
-def test_check_capability():
-    """Tests the ``check_capability`` attrs validator method. This function is an attrs
-    validator method, and so a dummy class will be used for testing purposes. This class
-    falls in line with how the servicing equipment data classes processes these inputs,
-    so no further sophistication or parameterization should be needed.
-    """
-
-    @attr.s(auto_attribs=True)
-    class CapabilityClass:
-        """Dummy class for testing ``check_capability``."""
-
-        capability: str | list[str] = attr.ib(
-            converter=convert_to_list_upper, validator=check_capability
-        )
-
-    # Test for bad spelling
-    with pytest.raises(ValueError):
-        CapabilityClass(capability="cvt")
-
-    # Test for a list of bad spellings
-    with pytest.raises(ValueError):
-        CapabilityClass(capability=["snc", "nlc", "bac", "rtm", "dnr", "vds"])
-
-    # Test for correct spellings and case changes
-    correct_options = VALID_EQUIPMENT
-    inputs = ["CTV", "SCn", "LCN", "cab", "RMT", "DRN", "Dsv", "tOW", "ahv"]
-    capability = CapabilityClass(capability=inputs)
-    npt.assert_equal(capability.capability, correct_options)
-
-    # Test for correct spellings and cases
-    correct_options = ["CTV", "SCN", "LCN", "CAB", "RMT", "DRN", "DSV", "TOW", "AHV"]
-    capability = CapabilityClass(capability=correct_options)
-    npt.assert_equal(capability.capability, correct_options)
-
-    # Test that a scheduled equipment can't have the two capability
-    with pytest.raises(ValueError):
-        scheduled = deepcopy(SCHEDULED_VESSEL)
-        scheduled["capability"] = "TOW"
-        ScheduledServiceEquipmentData.from_dict(scheduled)
-
-
-def test_check_method():
-    """Tests the ``check_method`` attrs validator method. This function is an attrs
-    validator method, and so a dummy class will be used for testing purposes. This class
-    falls in line with how the servicing equipment data classes processes these inputs,
-    so no further sophistication or parameterization should be needed.
-    """
-
-    @attr.s(auto_attribs=True)
-    class MethodClass:
-        """Dummy class for testing the ``check_method`` attrs validator"""
-
-        method: str = attr.ib(converter=[str, str.lower], validator=check_method)
-
-    # Test for invalid input
-    with pytest.raises(ValueError):
-        MethodClass(method="barnacle")
-
-    # Test for bad spelling
-    with pytest.raises(ValueError):
-        MethodClass(method="turrbine")
-
-    # Test for valid spelling, bad case
-    method = MethodClass(method="SEVERITY")
-    assert method.method == "severity"
-
-    # Test for valid spelling, bad case
-    method = MethodClass(method="TuRbInE")
-    assert method.method == "turbine"
-
-
-# TODO: rearrange to a single test functionx
 def test_FromDictMixin():
     """Test the ``FromDictMixin`` mix in class."""
 
@@ -635,15 +561,15 @@ def test_ServiceEquipmentData_determine_type():
     vessel = ServiceEquipmentData(SCHEDULED_VESSEL).determine_type()
     assert isinstance(vessel, ScheduledServiceEquipmentData)
 
-    # Test for error with mismatched definitions. This is an AttributeError because
-    # will be mismatched data encodings
-    with pytest.raises(AttributeError):
+    # Test for error with mismatched definitions. This is a ValueError because the
+    # default values are meant to cause a failure
+    with pytest.raises(ValueError):
         ServiceEquipmentData(SCHEDULED_VESSEL, strategy="requests").determine_type()
 
-    with pytest.raises(AttributeError):
+    with pytest.raises(ValueError):
         ServiceEquipmentData(SCHEDULED_VESSEL, strategy="downtime").determine_type()
 
-    with pytest.raises(AttributeError):
+    with pytest.raises(ValueError):
         ServiceEquipmentData(
             UNSCHEDULED_VESSEL_REQUESTS, strategy="scheduled"
         ).determine_type()
