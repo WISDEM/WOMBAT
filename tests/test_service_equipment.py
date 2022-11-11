@@ -60,6 +60,7 @@ def test_service_equipment_init(env_setup):
     # Check that a basic CTV initialization looks good
 
     ctv = ServiceEquipment(env, windfarm, manager, "ctv_quick_load.yaml")
+    ctv.finish_setup_with_environment_variables()
     ctv_dict = load_yaml(env.data_dir / "repair" / "transport", "ctv_quick_load.yaml")
 
     # Check the basic attribute assignments
@@ -83,6 +84,7 @@ def test_service_equipment_init(env_setup):
     # TEST 2
     # Check that a CTV with invalid start years gets corrected
     ctv = ServiceEquipment(env, windfarm, manager, "ctv_invalid_years.yaml")
+    ctv.finish_setup_with_environment_variables()
 
     # Check the basic attribute assignments
     assert ctv.env == env
@@ -105,6 +107,7 @@ def test_service_equipment_init(env_setup):
     # TEST 3
     # Check the initializtion for an unscheduled vessel for a downtime-basis
     hlv = ServiceEquipment(env, windfarm, manager, "hlv_downtime.yaml")
+    hlv.finish_setup_with_environment_variables()
     hlv_dict = load_yaml(env.data_dir / "repair" / "transport", "hlv_downtime.yaml")
 
     # Check the basic attribute assignments
@@ -136,6 +139,7 @@ def test_service_equipment_init(env_setup):
     # TEST 4
     # Check the initializtion for an unscheduled vessel for a request-basis
     hlv = ServiceEquipment(env, windfarm, manager, "hlv_requests.yaml")
+    hlv.finish_setup_with_environment_variables()
     hlv_dict = load_yaml(env.data_dir / "repair" / "transport", "hlv_requests.yaml")
 
     # Check the basic attribute assignments
@@ -164,12 +168,46 @@ def test_service_equipment_init(env_setup):
         assert getattr(manager.request_based_equipment, capability) == []
 
 
+def test_port_distance_setup(env_setup):
+    """Tests that the environment port_distance is passed through correctly."""
+    env = env_setup
+    manager = RepairManager(env)
+    windfarm = Windfarm(env, "layout.csv", manager)
+
+    # Check that a None for WombatEnvironment.port_distance does nothing
+    ctv = ServiceEquipment(env, windfarm, manager, "ctv_quick_load.yaml")
+    ctv.finish_setup_with_environment_variables()
+    assert env.port_distance is None
+    assert ctv.settings.port_distance == 0
+
+    # Check that <=0 does not override no inputs to servicing equipment settings
+    env.port_distance = -0.1
+    ctv = ServiceEquipment(env, windfarm, manager, "ctv_quick_load.yaml")
+    ctv.finish_setup_with_environment_variables()
+    assert env.port_distance == -0.1
+    assert ctv.settings.port_distance == 0
+
+    # Check that a real port_distance overrides the default servicing equipment settings
+    env.port_distance = 10
+    ctv = ServiceEquipment(env, windfarm, manager, "ctv_quick_load.yaml")
+    ctv.finish_setup_with_environment_variables()
+    assert env.port_distance == ctv.settings.port_distance == 10
+
+    # Check that an already set value to port_distance will not be overridden
+    ctv = ServiceEquipment(
+        env, windfarm, manager, "ctv_quick_load_with_port_distance.yaml"
+    )
+    ctv.finish_setup_with_environment_variables()
+    assert ctv.settings.port_distance == 1
+
+
 def test_calculate_salary_cost(env_setup):
     """Tests the ``calculate_salary_cost`` method."""
     env = env_setup
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout.csv", manager)
     ctv = ServiceEquipment(env, windfarm, manager, "ctv_wages.yaml")
+    ctv.finish_setup_with_environment_variables()
     ctv_dict = load_yaml(env.data_dir / "repair" / "transport", "ctv_wages.yaml")
     ctv_crew = ctv_dict["crew"]
 
@@ -190,6 +228,7 @@ def test_calculate_hourly_cost(env_setup):
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout.csv", manager)
     ctv = ServiceEquipment(env, windfarm, manager, "ctv_wages.yaml")
+    ctv.finish_setup_with_environment_variables()
     ctv_dict = load_yaml(env.data_dir / "repair" / "transport", "ctv_wages.yaml")
     ctv_crew = ctv_dict["crew"]
 
@@ -208,6 +247,7 @@ def test_calculate_equipment_cost(env_setup):
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout.csv", manager)
     ctv = ServiceEquipment(env, windfarm, manager, "ctv.yaml")
+    ctv.finish_setup_with_environment_variables()
     ctv_dict = load_yaml(env.data_dir / "repair" / "transport", "ctv.yaml")
 
     n_hours = 4
@@ -226,8 +266,11 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     windfarm = Windfarm(env, "layout_simulation.csv", manager)
 
     ctv = ServiceEquipment(env, windfarm, manager, "ctv.yaml")
+    ctv.finish_setup_with_environment_variables()
     fsv = ServiceEquipment(env, windfarm, manager, "fsv_scheduled.yaml")
+    fsv.finish_setup_with_environment_variables()
     hlv = ServiceEquipment(env, windfarm, manager, "hlv_scheduled.yaml")
+    hlv.finish_setup_with_environment_variables()
 
     # Start the simulation to ensure everything is in place as required
     env.run(1)
@@ -666,7 +709,9 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
 
     # ctv = ServiceEquipment(env, windfarm, manager, "ctv.yaml")
     fsv = ServiceEquipment(env, windfarm, manager, "fsv_scheduled.yaml")
+    fsv.finish_setup_with_environment_variables()
     hlv = ServiceEquipment(env, windfarm, manager, "hlv_scheduled.yaml")
+    hlv.finish_setup_with_environment_variables()
 
     # Start the simulation to ensure everything is in place as required
     env.run(1)
@@ -1801,7 +1846,9 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
 
     # ctv = ServiceEquipment(env, windfarm, manager, "ctv.yaml")
     fsv = ServiceEquipment(env, windfarm, manager, "fsv_requests.yaml")
+    fsv.finish_setup_with_environment_variables()
     hlv = ServiceEquipment(env, windfarm, manager, "hlv_downtime.yaml")
+    hlv.finish_setup_with_environment_variables()
 
     # Start the simulation to ensure everything is in place as required
     env.run(1)

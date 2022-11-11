@@ -240,6 +240,12 @@ class Simulation(FromDictMixin):
             )
             self.service_equipment.extend(self.port.tugboat_manager.items)
 
+        # After the port is setup and the associated servicing equipment are created,
+        # set the environment working hours and port distance for any unconfigured
+        # equipment-level settings
+        for service_equipment in self.config.service_equipment:
+            self.service_equipment.finish_setup_with_environment_variables()  # type: ignore
+
         if self.config.project_capacity != round(self.windfarm.capacity, 6):
             raise ValueError(
                 f"Input `project_capacity`: {self.config.project_capacity:,.6f} is not"

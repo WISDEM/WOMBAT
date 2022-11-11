@@ -227,8 +227,6 @@ class ServiceEquipment(RepairsMixin):
 
         # NOTE: mypy is not caught up with attrs yet :(
         self.settings: ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData = ServiceEquipmentData(data).determine_type()  # type: ignore
-        self._check_working_hours()
-        self.settings._set_port_distance(self.env.port_distance)
 
         # Register servicing equipment with the repair manager if it is using an
         # unscheduled maintenance scenario, so it can be dispatched as needed
@@ -242,6 +240,13 @@ class ServiceEquipment(RepairsMixin):
 
         # Create partial functions for the labor and equipment costs for clarity
         self.initialize_cost_calculators(which="equipment")
+
+    def finish_setup_with_environment_variables(self) -> None:
+        """A post-initialization step that will override unset parameters with those
+        from the the environemt that may have already been set.
+        """
+        self._check_working_hours()
+        self.settings._set_port_distance(self.env.port_distance)
 
     def _register_port(self, port: "Port") -> None:
         """Method for a tugboat at attach the port for two-way communications. This also
