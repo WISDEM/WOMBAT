@@ -223,6 +223,7 @@ class Simulation(FromDictMixin):
             workday_end=self.config.workday_end,
             start_year=self.config.start_year,
             end_year=self.config.end_year,
+            port_distance=self.config.port_distance,
         )
         self.repair_manager = RepairManager(self.env)
         self.windfarm = Windfarm(self.env, self.config.layout, self.repair_manager)

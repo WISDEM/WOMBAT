@@ -228,6 +228,7 @@ class ServiceEquipment(RepairsMixin):
         # NOTE: mypy is not caught up with attrs yet :(
         self.settings: ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData = ServiceEquipmentData(data).determine_type()  # type: ignore
         self._check_working_hours()
+        self.settings._set_port_distance(self.env.port_distance)
 
         # Register servicing equipment with the repair manager if it is using an
         # unscheduled maintenance scenario, so it can be dispatched as needed
@@ -253,7 +254,7 @@ class ServiceEquipment(RepairsMixin):
         """
         self.port = port
         self.at_port = True
-        self.settings._set_distance(port.settings.site_distance)  # type: ignore
+        self.settings._set_port_distance(port.settings.site_distance)  # type: ignore
 
     def _set_location(self, end: str, set_current: Optional[str] = None) -> None:
         """Keeps track of the servicing equipment by setting the location at either:

@@ -39,6 +39,7 @@ class WombatEnvironment(simpy.Environment):
         simulation_name: str | None = None,
         start_year: int | None = None,
         end_year: int | None = None,
+        port_distance: int | float | None = None,
     ) -> None:
         """Initialization.
 
@@ -71,6 +72,11 @@ class WombatEnvironment(simpy.Environment):
         end_year : int | None, optional
             Custom ending year for the weather profile, by default None. If ``None`` or
             greater than the last year of the weather profile, this will be ignored.
+        port_distance : int | float
+            The simulation-wide daily travel distance for servicing equipment. This
+            should be used as a base setting when multiple or all servicing equipment
+            will be operating out of the same base location, but can be individually
+            modified.
 
         Raises
         ------
@@ -93,6 +99,7 @@ class WombatEnvironment(simpy.Environment):
                 "Work shifts must end after they start ({self.workday_start}hrs)."
             )
 
+        self.port_distance = port_distance
         self.weather = self._weather_setup(weather_file, start_year, end_year)
         self.weather_dates = self.weather.index.to_pydatetime()
         self.max_run_time = self.weather.shape[0]

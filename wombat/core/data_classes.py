@@ -827,6 +827,20 @@ class ScheduledServiceEquipmentData(FromDictMixin):
         object.__setattr__(self, "workday_start", start)
         object.__setattr__(self, "workday_end", end)
 
+    def _set_port_distance(self, distance: int | float | None) -> None:
+        """Used to set ``port_distance`` from the environment's or port's variables.
+
+        Parameters
+        ----------
+        distance : int | float
+            The distance to port that must be traveled for servicing equipment.
+        """
+        distance = 0 if distance is None or distance < 0 else distance
+        if self.port_distance is None:
+            object.__setattr__(self, "port_distance", distance)
+        if self.port_distance <= 0:
+            object.__setattr__(self, "port_distance", distance)
+
     def __attrs_post_init__(self) -> None:
         object.__setattr__(
             self, "capability", convert_to_list(self.capability, str.upper)
@@ -1005,15 +1019,17 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         object.__setattr__(self, "workday_start", start)
         object.__setattr__(self, "workday_end", end)
 
-    def _set_distance(self, distance: int | float) -> None:
-        """Method to enable the port to set a vessel's travel distance if the provided
-        input is less than or equal to zero.
+    def _set_port_distance(self, distance: int | float | None) -> None:
+        """Used to set ``port_distance`` from the environment's or port's variables.
 
         Parameters
         ----------
         distance : int | float
-            The distance a vessel will travel, from site to port, or vice versa, in km.
+            The distance to port that must be traveled for servicing equipment.
         """
+        distance = 0 if distance is None or distance < 0 else distance
+        if self.port_distance is None:
+            object.__setattr__(self, "port_distance", distance)
         if self.port_distance <= 0:
             object.__setattr__(self, "port_distance", distance)
 
