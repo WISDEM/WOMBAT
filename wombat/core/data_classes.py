@@ -271,76 +271,6 @@ def greater_than_equal_to_zero(
         raise ValueError("Input must be at least 0.")
 
 
-def check_capability(
-    instance: Any,  # pylint: disable=W0613
-    attribute: Attribute,
-    value: str | list[str],
-) -> None:
-    """Validator that ensures capability has a valid input.
-
-    Parameters
-    ----------
-    instance : Any
-        A class object.
-    attribute : Attribute
-        The attribute being validated.
-    value : str | list[str]
-        The servicing equipment's capability. Should be one of the following:
-         - CTV: crew transfer vehicle/vessel
-         - SCN: small crane
-         - LCN: large crane
-         - CAB: cabling equipment/vessel
-         - RMT: remote reset
-         - DRN: drone
-         - DSV: diving support vessel
-         - TOW: tugboat or towing equipment
-         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
-
-    Raises
-    ------
-    ValueError
-        Raised if a `ScheduledServicingEquipment` has been given the "TOW" capability.
-    ValueError
-        Raised if the input is not of the valid inputs.
-    """
-    valid = set(VALID_EQUIPMENT)
-    values = set(value)
-    invalid = values - valid
-    if isinstance(instance, ScheduledServiceEquipmentData):
-        if "TOW" in values:
-            raise ValueError(
-                f"Scheduled servicing equipment, {instance.name}, cannot have the `TOW` capability."
-            )
-    if invalid:
-        raise ValueError(f"Input {attribute.name} must be any combination of {valid}.")
-
-
-def check_method(
-    instance: Any, attribute: Attribute, value: str  # pylint: disable=W0613
-) -> None:
-    """Validator that ensures that method is a valid input.
-
-    Parameters
-    ----------
-    instance : Any
-        A class object.
-    attribute : Attribute
-        The attribute being validated.
-    value : str
-        The priority method for retreiving the next repair. Should be one of:
-         - turbine: get all repairs on a turbine/system first, regardless of severity.
-         - severity: move from highest to lowest priority, regardless of location.
-
-    Raises
-    ------
-    ValueError
-        Raised ``value`` is not one of valid inputs.
-    """
-    valid = ("turbine", "severity")
-    if value not in valid:
-        raise ValueError(f"Input {attribute.name} must be one of {valid}.")
-
-
 @define
 class FromDictMixin:
     """A Mixin class to allow for kwargs overloading when a data class doesn't
@@ -422,7 +352,7 @@ class Maintenance(FromDictMixin):
     materials: float = field(converter=float)
     frequency: float = field(converter=float)
     service_equipment: list[str] = field(
-        converter=convert_to_list_upper, validator=check_capability  # type: ignore
+        converter=convert_to_list_upper, validator=attrs.validators.in_(VALID_EQUIPMENT)
     )
     system_value: int | float = field(converter=float)
     description: str = field(default="routine maintenance", converter=str)
@@ -500,7 +430,7 @@ class Failure(FromDictMixin):
     operation_reduction: float = field(converter=float)
     level: int = field(converter=int)
     service_equipment: list[str] | str = field(
-        converter=convert_to_list_upper, validator=check_capability  # type: ignore
+        converter=convert_to_list_upper, validator=attrs.validators.in_(VALID_EQUIPMENT)
     )
     system_value: int | float = field(converter=float)
     description: str = field(default="failure", converter=str)
@@ -673,7 +603,66 @@ class ServiceCrew(FromDictMixin):
 
 
 @define(frozen=True, auto_attribs=True)
-class ScheduledServiceEquipmentData(FromDictMixin):
+class BaseServiceEquipmentData(FromDictMixin):
+    name: str = field(converter=str)
+    equipment_rate: float = field(converter=float)
+    n_crews: int = field(converter=int)
+    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
+    capability: list[str] | str = field(
+        converter=convert_to_list_upper, validator=attrs.validators.in_(VALID_EQUIPMENT)
+    )
+    speed: float = field(converter=float, validator=greater_than_zero)
+    max_windspeed_transport: float = field(converter=float)
+    max_windspeed_repair: float = field(converter=float)
+    mobilization_cost: float = field(default=0, converter=float)
+    mobilization_days: int = field(default=0, converter=int)
+    max_waveheight_transport: float = field(default=1000.0, converter=float)
+    max_waveheight_repair: float = field(default=1000.0, converter=float)
+    workday_start: int = field(default=-1, converter=int, validator=valid_hour)
+    workday_end: int = field(default=-1, converter=int, validator=valid_hour)
+    crew_transfer_time: float = field(converter=float, default=0.0)
+    speed_reduction_factor: float = field(
+        default=0.0, converter=float, validator=valid_reduction
+    )
+    port_distance: float = field(default=0, converter=float)
+    onsite: bool = field(default=False, converter=bool)
+    method: str = field(  # type: ignore
+        default="severity",
+        converter=[str, str.lower],  # type: ignore
+        validator=attrs.validators.in_(["turbine", "severity"]),
+    )
+
+    def _set_environment_shift(self, start: int, end: int) -> None:
+        """Used to set the ``workday_start`` and ``workday_end`` to the environment's values.
+
+        Parameters
+        ----------
+        start : int
+            Starting hour of a workshift.
+        end : int
+            Ending hour of a workshift.
+        """
+        object.__setattr__(self, "workday_start", start)
+        object.__setattr__(self, "workday_end", end)
+
+    def _set_port_distance(self, distance: int | float | None) -> None:
+        """Used to set ``port_distance`` from the environment's or port's variables.
+
+        Parameters
+        ----------
+        distance : int | float
+            The distance to port that must be traveled for servicing equipment.
+        """
+        if distance is None:
+            return
+        if distance <= 0:
+            return
+        if self.port_distance <= 0:
+            object.__setattr__(self, "port_distance", distance)
+
+
+@define(frozen=True, auto_attribs=True)
+class ScheduledServiceEquipmentData(BaseServiceEquipmentData):
     """The data class specification for servicing equipment that will use a pre-scheduled
     basis for returning to site.
 
@@ -754,39 +743,39 @@ class ScheduledServiceEquipmentData(FromDictMixin):
         default 0.
     """
 
-    name: str = field(converter=str)
-    equipment_rate: float = field(converter=float)
-    n_crews: int = field(converter=int)
-    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
+    # name: str = field(converter=str)
+    # equipment_rate: float = field(converter=float)
+    # n_crews: int = field(converter=int)
+    # crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
     start_month: int = field(converter=int)
     start_day: int = field(converter=int)
     start_year: int = field(converter=int)
     end_month: int = field(converter=int)
     end_day: int = field(converter=int)
     end_year: int = field(converter=int)
-    capability: list[str] | str = field(
-        converter=convert_to_list_upper, validator=check_capability  # type: ignore
-    )
-    mobilization_cost: float = field(converter=float)
-    mobilization_days: int = field(converter=int)
-    speed: float = field(converter=float, validator=greater_than_zero)
-    max_windspeed_transport: float = field(converter=float)
-    max_windspeed_repair: float = field(converter=float)
-    max_waveheight_transport: float = field(default=1000.0, converter=float)
-    max_waveheight_repair: float = field(default=1000.0, converter=float)
-    workday_start: int = field(default=-1, converter=int, validator=valid_hour)
-    workday_end: int = field(default=-1, converter=int, validator=valid_hour)
-    crew_transfer_time: float = field(converter=float, default=0.0)
-    speed_reduction_factor: float = field(
-        default=0.0, converter=float, validator=valid_reduction
-    )
-    port_distance: float = field(default=0, converter=float)
-    onsite: bool = field(default=False, converter=bool)
-    method: str = field(  # type: ignore
-        default="severity",
-        converter=[str, str.lower],  # type: ignore
-        validator=check_method,
-    )
+    # capability: list[str] | str = field(
+    #     converter=convert_to_list_upper, validator=check_capability  # type: ignore
+    # )
+    # mobilization_cost: float = field(converter=float)
+    # mobilization_days: int = field(converter=int)
+    # speed: float = field(converter=float, validator=greater_than_zero)
+    # max_windspeed_transport: float = field(converter=float)
+    # max_windspeed_repair: float = field(converter=float)
+    # max_waveheight_transport: float = field(default=1000.0, converter=float)
+    # max_waveheight_repair: float = field(default=1000.0, converter=float)
+    # workday_start: int = field(default=-1, converter=int, validator=valid_hour)
+    # workday_end: int = field(default=-1, converter=int, validator=valid_hour)
+    # crew_transfer_time: float = field(converter=float, default=0.0)
+    # speed_reduction_factor: float = field(
+    #     default=0.0, converter=float, validator=valid_reduction
+    # )
+    # port_distance: float = field(default=0, converter=float)
+    # onsite: bool = field(default=False, converter=bool)
+    # method: str = field(  # type: ignore
+    #     default="severity",
+    #     converter=[str, str.lower],  # type: ignore
+    #     validator=check_method,
+    # )
     operating_dates: np.ndarray = field(init=False)
     _operating_dates_set: set = field(init=False)
     strategy: str = field(default="scheduled")
@@ -814,44 +803,13 @@ class ScheduledServiceEquipmentData(FromDictMixin):
             )
         return date_range
 
-    def _set_environment_shift(self, start: int, end: int) -> None:
-        """Used to set the ``workday_start`` and ``workday_end`` to the environment's values.
-
-        Parameters
-        ----------
-        start : int
-            Starting hour of a workshift.
-        end : int
-            Ending hour of a workshift.
-        """
-        object.__setattr__(self, "workday_start", start)
-        object.__setattr__(self, "workday_end", end)
-
-    def _set_port_distance(self, distance: int | float | None) -> None:
-        """Used to set ``port_distance`` from the environment's or port's variables.
-
-        Parameters
-        ----------
-        distance : int | float
-            The distance to port that must be traveled for servicing equipment.
-        """
-        if distance is None:
-            return
-        if distance <= 0:
-            return
-        if self.port_distance <= 0:
-            object.__setattr__(self, "port_distance", distance)
-
     def __attrs_post_init__(self) -> None:
-        object.__setattr__(
-            self, "capability", convert_to_list(self.capability, str.upper)
-        )
         object.__setattr__(self, "operating_dates", self.create_date_range())
         object.__setattr__(self, "_operating_dates_set", set(self.operating_dates))
 
 
 @define(frozen=True, auto_attribs=True)
-class UnscheduledServiceEquipmentData(FromDictMixin):
+class UnscheduledServiceEquipmentData(BaseServiceEquipmentData):
     """The data class specification for servicing equipment that will use either a
     basis of windfarm downtime or total number of requests serviceable by the equipment.
 
@@ -942,37 +900,37 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         default 0.
     """
 
-    name: str = field(converter=str)
-    equipment_rate: float = field(converter=float)
-    n_crews: int = field(converter=int)
-    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
+    # name: str = field(converter=str)
+    # equipment_rate: float = field(converter=float)
+    # n_crews: int = field(converter=int)
+    # crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
     charter_days: int = field(converter=int)
-    capability: list[str] | str = field(
-        converter=convert_to_list_upper, validator=check_capability  # type: ignore
-    )
-    speed: float = field(converter=float, validator=greater_than_zero)
-    max_windspeed_transport: float = field(converter=float)
-    max_windspeed_repair: float = field(converter=float)
+    # capability: list[str] | str = field(
+    #     converter=convert_to_list_upper, validator=check_capability  # type: ignore
+    # )
+    # speed: float = field(converter=float, validator=greater_than_zero)
+    # max_windspeed_transport: float = field(converter=float)
+    # max_windspeed_repair: float = field(converter=float)
     strategy: str | None = field(converter=clean_string_input)
     strategy_threshold: int | float = field(converter=float)
     tow_speed: float = field(default=1, converter=float, validator=greater_than_zero)
-    max_waveheight_transport: float = field(default=1000)
-    max_waveheight_repair: float = field(default=1000)
-    mobilization_cost: float = field(default=0, converter=float)
-    mobilization_days: int = field(default=0, converter=int)
-    workday_start: int = field(default=-1, converter=int, validator=valid_hour)
-    workday_end: int = field(default=-1, converter=int, validator=valid_hour)
-    crew_transfer_time: float = field(converter=float, default=0.0)
-    speed_reduction_factor: float = field(
-        default=0.0, converter=float, validator=valid_reduction
-    )
-    onsite: bool = field(default=False)
-    method: str = field(  # type: ignore
-        default="severity",
-        converter=[str, str.lower],  # type: ignore
-        validator=check_method,
-    )
-    port_distance: int | float = field(default=0, converter=float)
+    # max_waveheight_transport: float = field(default=1000)
+    # max_waveheight_repair: float = field(default=1000)
+    # mobilization_cost: float = field(default=0, converter=float)
+    # mobilization_days: int = field(default=0, converter=int)
+    # workday_start: int = field(default=-1, converter=int, validator=valid_hour)
+    # workday_end: int = field(default=-1, converter=int, validator=valid_hour)
+    # crew_transfer_time: float = field(converter=float, default=0.0)
+    # speed_reduction_factor: float = field(
+    #     default=0.0, converter=float, validator=valid_reduction
+    # )
+    # onsite: bool = field(default=False)
+    # method: str = field(  # type: ignore
+    #     default="severity",
+    #     converter=[str, str.lower],  # type: ignore
+    #     validator=check_method,
+    # )
+    # port_distance: int | float = field(default=0, converter=float)
     unmoor_hours: int | float = field(default=0, converter=float)
     reconnection_hours: int | float = field(default=0, converter=float)
 
@@ -1007,38 +965,38 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
                     "greater than 0!",
                 )
 
-    def _set_environment_shift(self, start: int, end: int) -> None:
-        """Used to set the ``workday_start`` and ``workday_end`` to the environment's values.
+    # def _set_environment_shift(self, start: int, end: int) -> None:
+    #     """Used to set the ``workday_start`` and ``workday_end`` to the environment's values.
 
-        Parameters
-        ----------
-        start : int
-            Starting hour of a workshift.
-        end : int
-            Ending hour of a workshift.
-        """
-        object.__setattr__(self, "workday_start", start)
-        object.__setattr__(self, "workday_end", end)
+    #     Parameters
+    #     ----------
+    #     start : int
+    #         Starting hour of a workshift.
+    #     end : int
+    #         Ending hour of a workshift.
+    #     """
+    #     object.__setattr__(self, "workday_start", start)
+    #     object.__setattr__(self, "workday_end", end)
 
-    def _set_port_distance(self, distance: int | float | None) -> None:
-        """Used to set ``port_distance`` from the environment's or port's variables.
+    # def _set_port_distance(self, distance: int | float | None) -> None:
+    #     """Used to set ``port_distance`` from the environment's or port's variables.
 
-        Parameters
-        ----------
-        distance : int | float
-            The distance to port that must be traveled for servicing equipment.
-        """
-        if distance is None:
-            return
-        if distance <= 0:
-            return
-        if self.port_distance <= 0:
-            object.__setattr__(self, "port_distance", distance)
+    #     Parameters
+    #     ----------
+    #     distance : int | float
+    #         The distance to port that must be traveled for servicing equipment.
+    #     """
+    #     if distance is None:
+    #         return
+    #     if distance <= 0:
+    #         return
+    #     if self.port_distance <= 0:
+    # #         object.__setattr__(self, "port_distance", distance)
 
-    def __attrs_post_init__(self) -> None:
-        object.__setattr__(
-            self, "capability", convert_to_list(self.capability, str.upper)
-        )
+    # def __attrs_post_init__(self) -> None:
+    #     object.__setattr__(
+    #         self, "capability", convert_to_list(self.capability, str.upper)
+    #     )
 
 
 @define(frozen=True, auto_attribs=True)
