@@ -835,9 +835,10 @@ class ScheduledServiceEquipmentData(FromDictMixin):
         distance : int | float
             The distance to port that must be traveled for servicing equipment.
         """
-        distance = 0 if distance is None or distance < 0 else distance
-        if self.port_distance is None:
-            object.__setattr__(self, "port_distance", distance)
+        if distance is None:
+            return
+        if distance <= 0:
+            return
         if self.port_distance <= 0:
             object.__setattr__(self, "port_distance", distance)
 
@@ -1027,9 +1028,10 @@ class UnscheduledServiceEquipmentData(FromDictMixin):
         distance : int | float
             The distance to port that must be traveled for servicing equipment.
         """
-        distance = 0 if distance is None or distance < 0 else distance
-        if self.port_distance is None:
-            object.__setattr__(self, "port_distance", distance)
+        if distance is None:
+            return
+        if distance <= 0:
+            return
         if self.port_distance <= 0:
             object.__setattr__(self, "port_distance", distance)
 
