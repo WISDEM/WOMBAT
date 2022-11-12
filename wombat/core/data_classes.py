@@ -159,6 +159,37 @@ def annual_date_range(
     return date_ranges
 
 
+def annualized_date_range(
+    start_date: str, start_year: int, end_date: str, end_year: int
+) -> set[datetime.datetime]:
+    """Creates an annualized list of dates based on the simulation years.
+
+    Parameters
+    ----------
+    start_date : str
+        The string start month and day in MM/DD or MM-DD format.
+    start_year : int
+        _description_
+    end_date : str
+        The string end month and day in MM/DD or MM-DD format.
+    end_year : int
+        _description_
+
+    Returns
+    -------
+    set[datetime.datetime]
+        _description_
+    """
+    additional = 1 if end_date < start_date else 0
+    dates = [
+        pd.date_range(
+            f"{start_date}-{year}", f"{end_date}-{year + additional}", freq="D"
+        ).date
+        for year in range(start_year, end_year + 1)
+    ]
+    return set(dates)
+
+
 def convert_ratio_to_absolute(ratio: int | float, total: int | float) -> int | float:
     """Converts a proportional cost to an absolute cost.
 
@@ -647,6 +678,13 @@ class BaseServiceEquipmentData(FromDictMixin):
         converter=[str, str.lower],  # type: ignore
         validator=attrs.validators.in_(["turbine", "severity"]),
     )
+    non_operational_start: str | datetime.datetime = field(default=None)
+    non_operational_end: str | datetime.datetime = field(default=None)
+    reduced_speed_start: str | datetime.datetime = field(default=None)
+    reduced_speed_end: str | datetime.datetime = field(default=None)
+    reduced_speed: float = field(default=0, converter=float)
+    non_operational_dates: pd.DatetimeIndex = field(init=False)
+    reduced_speed_dates: pd.DatetimeIndex = field(init=False)
 
     def _set_environment_shift(self, start: int, end: int) -> None:
         """Used to set the ``workday_start`` and ``workday_end`` to the environment's values.
@@ -675,6 +713,43 @@ class BaseServiceEquipmentData(FromDictMixin):
             return
         if self.port_distance <= 0:
             object.__setattr__(self, "port_distance", distance)
+
+    def set_non_operational_dates(self, start_year: int, end_year: int) -> None:
+        """Creates an annualized list of dates based on the simulation"""
+        if self.non_operational_start is None or self.non_operational_end is None:
+            object.__setattr__(self, "non_operational_dates", set())
+        if self.non_operational_start == self.non_operational_end:
+            raise ValueError(
+                "Non-operational starting and ending dates must be different."
+            )
+        object.__setattr__(
+            self,
+            "non_operational_dates",
+            annualized_date_range(
+                self.non_operational_start,
+                start_year,
+                self.non_operational_end,
+                end_year,
+            ),
+        )
+
+    def set_reduced_speed_dates(self, start_year: int, end_year: int) -> None:
+        """Creates an annualized list of dates based on the simulation"""
+        if self.reduced_speed_start is None or self.reduced_speed_end is None:
+            object.__setattr__(self, "reduced_speed_dates", set())
+
+        if self.reduced_speed_start == self.reduced_speed_end:
+            raise ValueError(
+                "Reduced speed starting and ending dates must be different."
+            )
+
+        object.__setattr__(
+            self,
+            "reduced_speed_dates",
+            annualized_date_range(
+                self.reduced_speed_start, start_year, self.reduced_speed_end, end_year
+            ),
+        )
 
 
 @define(frozen=True, auto_attribs=True)
@@ -759,10 +834,6 @@ class ScheduledServiceEquipmentData(BaseServiceEquipmentData):
         default 0.
     """
 
-    # name: str = field(converter=str)
-    # equipment_rate: float = field(converter=float)
-    # n_crews: int = field(converter=int)
-    # crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
     start_month: int = field(
         default=-1, converter=int, validator=attrs.validators.ge(0)
     )
@@ -771,29 +842,6 @@ class ScheduledServiceEquipmentData(BaseServiceEquipmentData):
     end_month: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
     end_day: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
     end_year: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
-    # capability: list[str] | str = field(
-    #     converter=convert_to_list_upper, validator=check_capability  # type: ignore
-    # )
-    # mobilization_cost: float = field(converter=float)
-    # mobilization_days: int = field(converter=int)
-    # speed: float = field(converter=float, validator=greater_than_zero)
-    # max_windspeed_transport: float = field(converter=float)
-    # max_windspeed_repair: float = field(converter=float)
-    # max_waveheight_transport: float = field(default=1000.0, converter=float)
-    # max_waveheight_repair: float = field(default=1000.0, converter=float)
-    # workday_start: int = field(default=-1, converter=int, validator=valid_hour)
-    # workday_end: int = field(default=-1, converter=int, validator=valid_hour)
-    # crew_transfer_time: float = field(converter=float, default=0.0)
-    # speed_reduction_factor: float = field(
-    #     default=0.0, converter=float, validator=valid_reduction
-    # )
-    # port_distance: float = field(default=0, converter=float)
-    # onsite: bool = field(default=False, converter=bool)
-    # method: str = field(  # type: ignore
-    #     default="severity",
-    #     converter=[str, str.lower],  # type: ignore
-    #     validator=check_method,
-    # )
     strategy: str = field(
         default="scheduled", validator=attrs.validators.in_(["scheduled"])
     )
@@ -920,16 +968,6 @@ class UnscheduledServiceEquipmentData(BaseServiceEquipmentData):
         default 0.
     """
 
-    # name: str = field(converter=str)
-    # equipment_rate: float = field(converter=float)
-    # n_crews: int = field(converter=int)
-    # crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
-    # capability: list[str] | str = field(
-    #     converter=convert_to_list_upper, validator=check_capability  # type: ignore
-    # )
-    # speed: float = field(converter=float, validator=greater_than_zero)
-    # max_windspeed_transport: float = field(converter=float)
-    # max_windspeed_repair: float = field(converter=float)
     strategy: str | None = field(
         default="unscheduled",
         converter=clean_string_input,
@@ -940,23 +978,6 @@ class UnscheduledServiceEquipmentData(BaseServiceEquipmentData):
         default=-1, converter=int, validator=attrs.validators.gt(0)
     )
     tow_speed: float = field(default=1, converter=float, validator=greater_than_zero)
-    # max_waveheight_transport: float = field(default=1000)
-    # max_waveheight_repair: float = field(default=1000)
-    # mobilization_cost: float = field(default=0, converter=float)
-    # mobilization_days: int = field(default=0, converter=int)
-    # workday_start: int = field(default=-1, converter=int, validator=valid_hour)
-    # workday_end: int = field(default=-1, converter=int, validator=valid_hour)
-    # crew_transfer_time: float = field(converter=float, default=0.0)
-    # speed_reduction_factor: float = field(
-    #     default=0.0, converter=float, validator=valid_reduction
-    # )
-    # onsite: bool = field(default=False)
-    # method: str = field(  # type: ignore
-    #     default="severity",
-    #     converter=[str, str.lower],  # type: ignore
-    #     validator=check_method,
-    # )
-    # port_distance: int | float = field(default=0, converter=float)
     unmoor_hours: int | float = field(default=0, converter=float)
     reconnection_hours: int | float = field(default=0, converter=float)
 
@@ -979,39 +1000,6 @@ class UnscheduledServiceEquipmentData(BaseServiceEquipmentData):
                     "Requests-based strategies must have a ``strategy_threshold``",
                     "greater than 0!",
                 )
-
-    # def _set_environment_shift(self, start: int, end: int) -> None:
-    #     """Used to set the ``workday_start`` and ``workday_end`` to the environment's values.
-
-    #     Parameters
-    #     ----------
-    #     start : int
-    #         Starting hour of a workshift.
-    #     end : int
-    #         Ending hour of a workshift.
-    #     """
-    #     object.__setattr__(self, "workday_start", start)
-    #     object.__setattr__(self, "workday_end", end)
-
-    # def _set_port_distance(self, distance: int | float | None) -> None:
-    #     """Used to set ``port_distance`` from the environment's or port's variables.
-
-    #     Parameters
-    #     ----------
-    #     distance : int | float
-    #         The distance to port that must be traveled for servicing equipment.
-    #     """
-    #     if distance is None:
-    #         return
-    #     if distance <= 0:
-    #         return
-    #     if self.port_distance <= 0:
-    # #         object.__setattr__(self, "port_distance", distance)
-
-    # def __attrs_post_init__(self) -> None:
-    #     object.__setattr__(
-    #         self, "capability", convert_to_list(self.capability, str.upper)
-    #     )
 
 
 @define(frozen=True, auto_attribs=True)
