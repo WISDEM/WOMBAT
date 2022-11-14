@@ -149,15 +149,13 @@ def annual_date_range(
     # Create a list of arrays of date ranges for each year
     start = datetime.datetime(1, start_month, start_day)
     end = datetime.datetime(1, end_month, end_day)
-    date_ranges = np.hstack(
-        [
-            pd.date_range(start.replace(year=year), end.replace(year=year)).date
-            for year in range(start_year, end_year + 1)
-        ]
-    )
+    date_ranges = [
+        pd.date_range(start.replace(year=year), end.replace(year=year)).date
+        for year in range(start_year, end_year + 1)
+    ]
 
     # Return a 1-D array
-    return date_ranges
+    return np.hstack(date_ranges)
 
 
 def annualized_date_range(
@@ -188,7 +186,7 @@ def annualized_date_range(
         ).date
         for year in range(start_year, end_year + 1)
     ]
-    return set(dates)
+    return set(np.hstack(dates))
 
 
 def convert_ratio_to_absolute(ratio: int | float, total: int | float) -> int | float:
@@ -684,8 +682,8 @@ class BaseServiceEquipmentData(FromDictMixin):
     reduced_speed_start: str = field(default=None)
     reduced_speed_end: str = field(default=None)
     reduced_speed: float = field(default=0, converter=float)
-    non_operational_dates: pd.DatetimeIndex = field(init=False)
-    reduced_speed_dates: pd.DatetimeIndex = field(init=False)
+    non_operational_dates: pd.DatetimeIndex = field(factory=set, init=False)
+    reduced_speed_dates: pd.DatetimeIndex = field(factory=set, init=False)
 
     @non_operational_end.validator  # type: ignore
     @reduced_speed_end.validator  # type: ignore
@@ -770,6 +768,7 @@ class BaseServiceEquipmentData(FromDictMixin):
         """
         if self.non_operational_start is None or self.non_operational_end is None:
             object.__setattr__(self, "non_operational_dates", set())
+            return
         object.__setattr__(
             self,
             "non_operational_dates",
@@ -800,6 +799,7 @@ class BaseServiceEquipmentData(FromDictMixin):
         """
         if self.reduced_speed_start is None or self.reduced_speed_end is None:
             object.__setattr__(self, "reduced_speed_dates", set())
+            return
         object.__setattr__(
             self,
             "reduced_speed_dates",
