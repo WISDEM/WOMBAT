@@ -14,6 +14,7 @@ import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
 from attrs import Factory, Attribute, field, define  # type: ignore
 from scipy.stats import weibull_min  # type: ignore
+from dateutil.parser import parse
 
 from wombat.utilities import HOURS_IN_DAY, HOURS_IN_YEAR
 
@@ -678,13 +679,49 @@ class BaseServiceEquipmentData(FromDictMixin):
         converter=[str, str.lower],  # type: ignore
         validator=attrs.validators.in_(["turbine", "severity"]),
     )
-    non_operational_start: str | datetime.datetime = field(default=None)
-    non_operational_end: str | datetime.datetime = field(default=None)
-    reduced_speed_start: str | datetime.datetime = field(default=None)
-    reduced_speed_end: str | datetime.datetime = field(default=None)
+    non_operational_start: str = field(default=None)
+    non_operational_end: str = field(default=None)
+    reduced_speed_start: str = field(default=None)
+    reduced_speed_end: str = field(default=None)
     reduced_speed: float = field(default=0, converter=float)
     non_operational_dates: pd.DatetimeIndex = field(init=False)
     reduced_speed_dates: pd.DatetimeIndex = field(init=False)
+
+    @non_operational_end.validator  # type: ignore
+    @reduced_speed_end.validator  # type: ignore
+    def check_dates_non_operation(
+        self, attribute: attr.Attribute, value: str | None
+    ) -> None:
+        """Ensures the date range start and stop points are not the same."""
+        if attribute.name == "non_operational_end":
+            start_date = self.non_operational_start
+            start_name = "non_operational_start"
+        else:
+            start_date = self.reduced_speed_start
+            start_name = "reduced_speed_start"
+
+        if value is None:
+            if start_date is None:
+                return
+            raise ValueError(
+                f"A starting date was provided, but no ending date was provided for `{attribute.name}`."
+            )
+
+        if start_date is None:
+            raise ValueError(
+                f"An ending date was provided, but no starting date was provided for `{start_name}`."
+            )
+
+        assert isinstance(start_date, str)  # mypy helper
+        assert isinstance(value, str)  # mypy helper
+        start_dt = parse(start_date)
+        end_dt = parse(value)
+
+        if start_dt.month == end_dt.month and start_dt.day == end_dt.day:
+            raise ValueError(
+                f"Starting date (`{start_name}`={start_date} and ending date"
+                f" (`{attribute.name}`={value}) cannot be the same date."
+            )
 
     def _set_environment_shift(self, start: int, end: int) -> None:
         """Used to set the ``workday_start`` and ``workday_end`` to the environment's values.
@@ -715,13 +752,24 @@ class BaseServiceEquipmentData(FromDictMixin):
             object.__setattr__(self, "port_distance", distance)
 
     def set_non_operational_dates(self, start_year: int, end_year: int) -> None:
-        """Creates an annualized list of dates based on the simulation"""
+        """Creates an annualized list of dates where servicing equipment should be
+        unavailable. Takes a a ``start_year`` and ``end_year`` to determine how many
+        years should be covered.
+
+        Parameters
+        ----------
+        start_year : int
+            The first year that has a non-operational date range.
+        end_year : int
+            The last year that should have a non-operational date range.
+
+        Raises
+        ------
+        ValueError
+            Raised if the starting and ending dates are the same date.
+        """
         if self.non_operational_start is None or self.non_operational_end is None:
             object.__setattr__(self, "non_operational_dates", set())
-        if self.non_operational_start == self.non_operational_end:
-            raise ValueError(
-                "Non-operational starting and ending dates must be different."
-            )
         object.__setattr__(
             self,
             "non_operational_dates",
@@ -734,15 +782,24 @@ class BaseServiceEquipmentData(FromDictMixin):
         )
 
     def set_reduced_speed_dates(self, start_year: int, end_year: int) -> None:
-        """Creates an annualized list of dates based on the simulation"""
+        """Creates an annualized list of dates where servicing equipment should be
+        operating with reduced speeds. Takes a a ``start_year`` and ``end_year`` to
+        determine how many years should be covered.
+
+        Parameters
+        ----------
+        start_year : int
+            The first year that has a reduced speed date range.
+        end_year : int
+            The last year that should have a reduced speed date range.
+
+        Raises
+        ------
+        ValueError
+            Raised if the starting and ending dates are the same date.
+        """
         if self.reduced_speed_start is None or self.reduced_speed_end is None:
             object.__setattr__(self, "reduced_speed_dates", set())
-
-        if self.reduced_speed_start == self.reduced_speed_end:
-            raise ValueError(
-                "Reduced speed starting and ending dates must be different."
-            )
-
         object.__setattr__(
             self,
             "reduced_speed_dates",
