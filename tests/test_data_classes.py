@@ -23,7 +23,6 @@ from wombat.core.data_classes import (
     RepairRequest,
     SubassemblyData,
     ServiceEquipmentData,
-    BaseServiceEquipmentData,
     ScheduledServiceEquipmentData,
     UnscheduledServiceEquipmentData,
     valid_hour,
@@ -586,7 +585,7 @@ def test_BaseServiceEquipmentData():
     """Tests the basic setups common to scheduled and unscheduled servicing equipment."""
 
     # Test that no start/end dates produce empty date sets
-    vessel = BaseServiceEquipmentData.from_dict(SCHEDULED_VESSEL)
+    vessel = ScheduledServiceEquipmentData.from_dict(SCHEDULED_VESSEL)
 
     vessel.set_non_operational_dates(start_year=2000, end_year=2020)
     vessel.set_reduced_speed_dates(start_year=2000, end_year=2020)
@@ -597,25 +596,25 @@ def test_BaseServiceEquipmentData():
     data = deepcopy(SCHEDULED_VESSEL)
     data["reduced_speed_start"] = "11/14"
     with pytest.raises(ValueError):
-        BaseServiceEquipmentData.from_dict(data)
+        ScheduledServiceEquipmentData.from_dict(data)
 
     data["reduced_speed_start"] = None
     data["non_operational_end"] = "11/14"
     with pytest.raises(ValueError):
-        BaseServiceEquipmentData.from_dict(data)
+        ScheduledServiceEquipmentData.from_dict(data)
 
     # Test that same dates create an error
     data["reduced_speed_start"] = "11/14"
     data["reduced_speed_end"] = "11-14"
     with pytest.raises(ValueError):
-        BaseServiceEquipmentData.from_dict(data)
+        ScheduledServiceEquipmentData.from_dict(data)
 
     data["reduced_speed_start"] = None
     data["reduced_speed_end"] = None
     data["non_operational_start"] = "11-14"
     data["non_operational_end"] = "11/14"
     with pytest.raises(ValueError):
-        BaseServiceEquipmentData.from_dict(data)
+        ScheduledServiceEquipmentData.from_dict(data)
 
     # Test valid same-year dates
     # NOTE: 3 days x 3 years should create 9 valid dates in the set
@@ -623,7 +622,7 @@ def test_BaseServiceEquipmentData():
     data["reduced_speed_start"] = "11/14"
     data["reduced_speed_end"] = "11/16"
 
-    vessel = BaseServiceEquipmentData.from_dict(data)
+    vessel = ScheduledServiceEquipmentData.from_dict(data)
     vessel.set_reduced_speed_dates(2000, 2002)
     assert len(vessel.reduced_speed_dates) == 9
     assert min(vessel.reduced_speed_dates) == datetime.date(2000, 11, 14)
@@ -634,7 +633,7 @@ def test_BaseServiceEquipmentData():
     data = deepcopy(SCHEDULED_VESSEL)
     data["non_operational_start"] = "12-30"
     data["non_operational_end"] = "1/2"
-    vessel = BaseServiceEquipmentData.from_dict(data)
+    vessel = ScheduledServiceEquipmentData.from_dict(data)
     vessel.set_non_operational_dates(2000, 2002)
     assert len(vessel.non_operational_dates) == 12
     assert min(vessel.non_operational_dates) == datetime.date(2000, 12, 30)

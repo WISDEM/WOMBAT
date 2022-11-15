@@ -210,6 +210,41 @@ def convert_ratio_to_absolute(ratio: int | float, total: int | float) -> int | f
     return ratio
 
 
+def check_start_stop_dates(
+    instance: Any, attribute: attr.Attribute, value: str | None
+) -> None:
+    """Ensures the date range start and stop points are not the same."""
+    if attribute.name == "non_operational_end":
+        start_date = instance.non_operational_start
+        start_name = "non_operational_start"
+    else:
+        start_date = instance.reduced_speed_start
+        start_name = "reduced_speed_start"
+
+    if value is None:
+        if start_date is None:
+            return
+        raise ValueError(
+            f"A starting date was provided, but no ending date was provided for `{attribute.name}`."
+        )
+
+    if start_date is None:
+        raise ValueError(
+            f"An ending date was provided, but no starting date was provided for `{start_name}`."
+        )
+
+    assert isinstance(start_date, str)  # mypy helper
+    assert isinstance(value, str)  # mypy helper
+    start_dt = parse(start_date)
+    end_dt = parse(value)
+
+    if start_dt.month == end_dt.month and start_dt.day == end_dt.day:
+        raise ValueError(
+            f"Starting date (`{start_name}`={start_date} and ending date"
+            f" (`{attribute.name}`={value}) cannot be the same date."
+        )
+
+
 def valid_hour(
     instance: Any, attribute: Attribute, value: int  # pylint: disable=W0613
 ) -> None:
@@ -640,86 +675,17 @@ class ServiceCrew(FromDictMixin):
     hourly_rate: float = field(converter=float)
 
 
-@define(frozen=True, auto_attribs=True)
-class BaseServiceEquipmentData(FromDictMixin):
+class DateLimitsMixin:
     """Base servicing equpment dataclass. Only meant to reduce repeated code across the
     ``ScheduledServiceEquipmentData`` and ``UnscheduledServiceEquipmentData`` classes.
     """
 
-    name: str = field(converter=str)
-    equipment_rate: float = field(converter=float)
-    n_crews: int = field(converter=int)
-    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
-    capability: list[str] | str = field(
-        converter=convert_to_list_upper,
-        validator=attrs.validators.deep_iterable(
-            member_validator=attrs.validators.in_(VALID_EQUIPMENT),
-            iterable_validator=attrs.validators.instance_of(list),
-        ),
-    )
-    speed: float = field(converter=float, validator=greater_than_zero)
-    max_windspeed_transport: float = field(converter=float)
-    max_windspeed_repair: float = field(converter=float)
-    mobilization_cost: float = field(default=0, converter=float)
-    mobilization_days: int = field(default=0, converter=int)
-    max_waveheight_transport: float = field(default=1000.0, converter=float)
-    max_waveheight_repair: float = field(default=1000.0, converter=float)
-    workday_start: int = field(default=-1, converter=int, validator=valid_hour)
-    workday_end: int = field(default=-1, converter=int, validator=valid_hour)
-    crew_transfer_time: float = field(converter=float, default=0.0)
-    speed_reduction_factor: float = field(
-        default=0.0, converter=float, validator=valid_reduction
-    )
-    port_distance: float = field(default=0, converter=float)
-    onsite: bool = field(default=False, converter=bool)
-    method: str = field(  # type: ignore
-        default="severity",
-        converter=[str, str.lower],  # type: ignore
-        validator=attrs.validators.in_(["turbine", "severity"]),
-    )
-    non_operational_start: str = field(default=None)
-    non_operational_end: str = field(default=None)
-    reduced_speed_start: str = field(default=None)
-    reduced_speed_end: str = field(default=None)
-    reduced_speed: float = field(default=0, converter=float)
-    non_operational_dates: pd.DatetimeIndex = field(factory=set, init=False)
-    reduced_speed_dates: pd.DatetimeIndex = field(factory=set, init=False)
-
-    @non_operational_end.validator  # type: ignore
-    @reduced_speed_end.validator  # type: ignore
-    def check_dates_non_operation(
-        self, attribute: attr.Attribute, value: str | None
-    ) -> None:
-        """Ensures the date range start and stop points are not the same."""
-        if attribute.name == "non_operational_end":
-            start_date = self.non_operational_start
-            start_name = "non_operational_start"
-        else:
-            start_date = self.reduced_speed_start
-            start_name = "reduced_speed_start"
-
-        if value is None:
-            if start_date is None:
-                return
-            raise ValueError(
-                f"A starting date was provided, but no ending date was provided for `{attribute.name}`."
-            )
-
-        if start_date is None:
-            raise ValueError(
-                f"An ending date was provided, but no starting date was provided for `{start_name}`."
-            )
-
-        assert isinstance(start_date, str)  # mypy helper
-        assert isinstance(value, str)  # mypy helper
-        start_dt = parse(start_date)
-        end_dt = parse(value)
-
-        if start_dt.month == end_dt.month and start_dt.day == end_dt.day:
-            raise ValueError(
-                f"Starting date (`{start_name}`={start_date} and ending date"
-                f" (`{attribute.name}`={value}) cannot be the same date."
-            )
+    # MyPy type hints
+    port_distance: float
+    non_operational_start: str
+    non_operational_end: str
+    reduced_speed_start: str
+    reduced_speed_end: str
 
     def _set_environment_shift(self, start: int, end: int) -> None:
         """Used to set the ``workday_start`` and ``workday_end`` to the environment's values.
@@ -746,7 +712,7 @@ class BaseServiceEquipmentData(FromDictMixin):
             return
         if distance <= 0:
             return
-        if self.port_distance <= 0:
+        if self.port_distance <= 0:  # type: ignore
             object.__setattr__(self, "port_distance", distance)
 
     def set_non_operational_dates(self, start_year: int, end_year: int) -> None:
@@ -810,7 +776,7 @@ class BaseServiceEquipmentData(FromDictMixin):
 
 
 @define(frozen=True, auto_attribs=True)
-class ScheduledServiceEquipmentData(BaseServiceEquipmentData):
+class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     """The data class specification for servicing equipment that will use a pre-scheduled
     basis for returning to site.
 
@@ -891,6 +857,38 @@ class ScheduledServiceEquipmentData(BaseServiceEquipmentData):
         default 0.
     """
 
+    name: str = field(converter=str)
+    equipment_rate: float = field(converter=float)
+    n_crews: int = field(converter=int)
+    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
+    capability: list[str] | str = field(
+        converter=convert_to_list_upper,
+        validator=attrs.validators.deep_iterable(
+            member_validator=attrs.validators.in_(VALID_EQUIPMENT),
+            iterable_validator=attrs.validators.instance_of(list),
+        ),
+    )
+    speed: float = field(converter=float, validator=greater_than_zero)
+    max_windspeed_transport: float = field(converter=float)
+    max_windspeed_repair: float = field(converter=float)
+
+    mobilization_cost: float = field(default=0, converter=float)
+    mobilization_days: int = field(default=0, converter=int)
+    max_waveheight_transport: float = field(default=1000.0, converter=float)
+    max_waveheight_repair: float = field(default=1000.0, converter=float)
+    workday_start: int = field(default=-1, converter=int, validator=valid_hour)
+    workday_end: int = field(default=-1, converter=int, validator=valid_hour)
+    crew_transfer_time: float = field(converter=float, default=0.0)
+    speed_reduction_factor: float = field(
+        default=0.0, converter=float, validator=valid_reduction
+    )
+    port_distance: float = field(default=0, converter=float)
+    onsite: bool = field(default=False, converter=bool)
+    method: str = field(  # type: ignore
+        default="severity",
+        converter=[str, str.lower],  # type: ignore
+        validator=attrs.validators.in_(["turbine", "severity"]),
+    )
     start_month: int = field(
         default=-1, converter=int, validator=attrs.validators.ge(0)
     )
@@ -904,6 +902,14 @@ class ScheduledServiceEquipmentData(BaseServiceEquipmentData):
     )
     operating_dates: np.ndarray = field(factory=list, init=False)
     _operating_dates_set: set = field(factory=set, init=False)
+
+    non_operational_start: str = field(default=None)
+    non_operational_end: str = field(default=None, validator=check_start_stop_dates)
+    reduced_speed_start: str = field(default=None)
+    reduced_speed_end: str = field(default=None, validator=check_start_stop_dates)
+    reduced_speed: float = field(default=0, converter=float)
+    non_operational_dates: pd.DatetimeIndex = field(factory=set, init=False)
+    reduced_speed_dates: pd.DatetimeIndex = field(factory=set, init=False)
 
     def create_date_range(self) -> np.ndarray:
         """Creates an ``np.ndarray`` of valid operational dates for the service equipment."""
@@ -934,7 +940,7 @@ class ScheduledServiceEquipmentData(BaseServiceEquipmentData):
 
 
 @define(frozen=True, auto_attribs=True)
-class UnscheduledServiceEquipmentData(BaseServiceEquipmentData):
+class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     """The data class specification for servicing equipment that will use either a
     basis of windfarm downtime or total number of requests serviceable by the equipment.
 
@@ -1025,6 +1031,37 @@ class UnscheduledServiceEquipmentData(BaseServiceEquipmentData):
         default 0.
     """
 
+    name: str = field(converter=str)
+    equipment_rate: float = field(converter=float)
+    n_crews: int = field(converter=int)
+    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
+    capability: list[str] | str = field(
+        converter=convert_to_list_upper,
+        validator=attrs.validators.deep_iterable(
+            member_validator=attrs.validators.in_(VALID_EQUIPMENT),
+            iterable_validator=attrs.validators.instance_of(list),
+        ),
+    )
+    speed: float = field(converter=float, validator=greater_than_zero)
+    max_windspeed_transport: float = field(converter=float)
+    max_windspeed_repair: float = field(converter=float)
+    mobilization_cost: float = field(default=0, converter=float)
+    mobilization_days: int = field(default=0, converter=int)
+    max_waveheight_transport: float = field(default=1000.0, converter=float)
+    max_waveheight_repair: float = field(default=1000.0, converter=float)
+    workday_start: int = field(default=-1, converter=int, validator=valid_hour)
+    workday_end: int = field(default=-1, converter=int, validator=valid_hour)
+    crew_transfer_time: float = field(converter=float, default=0.0)
+    speed_reduction_factor: float = field(
+        default=0.0, converter=float, validator=valid_reduction
+    )
+    port_distance: float = field(default=0, converter=float)
+    onsite: bool = field(default=False, converter=bool)
+    method: str = field(  # type: ignore
+        default="severity",
+        converter=[str, str.lower],  # type: ignore
+        validator=attrs.validators.in_(["turbine", "severity"]),
+    )
     strategy: str | None = field(
         default="unscheduled",
         converter=clean_string_input,
@@ -1037,6 +1074,13 @@ class UnscheduledServiceEquipmentData(BaseServiceEquipmentData):
     tow_speed: float = field(default=1, converter=float, validator=greater_than_zero)
     unmoor_hours: int | float = field(default=0, converter=float)
     reconnection_hours: int | float = field(default=0, converter=float)
+    non_operational_start: str = field(default=None)
+    non_operational_end: str = field(default=None)
+    reduced_speed_start: str = field(default=None)
+    reduced_speed_end: str = field(default=None)
+    reduced_speed: float = field(default=0, converter=float)
+    non_operational_dates: pd.DatetimeIndex = field(factory=set, init=False)
+    reduced_speed_dates: pd.DatetimeIndex = field(factory=set, init=False)
 
     @strategy_threshold.validator  # type: ignore
     def _validate_threshold(
@@ -1234,7 +1278,7 @@ class StrategyMap:
 
 
 @define(frozen=True, auto_attribs=True)
-class PortConfig(FromDictMixin):
+class PortConfig(FromDictMixin, DateLimitsMixin):
     """Port configurations for offshore wind power plant scenarios.
 
     Parameters
@@ -1279,19 +1323,13 @@ class PortConfig(FromDictMixin):
     annual_fee: float = field(
         default=0, converter=float, validator=greater_than_equal_to_zero
     )
-
-    def _set_environment_shift(self, start: int, end: int) -> None:
-        """Used to set the ``workday_start`` and ``workday_end`` to the environment's values.
-
-        Parameters
-        ----------
-        start : int
-            Starting hour of a workshift.
-        end : int
-            Ending hour of a workshift.
-        """
-        object.__setattr__(self, "workday_start", start)
-        object.__setattr__(self, "workday_end", end)
+    non_operational_start: str = field(default=None)
+    non_operational_end: str = field(default=None)
+    reduced_speed_start: str = field(default=None)
+    reduced_speed_end: str = field(default=None)
+    reduced_speed: float = field(default=0, converter=float)
+    non_operational_dates: pd.DatetimeIndex = field(factory=set, init=False)
+    reduced_speed_dates: pd.DatetimeIndex = field(factory=set, init=False)
 
 
 @define(frozen=True, auto_attribs=True)
