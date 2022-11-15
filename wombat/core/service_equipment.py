@@ -247,6 +247,8 @@ class ServiceEquipment(RepairsMixin):
         """
         self._check_working_hours()
         self.settings._set_port_distance(self.env.port_distance)
+        self.settings.set_non_operational_dates(self.env.start_year, self.env.end_year)
+        self.settings.set_reduced_speed_dates(self.env.start_year, self.env.end_year)
 
     def _register_port(self, port: "Port") -> None:
         """Method for a tugboat at attach the port for two-way communications. This also
@@ -260,6 +262,28 @@ class ServiceEquipment(RepairsMixin):
         self.port = port
         self.at_port = True
         self.settings._set_port_distance(port.settings.site_distance)  # type: ignore
+
+        # Set the non-operational start/end dates if needed
+        if self.port.settings.non_operational_start is not None:
+            if self.settings.non_operational_start is None:
+                object.__setattr__(
+                    self,
+                    "non_operational_start",
+                    self.port.settings.non_operational_start,
+                )
+                object.__setattr__(
+                    self, "non_operational_end", self.port.settings.non_operational_end
+                )
+
+        # Set the reduced speed start/end dates if needed
+        if self.port.settings.reduced_speed_start is not None:
+            if self.settings.reduced_speed_start is None:
+                object.__setattr__(
+                    self, "reduced_speed_start", self.port.settings.reduced_speed_start
+                )
+                object.__setattr__(
+                    self, "reduced_speed_end", self.port.settings.reduced_speed_end
+                )
 
     def _set_location(self, end: str, set_current: Optional[str] = None) -> None:
         """Keeps track of the servicing equipment by setting the location at either:

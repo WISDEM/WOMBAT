@@ -102,6 +102,8 @@ class Port(RepairsMixin, FilterStore):
         self.settings = PortConfig.from_dict(config)
 
         self._check_working_hours()
+        self.settings.set_non_operational_dates(self.env.start_year, self.env.end_year)
+        self.settings.set_reduced_speed_dates(self.env.start_year, self.env.end_year)
 
         # Instantiate the crews, tugboats, and turbine availability
         assert isinstance(self.settings, PortConfig)

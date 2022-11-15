@@ -732,9 +732,24 @@ class DateLimitsMixin:
         ValueError
             Raised if the starting and ending dates are the same date.
         """
+        # Check that the base dates are valid
         if self.non_operational_start is None or self.non_operational_end is None:
             object.__setattr__(self, "non_operational_dates", set())
             return
+
+        # Check that the input year range is valid
+        if not isinstance(start_year, int):
+            raise ValueError(
+                f"Input to `start_year`: {start_year}, must be an integer."
+            )
+        if not isinstance(end_year, int):
+            raise ValueError(f"Input to `end_year`: {end_year}, must be an integer.")
+        if end_year < start_year:
+            raise ValueError(
+                f"`start_year`: {start_year}, must less than or equal to the `end_year`: {end_year}"
+            )
+
+        # Create the date range
         object.__setattr__(
             self,
             "non_operational_dates",
@@ -763,9 +778,24 @@ class DateLimitsMixin:
         ValueError
             Raised if the starting and ending dates are the same date.
         """
+        # Check that the base dates are valid
         if self.reduced_speed_start is None or self.reduced_speed_end is None:
             object.__setattr__(self, "reduced_speed_dates", set())
             return
+
+        # Check that the input year range is valid
+        if not isinstance(start_year, int):
+            raise ValueError(
+                f"Input to `start_year`: {start_year}, must be an integer."
+            )
+        if not isinstance(end_year, int):
+            raise ValueError(f"Input to `end_year`: {end_year}, must be an integer.")
+        if end_year < start_year:
+            raise ValueError(
+                f"`start_year`: {start_year}, must less than or equal to the `end_year`: {end_year}"
+            )
+
+        # Create the date range
         object.__setattr__(
             self,
             "reduced_speed_dates",
