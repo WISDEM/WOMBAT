@@ -1509,8 +1509,8 @@ class ServiceEquipment(RepairsMixin):
         Generator[Process, None, None]
             The simulation
         """
-        assert isinstance(self.settings, UnscheduledServiceEquipmentData)
-        charter_end_env_time = self.settings.charter_days * HOURS_IN_DAY  # type: ignore
+        assert isinstance(self.settings, UnscheduledServiceEquipmentData)  # mypy helper
+        charter_end_env_time = self.settings.charter_days * HOURS_IN_DAY
         charter_end_env_time += self.settings.mobilization_days * HOURS_IN_DAY
         charter_end_env_time += self.env.now
 
