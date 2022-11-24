@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any, Optional, Generator  # type: ignore
 from datetime import timedelta
 
 import numpy as np  # type: ignore
+import pandas as pd
 from simpy.events import Event, Process, Timeout  # type: ignore
 from pandas.core.indexes.datetimes import DatetimeIndex
 
@@ -1441,7 +1442,8 @@ class ServiceEquipment(RepairsMixin):
             )
 
     def run_scheduled_in_situ(self) -> Generator[Process, None, None]:
-        """Runs the simulation.
+        """Runs the simulation of in situ repairs for scheduled servicing equipment
+        that have the `onsite` designation or don't require mobilization.
 
         Yields
         -------
@@ -1499,17 +1501,36 @@ class ServiceEquipment(RepairsMixin):
                 yield self.env.process(self.in_situ_repair(request.value))
 
     def run_unscheduled_in_situ(self) -> Generator[Process, None, None]:
-        """Runs an unscheduled maintenance simulation
+        """Runs an in situ repair simulation for unscheduled servicing equipment, or
+        those that have to be mobilized before performing repairs and maintenance.
 
         Yields
         -------
         Generator[Process, None, None]
             The simulation
         """
-
+        assert isinstance(self.settings, UnscheduledServiceEquipmentData)
         charter_end_env_time = self.settings.charter_days * HOURS_IN_DAY  # type: ignore
         charter_end_env_time += self.settings.mobilization_days * HOURS_IN_DAY
         charter_end_env_time += self.env.now
+
+        charter_start = self.env.simulation_time + pd.Timedelta(
+            self.settings.mobilization_days, "D"
+        )
+        charter_end = (
+            self.env.simulation_time
+            + pd.Timedelta(self.settings.mobilization_days, "D")
+            + pd.Timedelta(self.settings.charter_days, "D")
+        )
+        charter_period = set(pd.date_range(charter_start, charter_end))
+        if charter_period.intersection(self.settings.non_operational_dates):
+            # figure out the next available date range and timeout to that point, then
+            # rerun and exit this method
+            ...
+        """
+        TODO: This is where a check on the dispatching should go to either start the repair
+        process or delay because of a non-operational period
+        """
         while True:
             if self.env.now >= charter_end_env_time:
                 self.onsite = False
