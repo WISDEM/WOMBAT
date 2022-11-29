@@ -6,9 +6,11 @@ servicing equipment.
 # TODO: NEED A SPECIFIC STARTUP METHOD
 from __future__ import annotations
 
+import datetime
 from copy import deepcopy
 from math import ceil
 from typing import TYPE_CHECKING, Any, Optional, Generator  # type: ignore
+from pathlib import Path
 from datetime import timedelta
 
 import numpy as np  # type: ignore
@@ -191,7 +193,7 @@ class ServiceEquipment(RepairsMixin):
         env: WombatEnvironment,
         windfarm: Windfarm,
         repair_manager: RepairManager,
-        equipment_data_file: str,
+        equipment_data_file: str | Path | dict,
     ):
         """Initializes the ``ServiceEquipment`` class.
 
@@ -216,7 +218,11 @@ class ServiceEquipment(RepairsMixin):
         self.transferring_crew = False
         self.current_system = None  # type: str | None
 
-        data = load_yaml(env.data_dir / "repair" / "transport", equipment_data_file)
+        if isinstance(equipment_data_file, (str, Path)):
+            data = load_yaml(env.data_dir / "repair" / "transport", equipment_data_file)
+        else:
+            data = equipment_data_file
+
         try:
             if data["start_year"] < self.env.start_year:
                 data["start_year"] = self.env.start_year
@@ -307,6 +313,53 @@ class ServiceEquipment(RepairsMixin):
             self.onsite = True
         self.at_system = True if set_current is not None else False
         self.current_system = set_current
+
+    def hours_to_next_operational_date(
+        self,
+        start_search_date: datetime.datetime | datetime.date | pd.Timestamp,
+        exclusion_days: int = 0,
+    ) -> float:
+        """Calculates the number of hours until the first date that is not a part of
+        the ``non_operational_dates`` given a starting datetime and for search criteria.
+        Optionally, ``exclusion_days`` can be used to account for a mobilization period
+        so that mobilization can occur during the non operational period.
+
+        Parameters
+        ----------
+        start_search_date : datetime.datetime | datetime.date | pd.Timestamp
+            The first date to be considered in the search.
+        exclusion_days : int, optional
+            The number of days to subtract from the next available datetime that
+            represents a non operational action that can occur during the non
+            operational period, such as mobilization, by default 0.
+
+        Returns
+        -------
+        float
+            The total number of hours until the next operational date.
+        """
+        current = self.env.simulation_time
+
+        # Get the forecast and filter out dates prior to the start of the search
+        dates, *_ = self.env.weather_forecast(8760)  # get the dates for the next year
+        dates = dates[np.where(dates > start_search_date)[0]]
+
+        # Find the next operational date, and if no available dates, return the time
+        # until the end of the forecast period
+        assert isinstance(self.settings, UnscheduledServiceEquipmentData)  # mypy helper
+        date_diff = set(dates.date).difference(self.settings.non_operational_dates_set)
+        if not date_diff:
+            diff = ((max(dates) - current).days + 1) * HOURS_IN_DAY
+            return diff
+        next_available = min(date_diff)
+        next_available = dates[np.where(dates.date == next_available)[0][0]]
+
+        # Compute the difference between the current time and the future date
+        diff = next_available - current
+        hours_to_next = max(0, diff.days - exclusion_days) * HOURS_IN_DAY
+        if hours_to_next > 0:
+            hours_to_next += diff.seconds / 60 / 60
+        return hours_to_next
 
     def _weather_forecast(
         self, hours: int | float, which: str
@@ -1510,27 +1563,41 @@ class ServiceEquipment(RepairsMixin):
             The simulation
         """
         assert isinstance(self.settings, UnscheduledServiceEquipmentData)  # mypy helper
+        mobilization_days = self.settings.mobilization_days
         charter_end_env_time = self.settings.charter_days * HOURS_IN_DAY
-        charter_end_env_time += self.settings.mobilization_days * HOURS_IN_DAY
+        charter_end_env_time += mobilization_days * HOURS_IN_DAY
         charter_end_env_time += self.env.now
 
-        charter_start = self.env.simulation_time + pd.Timedelta(
-            self.settings.mobilization_days, "D"
-        )
+        current = self.env.simulation_time
+        charter_start = current + pd.Timedelta(mobilization_days, "D")
         charter_end = (
-            self.env.simulation_time
-            + pd.Timedelta(self.settings.mobilization_days, "D")
+            current
+            + pd.Timedelta(mobilization_days, "D")
             + pd.Timedelta(self.settings.charter_days, "D")
         )
         charter_period = set(pd.date_range(charter_start, charter_end))
-        if charter_period.intersection(self.settings.non_operational_dates):
-            # figure out the next available date range and timeout to that point, then
-            # rerun and exit this method
-            ...
-        """
-        TODO: This is where a check on the dispatching should go to either start the repair
-        process or delay because of a non-operational period
-        """
+
+        # If the charter period contains any non-operational date, then, try again
+        # at the next available date after the end of the attempted charter period
+        intersection = charter_period.intersection(
+            self.settings.non_operational_dates_set
+        )
+        if intersection:
+            hours_to_next = self.hours_to_next_operational_date(
+                start_search_date=max(intersection),
+                exclusion_days=mobilization_days,
+            )
+            self.env.log_action(
+                agent=self.settings.name,
+                action="delay",
+                reason="non-operational period",
+                additional="waiting for next operational period",
+                duration=hours_to_next,
+            )
+            yield self.env.timeout(hours_to_next)
+            yield self.env.process(self.run_unscheduled_in_situ())
+            return
+
         while True:
             if self.env.now >= charter_end_env_time:
                 self.onsite = False

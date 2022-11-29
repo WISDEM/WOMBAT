@@ -160,7 +160,7 @@ def annual_date_range(
 
 def annualized_date_range(
     start_date: str, start_year: int, end_date: str, end_year: int
-) -> set[datetime.datetime]:
+) -> np.ndarray:
     """Creates an annualized list of dates based on the simulation years.
 
     Parameters
@@ -184,9 +184,13 @@ def annualized_date_range(
         pd.date_range(
             f"{start_date}-{year}", f"{end_date}-{year + additional}", freq="D"
         ).date
-        for year in range(start_year, end_year + 1)
+        for year in range(start_year - additional, end_year + 1)
     ]
-    return set(np.hstack(dates))
+    dates = np.hstack(dates)
+    if additional == 1:
+        exclusion = (start_year - 1, end_year + 1)
+        dates = np.array([d for d in dates if d.year not in exclusion])
+    return dates
 
 
 def convert_ratio_to_absolute(ratio: int | float, total: int | float) -> int | float:
@@ -734,7 +738,10 @@ class DateLimitsMixin:
         """
         # Check that the base dates are valid
         if self.non_operational_start is None or self.non_operational_end is None:
-            object.__setattr__(self, "non_operational_dates", set())
+            object.__setattr__(
+                self, "non_operational_dates", np.empty(0, dtype="object")
+            )
+            object.__setattr__(self, "non_operational_dates_set", set())
             return
 
         # Check that the input year range is valid
@@ -750,16 +757,11 @@ class DateLimitsMixin:
             )
 
         # Create the date range
-        object.__setattr__(
-            self,
-            "non_operational_dates",
-            annualized_date_range(
-                self.non_operational_start,
-                start_year,
-                self.non_operational_end,
-                end_year,
-            ),
+        dates = annualized_date_range(
+            self.non_operational_start, start_year, self.non_operational_end, end_year
         )
+        object.__setattr__(self, "non_operational_dates", dates)
+        object.__setattr__(self, "non_operational_dates_set", set(dates))
 
     def set_reduced_speed_dates(self, start_year: int, end_year: int) -> None:
         """Creates an annualized list of dates where servicing equipment should be
@@ -938,7 +940,8 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     reduced_speed_start: str = field(default=None)
     reduced_speed_end: str = field(default=None, validator=check_start_stop_dates)
     reduced_speed: float = field(default=0, converter=float)
-    non_operational_dates: pd.DatetimeIndex = field(factory=set, init=False)
+    non_operational_dates: pd.DatetimeIndex = field(factory=list, init=False)
+    non_operational_dates_set: pd.DatetimeIndex = field(factory=set, init=False)
     reduced_speed_dates: pd.DatetimeIndex = field(factory=set, init=False)
 
     def create_date_range(self) -> np.ndarray:
@@ -1109,7 +1112,8 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     reduced_speed_start: str = field(default=None)
     reduced_speed_end: str = field(default=None)
     reduced_speed: float = field(default=0, converter=float)
-    non_operational_dates: pd.DatetimeIndex = field(factory=set, init=False)
+    non_operational_dates: pd.DatetimeIndex = field(factory=list, init=False)
+    non_operational_dates_set: pd.DatetimeIndex = field(factory=set, init=False)
     reduced_speed_dates: pd.DatetimeIndex = field(factory=set, init=False)
 
     @strategy_threshold.validator  # type: ignore
