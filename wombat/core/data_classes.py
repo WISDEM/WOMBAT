@@ -180,16 +180,16 @@ def annualized_date_range(
         _description_
     """
     additional = 1 if end_date < start_date else 0
-    dates = [
+    date_list = [
         pd.date_range(
             f"{start_date}-{year}", f"{end_date}-{year + additional}", freq="D"
         ).date
         for year in range(start_year - additional, end_year + 1)
     ]
-    dates = np.hstack(dates)
-    if additional == 1:
-        exclusion = (start_year - 1, end_year + 1)
-        dates = np.array([d for d in dates if d.year not in exclusion])
+    dates = np.hstack(date_list)
+    start = datetime.date(start_year, 1, 1)
+    end = datetime.date(end_year, 12, 31)
+    dates = dates[(dates >= start) & (dates <= end)]
     return dates
 
 
