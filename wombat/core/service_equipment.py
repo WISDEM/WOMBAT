@@ -212,6 +212,7 @@ class ServiceEquipment(RepairsMixin):
         self.windfarm = windfarm
         self.manager = repair_manager
         self.onsite = False
+        self.dispatched = False
         self.enroute = False
         self.at_port = False
         self.at_system = False
@@ -340,6 +341,11 @@ class ServiceEquipment(RepairsMixin):
         """
         current = self.env.simulation_time
 
+        if isinstance(start_search_date, datetime.date):
+            start_search_date = datetime.datetime.combine(
+                start_search_date, datetime.datetime.max.time()
+            )
+
         # Get the forecast and filter out dates prior to the start of the search
         dates, *_ = self.env.weather_forecast(8760)  # get the dates for the next year
         dates = dates[np.where(dates > start_search_date)[0]]
@@ -356,9 +362,9 @@ class ServiceEquipment(RepairsMixin):
 
         # Compute the difference between the current time and the future date
         diff = next_available - current
-        hours_to_next = max(0, diff.days - exclusion_days) * HOURS_IN_DAY
-        if hours_to_next > 0:
-            hours_to_next += diff.seconds / 60 / 60
+        hours_to_next = diff.days * HOURS_IN_DAY + diff.seconds / 60 / 60
+        hours_to_next -= exclusion_days * HOURS_IN_DAY
+        hours_to_next = max(0, hours_to_next)
         return hours_to_next
 
     def _weather_forecast(
@@ -1511,7 +1517,7 @@ class ServiceEquipment(RepairsMixin):
 
         while True:
             # Wait for a valid operational period to start
-            if self.env.simulation_time.date() not in self.settings._operating_dates_set:  # type: ignore
+            if self.env.simulation_time.date() not in self.settings.operating_dates_set:  # type: ignore
                 yield self.env.process(self.mobilize_scheduled())
 
             # Wait for next shift to start
@@ -1562,6 +1568,7 @@ class ServiceEquipment(RepairsMixin):
         Generator[Process, None, None]
             The simulation
         """
+        self.dispatched = True
         assert isinstance(self.settings, UnscheduledServiceEquipmentData)  # mypy helper
         mobilization_days = self.settings.mobilization_days
         charter_end_env_time = self.settings.charter_days * HOURS_IN_DAY
@@ -1575,7 +1582,7 @@ class ServiceEquipment(RepairsMixin):
             + pd.Timedelta(mobilization_days, "D")
             + pd.Timedelta(self.settings.charter_days, "D")
         )
-        charter_period = set(pd.date_range(charter_start, charter_end))
+        charter_period = set(pd.date_range(charter_start, charter_end).date)
 
         # If the charter period contains any non-operational date, then, try again
         # at the next available date after the end of the attempted charter period
@@ -1603,6 +1610,7 @@ class ServiceEquipment(RepairsMixin):
                 self.onsite = False
                 self.at_port = False
                 self.at_system = False
+                self.dispatched = False
                 self.current_system = None
                 self.env.log_action(
                     agent=self.settings.name,

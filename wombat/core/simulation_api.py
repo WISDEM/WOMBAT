@@ -96,8 +96,8 @@ class Configuration(FromDictMixin):
     workday_start: int = field(converter=int)
     workday_end: int = field(converter=int)
     inflation_rate: float = field(converter=float)
-    fixed_costs: str
     project_capacity: int | float = field(converter=float)
+    fixed_costs: dict | str | Path = field(default=None)
     port: dict | str | Path = field(default=None)
     port_distance: int | float = field(default=None)
     start_year: int = field(default=None)
@@ -298,7 +298,7 @@ class Simulation(FromDictMixin):
             turbine_capacities=[
                 self.windfarm.system(t_id).capacity for t_id in self.windfarm.turbine_id
             ],
-            fixed_costs=self.config.fixed_costs,
+            fixed_costs=self.config.fixed_costs,  # type: ignore
             substation_id=self.windfarm.substation_id.tolist(),
             turbine_id=self.windfarm.turbine_id.tolist(),
             service_equipment_names=[el.settings.name for el in self.service_equipment],  # type: ignore

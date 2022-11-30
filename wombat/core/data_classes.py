@@ -179,10 +179,17 @@ def annualized_date_range(
     set[datetime.datetime]
         _description_
     """
+    start_date = parse(start_date)  # type: ignore
+    end_date = parse(end_date)  # type: ignore
+    assert isinstance(start_date, datetime.datetime)  # mypy helper
+    assert isinstance(end_date, datetime.datetime)  # mypy helper
+
     additional = 1 if end_date < start_date else 0
     date_list = [
         pd.date_range(
-            f"{start_date}-{year}", f"{end_date}-{year + additional}", freq="D"
+            start_date.replace(year=year),
+            end_date.replace(year=year + additional),
+            freq="D",
         ).date
         for year in range(start_year - additional, end_year + 1)
     ]
@@ -763,6 +770,12 @@ class DateLimitsMixin:
         object.__setattr__(self, "non_operational_dates", dates)
         object.__setattr__(self, "non_operational_dates_set", set(dates))
 
+        # Update the operating dates field to ensure there is no overlap
+        if hasattr(self, "operating_dates"):
+            operating = np.setdiff1d(self.operating_dates, self.non_operational_dates)  # type: ignore
+            object.__setattr__(self, "operating_dates", operating)
+            object.__setattr__(self, "operating_dates_set", set(operating))
+
     def set_reduced_speed_dates(self, start_year: int, end_year: int) -> None:
         """Creates an annualized list of dates where servicing equipment should be
         operating with reduced speeds. Takes a a ``start_year`` and ``end_year`` to
@@ -933,7 +946,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         default="scheduled", validator=attrs.validators.in_(["scheduled"])
     )
     operating_dates: np.ndarray = field(factory=list, init=False)
-    _operating_dates_set: set = field(factory=set, init=False)
+    operating_dates_set: set = field(factory=set, init=False)
 
     non_operational_start: str = field(default=None)
     non_operational_end: str = field(default=None, validator=check_start_stop_dates)
@@ -969,7 +982,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
 
     def __attrs_post_init__(self) -> None:
         object.__setattr__(self, "operating_dates", self.create_date_range())
-        object.__setattr__(self, "_operating_dates_set", set(self.operating_dates))
+        object.__setattr__(self, "operating_dates_set", set(self.operating_dates))
 
 
 @define(frozen=True, auto_attribs=True)

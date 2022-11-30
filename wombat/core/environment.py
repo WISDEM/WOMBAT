@@ -150,6 +150,8 @@ class WombatEnvironment(simpy.Environment):
         metrics_input_fname = f"{dt_stamp}_{simulation}_metrics_inputs.yaml"
 
         log_path = self.data_dir / "outputs" / "logs"
+        if not log_path.exists():
+            log_path.mkdir(parents=True)
         self.events_log_fname = log_path / events_log_fname
         self.operations_log_fname = log_path / operations_log_fname
         self.power_potential_fname = log_path / power_potential_fname
