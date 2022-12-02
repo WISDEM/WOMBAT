@@ -15,6 +15,7 @@ from pathlib import Path
 
 import numpy as np
 import simpy
+import pandas as pd
 from simpy.events import Process, Timeout
 from simpy.resources.store import FilterStore
 
@@ -336,6 +337,27 @@ class Port(RepairsMixin, FilterStore):
         # being submitted between now and when the tugboat gets to the turbine
         self.manager.halt_requests_for_system(self.windfarm.system(request.system_id))
 
+        # Check that there is enough time to complete towing, connection, and repairs
+        # before starting the process, otherwise, wait until the next operational period
+        # TODO: use a more sophisticated guess on timing, other than 20 days
+        current = self.env.simulation_time.date()
+        check_range = set(
+            pd.date_range(current, current + pd.Timedelta(days=20), freq="D").date
+        )
+        intersection = check_range.intersection(self.settings.non_operational_dates_set)  # type: ignore
+        if intersection:
+            hours_to_next = self.hours_to_next_operational_date(
+                start_search_date=max(intersection)
+            )
+            self.env.log_action(
+                agent=self.settings.name,
+                action="delay",
+                reason="non-operational period",
+                additional="waiting for next operational period",
+                duration=hours_to_next,
+            )
+            yield self.env.timeout(hours_to_next)
+
         self.requests_serviced.update([request.request_id])
 
         # Wait for a spot to open up in the port queue
@@ -389,7 +411,7 @@ class Port(RepairsMixin, FilterStore):
 
         # Request a tugboat to retrieve the tugboat
         tugboat = yield self.tugboat_manager.get(lambda x: x.at_port)  # type: ignore
-        assert isinstance(tugboat, ServiceEquipment)
+        assert isinstance(tugboat, ServiceEquipment)  # mypy: helper
         request = yield self.manager.get(lambda x: x == request)
         yield self.env.process(tugboat.in_situ_repair(request))
 

@@ -4,6 +4,7 @@ different types of classes.
 
 from __future__ import annotations
 
+import datetime
 from typing import Generator
 from functools import partial
 
@@ -11,7 +12,7 @@ import numpy as np
 import pandas as pd
 from simpy.events import Process, Timeout
 
-from wombat.utilities import check_working_hours
+from wombat.utilities import HOURS_IN_DAY, check_working_hours
 from wombat.utilities.time import calculate_cost
 from wombat.core.environment import WombatEnvironment
 
@@ -152,3 +153,58 @@ class RepairsMixin:
             **kwargs,
         )
         yield self.env.timeout(hours)
+
+    def hours_to_next_operational_date(
+        self,
+        start_search_date: datetime.datetime | datetime.date | pd.Timestamp,
+        exclusion_days: int = 0,
+    ) -> float:
+        """Calculates the number of hours until the first date that is not a part of
+        the ``non_operational_dates`` given a starting datetime and for search criteria.
+        Optionally, ``exclusion_days`` can be used to account for a mobilization period
+        so that mobilization can occur during the non operational period.
+
+        Parameters
+        ----------
+        start_search_date : datetime.datetime | datetime.date | pd.Timestamp
+            The first date to be considered in the search.
+        exclusion_days : int, optional
+            The number of days to subtract from the next available datetime that
+            represents a non operational action that can occur during the non
+            operational period, such as mobilization, by default 0.
+
+        Returns
+        -------
+        float
+            The total number of hours until the next operational date.
+        """
+        current = self.env.simulation_time
+
+        if isinstance(start_search_date, datetime.date):
+            start_search_date = datetime.datetime.combine(
+                start_search_date, datetime.datetime.max.time()
+            )
+
+        # Get the forecast and filter out dates prior to the start of the search
+        all_dates, *_ = self.env.weather_forecast(
+            8760
+        )  # get the dates for the next year
+        dates = all_dates[np.where(all_dates > start_search_date)[0]]
+        if dates.size == 0:
+            dates = all_dates[-1:]
+
+        # Find the next operational date, and if no available dates, return the time
+        # until the end of the forecast period
+        date_diff = set(dates.date).difference(self.settings.non_operational_dates_set)  # type: ignore
+        if not date_diff:
+            diff = ((max(dates) - current).days + 1) * HOURS_IN_DAY
+            return diff
+        next_available = min(date_diff)
+        next_available = dates[np.where(dates.date == next_available)[0][0]]
+
+        # Compute the difference between the current time and the future date
+        diff = next_available - current
+        hours_to_next = diff.days * HOURS_IN_DAY + diff.seconds / 60 / 60
+        hours_to_next -= exclusion_days * HOURS_IN_DAY
+        hours_to_next = max(0, hours_to_next)
+        return hours_to_next
