@@ -254,8 +254,19 @@ class ServiceEquipment(RepairsMixin):
         """
         self._check_working_hours()
         self.settings._set_port_distance(self.env.port_distance)
-        self.settings.set_non_operational_dates(self.env.start_year, self.env.end_year)
-        self.settings.set_reduced_speed_dates(self.env.start_year, self.env.end_year)
+        self.settings.set_non_operational_dates(
+            self.env.non_operational_start,
+            self.env.start_year,
+            self.env.non_operational_end,
+            self.env.end_year,
+        )
+        self.settings.set_reduced_speed_parameters(
+            self.env.reduced_speed_start,
+            self.env.start_year,
+            self.env.reduced_speed_end,
+            self.env.end_year,
+            self.env.reduced_speed,
+        )
 
     def _register_port(self, port: "Port") -> None:
         """Method for a tugboat at attach the port for two-way communications. This also
@@ -347,6 +358,32 @@ class ServiceEquipment(RepairsMixin):
         dt, wind, wave = self.env.weather_forecast(hours)
         all_clear = (wind <= max_wind) & (wave <= max_wave)
         return dt, all_clear
+
+    def get_speed(self, tow: bool = False) -> float:
+        """Determines the appropriate speed that the servicing equipment should be
+        traveling at for towing or traveling, and if the timeframe is during a reduced
+        speed scenario.
+
+        Parameters
+        ----------
+        tow : bool, optional
+            True indicates the servicing equipment should be using the towing speed,
+            and if False, then the traveling speed should be used, by default False.
+
+        Returns
+        -------
+        float
+            The maximum speed the servicing equipment should be traveling/towing at.
+        """
+        speed = self.settings.tow_speed if tow else self.settings.speed  # type: ignore
+        if self.env.simulation_time.date() in self.settings.reduced_speed_dates_set:  # type: ignore
+            if speed > self.settings.reduced_speed:
+                print(
+                    self.env.simulation_time, self.settings.name, "reduced speed", speed
+                )
+                return self.settings.reduced_speed
+        print(self.env.simulation_time, self.settings.name, "normal speed", speed)
+        return speed
 
     def get_next_request(self):
         """Gets the next request by the rig's method for processing repairs.
@@ -702,15 +739,14 @@ class ServiceEquipment(RepairsMixin):
             The travel time between two locations.
         """
         distance = 0  # setting for invalid cases to have no traveling
-        travel_time = 0.0
         valid_sys = self.windfarm.distance_matrix.columns
         intra_site = start in valid_sys and end in valid_sys
         if intra_site:
             distance = self.windfarm.distance_matrix.loc[start, end]
 
         # if no speed is set, then there is no traveling time
-        if self.settings.speed > 0:
-            travel_time = distance / self.settings.speed
+        speed = self.get_speed()
+        travel_time = distance / speed if speed > 0 else 0.0
 
         # Infinity is the result of "traveling" between a system twice in a row
         if travel_time == float("inf"):
@@ -742,7 +778,7 @@ class ServiceEquipment(RepairsMixin):
         if distance == 0:
             return 0, 0
 
-        speed = self.settings.tow_speed if tow else self.settings.speed  # type: ignore
+        speed = self.get_speed(tow=tow)
         hours_required = distance / speed
 
         n = 1
@@ -777,7 +813,7 @@ class ServiceEquipment(RepairsMixin):
         float
             _description_
         """
-        speed = self.settings.tow_speed if tow else self.settings.speed  # type: ignore
+        speed = self.get_speed(tow=tow)
         reduction_factor = 1 - self.settings.speed_reduction_factor
         reduction_factor = 0.01 if reduction_factor == 0 else reduction_factor
 

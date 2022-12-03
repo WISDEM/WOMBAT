@@ -14,9 +14,9 @@ import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
 from attrs import Factory, Attribute, field, define  # type: ignore
 from scipy.stats import weibull_min  # type: ignore
-from dateutil.parser import parse
 
 from wombat.utilities import HOURS_IN_DAY, HOURS_IN_YEAR
+from wombat.utilities.time import parse_date
 
 
 if TYPE_CHECKING:
@@ -159,7 +159,10 @@ def annual_date_range(
 
 
 def annualized_date_range(
-    start_date: str, start_year: int, end_date: str, end_year: int
+    start_date: datetime.datetime,
+    start_year: int,
+    end_date: datetime.datetime,
+    end_year: int,
 ) -> np.ndarray:
     """Creates an annualized list of dates based on the simulation years.
 
@@ -179,11 +182,6 @@ def annualized_date_range(
     set[datetime.datetime]
         _description_
     """
-    start_date = parse(start_date)  # type: ignore
-    end_date = parse(end_date)  # type: ignore
-    assert isinstance(start_date, datetime.datetime)  # mypy helper
-    assert isinstance(end_date, datetime.datetime)  # mypy helper
-
     additional = 1 if end_date < start_date else 0
     date_list = [
         pd.date_range(
@@ -222,7 +220,7 @@ def convert_ratio_to_absolute(ratio: int | float, total: int | float) -> int | f
 
 
 def check_start_stop_dates(
-    instance: Any, attribute: attr.Attribute, value: str | None
+    instance: Any, attribute: attr.Attribute, value: datetime.datetime | None
 ) -> None:
     """Ensures the date range start and stop points are not the same."""
     if attribute.name == "non_operational_end":
@@ -244,12 +242,7 @@ def check_start_stop_dates(
             f"An ending date was provided, but no starting date was provided for `{start_name}`."
         )
 
-    assert isinstance(start_date, str)  # mypy helper
-    assert isinstance(value, str)  # mypy helper
-    start_dt = parse(start_date)
-    end_dt = parse(value)
-
-    if start_dt.month == end_dt.month and start_dt.day == end_dt.day:
+    if start_date == value:
         raise ValueError(
             f"Starting date (`{start_name}`={start_date} and ending date"
             f" (`{attribute.name}`={value}) cannot be the same date."
@@ -693,10 +686,10 @@ class DateLimitsMixin:
 
     # MyPy type hints
     port_distance: float
-    non_operational_start: str
-    non_operational_end: str
-    reduced_speed_start: str
-    reduced_speed_end: str
+    non_operational_start: datetime.datetime = field(converter=parse_date)
+    non_operational_end: datetime.datetime = field(converter=parse_date)
+    reduced_speed_start: datetime.datetime = field(converter=parse_date)
+    reduced_speed_end: datetime.datetime = field(converter=parse_date)
 
     def _set_environment_shift(self, start: int, end: int) -> None:
         """Used to set the ``workday_start`` and ``workday_end`` to the environment's values.
@@ -726,23 +719,93 @@ class DateLimitsMixin:
         if self.port_distance <= 0:  # type: ignore
             object.__setattr__(self, "port_distance", distance)
 
-    def set_non_operational_dates(self, start_year: int, end_year: int) -> None:
+    def _compare_dates(
+        self,
+        new_start: datetime.datetime | None,
+        new_end: datetime.datetime | None,
+        which: str,
+    ) -> tuple[datetime.datetime | None, datetime.datetime | None]:
+        """Compares the orignal and newly input starting ane ending date for either the
+        non-operational date range or the reduced speed date range.
+
+        Parameters
+        ----------
+        new_start : datetime.datetime | None
+            The overriding start date if it is an earlier date than the original.
+        new_end : datetime.datetime | None
+            The overriding end date if it is a later date than the original.
+        which : str
+            One of "reduced_speed" or "non_operational"
+
+        Returns
+        -------
+        tuple[datetime.datetime | None, datetime.datetime | None]
+            The more conservative date pair between the new values and original values.
+
+        Raises
+        ------
+        ValueError
+            Raised if an invalid value to ``which`` is provided.
+        """
+        if which in ("reduced_speed", "non_operational"):
+            original_start = getattr(self, f"{which}_start")
+            original_end = getattr(self, f"{which}_end")
+        else:
+            raise ValueError(
+                "`which` must be one of 'reduced_speed' or 'non_operational'."
+            )
+
+        if original_start is not None:
+            if new_start is not None:
+                new_start = min(new_start, original_start)
+            else:
+                new_start = original_start
+        else:
+            object.__setattr__(self, f"{which}_start", new_start)
+
+        if original_end is not None:
+            if new_end is not None:
+                new_end = max(new_end, original_end)
+            else:
+                new_end = original_end
+        else:
+            object.__setattr__(self, f"{which}_end", new_end)
+
+        return new_start, new_end
+
+    def set_non_operational_dates(
+        self,
+        start_date: datetime.datetime | None = None,
+        start_year: int | None = None,
+        end_date: datetime.datetime | None = None,
+        end_year: int | None = None,
+    ) -> None:
         """Creates an annualized list of dates where servicing equipment should be
         unavailable. Takes a a ``start_year`` and ``end_year`` to determine how many
         years should be covered.
 
         Parameters
         ----------
-        start_year : int
-            The first year that has a non-operational date range.
-        end_year : int
-            The last year that should have a non-operational date range.
+        start_date : datetime.datetime | None
+            The starting date for the annual date range of non-operational dates, by
+            default None.
+        start_year : int | None
+            The first year that has a non-operational date range, by default None.
+        end_date : datetime.datetime | None
+            The ending date for the annual range of non-operational dates, by default
+            None.
+        end_year : int | None
+            The last year that should have a non-operational date range, by default None.
 
         Raises
         ------
         ValueError
             Raised if the starting and ending dates are the same date.
         """
+        start_date, end_date = self._compare_dates(
+            start_date, end_date, "reduced_speed"
+        )
+
         # Check that the base dates are valid
         if self.non_operational_start is None or self.non_operational_end is None:
             object.__setattr__(
@@ -776,26 +839,49 @@ class DateLimitsMixin:
             object.__setattr__(self, "operating_dates", operating)
             object.__setattr__(self, "operating_dates_set", set(operating))
 
-    def set_reduced_speed_dates(self, start_year: int, end_year: int) -> None:
+    def set_reduced_speed_parameters(
+        self,
+        start_date: datetime.datetime | None = None,
+        start_year: int | None = None,
+        end_date: datetime.datetime | None = None,
+        end_year: int | None = None,
+        speed: float = 0.0,
+    ) -> None:
         """Creates an annualized list of dates where servicing equipment should be
-        operating with reduced speeds. Takes a a ``start_year`` and ``end_year`` to
-        determine how many years should be covered.
+        operating with reduced speeds. The passed ``start_date``, ``end_date``, and
+        ``speed`` will override provided values if they are more conservative than the
+        current settings, or a value for ``speed`` will only override the existing value
+        if the passed value is slower. Takes a ``start_year`` and ``end_year`` to
+        determine how many years should be covered by this setting.
 
         Parameters
         ----------
-        start_year : int
-            The first year that has a reduced speed date range.
-        end_year : int
-            The last year that should have a reduced speed date range.
+        start_date : datetime.datetime | None
+            The starting date for the annual date range of reduced speeds, by default
+            None.
+        start_year : int | None
+            The first year that has a reduced speed date range, by default None.
+        end_date : datetime.datetime | None
+            The ending date for the annual range of reduced speeds, by default None.
+        end_year : int | None
+            The last year that should have a reduced speed date range, by default None.
+        speed : float
+            The maximum operating speed under a speed-restricted scenario.
 
         Raises
         ------
         ValueError
             Raised if the starting and ending dates are the same date.
         """
-        # Check that the base dates are valid
-        if self.reduced_speed_start is None or self.reduced_speed_end is None:
-            object.__setattr__(self, "reduced_speed_dates", set())
+        # Check that the base dates are valid and override if no values were provided
+        # or if the new value is more conservative than the originally provided value
+        start_date, end_date = self._compare_dates(
+            start_date, end_date, "reduced_speed"
+        )
+
+        if start_date is None or end_date is None:
+            object.__setattr__(self, "reduced_speed_dates", np.empty(0, dtype="object"))
+            object.__setattr__(self, "reduced_speed_dates_set", set())
             return
 
         # Check that the input year range is valid
@@ -811,13 +897,15 @@ class DateLimitsMixin:
             )
 
         # Create the date range
-        object.__setattr__(
-            self,
-            "reduced_speed_dates",
-            annualized_date_range(
-                self.reduced_speed_start, start_year, self.reduced_speed_end, end_year
-            ),
+        dates = annualized_date_range(
+            self.reduced_speed_start, start_year, self.reduced_speed_end, end_year
         )
+        object.__setattr__(self, "reduced_speed_dates", dates)
+        object.__setattr__(self, "reduced_speed_dates_set", set(dates))
+
+        # Update the reduced speed if none was originally provided
+        if (self.reduced_speed == 0 and speed != 0) and speed < self.reduced_speed:  # type: ignore
+            object.__setattr__(self, "reduced_speed", speed)
 
 
 @define(frozen=True, auto_attribs=True)
@@ -948,10 +1036,14 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     operating_dates: np.ndarray = field(factory=list, init=False)
     operating_dates_set: set = field(factory=set, init=False)
 
-    non_operational_start: str = field(default=None)
-    non_operational_end: str = field(default=None, validator=check_start_stop_dates)
-    reduced_speed_start: str = field(default=None)
-    reduced_speed_end: str = field(default=None, validator=check_start_stop_dates)
+    non_operational_start: datetime.datetime = field(default=None, converter=parse_date)
+    non_operational_end: datetime.datetime = field(
+        default=None, converter=parse_date, validator=check_start_stop_dates
+    )
+    reduced_speed_start: datetime.datetime = field(default=None, converter=parse_date)
+    reduced_speed_end: datetime.datetime = field(
+        default=None, converter=parse_date, validator=check_start_stop_dates
+    )
     reduced_speed: float = field(default=0, converter=float)
     non_operational_dates: pd.DatetimeIndex = field(factory=list, init=False)
     non_operational_dates_set: pd.DatetimeIndex = field(factory=set, init=False)
@@ -1120,10 +1212,10 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     tow_speed: float = field(default=1, converter=float, validator=greater_than_zero)
     unmoor_hours: int | float = field(default=0, converter=float)
     reconnection_hours: int | float = field(default=0, converter=float)
-    non_operational_start: str = field(default=None)
-    non_operational_end: str = field(default=None)
-    reduced_speed_start: str = field(default=None)
-    reduced_speed_end: str = field(default=None)
+    non_operational_start: datetime.datetime = field(default=None, converter=parse_date)
+    non_operational_end: datetime.datetime = field(default=None, converter=parse_date)
+    reduced_speed_start: datetime.datetime = field(default=None, converter=parse_date)
+    reduced_speed_end: datetime.datetime = field(default=None, converter=parse_date)
     reduced_speed: float = field(default=0, converter=float)
     non_operational_dates: pd.DatetimeIndex = field(factory=list, init=False)
     non_operational_dates_set: pd.DatetimeIndex = field(factory=set, init=False)
@@ -1370,10 +1462,10 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
     annual_fee: float = field(
         default=0, converter=float, validator=greater_than_equal_to_zero
     )
-    non_operational_start: str = field(default=None)
-    non_operational_end: str = field(default=None)
-    reduced_speed_start: str = field(default=None)
-    reduced_speed_end: str = field(default=None)
+    non_operational_start: datetime.datetime = field(default=None, converter=parse_date)
+    non_operational_end: datetime.datetime = field(default=None, converter=parse_date)
+    reduced_speed_start: datetime.datetime = field(default=None, converter=parse_date)
+    reduced_speed_end: datetime.datetime = field(default=None, converter=parse_date)
     reduced_speed: float = field(default=0, converter=float)
     non_operational_dates: pd.DatetimeIndex = field(factory=set, init=False)
     reduced_speed_dates: pd.DatetimeIndex = field(factory=set, init=False)

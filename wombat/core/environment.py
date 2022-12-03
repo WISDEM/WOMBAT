@@ -22,6 +22,7 @@ from wombat.utilities import (
     hours_until_future_hour,
     format_events_log_message,
 )
+from wombat.core.data_classes import parse_date
 
 
 class WombatEnvironment(simpy.Environment):
@@ -40,6 +41,11 @@ class WombatEnvironment(simpy.Environment):
         start_year: int | None = None,
         end_year: int | None = None,
         port_distance: int | float | None = None,
+        non_operational_start: str | dt.datetime | None = None,
+        non_operational_end: str | dt.datetime | None = None,
+        reduced_speed_start: str | dt.datetime | None = None,
+        reduced_speed_end: str | dt.datetime | None = None,
+        reduced_speed: float = 0.0,
     ) -> None:
         """Initialization.
 
@@ -104,6 +110,13 @@ class WombatEnvironment(simpy.Environment):
         self.weather_dates = self.weather.index.to_pydatetime()
         self.max_run_time = self.weather.shape[0]
         self.shift_length = self.workday_end - self.workday_start
+
+        # Set the environmental consideration parameters
+        self.non_operational_start = parse_date(non_operational_start)
+        self.non_operational_end = parse_date(non_operational_end)
+        self.reduced_speed_start = parse_date(reduced_speed_start)
+        self.reduced_speed_end = parse_date(reduced_speed_end)
+        self.reduced_speed = reduced_speed
 
         self.simulation_name = simulation_name
         self._logging_setup()
