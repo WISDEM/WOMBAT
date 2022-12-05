@@ -14,7 +14,7 @@ below will show how each of the APIs are powered to enable the full flexibility 
 
 ### Environment
 ```{eval-rst}
-.. automodule:: wombat.core.environment
+.. autoclass:: wombat.core.environment.WombatEnvironment
    :members:
    :undoc-members:
 ```

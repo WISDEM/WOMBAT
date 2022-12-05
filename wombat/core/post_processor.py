@@ -1882,6 +1882,10 @@ class Metrics:
 
         See here for more: https://nrel-pysam.readthedocs.io/en/master/modules/Singleowner.html#PySAM.Singleowner.Singleowner.Outputs.cf_project_return_aftertax_npv
 
+        ... warning::
+            PySAM functionality is currently disabled due to changes made in the new API
+            that need to be remapped.
+
         Raises
         ------
         NotImplementedError: Raised if a PySAM input file is not provided to run the model.
@@ -1903,6 +1907,10 @@ class Metrics:
         """Returns the real levelized cost of energy (LCOE) from PySAM.
 
         See here for more: https://nrel-pysam.readthedocs.io/en/master/modules/Singleowner.html#PySAM.Singleowner.Singleowner.Outputs.lcoe_real
+
+        ... warning::
+            PySAM functionality is currently disabled due to changes made in the new API
+            that need to be remapped.
 
         Raises
         ------
@@ -1928,6 +1936,10 @@ class Metrics:
         ------
         NotImplementedError: Raised if a PySAM input file is not provided to run the model.
 
+        ... warning::
+            PySAM functionality is currently disabled due to changes made in the new API
+            that need to be remapped.
+
         Returns
         -------
         float
@@ -1943,6 +1955,10 @@ class Metrics:
         """Returns the project-level after-tax internal return rate (IRR).
 
         See here for more: https://nrel-pysam.readthedocs.io/en/master/modules/Singleowner.html#PySAM.Singleowner.Singleowner.Outputs.cf_project_return_aftertax_irr
+
+        ... warning::
+            PySAM functionality is currently disabled due to changes made in the new API
+            that need to be remapped.
 
         Raises
         ------
@@ -1969,6 +1985,10 @@ class Metrics:
          - Nominal LCOE
          - Real LOCE
          - IRR
+
+         ... warning::
+            PySAM functionality is currently disabled due to changes made in the new API
+            that need to be remapped.
 
         Raises
         ------
