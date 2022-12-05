@@ -6,6 +6,7 @@ from __future__ import annotations
 import datetime
 from math import fsum
 from typing import TYPE_CHECKING, Any, Callable, Sequence  # type: ignore
+from pathlib import Path
 from functools import partial, update_wrapper  # type: ignore
 
 import attr
@@ -803,8 +804,10 @@ class DateLimitsMixin:
             Raised if the starting and ending dates are the same date.
         """
         start_date, end_date = self._compare_dates(
-            start_date, end_date, "reduced_speed"
+            start_date, end_date, "non_operational"
         )
+        object.__setattr__(self, "non_operational_start", start_date)
+        object.__setattr__(self, "non_operational_end", end_date)
 
         # Check that the base dates are valid
         if self.non_operational_start is None or self.non_operational_end is None:
@@ -878,6 +881,8 @@ class DateLimitsMixin:
         start_date, end_date = self._compare_dates(
             start_date, end_date, "reduced_speed"
         )
+        object.__setattr__(self, "reduced_speed_start", start_date)
+        object.__setattr__(self, "reduced_speed_end", end_date)
 
         if start_date is None or end_date is None:
             object.__setattr__(self, "reduced_speed_dates", np.empty(0, dtype="object"))
@@ -904,7 +909,7 @@ class DateLimitsMixin:
         object.__setattr__(self, "reduced_speed_dates_set", set(dates))
 
         # Update the reduced speed if none was originally provided
-        if (self.reduced_speed == 0 and speed != 0) and speed < self.reduced_speed:  # type: ignore
+        if speed != 0 and (self.reduced_speed == 0 or speed < self.reduced_speed):  # type: ignore
             object.__setattr__(self, "reduced_speed", speed)
 
 
@@ -1452,7 +1457,7 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
     """
 
     name: str = field(converter=str)
-    tugboats: list[UnscheduledServiceEquipmentData] = field(converter=convert_to_list)
+    tugboats: list[str | Path] = field(converter=convert_to_list)
     crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
     n_crews: int = field(default=1, converter=int)
     max_operations: int = field(default=1, converter=int)
@@ -1469,6 +1474,8 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
     reduced_speed: float = field(default=0, converter=float)
     non_operational_dates: pd.DatetimeIndex = field(factory=set, init=False)
     reduced_speed_dates: pd.DatetimeIndex = field(factory=set, init=False)
+    non_operational_dates_set: pd.DatetimeIndex = field(factory=set, init=False)
+    reduced_speed_dates_set: pd.DatetimeIndex = field(factory=set, init=False)
 
 
 @define(frozen=True, auto_attribs=True)

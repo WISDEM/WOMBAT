@@ -227,24 +227,22 @@ class Simulation(FromDictMixin):
         )
         self.repair_manager = RepairManager(self.env)
         self.windfarm = Windfarm(self.env, self.config.layout, self.repair_manager)
+
+        # Create the servicing equipment and set the necessary environment variables
         self.service_equipment = []
         for service_equipment in self.config.service_equipment:
-            self.service_equipment.append(
-                ServiceEquipment(
-                    self.env, self.windfarm, self.repair_manager, service_equipment
-                )
+            equipment = ServiceEquipment(
+                self.env, self.windfarm, self.repair_manager, service_equipment
             )
+            equipment.finish_setup_with_environment_variables()
+            self.service_equipment.append(equipment)
+
+        # Create the port and add any tugboats to the available servicing equipment list
         if self.config.port is not None:
             self.port = Port(
                 self.env, self.windfarm, self.repair_manager, self.config.port
             )
             self.service_equipment.extend(self.port.tugboat_manager.items)
-
-        # After the port is setup and the associated servicing equipment are created,
-        # set the environment working hours and port distance for any unconfigured
-        # equipment-level settings
-        for equipment in self.service_equipment:
-            equipment.finish_setup_with_environment_variables()
 
         if self.config.project_capacity * 1000 != round(self.windfarm.capacity, 6):
             raise ValueError(

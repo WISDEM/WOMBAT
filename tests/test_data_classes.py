@@ -588,10 +588,11 @@ def test_BaseServiceEquipmentData():
     vessel = ScheduledServiceEquipmentData.from_dict(SCHEDULED_VESSEL)
 
     vessel.set_non_operational_dates(start_year=2000, end_year=2020)
-    vessel.set_reduced_speed_dates(start_year=2000, end_year=2020)
+    vessel.set_reduced_speed_parameters(start_year=2000, end_year=2020)
     assert vessel.non_operational_dates.size == 0
     assert vessel.non_operational_dates_set == set()
-    assert vessel.reduced_speed_dates == set()
+    assert vessel.reduced_speed_dates.size == 0
+    assert vessel.reduced_speed_dates_set == set()
 
     # Test for a single date provided that errors are raised
     data = deepcopy(SCHEDULED_VESSEL)
@@ -624,7 +625,7 @@ def test_BaseServiceEquipmentData():
     data["reduced_speed_end"] = "11/16"
 
     vessel = ScheduledServiceEquipmentData.from_dict(data)
-    vessel.set_reduced_speed_dates(2000, 2002)
+    vessel.set_reduced_speed_parameters(start_year=2000, end_year=2002)
     assert len(vessel.reduced_speed_dates) == 9
     assert min(vessel.reduced_speed_dates) == datetime.date(2000, 11, 14)
     assert max(vessel.reduced_speed_dates) == datetime.date(2002, 11, 16)
@@ -635,7 +636,7 @@ def test_BaseServiceEquipmentData():
     data["non_operational_start"] = "12-30"
     data["non_operational_end"] = "1/2"
     vessel = ScheduledServiceEquipmentData.from_dict(data)
-    vessel.set_non_operational_dates(2000, 2002)
+    vessel.set_non_operational_dates(start_year=2000, end_year=2002)
     assert len(vessel.non_operational_dates) == 12
     assert min(vessel.non_operational_dates) == datetime.date(2000, 1, 1)
     assert max(vessel.non_operational_dates) == datetime.date(2002, 12, 31)

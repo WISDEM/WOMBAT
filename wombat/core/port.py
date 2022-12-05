@@ -102,7 +102,7 @@ class Port(RepairsMixin, FilterStore):
         assert isinstance(config, dict)
         self.settings = PortConfig.from_dict(config)
 
-        self._check_working_hours()
+        self._check_working_hours(which="env")
         self.settings.set_non_operational_dates(
             self.env.non_operational_start,
             self.env.start_year,
@@ -123,12 +123,13 @@ class Port(RepairsMixin, FilterStore):
         self.crew_manager = simpy.Resource(env, self.settings.n_crews)
         self.tugboat_manager = simpy.FilterStore(env, len(self.settings.tugboats))
 
-        tugboats = [
-            ServiceEquipment(self.env, self.windfarm, repair_manager, tug)  # type: ignore
-            for tug in self.settings.tugboats
-        ]
-        for tugboat in tugboats:  # self.availible_tugboats:
+        tugboats = []
+        print(self.settings.tugboats)
+        for t in self.settings.tugboats:
+            tugboat = ServiceEquipment(self.env, self.windfarm, repair_manager, t)
             tugboat._register_port(self)
+            tugboats.append(tugboat)
+
         self.tugboat_manager.items = tugboats
         self.active_repairs: dict[str, dict[str, simpy.events.Event]] = {}
 

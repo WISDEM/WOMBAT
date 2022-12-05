@@ -252,7 +252,7 @@ class ServiceEquipment(RepairsMixin):
         """A post-initialization step that will override unset parameters with those
         from the the environemt that may have already been set.
         """
-        self._check_working_hours()
+        self._check_working_hours(which="env")
         self.settings._set_port_distance(self.env.port_distance)
         self.settings.set_non_operational_dates(
             self.env.non_operational_start,
@@ -281,27 +281,24 @@ class ServiceEquipment(RepairsMixin):
         self.at_port = True
         self.settings._set_port_distance(port.settings.site_distance)  # type: ignore
 
+        self._check_working_hours(which="port")
+
         # Set the non-operational start/end dates if needed
-        if self.port.settings.non_operational_start is not None:
-            if self.settings.non_operational_start is None:
-                object.__setattr__(
-                    self,
-                    "non_operational_start",
-                    self.port.settings.non_operational_start,
-                )
-                object.__setattr__(
-                    self, "non_operational_end", self.port.settings.non_operational_end
-                )
+        self.settings.set_non_operational_dates(
+            port.settings.non_operational_start,
+            self.env.start_year,
+            port.settings.non_operational_end,
+            self.env.end_year,
+        )
 
         # Set the reduced speed start/end dates if needed
-        if self.port.settings.reduced_speed_start is not None:
-            if self.settings.reduced_speed_start is None:
-                object.__setattr__(
-                    self, "reduced_speed_start", self.port.settings.reduced_speed_start
-                )
-                object.__setattr__(
-                    self, "reduced_speed_end", self.port.settings.reduced_speed_end
-                )
+        self.settings.set_reduced_speed_parameters(
+            port.settings.reduced_speed_start,
+            self.env.start_year,
+            port.settings.reduced_speed_end,
+            self.env.end_year,
+            port.settings.reduced_speed,
+        )
 
     def _set_location(self, end: str, set_current: Optional[str] = None) -> None:
         """Keeps track of the servicing equipment by setting the location at either:
@@ -378,11 +375,7 @@ class ServiceEquipment(RepairsMixin):
         speed = self.settings.tow_speed if tow else self.settings.speed  # type: ignore
         if self.env.simulation_time.date() in self.settings.reduced_speed_dates_set:  # type: ignore
             if speed > self.settings.reduced_speed:
-                print(
-                    self.env.simulation_time, self.settings.name, "reduced speed", speed
-                )
-                return self.settings.reduced_speed
-        print(self.env.simulation_time, self.settings.name, "normal speed", speed)
+                speed = self.settings.reduced_speed
         return speed
 
     def get_next_request(self):

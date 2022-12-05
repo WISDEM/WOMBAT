@@ -59,16 +59,30 @@ class RepairsMixin:
             daily_rate=True,
         )
 
-    def _check_working_hours(self) -> None:
+    def _check_working_hours(self, which: str) -> None:
         """Checks the working hours of the port and overrides a default (-1) to
         the ``env`` settings, otherwise hours remain the same.
+
+        Parameters
+        ----------
+        which : str
+            One of "env" or "port" to determine from which overarching environment
+            variable should be used to override unset settings.
         """
+        if which == "env":
+            start = self.env.workday_start
+            end = self.env.workday_end
+        elif which == "port":
+            start = self.port.settings.workday_start  # type: ignore
+            end = self.port.settings.workday_end  # type: ignore
+        else:
+            raise ValueError(
+                "Can only set the workday settings from a 'port' or 'env'."
+            )
+
         self.settings._set_environment_shift(
             *check_working_hours(
-                self.env.workday_start,  # type: ignore
-                self.env.workday_end,
-                self.settings.workday_start,
-                self.settings.workday_end,
+                start, end, self.settings.workday_start, self.settings.workday_end
             )
         )
 
