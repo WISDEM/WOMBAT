@@ -4,6 +4,12 @@
 - Convert boolean operational statuses for `System`, `Subassembly`, `Cable`, and `ServiceEquipment` to SimPy events for more efficient processing and accurate delays for restarting
 - Fix numerous bugs in the repair logic introduced by the use of boolean checks and status switches, which also improve simulation performance. These issues were primarily caused by erroneously resetting the status, but with the new event setting and `.succeed()` logic to clear an operation, the previously incorrect resetting is much harder to do.
 - Continue to improve the performance of low-level simulation operations to realize further improvements in memory usage and simulation performance
+- Add logic for prohibited operations periods and speed reduction periods.
+  - All periods can be set for each servicing equipment, or across the board when set at the environment level
+  - For ports, the same logic applies where the environment can set the port variables and the port can set its associated tugboats' variables
+  - When a setting is defined in multiple locations, the more conservative restriction is applied
+  - Variables `non_operational_start`, `non_operational_end` create the annualized period where operations are prohibited, resulting in the creation of the array `non_operational_dates` and set `non_operational_dates_set`.
+  - Variables `reduced_speed_start`, `reduced_speed_end` create the annualized period where the maximum speed, `reduced_speed`, for all operations is imposed, resulting in the creation of the array `reduced_speed_dates` and set `reduced_speed_dates_set`.
 
 ## 0.5.1 (22 July 2022)
 - Updates to use the most recent pandas API/recommendations, which fixes numerous warnings in the `Metrics` class
