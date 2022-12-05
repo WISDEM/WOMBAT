@@ -83,6 +83,31 @@ class WombatEnvironment(simpy.Environment):
             should be used as a base setting when multiple or all servicing equipment
             will be operating out of the same base location, but can be individually
             modified.
+        non_operational_start : str | datetime.datetime | None
+            The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+            period of prohibited operations. When defined at the environment level,
+            an undefined or later starting date will be overridden for all servicing
+            equipment and any modeled port, by default None.
+        non_operational_end : str | datetime.datetime | None
+            The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+            period of prohibited operations. When defined at the environment level,
+            an undefined or earlier ending date will be overridden for all servicing
+            equipment and any modeled port, by default None.
+        reduced_speed_start : str | datetime.datetime | None
+            The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+            period of reduced speed operations. When defined at the environment level,
+            an undefined or later starting date will be overridden for all servicing
+            equipment and any modeled port, by default None.
+        reduced_speed_end : str | datetime.datetime | None
+            The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+            period of reduced speed operations. When defined at the environment level,
+            an undefined or earlier ending date will be overridden for all servicing
+            equipment and any modeled port, by default None.
+        reduced_speed : float
+            The maximum operating speed during the annualized reduced speed operations.
+            When defined at the environment level, an undefined or faster value will be
+            overridden for all servicing equipment and any modeled port, by default 0.0.
+
 
         Raises
         ------

@@ -993,6 +993,26 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     port_distance : int | float
         The distance, in km, the equipment must travel to go between port and site, by
         default 0.
+    non_operational_start : str | datetime.datetime | None
+        The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of prohibited operations. When defined at the environment level, an
+        undefined or later starting date will be overridden, by default None.
+    non_operational_end : str | datetime.datetime | None
+        The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of prohibited operations. When defined at the environment level, an
+        undefined or earlier ending date will be overridden, by default None.
+    reduced_speed_start : str | datetime.datetime | None
+        The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of reduced speed operations. When defined at the environment level, an
+        undefined or later starting date will be overridden, by default None.
+    reduced_speed_end : str | datetime.datetime | None
+        The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of reduced speed operations. When defined at the environment level, an
+        undefined or earlier ending date will be overridden, by default None.
+    reduced_speed : float
+        The maximum operating speed during the annualized reduced speed operations.
+        When defined at the environment level, an undefined or faster value will be
+        overridden, by default 0.0.
     """
 
     name: str = field(converter=str)
@@ -1172,6 +1192,30 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     port_distance : int | float
         The distance, in km, the equipment must travel to go between port and site, by
         default 0.
+    non_operational_start : str | datetime.datetime | None
+        The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of prohibited operations. When defined at the environment level or the
+        port level, if a tugboat, an undefined or later starting date will be overridden,
+        by default None.
+    non_operational_end : str | datetime.datetime | None
+        The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of prohibited operations. When defined at the environment level or the
+        port level, if a tugboat, an undefined or earlier ending date will be overridden,
+        by default None.
+    reduced_speed_start : str | datetime.datetime | None
+        The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of reduced speed operations. When defined at the environment level or the
+        port level, if a tugboat, an undefined or later starting date will be overridden,
+        by default None.
+    reduced_speed_end : str | datetime.datetime | None
+        The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of reduced speed operations. When defined at the environment level or the
+        port level, if a tugboat, an undefined or earlier ending date will be overridden,
+        by default None.
+    reduced_speed : float
+        The maximum operating speed during the annualized reduced speed operations.
+        When defined at the environment level, an undefined or faster value will be
+        overridden, by default 0.0.
     """
 
     name: str = field(converter=str)
@@ -1454,6 +1498,32 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
         ... note:: Don't include this cost in both this category and either the
         ``FixedCosts.operations_management_administration`` bucket or
         ``FixedCosts.marine_management`` category.
+
+    non_operational_start : str | datetime.datetime | None
+        The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of prohibited operations. When defined at the port level, an undefined or
+        later starting date will be overridden by the environment, and any associated
+        tubboats will have this value overridden using the same logic, by default None.
+    non_operational_end : str | datetime.datetime | None
+        The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of prohibited operations. When defined at the port level, an undefined
+        or earlier ending date will be overridden by the environment, and any associated
+        tubboats will have this value overridden using the same logic, by default None.
+    reduced_speed_start : str | datetime.datetime | None
+        The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of reduced speed operations. When defined at the port level, an undefined
+        or later starting date will be overridden by the environment, and any associated
+        tubboats will have this value overridden using the same logic, by default None.
+    reduced_speed_end : str | datetime.datetime | None
+        The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of reduced speed operations. When defined at the port level, an undefined
+        or earlier ending date will be overridden by the environment, and any associated
+        tubboats will have this value overridden using the same logic, by default None.
+    reduced_speed : float
+        The maximum operating speed during the annualized reduced speed operations.
+        When defined at the port level, an undefined or faster value will be overridden
+        by the environment, and any associated tubboats will have this value overridden
+        using the same logic, by default 0.0.
     """
 
     name: str = field(converter=str)

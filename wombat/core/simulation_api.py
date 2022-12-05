@@ -1,6 +1,7 @@
 """The main API for the ``wombat``."""
 from __future__ import annotations
 
+import datetime
 from typing import Optional
 from pathlib import Path
 
@@ -86,6 +87,30 @@ class Configuration(FromDictMixin):
     SAM_settings : str
         The SAM settings file to be used for financial modeling, optional, by
         default None.
+    non_operational_start : str | datetime.datetime | None
+        The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of prohibited operations. When defined at the environment level, an
+        undefined or later starting date will be overridden for all servicing equipment
+        and any modeled port, by default None.
+    non_operational_end : str | datetime.datetime | None
+        The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of prohibited operations. When defined at the environment level, an
+        undefined or earlier ending date will be overridden for all servicing equipment
+        and any modeled port, by default None.
+    reduced_speed_start : str | datetime.datetime | None
+        The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of reduced speed operations. When defined at the environment level, an
+        undefined or later starting date will be overridden for all servicing equipment
+        and any modeled port, by default None.
+    reduced_speed_end : str | datetime.datetime | None
+        The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of reduced speed operations. When defined at the environment level, an
+        undefined or earlier ending date will be overridden for all servicing equipment
+        and any modeled port, by default None.
+    reduced_speed : float
+        The maximum operating speed during the annualized reduced speed operations.
+        When defined at the environment level, an undefined or faster value will be
+        overridden for all servicing equipment and any modeled port, by default 0.0.
     """
 
     name: str
@@ -99,10 +124,15 @@ class Configuration(FromDictMixin):
     project_capacity: int | float = field(converter=float)
     fixed_costs: dict | str | Path = field(default=None)
     port: dict | str | Path = field(default=None)
-    port_distance: int | float = field(default=None)
     start_year: int = field(default=None)
     end_year: int = field(default=None)
     SAM_settings: str = field(default=None)
+    port_distance: int | float = field(default=None)
+    non_operational_start: str | datetime.datetime | None = field(default=None)
+    non_operational_end: str | datetime.datetime | None = field(default=None)
+    reduced_speed_start: str | datetime.datetime | None = field(default=None)
+    reduced_speed_end: str | datetime.datetime | None = field(default=None)
+    reduced_speed: float = field(default=0.0)
 
 
 @define(auto_attribs=True)
@@ -224,6 +254,11 @@ class Simulation(FromDictMixin):
             start_year=self.config.start_year,
             end_year=self.config.end_year,
             port_distance=self.config.port_distance,
+            non_operational_start=self.config.non_operational_start,
+            non_operational_end=self.config.non_operational_end,
+            reduced_speed_start=self.config.reduced_speed_start,
+            reduced_speed_end=self.config.reduced_speed_end,
+            reduced_speed=self.config.reduced_speed,
         )
         self.repair_manager = RepairManager(self.env)
         self.windfarm = Windfarm(self.env, self.config.layout, self.repair_manager)
