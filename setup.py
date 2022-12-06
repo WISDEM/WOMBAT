@@ -48,6 +48,7 @@ REQUIRED = [
     # required for pre-commit CI
     "types-attrs>=19",
     "types-PyYAML>=6",
+    "types-python-dateutil>=2.8",
 ]
 DEVELOPER = [
     "pre-commit",

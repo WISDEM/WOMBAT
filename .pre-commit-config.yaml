@@ -21,6 +21,7 @@ repos:
     -   id: mypy
         entry: mypy --install-types --non-interactive --config-file .mypy.ini
         exclude: (^docs/|^tests/)
+        additional_dependencies: ["types-python-dateutil", "types-attrs", "types-PyYAML"]
 
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.3.0
