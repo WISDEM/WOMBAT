@@ -367,7 +367,7 @@ class Port(RepairsMixin, FilterStore):
                 additional="waiting for next operational period",
                 duration=hours_to_next,
             )
-            yield self.env.timeout(hours_to_next)
+            yield self.env.timeout(hours_to_next)  # type: ignore
 
         self.requests_serviced.update([request.request_id])
 

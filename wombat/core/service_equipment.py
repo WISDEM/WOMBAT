@@ -1550,7 +1550,7 @@ class ServiceEquipment(RepairsMixin):
         mobilization_days = self.settings.mobilization_days
         charter_end_env_time = self.settings.charter_days * HOURS_IN_DAY
         charter_end_env_time += mobilization_days * HOURS_IN_DAY
-        charter_end_env_time += self.env.now
+        charter_end_env_time += self.env.now  # type: ignore
 
         current = self.env.simulation_time
         charter_start = current + pd.Timedelta(mobilization_days, "D")
@@ -1578,7 +1578,7 @@ class ServiceEquipment(RepairsMixin):
                 additional="waiting for next operational period",
                 duration=hours_to_next,
             )
-            yield self.env.timeout(hours_to_next)
+            yield self.env.timeout(hours_to_next)  # type: ignore
             yield self.env.process(self.run_unscheduled_in_situ())
             return
 

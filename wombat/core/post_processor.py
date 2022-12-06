@@ -346,11 +346,11 @@ class Metrics:
     def _setup_pysam(self) -> None:
         """Creates and executes the PySAM model for financial metrics."""
         # Define the model and import the SAM settings file.
-        self.financial_model = pysam_singleowner_financial_model.default(
+        self.financial_model = pysam_singleowner_financial_model.default(  # type: ignore
             "WindPowerSingleOwner"
         )
         model_data = pssc.dict_to_ssc_table(self.sam_settings, "singleowner")
-        self.financial_model = pysam_singleowner_financial_model.wrap(model_data)
+        self.financial_model = pysam_singleowner_financial_model.wrap(model_data)  # type: ignore
 
         # Remove the leap year production
         leap_year_ix = self.production.index.month == 2

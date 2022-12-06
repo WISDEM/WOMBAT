@@ -422,7 +422,7 @@ class Maintenance(FromDictMixin):
     materials: float = field(converter=float)
     frequency: float = field(converter=float)
     service_equipment: list[str] = field(
-        converter=convert_to_list_upper,
+        converter=convert_to_list_upper,  # type: ignore
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
             iterable_validator=attrs.validators.instance_of(list),
@@ -504,7 +504,7 @@ class Failure(FromDictMixin):
     operation_reduction: float = field(converter=float)
     level: int = field(converter=int)
     service_equipment: list[str] | str = field(
-        converter=convert_to_list_upper,
+        converter=convert_to_list_upper,  # type: ignore
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
             iterable_validator=attrs.validators.instance_of(list),
@@ -1027,7 +1027,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     n_crews: int = field(converter=int)
     crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
     capability: list[str] | str = field(
-        converter=convert_to_list_upper,
+        converter=convert_to_list_upper,  # type: ignore
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
             iterable_validator=attrs.validators.instance_of(list),
@@ -1055,13 +1055,13 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         validator=attrs.validators.in_(["turbine", "severity"]),
     )
     start_month: int = field(
-        default=-1, converter=int, validator=attrs.validators.ge(0)
+        default=-1, converter=int, validator=attrs.validators.ge(0)  # type: ignore
     )
-    start_day: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
-    start_year: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
-    end_month: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
-    end_day: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
-    end_year: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
+    start_day: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))  # type: ignore
+    start_year: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))  # type: ignore
+    end_month: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))  # type: ignore
+    end_day: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))  # type: ignore
+    end_year: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))  # type: ignore
     strategy: str = field(
         default="scheduled", validator=attrs.validators.in_(["scheduled"])
     )
@@ -1238,7 +1238,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     n_crews: int = field(converter=int)
     crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
     capability: list[str] | str = field(
-        converter=convert_to_list_upper,
+        converter=convert_to_list_upper,  # type: ignore
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
             iterable_validator=attrs.validators.instance_of(list),
@@ -1271,7 +1271,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     )
     strategy_threshold: int | float = field(default=-1, converter=float)
     charter_days: int = field(
-        default=-1, converter=int, validator=attrs.validators.gt(0)
+        default=-1, converter=int, validator=attrs.validators.gt(0)  # type: ignore
     )
     tow_speed: float = field(default=1, converter=float, validator=greater_than_zero)
     unmoor_hours: int | float = field(default=0, converter=float)

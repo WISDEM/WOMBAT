@@ -86,17 +86,17 @@ class RepairsMixin:
             )
         )
 
-    def _is_workshift(self, hour_ix: np.ndarray) -> np.ndarray:
+    def _is_workshift(self, hour_ix: np.ndarray | float | int) -> np.ndarray | bool:
         """Determines which timestamps are in the servicing equipment's working hours.
 
         Parameters
         ----------
-        hour_ix : np.ndarray
+        hour_ix : np.ndarray | float | int
             The hour of day component of the datetime stamp.
 
         Returns
         -------
-        np.ndarray
+        np.ndarray | bool
             A boolean array for which values in working hours (True), and which values
             are outside working hours (False).
         """
