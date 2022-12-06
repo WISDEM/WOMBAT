@@ -926,8 +926,10 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         Day rate for the equipment/vessel, in USD.
     n_crews : int
         Number of crew units for the equipment.
-        .. note: the input to this does not matter yet, as multi-crew functionality
+
+        .. note:: the input to this does not matter yet, as multi-crew functionality
         is not yet implemented.
+
     crew : ServiceCrew
         The crew details, see ``ServiceCrew`` for more information.
     start_month : int
@@ -942,19 +944,22 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         The day to end operations for the rig and crew.
     end_year : int
         The year to end operations for the rig and crew.
+
         .. note:: if the rig comes annually, then the enter the year for the last year
         that the rig and crew will be available.
+
     capability : str
         The type of capabilities the equipment contains. Must be one of:
-         - RMT: remote (no actual equipment BUT no special implementation)
-         - DRN: drone
-         - CTV: crew transfer vessel/vehicle
-         - SCN: small crane (i.e., field support vessel)
-         - LCN: large crane (i.e., heavy lift vessel)
-         - CAB: cabling vessel/vehicle
-         - DSV: diving support vessel
 
-         Please note that "TOW" is unavailable for scheduled servicing equipment
+        - RMT: remote (no actual equipment BUT no special implementation)
+        - DRN: drone
+        - CTV: crew transfer vessel/vehicle
+        - SCN: small crane (i.e., field support vessel)
+        - LCN: large crane (i.e., heavy lift vessel)
+        - CAB: cabling vessel/vehicle
+        - DSV: diving support vessel
+
+        Please note that "TOW" is unavailable for scheduled servicing equipment
     mobilization_cost : float
         Cost to mobilize the rig and crew.
     mobilization_days : int
@@ -983,9 +988,11 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         default 0.
     onsite : bool
         Indicator for if the rig and crew are based onsite.
+
         .. note:: if the rig and crew are onsite be sure that the start and end dates
         represent the first and last day/month of the year, respectively, and the start
         and end years represent the fist and last year in the weather file.
+
     method : str
         Determines if the ship will do all maximum severity repairs first or do all
         the repairs at one turbine before going to the next, by default severity.
@@ -1115,23 +1122,25 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         Day rate for the equipment/vessel, in USD.
     n_crews : int
         Number of crew units for the equipment.
+
         .. note: the input to this does not matter yet, as multi-crew functionality
         is not yet implemented.
+
     crew : ServiceCrew
         The crew details, see ``ServiceCrew`` for more information.
     charter_days : int
         The number of days the servicing equipment can be chartered for.
     capability : str
         The type of capabilities the equipment contains. Must be one of:
-         - RMT: remote (no actual equipment BUT no special implementation)
-         - DRN: drone
-         - CTV: crew transfer vessel/vehicle
-         - SCN: small crane (i.e., field support vessel)
-         - LCN: large crane (i.e., heavy lift vessel)
-         - CAB: cabling vessel/vehicle
-         - DSV: diving support vessel
-         - TOW: tugboat or towing equipment
-         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
+        - RMT: remote (no actual equipment BUT no special implementation)
+        - DRN: drone
+        - CTV: crew transfer vessel/vehicle
+        - SCN: small crane (i.e., field support vessel)
+        - LCN: large crane (i.e., heavy lift vessel)
+        - CAB: cabling vessel/vehicle
+        - DSV: diving support vessel
+        - TOW: tugboat or towing equipment
+        - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
     speed : float
         Maximum transit speed, km/hr.
     tow_speed : float
@@ -1174,9 +1183,11 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         turbine, default 0.
     onsite : bool
         Indicator for if the rig and crew are based onsite.
+
         .. note:: if the rig and crew are onsite be sure that the start and end dates
         represent the first and last day/month of the year, respectively, and the start
         and end years represent the fist and last year in the weather file.
+
     method : str
         Determines if the ship will do all maximum severity repairs first or do all
         the repairs at one turbine before going to the next, by default severity.
@@ -1184,11 +1195,15 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     unmoor_hours : int | float
         The number of hours required to unmoor a floating offshore wind turbine in order
         to tow it to port, by default 0.
+
         .. note:: Required for the tugboat/towing capability, otherwise unused.
+
     reconnection_hours : int | float
         The number of hours required to reconnect a floating offshore wind turbine after
         being towed back to site, by default 0.
+
         .. note:: Required for the tugboat/towing capability, otherwise unused.
+
     port_distance : int | float
         The distance, in km, the equipment must travel to go between port and site, by
         default 0.
@@ -1475,8 +1490,9 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
         The name of the port, if multiple are used, then be sure this is unique.
     tugboats : list[str]
         file, or list of files to create the port's tugboats.
+
         .. note:: Each tugboat is considered to be a tugboat + supporting vessels as
-            the primary purpose to tow turbines between a repair port and site.
+        the primary purpose to tow turbines between a repair port and site.
     n_crews : int
         The number of service crews available to be working on repairs simultaneously;
         each crew is able to service exactly one repair.
@@ -1555,10 +1571,9 @@ class FixedCosts(FromDictMixin):
     Parameters
     ----------
     operations : float
-        Non-maintenance costs of operating the project.
-
-        If a value is provided for this attribute, then it will zero out all other
-        values, otherwise it will be set to the sum of the remaining values.
+        Non-maintenance costs of operating the project. If a value is provided for this
+        attribute, then it will zero out all other values, otherwise it will be set to
+        the sum of the remaining values.
     operations_management_administration: float
         Activities necessary to forecast, dispatch, sell, and manage the production of
         power from the plant. Includes both the onsite and offsite personnel, software,
@@ -1595,6 +1610,7 @@ class FixedCosts(FromDictMixin):
         .. note:: This should only be used when not breaking down the cost into the following
         categories: ``brokers_fee``, ``operations_all_risk``, ``business_interruption``,
         ``third_party_liability``, and/or ``storm_coverage``
+
     brokers_fee : float
         Fees for arranging the insurance package.
     operations_all_risk : float

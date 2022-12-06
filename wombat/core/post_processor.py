@@ -1427,7 +1427,8 @@ class Metrics:
         done, but costs are being accrued.
 
         .. note:: It should be noted that the costs will include costs accrued from both
-        weather delays and shift-to-shift delays. In the future these will be disentangled.
+           weather delays and shift-to-shift delays. In the future these will be
+           disentangled.
 
         Parameters
         ----------

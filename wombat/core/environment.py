@@ -50,8 +50,10 @@ class WombatEnvironment(simpy.Environment):
         Name of the simulation; will be used for naming the log file, by default ``None``.
         If ``None``, then the current time will be used. Will always save to
         ``data_dir``/outputs/logs/``simulation_name``.log.
+
         .. note: spaces (" ") will be replaced with underscores ("_"), for example:
         "my example analysis" becomes "my_example_analysis".
+
     start_year : int | None, optional
         Custom starting year for the weather profile, by default None. If ``None`` or
         less than the first year of the weather profile, this will be ignored.
