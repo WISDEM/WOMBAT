@@ -33,7 +33,7 @@ class Port(RepairsMixin, FilterStore):
     """The offshore wind base port that operates tugboats and performs tow-to-port
     repairs.
 
-    ... note:: The operating costs for the port are incorporated into the ``FixedCosts``
+    .. note:: The operating costs for the port are incorporated into the ``FixedCosts``
         functionality in the high-levl cost bucket: ``operations_management_administration``
         or the more granula cost bucket: ``marine_management``
 

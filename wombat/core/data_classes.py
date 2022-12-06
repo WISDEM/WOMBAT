@@ -942,7 +942,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         The day to end operations for the rig and crew.
     end_year : int
         The year to end operations for the rig and crew.
-        ... note:: if the rig comes annually, then the enter the year for the last year
+        .. note:: if the rig comes annually, then the enter the year for the last year
         that the rig and crew will be available.
     capability : str
         The type of capabilities the equipment contains. Must be one of:
@@ -983,7 +983,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         default 0.
     onsite : bool
         Indicator for if the rig and crew are based onsite.
-        ... note:: if the rig and crew are onsite be sure that the start and end dates
+        .. note:: if the rig and crew are onsite be sure that the start and end dates
         represent the first and last day/month of the year, respectively, and the start
         and end years represent the fist and last year in the weather file.
     method : str
@@ -1137,7 +1137,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     tow_speed : float
         The maximum transit speed when towing, km/hr.
 
-        ... note:: This is only required for when the servicing equipment is tugboat
+        .. note:: This is only required for when the servicing equipment is tugboat
         enabled for a tow-to-port scenario (capability = "TOW")
 
     speed_reduction_factor : flaot
@@ -1174,7 +1174,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         turbine, default 0.
     onsite : bool
         Indicator for if the rig and crew are based onsite.
-        ... note:: if the rig and crew are onsite be sure that the start and end dates
+        .. note:: if the rig and crew are onsite be sure that the start and end dates
         represent the first and last day/month of the year, respectively, and the start
         and end years represent the fist and last year in the weather file.
     method : str
@@ -1184,11 +1184,11 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     unmoor_hours : int | float
         The number of hours required to unmoor a floating offshore wind turbine in order
         to tow it to port, by default 0.
-        ... note:: Required for the tugboat/towing capability, otherwise unused.
+        .. note:: Required for the tugboat/towing capability, otherwise unused.
     reconnection_hours : int | float
         The number of hours required to reconnect a floating offshore wind turbine after
         being towed back to site, by default 0.
-        ... note:: Required for the tugboat/towing capability, otherwise unused.
+        .. note:: Required for the tugboat/towing capability, otherwise unused.
     port_distance : int | float
         The distance, in km, the equipment must travel to go between port and site, by
         default 0.
@@ -1475,7 +1475,7 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
         The name of the port, if multiple are used, then be sure this is unique.
     tugboats : list[str]
         file, or list of files to create the port's tugboats.
-        ... note:: Each tugboat is considered to be a tugboat + supporting vessels as
+        .. note:: Each tugboat is considered to be a tugboat + supporting vessels as
             the primary purpose to tow turbines between a repair port and site.
     n_crews : int
         The number of service crews available to be working on repairs simultaneously;
@@ -1495,7 +1495,7 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
         monthly in the simulation and accounted for on the first of the month from the
         start of the simulation to the end of the simulation.
 
-        ... note:: Don't include this cost in both this category and either the
+        .. note:: Don't include this cost in both this category and either the
         ``FixedCosts.operations_management_administration`` bucket or
         ``FixedCosts.marine_management`` category.
 
@@ -1565,7 +1565,7 @@ class FixedCosts(FromDictMixin):
         and equipment to coordinate high voltage equipment, switching, port activities,
         and marine activities.
 
-        ... note:: This should only be used when not breaking down the cost into the following
+        .. note:: This should only be used when not breaking down the cost into the following
         categories: ``project_management_administration``,
         ``operation_management_administration``, ``marine_management``, and/or
         ``weather_forecasting``
@@ -1592,7 +1592,7 @@ class FixedCosts(FromDictMixin):
         Insurance policies during operational period including All Risk Property,
         Buisness Interuption, Third Party Liability, and Brokers Fee, and Storm Coverage.
 
-        ... note:: This should only be used when not breaking down the cost into the following
+        .. note:: This should only be used when not breaking down the cost into the following
         categories: ``brokers_fee``, ``operations_all_risk``, ``business_interruption``,
         ``third_party_liability``, and/or ``storm_coverage``
     brokers_fee : float
@@ -1615,7 +1615,7 @@ class FixedCosts(FromDictMixin):
         Transmission Systems Operators or Transmission Asseet Owners for rights to
         transport generated power.
 
-        ... note:: This should only be used when not breaking down the cost into the following
+        .. note:: This should only be used when not breaking down the cost into the following
         categories: ``submerge_land_lease_costs`` and/or ``transmission_charges_rights``
 
     submerge_land_lease_costs : float

@@ -26,7 +26,7 @@ def _check_frequency(frequency: str, which: str = "all") -> str:
         The user-provided value.
     which : str, optional
         Designation for which combinations to check for, by default "all".
-        - "all": project, annual, monthly, adn month-year
+        - "all": project, annual, monthly, and month-year
 
     Returns
     -------
@@ -177,7 +177,7 @@ class Metrics:
             raise a ``NotImplementedError`` when the SAM-powered metrics are attempted to
             be accessed.
 
-            ... warning:: This functionality relies heavily on the user to configure
+            .. warning:: This functionality relies heavily on the user to configure
                 correctly. More information can be found at:
                 https://nrel-pysam.readthedocs.io/en/master/modules/Singleowner.html
         """
@@ -710,7 +710,7 @@ class Metrics:
         Returns
         -------
         pd.DataFrame
-            Returns pandas ``DataFrame``with columns:
+            Returns pandas ``DataFrame`` with columns:
                 - year (if appropriate for frequency)
                 - month (if appropriate for frequency)
                 - then any equipment names as they appear in the logs
@@ -870,7 +870,7 @@ class Metrics:
         servicing equipment. This includes time mobilizing, delayed at sea, servicing,
         towing, and traveling.
 
-        ... note:: This metric is intended to be used for offshore wind simulations.
+        .. note:: This metric is intended to be used for offshore wind simulations.
 
         Parameters
         ----------
@@ -889,10 +889,10 @@ class Metrics:
         pd.DataFrame
             Returns a pandas ``DataFrame`` with columns:
 
-             - year (if appropriate for frequency)
-             - month (if appropriate for frequency)
-             - Total Crew Hours at Sea
-             - {ServiceEquipment.settings.name} (if broken out)
+            - year (if appropriate for frequency)
+            - month (if appropriate for frequency)
+            - Total Crew Hours at Sea
+            - {ServiceEquipment.settings.name} (if broken out)
 
         Raises
         ------
@@ -1010,14 +1010,14 @@ class Metrics:
             Returns either a float for whole project-level costs or a pandas ``DataFrame``
             with columns:
 
-             - year (if appropriate for frequency)
-             - month (if appropriate for frequency)
-             - total_tows
-             - total_tows_to_port (if broken out)
-             - total_tows_to_site (if broken out)
-             - {ServiceEquipment.settings.name}_total_tows (if broken out)
-             - {ServiceEquipment.settings.name}_to_port (if broken out)
-             - {ServiceEquipment.settings.name}_to_site (if broken out)
+            - year (if appropriate for frequency)
+            - month (if appropriate for frequency)
+            - total_tows
+            - total_tows_to_port (if broken out)
+            - total_tows_to_site (if broken out)
+            - {ServiceEquipment.settings.name}_total_tows (if broken out)
+            - {ServiceEquipment.settings.name}_to_port (if broken out)
+            - {ServiceEquipment.settings.name}_to_site (if broken out)
 
         Raises
         ------
@@ -1212,11 +1212,11 @@ class Metrics:
             Returns either a float for whole project-level costs or a pandas ``DataFrame``
             with columns:
 
-             - year (if appropriate for frequency)
-             - month (if appropriate for frequency)
-             - total_labor_cost
-             - hourly_labor_cost (if broken out)
-             - salary_labor_cost (if broken out)
+            - year (if appropriate for frequency)
+            - month (if appropriate for frequency)
+            - total_labor_cost
+            - hourly_labor_cost (if broken out)
+            - salary_labor_cost (if broken out)
 
         Raises
         ------
@@ -1258,6 +1258,8 @@ class Metrics:
         """Calculates the producitivty cost breakdowns for the simulation at a project, annual, or
         monthly level that can be broken out to include the equipment and labor components.
 
+        .. note:: Does not produce a value if there is no cost associated with a "reason".
+
         Parameters
         ----------
         frequency : str
@@ -1265,8 +1267,6 @@ class Metrics:
         by_category : bool, optional
             Indicates whether to include the equipment and labor categories (True) or
             not (False), by default False.
-
-        .. note:: Does not produce a value if there is no cost associated with a "reason".
 
         Returns
         -------
@@ -1426,6 +1426,9 @@ class Metrics:
         the total cost because it is does not include times where there is no work being
         done, but costs are being accrued.
 
+        .. note:: It should be noted that the costs will include costs accrued from both
+        weather delays and shift-to-shift delays. In the future these will be disentangled.
+
         Parameters
         ----------
         frequency : str
@@ -1443,14 +1446,15 @@ class Metrics:
         float | pd.DataFrame
             Returns either a float for whole project-level costs or a pandas ``DataFrame``
             with columns:
-             - year (if appropriate for frequency)
-             - month (if appropriate for frequency)
-             - component
-             - action (if broken out)
-             - materials_cost (if broken out)
-             - total_labor_cost (if broken out)
-             - equipment_cost (if broken out)
-             - total_cost
+
+            - year (if appropriate for frequency)
+            - month (if appropriate for frequency)
+            - component
+            - action (if broken out)
+            - materials_cost (if broken out)
+            - total_labor_cost (if broken out)
+            - equipment_cost (if broken out)
+            - total_cost
 
         Raises
         ------
@@ -1460,12 +1464,6 @@ class Metrics:
             If ``by_category`` is not one of ``True`` or ``False``.
         ValueError
             If ``by_action`` is not one of ``True`` or ``False``.
-
-        Notes
-        -----
-        It should be noted that the costs will include costs accrued from both weather
-        delays and shift-to-shift delays. In the future these will be disentangled.
-
         """
         frequency = _check_frequency(frequency, which="all")
         if not isinstance(by_category, bool):
@@ -1627,10 +1625,10 @@ class Metrics:
         resolution : st
             One of "low", "medium", or "high", where the values correspond to:
 
-             - low: ``FixedCosts.resolution["low"]``, corresponding to the itemized costs.
-             - medium: ``FixedCosts.resolution["medium"]``, corresponding to the
-               overarching cost categories.
-             - high: ``FixedCosts.resolution["high"]``, corresponding to a lump sum.
+            - low: ``FixedCosts.resolution["low"]``, corresponding to the itemized costs.
+            - medium: ``FixedCosts.resolution["medium"]``, corresponding to the
+              overarching cost categories.
+            - high: ``FixedCosts.resolution["high"]``, corresponding to a lump sum.
 
             These values can also be seen through the ``FixedCosts.hierarchy``
 
@@ -1791,10 +1789,10 @@ class Metrics:
             Returns either a float for whole project-level costs or a pandas ``DataFrame``
             with columns:
 
-             - year (if appropriate for frequency)
-             - month (if appropriate for frequency)
-             - total_power_production
-             - <turbine_id>_power_production (if broken out)
+            - year (if appropriate for frequency)
+            - month (if appropriate for frequency)
+            - total_power_production
+            - <turbine_id>_power_production (if broken out)
 
         Raises
         ------
@@ -1837,7 +1835,7 @@ class Metrics:
         """Calculates the net present value of the windfarm at a project, annual, or
         monthly resolution given a base discount rate and offtake price.
 
-        ... note: This function will be improved over time to incorporate more of the
+        .. note:: This function will be improved over time to incorporate more of the
             financial parameter at play, such as PPAs.
 
         Parameters
@@ -1882,7 +1880,7 @@ class Metrics:
 
         See here for more: https://nrel-pysam.readthedocs.io/en/master/modules/Singleowner.html#PySAM.Singleowner.Singleowner.Outputs.cf_project_return_aftertax_npv
 
-        ... warning::
+        .. warning::
             PySAM functionality is currently disabled due to changes made in the new API
             that need to be remapped.
 
@@ -1908,7 +1906,7 @@ class Metrics:
 
         See here for more: https://nrel-pysam.readthedocs.io/en/master/modules/Singleowner.html#PySAM.Singleowner.Singleowner.Outputs.lcoe_real
 
-        ... warning::
+        .. warning::
             PySAM functionality is currently disabled due to changes made in the new API
             that need to be remapped.
 
@@ -1932,13 +1930,13 @@ class Metrics:
 
         See here for more: https://nrel-pysam.readthedocs.io/en/master/modules/Singleowner.html#PySAM.Singleowner.Singleowner.Outputs.lcoe_nom
 
+        .. warning::
+            PySAM functionality is currently disabled due to changes made in the new API
+            that need to be remapped.
+
         Raises
         ------
         NotImplementedError: Raised if a PySAM input file is not provided to run the model.
-
-        ... warning::
-            PySAM functionality is currently disabled due to changes made in the new API
-            that need to be remapped.
 
         Returns
         -------
@@ -1956,7 +1954,7 @@ class Metrics:
 
         See here for more: https://nrel-pysam.readthedocs.io/en/master/modules/Singleowner.html#PySAM.Singleowner.Singleowner.Outputs.cf_project_return_aftertax_irr
 
-        ... warning::
+        .. warning::
             PySAM functionality is currently disabled due to changes made in the new API
             that need to be remapped.
 
@@ -1981,14 +1979,14 @@ class Metrics:
         """Returns all the possible PySAM outputs that are included in this module as
         columns in the following order:
 
-         - NPV
-         - Nominal LCOE
-         - Real LOCE
-         - IRR
+        - NPV
+        - Nominal LCOE
+        - Real LOCE
+        - IRR
 
-         ... warning::
-            PySAM functionality is currently disabled due to changes made in the new API
-            that need to be remapped.
+        .. warning::
+           PySAM functionality is currently disabled due to changes made in the new API
+           that need to be remapped.
 
         Raises
         ------

@@ -29,6 +29,70 @@ class WombatEnvironment(simpy.Environment):
     """The primary mechanism for powering an O&M simulation. This object has insight into
     all other simulation objects, and controls the timing, date/time stamps, and weather
     conditions.
+
+    Parameters
+    ----------
+    data_dir : pathlib.Path | str
+        Directory where the inputs are stored and where to save outputs.
+    weather_file : str
+        Name of the weather file. Should be contained within ``data_dir``/weather/, with
+        columns "datetime", "windspeed", and, optionally, "waveheight". The datetime
+        column should adhere to the following format: "MM/DD/YY HH:MM", in 24-hour time.
+    workday_start : int
+        Starting time for the repair crew, in 24 hour local time. This can be overridden
+        by an ``ServiceEquipmentData`` object that operates outside of the "typical"
+        working hours.
+    workday_end : int
+        Ending time for the repair crew, in 24 hour local time. This can be overridden
+        by an ``ServiceEquipmentData`` object that operates outside of the "typical"
+        working hours.
+    simulation_name : str | None, optional
+        Name of the simulation; will be used for naming the log file, by default ``None``.
+        If ``None``, then the current time will be used. Will always save to
+        ``data_dir``/outputs/logs/``simulation_name``.log.
+        .. note: spaces (" ") will be replaced with underscores ("_"), for example:
+        "my example analysis" becomes "my_example_analysis".
+    start_year : int | None, optional
+        Custom starting year for the weather profile, by default None. If ``None`` or
+        less than the first year of the weather profile, this will be ignored.
+    end_year : int | None, optional
+        Custom ending year for the weather profile, by default None. If ``None`` or
+        greater than the last year of the weather profile, this will be ignored.
+    port_distance : int | float
+        The simulation-wide daily travel distance for servicing equipment. This
+        should be used as a base setting when multiple or all servicing equipment
+        will be operating out of the same base location, but can be individually
+        modified.
+    non_operational_start : str | datetime.datetime | None
+        The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of prohibited operations. When defined at the environment level,
+        an undefined or later starting date will be overridden for all servicing
+        equipment and any modeled port, by default None.
+    non_operational_end : str | datetime.datetime | None
+        The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of prohibited operations. When defined at the environment level,
+        an undefined or earlier ending date will be overridden for all servicing
+        equipment and any modeled port, by default None.
+    reduced_speed_start : str | datetime.datetime | None
+        The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of reduced speed operations. When defined at the environment level,
+        an undefined or later starting date will be overridden for all servicing
+        equipment and any modeled port, by default None.
+    reduced_speed_end : str | datetime.datetime | None
+        The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of reduced speed operations. When defined at the environment level,
+        an undefined or earlier ending date will be overridden for all servicing
+        equipment and any modeled port, by default None.
+    reduced_speed : float
+        The maximum operating speed during the annualized reduced speed operations.
+        When defined at the environment level, an undefined or faster value will be
+        overridden for all servicing equipment and any modeled port, by default 0.0.
+
+
+    Raises
+    ------
+    FileNotFoundError
+        Raised if ``data_dir`` cannot be found.
     """
 
     def __init__(
@@ -47,73 +111,7 @@ class WombatEnvironment(simpy.Environment):
         reduced_speed_end: str | dt.datetime | None = None,
         reduced_speed: float = 0.0,
     ) -> None:
-        """Initialization.
-
-        Parameters
-        ----------
-        data_dir : pathlib.Path | str
-            Directory where the inputs are stored and where to save outputs.
-        weather_file : str
-            Name of the weather file. Should be contained within ``data_dir``/weather/,
-            with columns "datetime", "windspeed", and, optionally, "waveheight". The
-            datetime column should adhere to the following format: "MM/DD/YY HH:MM", in
-            24-hour time.
-        workday_start : int
-            Starting time for the repair crew, in 24 hour local time. This can be
-            overridden by an ``ServiceEquipmentData`` object that operates outside of the "typical"
-            working hours.
-        workday_end : int
-            Ending time for the repair crew, in 24 hour local time. This can be
-            overridden by an ``ServiceEquipmentData`` object that operates outside of the "typical"
-            working hours.
-        simulation_name : str | None, optional
-            Name of the simulation; will be used for naming the log file, by default ``None``.
-            If ``None``, then the current time will be used. Will always save to
-            ``data_dir``/outputs/logs/``simulation_name``.log.
-            ... note: spaces (" ") will be replaced with underscores ("_"), for example:
-            "my example analysis" becomes "my_example_analysis".
-        start_year : int | None, optional
-            Custom starting year for the weather profile, by default None. If ``None`` or
-            less than the first year of the weather profile, this will be ignored.
-        end_year : int | None, optional
-            Custom ending year for the weather profile, by default None. If ``None`` or
-            greater than the last year of the weather profile, this will be ignored.
-        port_distance : int | float
-            The simulation-wide daily travel distance for servicing equipment. This
-            should be used as a base setting when multiple or all servicing equipment
-            will be operating out of the same base location, but can be individually
-            modified.
-        non_operational_start : str | datetime.datetime | None
-            The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
-            period of prohibited operations. When defined at the environment level,
-            an undefined or later starting date will be overridden for all servicing
-            equipment and any modeled port, by default None.
-        non_operational_end : str | datetime.datetime | None
-            The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
-            period of prohibited operations. When defined at the environment level,
-            an undefined or earlier ending date will be overridden for all servicing
-            equipment and any modeled port, by default None.
-        reduced_speed_start : str | datetime.datetime | None
-            The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
-            period of reduced speed operations. When defined at the environment level,
-            an undefined or later starting date will be overridden for all servicing
-            equipment and any modeled port, by default None.
-        reduced_speed_end : str | datetime.datetime | None
-            The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
-            period of reduced speed operations. When defined at the environment level,
-            an undefined or earlier ending date will be overridden for all servicing
-            equipment and any modeled port, by default None.
-        reduced_speed : float
-            The maximum operating speed during the annualized reduced speed operations.
-            When defined at the environment level, an undefined or faster value will be
-            overridden for all servicing equipment and any modeled port, by default 0.0.
-
-
-        Raises
-        ------
-        FileNotFoundError
-            Raised if ``data_dir`` cannot be found.
-        """
+        """Initialization."""
         super().__init__()
         self.data_dir = Path(data_dir).resolve()
         if not self.data_dir.is_dir():

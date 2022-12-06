@@ -214,9 +214,9 @@ class Simulation(FromDictMixin):
             The simulation configuration, see ``Configuration`` for more details on the
             contents. The following is a description of the acceptable contents:
 
-             - ``str`` : the full file path of the configuration yaml file.
-             - ``dict`` : a dictionary with the requried configuration settings.
-             - ``Configuration`` : a pre-created ``Configuration`` object.
+            - ``str`` : the full file path of the configuration yaml file.
+            - ``dict`` : a dictionary with the requried configuration settings.
+            - ``Configuration`` : a pre-created ``Configuration`` object.
 
         Raises
         ------

@@ -418,7 +418,7 @@ class RepairManager(FilterStore):
         subassembly_id : str
             Either the ``Subassembly.id`` or the ``Cable.id`` repeated for cables.
         exclude : list[str]
-            A list of ``request_id``s to exclude from the purge. This is a specific use
+            A list of ``request_id`` to exclude from the purge. This is a specific use
             case for the combined cable system/subassembly, but can be to exclude
             certain requests from the purge.
 
