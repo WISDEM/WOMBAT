@@ -324,7 +324,7 @@ class ServiceEquipment(RepairsMixin):
 
     def _weather_forecast(
         self, hours: int | float, which: str
-    ) -> tuple[DatetimeIndex, np.ndarray]:
+    ) -> tuple[DatetimeIndex, np.ndarray, np.ndarray]:
         """Retrieves the weather forecast from the simulation environment, and
         translates it to a boolean for satisfactory (True) and unsatisfactory (False)
         weather conditions.
@@ -338,10 +338,10 @@ class ServiceEquipment(RepairsMixin):
 
         Returns
         -------
-        tuple[DatetimeIndex, np.ndarray]
-            The pandas DatetimeIndex and the boolean array of where the weather
-            conditions are within safe operating limits for the servicing equipment
-            (True) or not (False).
+        tuple[DatetimeIndex, np.ndarray, np.ndarray]
+            The pandas DatetimeIndex, the hour of day array, and the boolean array of
+            where the weather conditions are within safe operating limits for the
+            servicing equipment (True) or not (False).
         """
         if which == "repair":
             max_wind = self.settings.max_windspeed_repair
@@ -352,9 +352,9 @@ class ServiceEquipment(RepairsMixin):
         else:
             raise ValueError("`which` must be one of `repair` or `transport`.")
 
-        dt, wind, wave = self.env.weather_forecast(hours)
+        dt, hour, wind, wave = self.env.weather_forecast(hours)
         all_clear = (wind <= max_wind) & (wave <= max_wave)
-        return dt, all_clear
+        return dt, hour, all_clear
 
     def get_speed(self, tow: bool = False) -> float:
         """Determines the appropriate speed that the servicing equipment should be
@@ -620,8 +620,8 @@ class ServiceEquipment(RepairsMixin):
         if hours_required > max_hours:
             return max_hours, True
 
-        dt_ix, all_clear = self._weather_forecast(max_hours, which="repair")
-        all_clear &= self._is_workshift(dt_ix)
+        _, hour, all_clear = self._weather_forecast(max_hours, which="repair")
+        all_clear &= self._is_workshift(hour)
         safe_operating_windows = consecutive_groups(np.where(all_clear)[0])
         window_lengths = np.array([window.size for window in safe_operating_windows])
 
@@ -671,10 +671,10 @@ class ServiceEquipment(RepairsMixin):
         hours_required = ceil(hours_required)
 
         for i in range(10):  # no more than 10 attempts to find a window
-            dt_ix, weather = self._weather_forecast(
+            dt_ix, hour_ix, weather = self._weather_forecast(
                 hours_required + (i * 24), which="repair"
             )
-            working_hours = self._is_workshift(dt_ix)
+            working_hours = self._is_workshift(hour_ix)
             window = weather & working_hours
             if window.sum() >= hours_required:
                 window_found = True
@@ -778,7 +778,7 @@ class ServiceEquipment(RepairsMixin):
         max_extra_days = 4
         while n <= max_extra_days:  # max tries before failing
             hours = hours_required + (24 * n)
-            _, all_clear = self._weather_forecast(hours, which="repair")
+            *_, all_clear = self._weather_forecast(hours, which="repair")
             found, delay = calculate_delay_from_forecast(all_clear, hours_required)
             if found:
                 return delay, hours_required
@@ -812,7 +812,7 @@ class ServiceEquipment(RepairsMixin):
 
         # get the weather forecast with this time for the max travel time
         max_hours = 1 + distance / speed * (1 / reduction_factor)
-        dt, all_clear = self._weather_forecast(max_hours, which="transport")
+        dt, _, all_clear = self._weather_forecast(max_hours, which="transport")
 
         # calculate the distance able to be traveled in each 1-hour window
         distance_traveled = speed * all_clear.astype(float)
@@ -899,7 +899,8 @@ class ServiceEquipment(RepairsMixin):
 
         # If the the equipment will arive after the shift is over, then it must travel
         # back to port (if needed), and wait for the next shift
-        is_shift = self._is_workshift(self.env.simulation_time + timedelta(hours=hours))
+        future_time = self.env.simulation_time + timedelta(hours=hours)
+        is_shift = self._is_workshift(future_time.hour)
         if not is_shift and end != "port" and not self.at_port:
             kw: dict[str, str] = {
                 "additional": "insufficient time to complete travel before end of the shift"
@@ -1365,7 +1366,7 @@ class ServiceEquipment(RepairsMixin):
         if not (start_shift == 0 and end_shift == 24):
             hours_available = hours_until_future_hour(current, end_shift)
             hours_available -= self.settings.crew_transfer_time
-            _, weather_forecast = self._weather_forecast(
+            *_, weather_forecast = self._weather_forecast(
                 hours_available, which="repair"
             )
         else:

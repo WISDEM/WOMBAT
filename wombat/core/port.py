@@ -124,7 +124,6 @@ class Port(RepairsMixin, FilterStore):
         self.tugboat_manager = simpy.FilterStore(env, len(self.settings.tugboats))
 
         tugboats = []
-        print(self.settings.tugboats)
         for t in self.settings.tugboats:
             tugboat = ServiceEquipment(self.env, self.windfarm, repair_manager, t)
             tugboat._register_port(self)

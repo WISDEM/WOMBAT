@@ -86,13 +86,13 @@ class RepairsMixin:
             )
         )
 
-    def _is_workshift(self, datetime_ix: pd.DatetimeIndex) -> np.ndarray:
+    def _is_workshift(self, hour_ix: np.ndarray) -> np.ndarray:
         """Determines which timestamps are in the servicing equipment's working hours.
 
         Parameters
         ----------
-        datetime_ix : DatetimeIndex
-            A pandas DatetimeIndex that needs to be assessed.
+        hour_ix : np.ndarray
+            The hour of day component of the datetime stamp.
 
         Returns
         -------
@@ -100,10 +100,9 @@ class RepairsMixin:
             A boolean array for which values in working hours (True), and which values
             are outside working hours (False).
         """
-        start = self.settings.workday_start
-        end = self.settings.workday_end
-        hour = datetime_ix.hour
-        return (start <= hour) & (hour <= end)
+        is_workshift = self.settings.workday_start <= hour_ix
+        is_workshift &= hour_ix <= self.settings.workday_end
+        return is_workshift
 
     def wait_until_next_shift(self, **kwargs) -> Generator[Timeout, None, None]:
         """Delays the process until the start of the next shift.

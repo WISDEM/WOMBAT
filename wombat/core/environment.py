@@ -374,6 +374,9 @@ class WombatEnvironment(simpy.Environment):
         weather = weather.fillna(0.0)
         weather = weather.resample("H").interpolate(limit_direction="both", limit=5)
 
+        # Add in the hour of day column for more efficient handling within the simulation
+        weather = weather.assign(hour=weather.index.hour.astype(float))
+
         # Create the start and end points
         self.start_datetime = weather.index[0].to_pydatetime()
         self.end_datetime = weather.index[-1].to_pydatetime()
@@ -423,13 +426,13 @@ class WombatEnvironment(simpy.Environment):
         return weather
 
     @property
-    def weather_now(self) -> Tuple[float, float]:
+    def weather_now(self) -> Tuple[float, float, int]:
         """The current weather.
 
         Returns
         -------
-        Tuple[float, float]
-            Wind and wave data for the current time.
+        Tuple[float, float, int]
+            Wind, wave, and hour data for the current time.
         """
         # Rounds down because we won't arrive at the next weather event until that hour
         now = int(self.now)
@@ -437,7 +440,7 @@ class WombatEnvironment(simpy.Environment):
 
     def weather_forecast(
         self, hours: Union[int, float]
-    ) -> Tuple[DatetimeIndex, np.ndarray, np.ndarray]:
+    ) -> Tuple[DatetimeIndex, np.ndarray, np.ndarray, np.ndarray]:
         """Returns the wind and wave data for the next ``hours`` hours, starting from
         the current hour's weather.
 
@@ -448,7 +451,7 @@ class WombatEnvironment(simpy.Environment):
 
         Returns
         -------
-        Tuple[DatetimeIndex, np.ndarray, np.ndarray]
+        Tuple[DatetimeIndex, np.ndarray, np.ndarray, np.ndarray]
             The pandas DatetimeIndex, windspeed array, and waveheight array for the
             hours requested, each with shape (``hours`` + 1).
         """
@@ -457,9 +460,9 @@ class WombatEnvironment(simpy.Environment):
         # If it's not on the hour, ensure we're looking ``hours`` hours into the future
         end = start + math.ceil(hours) + math.ceil(self.now % 1)
 
-        wind, wave = self.weather.values[start:end].T
+        wind, wave, hour = self.weather.values[start:end].T
         ix = self.weather.index[start:end]
-        return ix, wind, wave
+        return ix, hour, wind, wave
 
     def log_action(
         self,
