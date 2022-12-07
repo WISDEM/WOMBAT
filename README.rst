@@ -1,6 +1,9 @@
 WOMBAT: Windfarm Operations & Maintenance cost-Benefit Analysis Tool
 ====================================================================
 
+.. image:: https://img.shields.io/badge/DOI-10.2172%2F1894867-brightgreen?link=https://doi.org/10.2172/1894867
+   :target: https://img.shields.io/badge/DOI-10.2172%2F1894867-brightgreen?link=https://doi.org/10.2172/1894867
+
 .. image:: https://badge.fury.io/py/wombat.svg
    :target: https://badge.fury.io/py/wombat
 
