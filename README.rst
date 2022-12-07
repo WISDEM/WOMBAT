@@ -38,6 +38,24 @@ With that said, it would be greatly appreciated for issues or PRs to be submitte
 any improvements at all, from fixing typos (guaranteed to be a few) to features to
 testing (coming FY22!).
 
+If you use this library please cite our NREL Technical Report:
+
+.. code-block::
+
+   @techreport{hammond2022wombat,
+      title = {Windfarm Operations and Maintenance cost-Benefit Analysis Tool (WOMBAT)},
+      author = {Hammond, Rob and Cooperman, Aubryn},
+      abstractNote = {This report provides technical documentation and background on the newly-developed Wind Operations and Maintenance cost-Benefit Analysis Tool (WOMBAT) software. WOMBAT is an open-source model that can be used to obtain cost estimates for operations and maintenance of land-based or offshore wind power plants. The software was designed to be flexible and modular to allow for implementation of new strategies and technological innovations for wind plant maintenance. WOMBAT uses a process-based simulation approach to model day-to-day operations, repairs, and weather conditions. High-level outputs from WOMBAT, including time-based availability and annual operating costs, are found to agree with published results from other models.},
+      doi = {10.2172/1894867},
+      url = {https://www.osti.gov/biblio/1894867}
+      place = {United States},
+      year = {2022},
+      month = {10}
+      institution = {National Renewable Energy Lab. (NREL)}
+   }
+
+
+
 WOMBAT in Action
 ----------------
 
