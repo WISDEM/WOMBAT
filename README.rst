@@ -55,6 +55,9 @@ If you use this library please cite our NREL Technical Report:
    }
 
 
+.. include:: citation.bib
+
+
 
 WOMBAT in Action
 ----------------
