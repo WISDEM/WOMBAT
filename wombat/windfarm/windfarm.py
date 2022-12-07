@@ -35,7 +35,9 @@ class Windfarm:
         self._create_graph_layout(windfarm_layout)
         self._create_turbines_and_substations()
         self._create_cables()
-        self.capacity = sum(self.system(turb).capacity for turb in self.turbine_id)
+        self.capacity: int | float = sum(
+            self.system(turb).capacity for turb in self.turbine_id
+        )
         self._create_substation_turbine_map()
         self.calculate_distance_matrix()
 

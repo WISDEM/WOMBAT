@@ -156,7 +156,7 @@ class RepairManager(FilterStore):
                         # ValueError is raised when a duplicate request is called for any of
                         # the port-based servicing equipment
                         pass
-                if equipment.equipment.onsite or equipment.equipment.enroute:
+                if equipment.equipment.dispatched:
                     continue
                 self.env.process(equipment.equipment.run_unscheduled(request))
 
@@ -189,9 +189,7 @@ class RepairManager(FilterStore):
                         pass
                     break
 
-                if equipment.equipment.onsite or equipment.equipment.enroute:
-                    # TODO: have non-tugboat unscheduled maintenance be able to operate like tugboats
-                    # to trigger operatins in the same way
+                if equipment.equipment.dispatched:
                     equipment_mapping.append(equipment_mapping.pop(i))
                     break
 
@@ -420,7 +418,7 @@ class RepairManager(FilterStore):
         subassembly_id : str
             Either the ``Subassembly.id`` or the ``Cable.id`` repeated for cables.
         exclude : list[str]
-            A list of ``request_id``s to exclude from the purge. This is a specific use
+            A list of ``request_id`` to exclude from the purge. This is a specific use
             case for the combined cable system/subassembly, but can be to exclude
             certain requests from the purge.
 

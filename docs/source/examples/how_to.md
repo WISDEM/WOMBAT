@@ -159,6 +159,29 @@ Below, is a demonstration of what `weather/alpha_ventus_weather_2002_2014.csv` l
 | 12/31/14 23:00 | 14.04563195 | 0.993031445 |
 
 
+### Environmental Considerations
+
+In addition to using weather conditions for site characteristics, WOMBAT is able to
+model environmental considerations where a port or site cannot be accessed, for example,
+when silt builds up and water depths become too low to tow a turbine into the port.
+There is also a feature for imposing maximum operating speeds, such as when there are
+animal migrations and vessels must slow down to avoid collisions with endangered species.
+
+Defining the `non_operational_start` and `non_operational_end` at either the servicing
+equipment, environment, or port level allows for the creation of an annualized date
+range spanning the length of the simulation where operations are not allowed to occur.
+When defined at the environment level, all servicing equipment and a port, if defined,
+will have this non-operational period applied, and if it's already existing, the more
+conservative of the date ranges will be applied. When defined at the port level, all
+associated servicing equipment (tugboats) will have the same inuring priority as when
+defined at the environment level.
+
+The same logic applies when defining the `reduced_speed_start` and `reduced_speed_end`
+for defining when the operating speeds of servicing equipment are capped at the
+`reduced_speed`. As is the case above, these variables can also be defined at the
+servicing equipment level for further customization.
+
+
 ### Fixed Costs
 
 Please see the [`FixedCosts` API documentation](../API/types.md#fixed-cost-model) for

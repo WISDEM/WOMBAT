@@ -11,7 +11,7 @@ from setuptools import setup, find_packages
 def read(relative_path: Path | str) -> str:
     """Reads the `relative_path` file."""
     here = Path(__file__).resolve().parent
-    with codecs.open(here / relative_path, "r") as fp:
+    with codecs.open(str(here / relative_path), "r") as fp:
         return fp.read()
 
 
@@ -36,8 +36,8 @@ REQUIRED = [
     "attrs>=21",
     "numpy>=1.21",
     "scipy",
-    "pandas",
-    "pyarrow",
+    "pandas>=1.3",
+    "pyarrow>=6",
     "jupyterlab",
     "simpy>=4.0.1",
     "pyyaml",
@@ -48,6 +48,7 @@ REQUIRED = [
     # required for pre-commit CI
     "types-attrs>=19",
     "types-PyYAML>=6",
+    "types-python-dateutil>=2.8",
 ]
 DEVELOPER = [
     "pre-commit",
