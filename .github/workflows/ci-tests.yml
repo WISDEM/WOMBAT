@@ -1,4 +1,4 @@
-name: Run Unit and Regression Tests with Code Coverage
+name: Run Tests with Code Coverage
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: [3.9]
+        python-version: [3.8]
 
     steps:
     - uses: actions/checkout@v2
