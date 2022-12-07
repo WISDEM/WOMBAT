@@ -3,12 +3,9 @@
 from re import M
 from copy import deepcopy
 
-import attrs
 import numpy as np
 import pytest
 
-from wombat import windfarm
-from wombat.core import repair_management, service_equipment
 from wombat.core.library import load_yaml
 from wombat.core.data_classes import (
     VALID_EQUIPMENT,

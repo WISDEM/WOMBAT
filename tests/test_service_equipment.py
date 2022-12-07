@@ -1,16 +1,12 @@
 """Test the ServiceEquipment class."""
 from __future__ import annotations
 
-from pprint import pprint
-
 import numpy as np
 import pytest
 import numpy.testing as npt
-from sqlalchemy import false
 
 from wombat.windfarm import Windfarm
 from wombat.core.library import load_yaml
-from wombat.core.environment import WombatEnvironment
 from wombat.core.data_classes import (
     VALID_EQUIPMENT,
     Maintenance,
