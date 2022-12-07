@@ -4,7 +4,7 @@
 import numpy as np
 import pytest
 
-from wombat.windfarm.system import System, Subassembly, subassembly
+from wombat.windfarm.system import System, Subassembly
 from wombat.core.data_classes import Failure, Maintenance
 from wombat.core.repair_management import RepairManager
 
