@@ -1,6 +1,7 @@
 """Creates the Windfarm class/model."""
 from __future__ import annotations
 
+import warnings
 from math import fsum
 from itertools import chain, combinations
 
@@ -78,8 +79,7 @@ class Windfarm:
 
         # Assign the data attributes to the graph nodes
         for col in ("name", "latitude", "longitude", "subassembly"):
-            d = {i: n for i, n in layout[["id", col]].values}
-            nx.set_node_attributes(windfarm, d, name=col)
+            nx.set_node_attributes(windfarm, dict(layout[["id", col]]), name=col)
 
         # Determine which nodes are substations and which are turbines
         substation_filter = layout.id == layout.substation_id
@@ -124,9 +124,18 @@ class Windfarm:
                     "A 'subassembly' file must be specified for all nodes in the windfarm layout!"
                 )
 
-            subassembly_dict = load_yaml(
-                self.env.data_dir / "windfarm", data["subassembly"]
-            )
+            try:
+                subassembly_dict = load_yaml(
+                    self.env.data_dir / f"{data['type']}s", data["subassembly"]
+                )
+            except FileNotFoundError:
+                subassembly_dict = load_yaml(
+                    self.env.data_dir / "windfarm", data["subassembly"]
+                )
+                warnings.warn(
+                    f"In v0.7, all {data['type']} configurations must be located in: '<library>/{data['type']}s",
+                    DeprecationWarning,
+                )
             self.graph.nodes[system_id]["system"] = System(
                 self.env,
                 self.repair_manager,
@@ -152,7 +161,14 @@ class Windfarm:
                 raise ValueError(
                     "A 'cable' file must be specified for all nodes in the windfarm layout!"
                 )
-            cable_dict = load_yaml(self.env.data_dir / "windfarm", data["cable"])
+            try:
+                cable_dict = load_yaml(self.env.data_dir / "cables", data["cable"])
+            except FileNotFoundError:
+                cable_dict = load_yaml(self.env.data_dir / "windfarm", data["cable"])
+                warnings.warn(
+                    "In v0.7, all cable configurations must be located in: '<library>/cables/",
+                    DeprecationWarning,
+                )
 
             start_coordinates = (
                 self.graph.nodes[start_node]["latitude"],

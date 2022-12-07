@@ -1,4 +1,22 @@
-"""Provides a consistent way to access the provided Dinwoodie and IEA Task 26 data libraries."""
+"""Provides a consistent way to access the provided Dinwoodie and IEA Task 26 data
+libraries.
+
+All library data should adhere to the followind directory structure where <library>
+signifies the user's input library path:
+```
+<library>
+  ├── project
+    ├── config       <- Project-level configuration files
+    ├── port         <- Port configuration files
+    ├── plant        <- Wind farm layout files
+  ├── cables         <- Export and Array cable configuration files
+  ├── substructures  <- Substructure configuration files
+  ├── turbines       <- Turbine configuration and power curve files
+  ├── vessels        <- Land-based and offshore servicing equipment configuration files
+  ├── weather        <- Weather profiles
+  ├── results        <- The analysis log files and any saved output data
+```
+"""
 
 from __future__ import annotations
 

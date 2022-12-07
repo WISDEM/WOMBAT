@@ -56,15 +56,15 @@ to increase compatibility between similar libraries.
 ```
 <library>
   ├── project
-      ├── config       <- Project-level configuration files
-      ├── port         <- Port configuration files
-      ├── plant        <- Wind farm layout files
-  ├── cables           <- Export and Array cable configuration files
-  ├── substructures    <- Substructure configuration files
-  ├── turbines         <- Turbine configuration and power curve files
-  ├── vessels          <- Land-based and offshore servicing equipment configuration files
-  ├── weather          <- Weather profiles
-  ├── results          <- The analysis log files and any saved output data
+    ├── config     <- Project-level configuration files
+    ├── port       <- Port configuration files
+    ├── plant      <- Wind farm layout files
+  ├── cables       <- Export and Array cable configuration files
+  ├── substations  <- Substation configuration files
+  ├── turbines     <- Turbine configuration and power curve files
+  ├── vessels      <- Land-based and offshore servicing equipment configuration files
+  ├── weather      <- Weather profiles
+  ├── results      <- The analysis log files and any saved output data
 ```
 
 ```{warning}
@@ -72,16 +72,16 @@ The previous library strucuture (below) will only be supported until v0.7 (date 
 allow users to migrate to the new version (above) during the v0.6 lifecycle.
 ```
 ```
-<libray path>
-├── config                <- Simulation configuration files
-├── windfarm              <- Windfarm layout file(s); turbine, substation, and cable configurations
-├── outputs
-    ├── logs              <- The raw anaylsis log files
-    ├── metrics           <- A place to save metrics/computed outputs.
-    ├── <self-defined>    <- Any other folder you choose for saving outputs (not enforced)
-├── repair                <- Overarching folder for repair configurations, such as ports
-    ├── transport         <- Servicing equipment configurations
-├── weather               <- Weather profiles
+<libray>
+  ├── config            <- Simulation configuration files
+  ├── windfarm          <- Windfarm layout file(s); turbine, substation, and cable configurations
+  ├── outputs
+    ├── logs            <- The raw anaylsis log files
+    ├── metrics         <- A place to save metrics/computed outputs.
+    ├── <self-defined>  <- Any other folder you choose for saving outputs (not enforced)
+  ├── repair            <- Overarching folder for repair configurations, such as ports
+    ├── transport       <- Servicing equipment configurations
+  ├── weather           <- Weather profiles
 ```
 
 As a convenience feature you can import the provided validation data libraries as

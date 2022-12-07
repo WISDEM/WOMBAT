@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import datetime
+import warnings
 from typing import Optional
 from pathlib import Path
 
@@ -166,7 +167,7 @@ class Simulation(FromDictMixin):
 
     @config.validator  # type: ignore
     def _create_configuration(
-        self, attribute: Attribute, value: str | dict | Configuration
+        self, attribute: Attribute, value: str | Path | dict | Configuration
     ) -> None:
         """Validates the configuration object and creates the ``Configuration`` object
         for the simulation.Raises:
@@ -185,8 +186,15 @@ class Simulation(FromDictMixin):
         Configuration
             The validated simulation configuration
         """
-        if isinstance(value, str):
-            value = load_yaml(self.library_path / "config", value)
+        if isinstance(value, (str, Path)):
+            try:
+                value = load_yaml(self.library_path / "project/config", value)
+            except FileNotFoundError:
+                value = load_yaml(self.library_path / "config", value)  # type: ignore
+                warnings.warn(
+                    "In v0.7, all project configurations must be located in: '<library>/project/config/",
+                    DeprecationWarning,
+                )
         if isinstance(value, dict):
             value = Configuration.from_dict(value)
         if isinstance(value, Configuration):
@@ -203,14 +211,14 @@ class Simulation(FromDictMixin):
             )
 
     @classmethod
-    def from_config(cls, config: str | dict | Configuration):
+    def from_config(cls, config: str | Path | dict | Configuration):
         """Creates the ``Simulation`` object only the configuration contents as either a
         full file path to the configuration file, a dictionary of the configuration
         contents, or pre-loaded ``Configuration`` object.
 
         Parameters
         ----------
-        config : str | dict | Configuration
+        config : str | Path | dict | Configuration
             The simulation configuration, see ``Configuration`` for more details on the
             contents. The following is a description of the acceptable contents:
 
@@ -231,7 +239,7 @@ class Simulation(FromDictMixin):
         """
         if isinstance(config, (str, Path)):
             config = Path(config).resolve()  # type: ignore
-            assert isinstance(config, Path)  # lets mypy know that I know what I'm doing
+            assert isinstance(config, Path)  # mypy helper
             config = load_yaml(config.parent, config.name)
         if isinstance(config, dict):
             config = Configuration.from_dict(config)
@@ -239,7 +247,7 @@ class Simulation(FromDictMixin):
             raise TypeError(
                 "``config`` must be a dictionary or ``Configuration`` object!"
             )
-        assert isinstance(config, Configuration)  # lets mypy know it's a Configuration
+        assert isinstance(config, Configuration)  # mypy helper
         # NOTE: mypy is not caught up with attrs yet :(
         return cls(config.library, config)  # type: ignore
 

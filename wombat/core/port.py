@@ -10,6 +10,7 @@ operates on a strict shift scheduling basis.
 
 from __future__ import annotations
 
+import warnings
 from typing import Generator
 from pathlib import Path
 
@@ -98,7 +99,14 @@ class Port(RepairsMixin, FilterStore):
         self.manager._register_port(self)
 
         if not isinstance(config, dict):
-            config = load_yaml(env.data_dir / "repair", config)
+            try:
+                load_yaml(env.data_dir / "project/port", config)
+            except FileNotFoundError:
+                config = load_yaml(env.data_dir / "repair", config)
+                warnings.warn(
+                    "In v0.7, all port configurations must be located in: '<library>/project/port/",
+                    DeprecationWarning,
+                )
         assert isinstance(config, dict)
         self.settings = PortConfig.from_dict(config)
 
