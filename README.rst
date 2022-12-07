@@ -40,7 +40,7 @@ testing (coming FY22!).
 
 If you use this library please cite our NREL Technical Report:
 
-.. code-block::
+.. code-block:: console
 
    @techreport{hammond2022wombat,
       title = {Windfarm Operations and Maintenance cost-Benefit Analysis Tool (WOMBAT)},
