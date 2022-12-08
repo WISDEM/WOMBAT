@@ -1,7 +1,7 @@
 """The postprocessing metric computation."""
 from __future__ import annotations
 
-import warnings
+import logging
 from copy import deepcopy  # type: ignore
 from pathlib import Path  # type: ignore
 from functools import partial  # type: ignore
@@ -197,9 +197,8 @@ class Metrics:
                 fixed_costs = load_yaml(self.data_dir / "windfarm", fixed_costs)
             except FileNotFoundError:
                 fixed_costs = load_yaml(self.data_dir / "project/cofig", fixed_costs)  # type: ignore
-                warnings.warn(
-                    "In v0.7, all fixed cost configurations must be located in: '<library>/project/config/",
-                    DeprecationWarning,
+                logging.warning(
+                    "Deprecation Warning: In v0.7, all fixed cost configurations must be located in: '<library>/project/config/"
                 )
             self.fixed_costs = FixedCosts.from_dict(fixed_costs)  # type: ignore
 
@@ -243,9 +242,8 @@ class Metrics:
                 )
             except FileNotFoundError:
                 self.sam_settings = load_yaml(self.data_dir / "windfarm", SAM_settings)
-                warnings.warn(
-                    "In v0.7, all SAM configurations must be located in: '<library>/project/config/",
-                    DeprecationWarning,
+                logging.warning(
+                    "Deprecation Warning: In v0.7, all SAM configurations must be located in: '<library>/project/config/"
                 )
 
             self._setup_pysam()

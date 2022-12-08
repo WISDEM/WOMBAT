@@ -1,7 +1,7 @@
 """Creates the Windfarm class/model."""
 from __future__ import annotations
 
-import warnings
+import logging
 from math import fsum
 from itertools import chain, combinations
 
@@ -79,7 +79,7 @@ class Windfarm:
 
         # Assign the data attributes to the graph nodes
         for col in ("name", "latitude", "longitude", "subassembly"):
-            nx.set_node_attributes(windfarm, dict(layout[["id", col]]), name=col)
+            nx.set_node_attributes(windfarm, dict(layout[["id", col]].values), name=col)
 
         # Determine which nodes are substations and which are turbines
         substation_filter = layout.id == layout.substation_id
@@ -118,6 +118,7 @@ class Windfarm:
         ValueError
             Raised if the subassembly data is not provided in the layout file.
         """
+        bad_data_location_messages = []
         for system_id, data in self.graph.nodes(data=True):
             if data["subassembly"] == "":
                 raise ValueError(
@@ -132,10 +133,8 @@ class Windfarm:
                 subassembly_dict = load_yaml(
                     self.env.data_dir / "windfarm", data["subassembly"]
                 )
-                warnings.warn(
-                    f"In v0.7, all {data['type']} configurations must be located in: '<library>/{data['type']}s",
-                    DeprecationWarning,
-                )
+                message = f"Deprecation Warning: In v0.7, all {data['type']} configurations must be located in: '<library>/{data['type']}s"
+                bad_data_location_messages.append(message)
             self.graph.nodes[system_id]["system"] = System(
                 self.env,
                 self.repair_manager,
@@ -144,6 +143,11 @@ class Windfarm:
                 subassembly_dict,
                 data["type"],
             )
+
+        # Raise the warning for soon-to-be deprecated library structure
+        bad_data_location_messages = list(set(bad_data_location_messages))
+        for message in bad_data_location_messages:
+            logging.warning(message)
 
     def _create_cables(self) -> None:
         """Instantiates the cable models as defined in the user-provided layout file,
@@ -155,6 +159,7 @@ class Windfarm:
         ValueError
             Raised if the cable model is not specified.
         """
+        bad_data_location_messages = []
         for start_node, end_node, data in self.graph.edges(data=True):
             # Check that the cable data is provided
             if data["cable"] == "":
@@ -165,9 +170,8 @@ class Windfarm:
                 cable_dict = load_yaml(self.env.data_dir / "cables", data["cable"])
             except FileNotFoundError:
                 cable_dict = load_yaml(self.env.data_dir / "windfarm", data["cable"])
-                warnings.warn(
-                    "In v0.7, all cable configurations must be located in: '<library>/cables/",
-                    DeprecationWarning,
+                bad_data_location_messages.append(
+                    "Deprecation Warning: In v0.7, all cable configurations must be located in: '<library>/cables/"
                 )
 
             start_coordinates = (
@@ -197,6 +201,11 @@ class Windfarm:
             # Calaculate the geometric center point
             end_points = np.array((start_coordinates, end_coordinates))
             data["latitude"], data["longitude"] = end_points.mean(axis=0)
+
+        # Raise the warning for soon-to-be deprecated library structure
+        bad_data_location_messages = list(set(bad_data_location_messages))
+        for message in bad_data_location_messages:
+            logging.warning(message)
 
     def calculate_distance_matrix(self) -> None:
         """Calculates the geodesic distance, in km, between all of the windfarm's nodes, e.g.,

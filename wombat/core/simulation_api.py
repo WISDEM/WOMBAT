@@ -1,8 +1,8 @@
 """The main API for the ``wombat``."""
 from __future__ import annotations
 
+import logging
 import datetime
-import warnings
 from typing import Optional
 from pathlib import Path
 
@@ -191,9 +191,8 @@ class Simulation(FromDictMixin):
                 value = load_yaml(self.library_path / "project/config", value)
             except FileNotFoundError:
                 value = load_yaml(self.library_path / "config", value)  # type: ignore
-                warnings.warn(
-                    "In v0.7, all project configurations must be located in: '<library>/project/config/",
-                    DeprecationWarning,
+                logging.warning(
+                    "Deprecation Warning: In v0.7, all project configurations must be located in: '<library>/project/config/"
                 )
         if isinstance(value, dict):
             value = Configuration.from_dict(value)

@@ -6,7 +6,7 @@ servicing equipment.
 # TODO: NEED A SPECIFIC STARTUP METHOD
 from __future__ import annotations
 
-import warnings
+import logging
 from copy import deepcopy
 from math import ceil
 from typing import TYPE_CHECKING, Any, Optional, Generator  # type: ignore
@@ -224,9 +224,8 @@ class ServiceEquipment(RepairsMixin):
                 data = load_yaml(env.data_dir / "vessels", equipment_data_file)
             except FileNotFoundError:
                 data = load_yaml(env.data_dir / "repair/transport", equipment_data_file)
-                warnings.warn(
-                    "In v0.7, all servicing equipment configurations must be located in: '<library>/vessels/",
-                    DeprecationWarning,
+                logging.warning(
+                    "Deprecation Warning: In v0.7, all servicing equipment configurations must be located in: '<library>/vessels/"
                 )
         else:
             data = equipment_data_file
