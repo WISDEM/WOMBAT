@@ -147,7 +147,8 @@ class Windfarm:
         # Raise the warning for soon-to-be deprecated library structure
         bad_data_location_messages = list(set(bad_data_location_messages))
         for message in bad_data_location_messages:
-            logging.warning(message)
+            # logging.warning
+            print(message)
 
     def _create_cables(self) -> None:
         """Instantiates the cable models as defined in the user-provided layout file,
@@ -205,7 +206,8 @@ class Windfarm:
         # Raise the warning for soon-to-be deprecated library structure
         bad_data_location_messages = list(set(bad_data_location_messages))
         for message in bad_data_location_messages:
-            logging.warning(message)
+            # logging.warning
+            print(message)
 
     def calculate_distance_matrix(self) -> None:
         """Calculates the geodesic distance, in km, between all of the windfarm's nodes, e.g.,
