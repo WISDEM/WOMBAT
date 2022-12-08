@@ -133,7 +133,7 @@ class Windfarm:
                 subassembly_dict = load_yaml(
                     self.env.data_dir / "windfarm", data["subassembly"]
                 )
-                message = f"Deprecation Warning: In v0.7, all {data['type']} configurations must be located in: '<library>/{data['type']}s"
+                message = f"DeprecationWarning: In v0.7, all {data['type']} configurations must be located in: '<library>/{data['type']}s"
                 bad_data_location_messages.append(message)
             self.graph.nodes[system_id]["system"] = System(
                 self.env,
@@ -171,7 +171,7 @@ class Windfarm:
             except FileNotFoundError:
                 cable_dict = load_yaml(self.env.data_dir / "windfarm", data["cable"])
                 bad_data_location_messages.append(
-                    "Deprecation Warning: In v0.7, all cable configurations must be located in: '<library>/cables/"
+                    "DeprecationWarning: In v0.7, all cable configurations must be located in: '<library>/cables/"
                 )
 
             start_coordinates = (

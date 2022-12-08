@@ -104,7 +104,7 @@ class Port(RepairsMixin, FilterStore):
             except FileNotFoundError:
                 config = load_yaml(env.data_dir / "repair", config)
                 logging.warning(
-                    "Deprecation Warning: In v0.7, all port configurations must be located in: '<library>/project/port/"
+                    "DeprecationWarning: In v0.7, all port configurations must be located in: '<library>/project/port/"
                 )
         assert isinstance(config, dict)
         self.settings = PortConfig.from_dict(config)

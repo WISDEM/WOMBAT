@@ -198,7 +198,7 @@ class Metrics:
             except FileNotFoundError:
                 fixed_costs = load_yaml(self.data_dir / "project/cofig", fixed_costs)  # type: ignore
                 logging.warning(
-                    "Deprecation Warning: In v0.7, all fixed cost configurations must be located in: '<library>/project/config/"
+                    "DeprecationWarning: In v0.7, all fixed cost configurations must be located in: '<library>/project/config/"
                 )
             self.fixed_costs = FixedCosts.from_dict(fixed_costs)  # type: ignore
 
@@ -243,7 +243,7 @@ class Metrics:
             except FileNotFoundError:
                 self.sam_settings = load_yaml(self.data_dir / "windfarm", SAM_settings)
                 logging.warning(
-                    "Deprecation Warning: In v0.7, all SAM configurations must be located in: '<library>/project/config/"
+                    "DeprecationWarning: In v0.7, all SAM configurations must be located in: '<library>/project/config/"
                 )
 
             self._setup_pysam()
