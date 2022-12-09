@@ -323,9 +323,8 @@ class Simulation(FromDictMixin):
 
     def initialize_metrics(self) -> None:
         """Instantiates the ``metrics`` attribute after the simulation is run."""
-        # operations, events = self.env.convert_logs_to_csv(return_df=True)
-        events = self.env._create_events_log_dataframe()
-        operations = self.env._create_operations_log_dataframe()
+        events = self.env.load_events_log_dataframe()
+        operations = self.env.load_operations_log_dataframe()
         power_potential, power_production = self.env.power_production_potential_to_csv(
             windfarm=self.windfarm, operations=operations, return_df=True
         )

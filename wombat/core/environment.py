@@ -202,17 +202,17 @@ class WombatEnvironment(simpy.Environment):
             self.simulation_name = simulation = "wombat"
         else:
             simulation = self.simulation_name.replace(" ", "_")
-        dt_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S.%f")
+        dt_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-        events_log_fname = f"{dt_stamp}_{simulation}_events.log"
-        operations_log_fname = f"{dt_stamp}_{simulation}_operations.log"
+        events_log_fname = f"{dt_stamp}_{simulation}_events.csv"
+        operations_log_fname = f"{dt_stamp}_{simulation}_operations.csv"
         power_potential_fname = f"{dt_stamp}_{simulation}_power_potential.csv"
         power_production_fname = f"{dt_stamp}_{simulation}_power_production.csv"
         metrics_input_fname = f"{dt_stamp}_{simulation}_metrics_inputs.yaml"
 
-        log_path = self.data_dir / "outputs" / "logs"
+        log_path = self.data_dir / "results"
         if not log_path.exists():
-            log_path.mkdir(parents=True)
+            log_path.mkdir()
         self.events_log_fname = log_path / events_log_fname
         self.operations_log_fname = log_path / operations_log_fname
         self.power_potential_fname = log_path / power_potential_fname
@@ -223,8 +223,8 @@ class WombatEnvironment(simpy.Environment):
         if not _dir.is_dir():
             _dir.mkdir()
 
-        self._events_csv = open(self.events_log_fname.with_suffix(".csv"), "w")
-        self._operations_csv = open(self.operations_log_fname.with_suffix(".csv"), "w")
+        self._events_csv = open(self.events_log_fname, "w")
+        self._operations_csv = open(self.operations_log_fname, "w")
         self._events_writer = csv.DictWriter(
             self._events_csv, delimiter="|", fieldnames=EVENTS_COLUMNS
         )
@@ -584,7 +584,7 @@ class WombatEnvironment(simpy.Environment):
         )
         self._events_writer.writerow(row)
 
-    def _create_events_log_dataframe(self) -> pd.DataFrame:
+    def load_events_log_dataframe(self) -> pd.DataFrame:
         """Imports the logging file created in ``run`` and returns it as a formatted
         ``pandas.DataFrame``.
 
@@ -598,7 +598,7 @@ class WombatEnvironment(simpy.Environment):
         )
         parse_options = pa.csv.ParseOptions(delimiter="|")
         log_df = pa.csv.read_csv(
-            self.events_log_fname.with_suffix(".csv"),
+            self.events_log_fname,
             convert_options=convert_options,
             parse_options=parse_options,
         ).to_pandas()
@@ -608,7 +608,7 @@ class WombatEnvironment(simpy.Environment):
 
         return log_df
 
-    def _create_operations_log_dataframe(self) -> pd.DataFrame:
+    def load_operations_log_dataframe(self) -> pd.DataFrame:
         """Imports the logging file created in ``run`` and returns it as a formatted
         ``pandas.DataFrame``.
 
@@ -622,7 +622,7 @@ class WombatEnvironment(simpy.Environment):
         )
         parse_options = pa.csv.ParseOptions(delimiter="|")
         log_df = pa.csv.read_csv(
-            self.operations_log_fname.with_suffix(".csv"),
+            self.operations_log_fname,
             convert_options=convert_options,
             parse_options=parse_options,
         ).to_pandas()
@@ -631,41 +631,6 @@ class WombatEnvironment(simpy.Environment):
         log_df = log_df.set_index("datetime").sort_values("datetime")
 
         return log_df
-
-    def convert_logs_to_csv(  # type: ignore
-        self, delete_original: bool = False, return_df: bool = True
-    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        """Creates a CSV file for the both the events and operations logs.
-
-        Parameters
-        ----------
-        delete_original : bool, optional
-            If True, delete the corresponding ".log" files, by default False.
-        return_df : bool, optional
-            If True, returns the pd.DataFrame objects for the operations and events
-            logging, by default True.
-
-        Returns
-        -------
-        Tuple[pd.DataFrame, pd.DataFrame]
-            Returns nothing if ``return_df`` is False, otherwise returns the operations and
-            events log ``pd.DataFrame`` objects in that order.
-        """
-        events = self._create_events_log_dataframe().sort_values("env_time")
-        operations = self._create_operations_log_dataframe().sort_values("env_time")
-
-        events_fname = self.events_log_fname.with_suffix(".csv")
-        events.to_csv(events_fname, index=False)
-
-        operations_fname = self.operations_log_fname.with_suffix(".csv")
-        operations.to_csv(operations_fname, index=False)
-
-        if delete_original:
-            self.operations_log_fname.unlink()
-            self.events_log_fname.unlink()
-
-        if return_df:
-            return operations, events
 
     def power_production_potential_to_csv(  # type: ignore
         self,
@@ -681,7 +646,8 @@ class WombatEnvironment(simpy.Environment):
             The simulation's windfarm object.
         operations : Optional[pd.DataFrame], optional
             The operations log ``DataFrame`` if readily available, by default None. If
-            ``None``, then it will be created through ``convert_logs_to_csv()``.
+            ``None``, then it will be created through
+            ``load_operations_log_dataframe()``.
         return_df : bool, optional
             Indicator to return the power production for further usage, by default True.
 
@@ -693,7 +659,7 @@ class WombatEnvironment(simpy.Environment):
         write_options = pa.csv.WriteOptions(delimiter="|")
 
         if operations is None:
-            operations = self._create_operations_log_dataframe().sort_values("env_time")
+            operations = self.load_operations_log_dataframe().sort_values("env_time")
 
         turbines = windfarm.turbine_id
         windspeed = self.weather.windspeed
@@ -732,18 +698,12 @@ class WombatEnvironment(simpy.Environment):
         if return_df:
             return potential_df, production_df
 
-    def cleanup_log_files(self, log_only=False) -> None:
+    def cleanup_log_files(self) -> None:
         """This is a convenience method to clear the output log files in case a large
         batch of simulations is being run and there are space limitations.
 
         ... warning:: This shuts down the loggers, so no more logging will be able
             to be performed.
-
-        Parameters
-        ----------
-        log_only : bool, optional
-            Only deletes the xx.log files, if True, otherwise the xx.log and xx.csv
-            logging files are all deleted, by default False
         """
 
         # NOTE: Everything is wrapped in a try/except clause to protect against failure
@@ -762,29 +722,17 @@ class WombatEnvironment(simpy.Environment):
         except FileNotFoundError:
             pass
 
-        if not log_only:
-            # Don't fail if any of the following files were not created
-            try:
-                self.events_log_fname.with_suffix(".csv").unlink()
-            except FileNotFoundError:
-                pass
+        try:
+            self.power_potential_fname.unlink()
+        except FileNotFoundError:
+            pass
 
-            try:
-                self.operations_log_fname.with_suffix(".csv").unlink()
-            except FileNotFoundError:
-                pass
+        try:
+            self.power_production_fname.unlink()
+        except FileNotFoundError:
+            pass
 
-            try:
-                self.power_potential_fname.unlink()
-            except FileNotFoundError:
-                pass
-
-            try:
-                self.power_production_fname.unlink()
-            except FileNotFoundError:
-                pass
-
-            try:
-                self.metrics_input_fname.unlink()
-            except FileNotFoundError:
-                pass
+        try:
+            self.metrics_input_fname.unlink()
+        except FileNotFoundError:
+            pass
