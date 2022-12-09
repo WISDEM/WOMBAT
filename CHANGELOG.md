@@ -24,6 +24,11 @@
     ├── weather        <- Weather profiles
     ├── results        <- The analysis log files and any saved output data
   ```
+- Logging is now based on directly writing to CSV in place of the `logging`-based infrastructure
+  - All underlying infrastructure withing the simulation have also been updated to accommodate the different file types, which allows for more direct interation at the end of the simulation and enables PyArrow csv read/write
+  - This enables:
+    - deprecation warnings to be passed directly to the terminal/notebook without interfering with the file handling
+    - reasonable speedups to simulation times by not having additional overhead from the logging and buffering
 
 ## 0.5.1 (22 July 2022)
 - Updates to use the most recent pandas API/recommendations, which fixes numerous warnings in the `Metrics` class

@@ -153,6 +153,7 @@ ENV/
 
 # specific files
 ./library/outputs
+./library/results
 
 # Text editors
 .vscode/
