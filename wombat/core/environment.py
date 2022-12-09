@@ -17,7 +17,7 @@ import pyarrow.csv  # pylint: disable=W0611
 from simpy.events import Event  # type: ignore
 from pandas.core.indexes.datetimes import DatetimeIndex
 
-import wombat
+import wombat  # pylint: disable=W0611
 from wombat.utilities import hours_until_future_hour
 from wombat.core.data_classes import parse_date
 
