@@ -1,6 +1,7 @@
 """Provides the O&M Enviroment class; a subclass of simpy.Environment."""
 from __future__ import annotations
 
+import csv
 import math  # type: ignore
 import logging  # type: ignore
 import datetime as dt  # type: ignore
@@ -12,17 +13,39 @@ import numpy as np  # type: ignore
 import simpy  # type: ignore
 import pandas as pd  # type: ignore
 import pyarrow as pa
-from pyarrow import csv
+import pyarrow.csv  # pylint: disable=W0611
 from simpy.events import Event  # type: ignore
 from pandas.core.indexes.datetimes import DatetimeIndex
 
-import wombat  # pylint: disable=W0611
-from wombat.utilities import (
-    setup_logger,
-    hours_until_future_hour,
-    format_events_log_message,
-)
+import wombat
+from wombat.utilities import hours_until_future_hour
 from wombat.core.data_classes import parse_date
+
+
+EVENTS_COLUMNS = [
+    "datetime",
+    "env_datetime",
+    "env_time",
+    "agent",
+    "action",
+    "reason",
+    "additional",
+    "system_id",
+    "system_name",
+    "part_id",
+    "part_name",
+    "system_operating_level",
+    "part_operating_level",
+    "duration",
+    "request_id",
+    "location",
+    "materials_cost",
+    "hourly_labor_cost",
+    "salary_labor_cost",
+    "total_labor_cost",
+    "equipment_cost",
+    "total_cost",
+]
 
 
 class WombatEnvironment(simpy.Environment):
@@ -165,13 +188,13 @@ class WombatEnvironment(simpy.Environment):
             super().run(until=until)
         except BaseException as e:
             # Flush the logs to so the simulation up to the point of failure is logged
-            self._events_logger.handlers[0].flush()
-            self._operations_logger.handlers[0].flush()
+            self._events_csv.close()
+            self._operations_csv.close()
             raise e
 
         # Ensure all logged events make it to their target file
-        self._events_logger.handlers[0].flush()
-        self._operations_logger.handlers[0].flush()
+        self._events_csv.close()
+        self._operations_csv.close()
 
     def _logging_setup(self) -> None:
         """Completes the setup for logging data."""
@@ -200,10 +223,12 @@ class WombatEnvironment(simpy.Environment):
         if not _dir.is_dir():
             _dir.mkdir()
 
-        setup_logger("events_log", self.events_log_fname, capacity=7000)
-        setup_logger("operations_log", self.operations_log_fname, capacity=7000)
-        self._events_logger = logging.getLogger("events_log")
-        self._operations_logger = logging.getLogger("operations_log")
+        self._events_csv = open(self.events_log_fname.with_suffix(".csv"), "w")
+        self._operations_csv = open(self.operations_log_fname.with_suffix(".csv"), "w")
+        self._events_writer = csv.DictWriter(
+            self._events_csv, delimiter="|", fieldnames=EVENTS_COLUMNS
+        )
+        self._events_writer.writeheader()
 
     @property
     def simulation_time(self) -> datetime:
@@ -355,7 +380,7 @@ class WombatEnvironment(simpy.Environment):
             The wind (and  wave) timeseries.
         """
         # PyArrow datetime conversion setup
-        convert_options = csv.ConvertOptions(
+        convert_options = pa.csv.ConvertOptions(
             timestamp_parsers=[
                 "%m/%d/%y %H:%M",
                 "%m/%d/%y %I:%M",
@@ -364,7 +389,7 @@ class WombatEnvironment(simpy.Environment):
             ]
         )
         weather = (
-            csv.read_csv(
+            pa.csv.read_csv(
                 self.data_dir / "weather" / weather_file,
                 convert_options=convert_options,
             )
@@ -531,29 +556,33 @@ class WombatEnvironment(simpy.Environment):
             raise ValueError(
                 f"Event logging `location` must be one of: {valid_locations}"
             )
-        self._events_logger.info(
-            format_events_log_message(
-                self.simulation_time,
-                self.now,
-                system_id,
-                system_name,
-                part_id,
-                part_name,
-                system_ol,
-                part_ol,
-                agent,
-                action,
-                reason,
-                additional,
-                duration,
-                request_id,
-                location,
-                materials_cost,
-                hourly_labor_cost,
-                salary_labor_cost,
-                equipment_cost,
-            )
+        total_labor_cost = hourly_labor_cost + salary_labor_cost
+        total_cost = total_labor_cost + equipment_cost + materials_cost
+        row = dict(
+            datetime=dt.datetime.now(),
+            env_datetime=self.simulation_time,
+            env_time=self.now,
+            system_id=system_id,
+            system_name=system_name,
+            part_id=part_id,
+            part_name=part_name,
+            system_operating_level=system_ol,
+            part_operating_level=part_ol,
+            agent=agent,
+            action=action,
+            reason=reason,
+            additional=additional,
+            duration=duration,
+            request_id=request_id,
+            location=location,
+            materials_cost=materials_cost,
+            hourly_labor_cost=hourly_labor_cost,
+            salary_labor_cost=salary_labor_cost,
+            equipment_cost=equipment_cost,
+            total_labor_cost=total_labor_cost,
+            total_cost=total_cost,
         )
+        self._events_writer.writerow(row)
 
     def _create_events_log_dataframe(self) -> pd.DataFrame:
         """Imports the logging file created in ``run`` and returns it as a formatted
@@ -564,48 +593,19 @@ class WombatEnvironment(simpy.Environment):
         pd.DataFrame
             The formatted logging data from a simulation.
         """
-        log_columns = [
-            "datetime",
-            "name",
-            "level",
-            "env_datetime",
-            "env_time",
-            "system_id",
-            "system_name",
-            "part_id",
-            "part_name",
-            "system_operating_level",
-            "part_operating_level",
-            "agent",
-            "action",
-            "reason",
-            "additional",
-            "duration",
-            "request_id",
-            "location",
-            "materials_cost",
-            "hourly_labor_cost",
-            "salary_labor_cost",
-            "equipment_cost",
-            "total_labor_cost",
-            "total_cost",
-        ]
-        log_df = pd.concat(
-            pd.read_csv(
-                self.events_log_fname,
-                names=log_columns,
-                sep="|",
-                index_col=False,
-                engine="python",
-                chunksize=20000,
-            )
+        convert_options = pa.csv.ConvertOptions(
+            timestamp_parsers=["%y-%m-%d %H:%M:%S.%f", "%y-%m-%d %H:%M:%S"]
         )
-        log_df = log_df.loc[log_df.level == "INFO"]
-        log_df = log_df.drop(labels=["name", "level"], axis=1)
+        parse_options = pa.csv.ParseOptions(delimiter="|")
+        log_df = pa.csv.read_csv(
+            self.events_log_fname.with_suffix(".csv"),
+            convert_options=convert_options,
+            parse_options=parse_options,
+        ).to_pandas()
         log_df.datetime = pd.to_datetime(log_df.datetime)
         log_df.env_datetime = pd.to_datetime(log_df.env_datetime)
-        log_df.index = log_df.datetime
-        log_df = log_df.drop(labels="datetime", axis=1)
+        log_df = log_df.set_index("datetime").sort_values("datetime")
+
         return log_df
 
     def _create_operations_log_dataframe(self) -> pd.DataFrame:
@@ -617,28 +617,19 @@ class WombatEnvironment(simpy.Environment):
         pd.DataFrame
             The formatted logging data from a simulation.
         """
-        with open(self.operations_log_fname) as f:
-            first_line = f.readline().strip().split("|")
-            column_names = first_line[3:]
-
-        log_df = pd.concat(
-            pd.read_csv(
-                self.operations_log_fname,
-                names=column_names,
-                skiprows=1,
-                sep="|",
-                index_col=False,
-                engine="python",
-                chunksize=20000,
-            )
+        convert_options = pa.csv.ConvertOptions(
+            timestamp_parsers=["%y-%m-%d %H:%M:%S.%f", "%y-%m-%d %H:%M:%S"]
         )
-
-        log_df = log_df.loc[log_df.level == "INFO"]
-        log_df = log_df.drop(labels=["name", "level"], axis=1)
+        parse_options = pa.csv.ParseOptions(delimiter="|")
+        log_df = pa.csv.read_csv(
+            self.operations_log_fname.with_suffix(".csv"),
+            convert_options=convert_options,
+            parse_options=parse_options,
+        ).to_pandas()
         log_df.datetime = pd.to_datetime(log_df.datetime)
         log_df.env_datetime = pd.to_datetime(log_df.env_datetime)
-        log_df.index = log_df.datetime
-        log_df = log_df.drop(labels="datetime", axis=1)
+        log_df = log_df.set_index("datetime").sort_values("datetime")
+
         return log_df
 
     def convert_logs_to_csv(  # type: ignore
@@ -699,6 +690,8 @@ class WombatEnvironment(simpy.Environment):
         Tuple[pd.DataFrame, pd.DataFrame]
             The power potential and production timeseries data.
         """
+        write_options = pa.csv.WriteOptions(delimiter="|")
+
         if operations is None:
             operations = self._create_operations_log_dataframe().sort_values("env_time")
 
@@ -720,14 +713,22 @@ class WombatEnvironment(simpy.Environment):
         potential_df.windfarm = potential.sum(axis=1)
         potential_df.env_time = operations.env_time.values
         potential_df.env_datetime = operations.env_datetime.values
-        csv.write_csv(pa.Table.from_pandas(potential_df), self.power_potential_fname)
+        pa.csv.write_csv(
+            pa.Table.from_pandas(potential_df),
+            self.power_potential_fname,
+            write_options=write_options,
+        )
 
         production_df = potential_df.copy()
         production_df[turbines] = (
             production_df[turbines].values * operations[turbines].values
         )
         production_df.windfarm = production_df[turbines].sum(axis=1)
-        csv.write_csv(pa.Table.from_pandas(production_df), self.power_production_fname)
+        pa.csv.write_csv(
+            pa.Table.from_pandas(production_df),
+            self.power_production_fname,
+            write_options=write_options,
+        )
         if return_df:
             return potential_df, production_df
 

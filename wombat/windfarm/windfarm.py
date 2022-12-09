@@ -1,7 +1,9 @@
 """Creates the Windfarm class/model."""
 from __future__ import annotations
 
+import csv
 import logging
+import datetime as dt
 from math import fsum
 from itertools import chain, combinations
 
@@ -44,13 +46,7 @@ class Windfarm:
 
         # Create the logging items
         self.system_list = list(self.graph.nodes)
-        self._log_columns = [
-            "datetime",
-            "name",
-            "level",
-            "env_datetime",
-            "env_time",
-        ] + self.system_list
+        self._setup_logger()
 
         # Register the windfarm and start the logger
         self.repair_manager._register_windfarm(self)
@@ -256,29 +252,45 @@ class Windfarm:
         }
         self.substation_turbine_map = s_t_map
 
+    def _setup_logger(self):
+        self._log_columns = [
+            "datetime",
+            "env_datetime",
+            "env_time",
+        ] + self.system_list
+
+        self.env._operations_writer = csv.DictWriter(
+            self.env._operations_csv, delimiter="|", fieldnames=self._log_columns
+        )
+        self.env._operations_writer.writeheader()
+
     def _log_operations(self):
         """Logs the operational data for a simulation."""
-        self.env._operations_logger.info("|".join(self._log_columns))
-
-        message = [self.env.simulation_time, self.env.now]
-        message.extend(
-            [self.system(system).operating_level for system in self.system_list]
+        message = dict(
+            datetime=dt.datetime.now(),
+            env_datetime=self.env.simulation_time,
+            env_time=self.env.now,
         )
-        message = "|".join((f"{m}" for m in message))  # type: ignore
-        self.env._operations_logger.info(message)
+        message.update(
+            {system: self.system(system).operating_level for system in self.system_list}
+        )
+        self.env._operations_writer.writerow(message)
 
         HOURS = 1
         while True:
             yield self.env.timeout(HOURS)
-            message = [f"{self.env.simulation_time}", f"{self.env.now}"]
-            message.extend(
-                [
-                    f"{self.system(system).operating_level}"
-                    for system in self.system_list
-                ]
+            message = dict(
+                datetime=dt.datetime.now(),
+                env_datetime=self.env.simulation_time,
+                env_time=self.env.now,
             )
-            message = "|".join(message)  # type: ignore
-            self.env._operations_logger.info(message)
+            message.update(
+                {
+                    system: self.system(system).operating_level
+                    for system in self.system_list
+                }
+            )
+            self.env._operations_writer.writerow(message)
 
     @cache
     def system(self, system_id: str) -> System:
