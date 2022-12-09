@@ -129,7 +129,7 @@ class Windfarm:
                 subassembly_dict = load_yaml(
                     self.env.data_dir / "windfarm", data["subassembly"]
                 )
-                message = f"DeprecationWarning: In v0.7, all {data['type']} configurations must be located in: '<library>/{data['type']}s"
+                message = f"In v0.7, all {data['type']} configurations must be located in: '<library>/{data['type']}s"
                 bad_data_location_messages.append(message)
             self.graph.nodes[system_id]["system"] = System(
                 self.env,
@@ -143,8 +143,7 @@ class Windfarm:
         # Raise the warning for soon-to-be deprecated library structure
         bad_data_location_messages = list(set(bad_data_location_messages))
         for message in bad_data_location_messages:
-            # logging.warning
-            print(message)
+            logging.warning(f"DeprecationWarning: {message}")
 
     def _create_cables(self) -> None:
         """Instantiates the cable models as defined in the user-provided layout file,
@@ -168,7 +167,7 @@ class Windfarm:
             except FileNotFoundError:
                 cable_dict = load_yaml(self.env.data_dir / "windfarm", data["cable"])
                 bad_data_location_messages.append(
-                    "DeprecationWarning: In v0.7, all cable configurations must be located in: '<library>/cables/"
+                    "In v0.7, all cable configurations must be located in: '<library>/cables/"
                 )
 
             start_coordinates = (
@@ -202,8 +201,7 @@ class Windfarm:
         # Raise the warning for soon-to-be deprecated library structure
         bad_data_location_messages = list(set(bad_data_location_messages))
         for message in bad_data_location_messages:
-            # logging.warning
-            print(message)
+            logging.warning(f"DeprecationWarning: {message}")
 
     def calculate_distance_matrix(self) -> None:
         """Calculates the geodesic distance, in km, between all of the windfarm's nodes, e.g.,
