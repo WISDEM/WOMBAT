@@ -219,7 +219,7 @@ class WombatEnvironment(simpy.Environment):
         self.power_production_fname = log_path / power_production_fname
         self.metrics_input_fname = log_path / metrics_input_fname
 
-        _dir = self.data_dir / "outputs" / "logs"
+        _dir = self.data_dir / "results"
         if not _dir.is_dir():
             _dir.mkdir()
 

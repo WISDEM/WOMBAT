@@ -100,9 +100,9 @@ class Port(RepairsMixin, FilterStore):
 
         if not isinstance(config, dict):
             try:
-                load_yaml(env.data_dir / "project/port", config)
+                config = load_yaml(env.data_dir / "project/port", config)
             except FileNotFoundError:
-                config = load_yaml(env.data_dir / "repair", config)
+                config = load_yaml(env.data_dir / "repair", config)  # type: ignore
                 logging.warning(
                     "DeprecationWarning: In v0.7, all port configurations must be located in: '<library>/project/port/"
                 )

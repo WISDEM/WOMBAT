@@ -6,15 +6,15 @@ signifies the user's input library path:
 ```
 <library>
   ├── project
-    ├── config       <- Project-level configuration files
-    ├── port         <- Port configuration files
-    ├── plant        <- Wind farm layout files
-  ├── cables         <- Export and Array cable configuration files
-  ├── substructures  <- Substructure configuration files
-  ├── turbines       <- Turbine configuration and power curve files
-  ├── vessels        <- Land-based and offshore servicing equipment configuration files
-  ├── weather        <- Weather profiles
-  ├── results        <- The analysis log files and any saved output data
+    ├── config     <- Project-level configuration files
+    ├── port       <- Port configuration files
+    ├── plant      <- Wind farm layout files
+  ├── cables       <- Export and Array cable configuration files
+  ├── substations  <- Substation configuration files
+  ├── turbines     <- Turbine configuration and power curve files
+  ├── vessels      <- Land-based and offshore servicing equipment configuration files
+  ├── weather      <- Weather profiles
+  ├── results      <- The analysis log files and any saved output data
 ```
 """
 

@@ -61,12 +61,23 @@ class Windfarm:
         windfarm_layout : str
             Filename to use for reading in the windfarm layout; must be a csv file.
         """
-        layout_path = str(self.env.data_dir / "windfarm" / windfarm_layout)
-        layout = (
-            pd.read_csv(layout_path)
-            .sort_values(by=["string", "order"])
-            .reset_index(drop=True)
-        )
+        try:
+            layout_path = str(self.env.data_dir / "project/plant" / windfarm_layout)
+            layout = (
+                pd.read_csv(layout_path)
+                .sort_values(by=["string", "order"])
+                .reset_index(drop=True)
+            )
+        except FileNotFoundError:
+            layout_path = str(self.env.data_dir / "windfarm" / windfarm_layout)
+            layout = (
+                pd.read_csv(layout_path)
+                .sort_values(by=["string", "order"])
+                .reset_index(drop=True)
+            )
+            logging.warning(
+                "DeprecationWarning: In v0.7, all wind farm layout files must be located in: '<library>/project/plant/"
+            )
         layout.subassembly = layout.subassembly.fillna("")
         layout.upstream_cable = layout.upstream_cable.fillna("")
 

@@ -194,9 +194,9 @@ class Metrics:
             self.fixed_costs = FixedCosts.from_dict({"operations": 0})  # type: ignore
         else:
             try:
-                fixed_costs = load_yaml(self.data_dir / "windfarm", fixed_costs)
+                fixed_costs = load_yaml(self.data_dir / "project/config", fixed_costs)
             except FileNotFoundError:
-                fixed_costs = load_yaml(self.data_dir / "project/cofig", fixed_costs)  # type: ignore
+                fixed_costs = load_yaml(self.data_dir / "windfarm", fixed_costs)  # type: ignore
                 logging.warning(
                     "DeprecationWarning: In v0.7, all fixed cost configurations must be located in: '<library>/project/config/"
                 )
