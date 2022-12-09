@@ -1,0 +1,24 @@
+name: Tugboat 2
+charter_days: 3
+equipment_rate: 1750
+strategy: requests
+strategy_threshold: 1
+onsite: false
+capability: [TOW, AHV]
+speed: 37.04
+tow_speed: 9.26
+max_windspeed_transport: 99
+max_windspeed_repair: 99
+max_waveheight_transport: 1.5
+max_waveheight_repair: 1.5
+workday_start: 8
+workday_end: 16
+crew_transfer_time: 0.25
+unmoor_hours: 2
+reconnection_hours: 4
+n_crews: 1
+crew:
+  day_rate: 0
+  n_day_rate: 0
+  hourly_rate: 0
+  n_hourly_rate: 0

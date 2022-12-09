@@ -1,0 +1,18 @@
+name: export cable
+maintenance:
+  -
+    description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+failures:
+  1:
+    scale: 0
+    shape: 0
+    time: 0
+    materials: 0
+    operation_reduction: 0
+    service_equipment: CAB
+    level: 1
+    description: "none"
