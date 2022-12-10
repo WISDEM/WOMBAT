@@ -4,7 +4,6 @@ from __future__ import annotations
 import logging
 from copy import deepcopy  # type: ignore
 from pathlib import Path  # type: ignore
-from functools import partial  # type: ignore
 from itertools import product  # type: ignore
 
 import numpy as np  # type: ignore
@@ -72,37 +71,6 @@ def _calculate_time_availability(
     if by_turbine:
         return availability.sum(axis=0) / availability.shape[0]
     return availability.sum() / availability.size
-
-
-def _process_single(
-    events: pd.DataFrame, request_filter: np.ndarray
-) -> tuple[str, float, float, float, int]:
-    """Computes the timing values for a single ``request_id``.
-
-    Parameters
-    ----------
-    events : pd.DataFrame
-        The NaN-filtered events ``pd.DataFrame``.
-    request_filter : np.ndarray
-        The indicies to include for the calculation of the timings.
-
-    Returns
-    -------
-    tuple[str, float, float, float, int]
-        The timing values. See ``process_times``.
-    """
-    # TODO: Test if this can be sped up by passing the filtered array data frame
-    request = events.iloc[request_filter]
-    downtime = request[request.system_operating_level < 1]
-    vals = (
-        request.reason[0],
-        request.env_time.max() - request.env_time.min(),  # total time
-        request.duration.sum(),  # actual process time
-        downtime.env_time.max()
-        - downtime.env_time.min(),  # downtime (duration of operations < 1)
-        1,  # N processes
-    )
-    return vals
 
 
 class Metrics:
@@ -1773,20 +1741,74 @@ class Metrics:
          - downtime: total number of hours where the operations were below 100%.
          - N: total number of processes in the category.
         """
-        events = self.events.loc[self.events.request_id != "na"]
-        requests = events.request_id.values
-        unique = events.request_id.unique()
+        events_valid = self.events.loc[self.events.request_id != "na"]
 
-        # TODO: Test if filtering the dataframe within the loop is faster/more efficient
-        process_single = partial(_process_single, events)
-        timing = [process_single(np.where(requests == rid)[0]) for rid in unique]
-        df = pd.DataFrame(
-            timing,
-            columns=["category", "time_to_completion", "process_time", "downtime", "N"],
+        # Summarize all the requests data
+        request_df = (
+            events_valid.groupby("request_id")
+            .sum()
+            .sort_index()[["env_time", "duration"]]
         )
-        df = df.groupby("category").sum()
-        df = df.sort_index()
-        return df
+        request_df_min = (
+            events_valid[["request_id", "env_time", "duration"]]
+            .groupby("request_id")
+            .min()
+            .sort_index()
+        )
+        request_df_max = (
+            events_valid[["request_id", "env_time", "duration"]]
+            .groupby("request_id")
+            .max()
+            .sort_index()
+        )
+
+        # Summarize all the downtime-specific data for all requests
+        downtime_df = events_valid.loc[events_valid.system_operating_level < 1][
+            ["request_id", "env_time", "duration"]
+        ]
+        downtime_df_min = (
+            downtime_df[["request_id", "env_time", "duration"]]
+            .groupby("request_id")
+            .min()
+            .sort_index()
+        )
+        downtime_df_max = (
+            downtime_df[["request_id", "env_time", "duration"]]
+            .groupby("request_id")
+            .max()
+            .sort_index()
+        )
+
+        reason_df = (
+            events_valid.drop_duplicates(subset=["request_id"])[
+                ["request_id", "reason"]
+            ]
+            .set_index("request_id")
+            .sort_index()
+        )
+
+        # Create the timing dataframe
+        timing = pd.DataFrame([], index=request_df_min.index)
+        timing = timing.join(reason_df[["reason"]]).rename(
+            columns={"reason": "category"}
+        )
+        timing = timing.join(
+            request_df_min[["env_time"]]
+            .join(request_df_max[["env_time"]], lsuffix="_min", rsuffix="_max")
+            .diff(axis=1)[["env_time_max"]]
+            .rename(columns={"env_time_max": "time_to_completion"})
+        )
+        timing = timing.join(request_df[["duration"]])
+        timing = timing.join(
+            downtime_df_min[["env_time"]]
+            .join(downtime_df_max[["env_time"]], lsuffix="_min", rsuffix="_max")
+            .diff(axis=1)[["env_time_max"]]
+            .rename(columns={"env_time_max": "process_time"})
+        )
+        timing.N = 1
+
+        # Return only the categorically summed data
+        return timing.groupby("category").sum().sort_index()
 
     def power_production(
         self, frequency: str, by_turbine: bool = False
