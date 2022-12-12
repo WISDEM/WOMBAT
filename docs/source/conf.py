@@ -88,7 +88,7 @@ source_suffix = {
 }
 
 # toggle this between auto/off to rerun full documentation build
-nb_execution_mode = "force"
+nb_execution_mode = "auto"
 nb_execution_timeout = -1
 nb_execution_allow_errors = True
 # execution_excludepatterns = [
