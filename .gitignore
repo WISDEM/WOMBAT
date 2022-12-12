@@ -152,8 +152,10 @@ ENV/
 .mypy_cache/
 
 # specific files
-./library/outputs
-./library/results
+/library/code_comparison/dinwoodie/outputs
+/library/code_comparison/iea26/outputs
+/library/code_comparison/dinwoodie/results
+/library/code_comparison/iea26/results
 
 # Text editors
 .vscode/

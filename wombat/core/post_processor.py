@@ -1798,12 +1798,14 @@ class Metrics:
             .diff(axis=1)[["env_time_max"]]
             .rename(columns={"env_time_max": "time_to_completion"})
         )
-        timing = timing.join(request_df[["duration"]])
+        timing = timing.join(request_df[["duration"]]).rename(
+            columns={"duration": "process_time"}
+        )
         timing = timing.join(
             downtime_df_min[["env_time"]]
             .join(downtime_df_max[["env_time"]], lsuffix="_min", rsuffix="_max")
             .diff(axis=1)[["env_time_max"]]
-            .rename(columns={"env_time_max": "process_time"})
+            .rename(columns={"env_time_max": "downtime"})
         )
         timing.N = 1
 
