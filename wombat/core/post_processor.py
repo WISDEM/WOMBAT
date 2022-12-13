@@ -1458,7 +1458,8 @@ class Metrics:
         if not isinstance(by_action, bool):
             raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
 
-        events = self.events.loc[~self.events.part_id.isna()].copy()
+        part_filter = ~self.events.part_id.isna() & ~self.events.part_id.isin([""])
+        events = self.events.loc[part_filter].copy()
 
         # Need to simplify the cable identifiers to not include the connection information
         events.loc[:, "component"] = [el.split("::")[0] for el in events.part_id.values]
@@ -1813,7 +1814,7 @@ class Metrics:
         return timing.groupby("category").sum().sort_index()
 
     def power_production(
-        self, frequency: str, by_turbine: bool = False
+        self, frequency: str, by: str = "windfarm", units: str = "gwh"
     ) -> float | pd.DataFrame:
         """Calculates the power production for the simulation at a project, annual, or
         monthly level that can be broken out by turbine.
@@ -1822,9 +1823,10 @@ class Metrics:
         ----------
         frequency : str
             One of "project", "annual", "monthly", or "month-year".
-        by_turbine : bool, optional
-            Indicates whether the values are with resepect to the individual turbines
-            (True) or the windfarm (False), by default False.
+        by : str
+            One of "windfarm" or "turbine".
+        units : str
+            One of "gwh", "mwh", or "kwh".
 
         Returns
         -------
@@ -1846,8 +1848,22 @@ class Metrics:
         """
         frequency = _check_frequency(frequency, which="all")
 
-        if not isinstance(by_turbine, bool):
-            raise ValueError("``by_turbine`` must be one of ``True`` or ``False``")
+        by = by.lower().strip()
+        if by not in ("windfarm", "turbine"):
+            raise ValueError('``by`` must be one of "windfarm" or "turbine".')
+        by_turbine = by == "turbine"
+
+        if units not in ("gwh", "mwh", "kwh"):
+            raise ValueError('``units`` must be one of "gwh", "mwh", or "kwh".')
+        if units == "gwh":
+            divisor = 1e6
+            label = "Project Energy Production (GWh)"
+        elif units == "mwh":
+            divisor = 1e3
+            label = "Project Energy Production (MWh)"
+        else:
+            divisor = 1
+            label = "Project Energy Production (kWh)"
 
         if frequency == "annual":
             group_cols = ["year"]
@@ -1862,13 +1878,16 @@ class Metrics:
 
         if frequency == "project":
             production = self.production[col_filter].sum(axis=0)
-            production = pd.DataFrame(
-                production.values.reshape(1, -1),
-                columns=col_filter,
-                index=["Project Energy Production (kWh)"],
+            production = (
+                pd.DataFrame(
+                    production.values.reshape(1, -1),
+                    columns=col_filter,
+                    index=[label],
+                )
+                / divisor
             )
             return production
-        return self.production.groupby(by=group_cols)[col_filter].sum()
+        return self.production.groupby(by=group_cols)[col_filter].sum() / divisor
 
     # Windfarm Financials
 
