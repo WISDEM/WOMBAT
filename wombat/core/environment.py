@@ -5,7 +5,7 @@ import csv
 import math  # type: ignore
 import logging  # type: ignore
 import datetime as dt  # type: ignore
-from typing import Tuple, Union, Optional  # type: ignore
+from typing import TYPE_CHECKING, Tuple, Union, Optional  # type: ignore
 from pathlib import Path  # type: ignore
 from datetime import datetime, timedelta  # type: ignore
 
@@ -20,6 +20,10 @@ from pandas.core.indexes.datetimes import DatetimeIndex
 import wombat  # pylint: disable=W0611
 from wombat.utilities import hours_until_future_hour
 from wombat.core.data_classes import parse_date
+
+
+if TYPE_CHECKING:
+    from wombat.windfarm import Windfarm
 
 
 EVENTS_COLUMNS = [
@@ -169,6 +173,10 @@ class WombatEnvironment(simpy.Environment):
         self.simulation_name = simulation_name
         self._logging_setup()
 
+    def _register_windfarm(self, windfarm: Windfarm) -> None:
+        """Adds the simulation windfarm to the class attributes"""
+        self.windfarm = windfarm
+
     def run(self, until: Optional[Union[int, float, Event]] = None):
         """Extends the ``simpy.Environment.run`` method to change the default behavior if
         no argument is passed to ``until``, which will now run a simulation until the end
@@ -180,6 +188,18 @@ class WombatEnvironment(simpy.Environment):
             When to stop the simulation, by default None. See documentation on
             ``simpy.Environment.run`` for more details.
         """
+        # If running a paused simulation, then reopen the file and append, but only if
+        # the simulation time is lower than the upper bound
+        time_check = self.now < self.max_run_time
+        if self._events_csv.closed and time_check:  # type: ignore
+            self._events_csv = open(self.events_log_fname, "a")
+            self._events_writer = csv.DictWriter(
+                self._events_csv, delimiter="|", fieldnames=EVENTS_COLUMNS
+            )
+        if hasattr(self, "windfarm") and self._operations_csv.closed and time_check:  # type: ignore
+            self._operations_csv = open(self.operations_log_fname, "a")
+            self.windfarm._setup_logger(initial=False)
+
         if until is None:
             until = self.max_run_time
         elif until > self.max_run_time:
