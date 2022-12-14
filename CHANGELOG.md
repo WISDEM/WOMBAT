@@ -31,6 +31,7 @@
     - reasonable speedups to simulation times by not having additional overhead from the logging and buffering
 - `Metrics.process_times()` has been converted to efficient pandas code for fast computation.
 - The Metrics example usage documentation page has been rewritten and reformatted to provide more helpful information to users
+- Adds `create_library_structure` to `wombat.core.library` so that users can create the appropriate folder structure for a new project without having to manually create each and every folder.
 - Adds support for "type" in the wind farm layout CSV file, which should be filled with either "substation" or "turbine". This column better supports multi-substation farms so that accurate plots and connections can be made. For instance, multiple connected substatation, can now be accurately rendered and modeled.
 
 ## 0.5.1 (22 July 2022)
