@@ -54,7 +54,7 @@ def test_repair_manager_init(env_setup):
 
     # Add a downtime-based piece of equipment
     mapping = StrategyMap()
-    fsv = load_yaml(env.data_dir / "repair" / "transport", "fsv_downtime.yaml")
+    fsv = load_yaml(env.data_dir / "vessels", "fsv_downtime.yaml")
     fsv_data = ServiceEquipmentData(fsv).determine_type()
     for capability in fsv_data.capability:
         mapping.update(capability, fsv_data.strategy_threshold, fsv_data)
