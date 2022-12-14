@@ -1,0 +1,13 @@
+name: sample port
+tugboats: [tugboat1.yaml, tugboat2.yaml, tugboat3.yaml]
+annual_fee: 2e6
+max_operations: 1  # max number of turbines at the port at one time
+workday_start: 7
+workday_end: 19
+site_distance: 200  # will set the tugboats to this distance if not individually defined
+crew:
+  day_rate: 0
+  n_day_rate: 0
+  hourly_rate: 0
+  n_hourly_rate: 0
+n_crews: 2  # maximum number of simultaneously operating crews to repair individual failures on a turbine

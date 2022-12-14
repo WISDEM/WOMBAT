@@ -1,9 +1,9 @@
 """The postprocessing metric computation."""
 from __future__ import annotations
 
+import logging
 from copy import deepcopy  # type: ignore
 from pathlib import Path  # type: ignore
-from functools import partial  # type: ignore
 from itertools import product  # type: ignore
 
 import numpy as np  # type: ignore
@@ -71,37 +71,6 @@ def _calculate_time_availability(
     if by_turbine:
         return availability.sum(axis=0) / availability.shape[0]
     return availability.sum() / availability.size
-
-
-def _process_single(
-    events: pd.DataFrame, request_filter: np.ndarray
-) -> tuple[str, float, float, float, int]:
-    """Computes the timing values for a single ``request_id``.
-
-    Parameters
-    ----------
-    events : pd.DataFrame
-        The NaN-filtered events ``pd.DataFrame``.
-    request_filter : np.ndarray
-        The indicies to include for the calculation of the timings.
-
-    Returns
-    -------
-    tuple[str, float, float, float, int]
-        The timing values. See ``process_times``.
-    """
-    # TODO: Test if this can be sped up by passing the filtered array data frame
-    request = events.iloc[request_filter]
-    downtime = request[request.system_operating_level < 1]
-    vals = (
-        request.reason[0],
-        request.env_time.max() - request.env_time.min(),  # total time
-        request.duration.sum(),  # actual process time
-        downtime.env_time.max()
-        - downtime.env_time.min(),  # downtime (duration of operations < 1)
-        1,  # N processes
-    )
-    return vals
 
 
 class Metrics:
@@ -192,7 +161,13 @@ class Metrics:
             # Create a zero-cost FixedCosts object
             self.fixed_costs = FixedCosts.from_dict({"operations": 0})  # type: ignore
         else:
-            fixed_costs = load_yaml(self.data_dir / "windfarm", fixed_costs)
+            try:
+                fixed_costs = load_yaml(self.data_dir / "project/config", fixed_costs)
+            except FileNotFoundError:
+                fixed_costs = load_yaml(self.data_dir / "windfarm", fixed_costs)  # type: ignore
+                logging.warning(
+                    "DeprecationWarning: In v0.7, all fixed cost configurations must be located in: '<library>/project/config/"
+                )
             self.fixed_costs = FixedCosts.from_dict(fixed_costs)  # type: ignore
 
         if isinstance(substation_id, str):
@@ -229,7 +204,16 @@ class Metrics:
 
         if SAM_settings is not None:
             SAM_settings = "SAM_Singleowner_defaults.yaml"
-            self.sam_settings = load_yaml(self.data_dir / "windfarm", SAM_settings)
+            try:
+                self.sam_settings = load_yaml(
+                    self.data_dir / "project/config", SAM_settings
+                )
+            except FileNotFoundError:
+                self.sam_settings = load_yaml(self.data_dir / "windfarm", SAM_settings)
+                logging.warning(
+                    "DeprecationWarning: In v0.7, all SAM configurations must be located in: '<library>/project/config/"
+                )
+
             self._setup_pysam()
         else:
             self.sam_settings = None
@@ -314,7 +298,9 @@ class Metrics:
         pd.DataFrame
             Dataframe of either the events or operations data.
         """
-        data = pd.read_csv(self.data_dir / "outputs" / "logs" / fname, engine="pyarrow")
+        data = pd.read_csv(
+            self.data_dir / "outputs" / "logs" / fname, delimiter="|", engine="pyarrow"
+        )
         return data
 
     def _apply_inflation_rate(self, events: pd.DataFrame) -> pd.DataFrame:
@@ -1472,7 +1458,8 @@ class Metrics:
         if not isinstance(by_action, bool):
             raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
 
-        events = self.events.loc[~self.events.part_id.isna()].copy()
+        part_filter = ~self.events.part_id.isna() & ~self.events.part_id.isin([""])
+        events = self.events.loc[part_filter].copy()
 
         # Need to simplify the cable identifiers to not include the connection information
         events.loc[:, "component"] = [el.split("::")[0] for el in events.part_id.values]
@@ -1755,23 +1742,79 @@ class Metrics:
          - downtime: total number of hours where the operations were below 100%.
          - N: total number of processes in the category.
         """
-        events = self.events.loc[self.events.request_id != "na"]
-        requests = events.request_id.values
-        unique = events.request_id.unique()
+        events_valid = self.events.loc[self.events.request_id != "na"]
 
-        # TODO: Test if filtering the dataframe within the loop is faster/more efficient
-        process_single = partial(_process_single, events)
-        timing = [process_single(np.where(requests == rid)[0]) for rid in unique]
-        df = pd.DataFrame(
-            timing,
-            columns=["category", "time_to_completion", "process_time", "downtime", "N"],
+        # Summarize all the requests data
+        request_df = (
+            events_valid.groupby("request_id")
+            .sum()
+            .sort_index()[["env_time", "duration"]]
         )
-        df = df.groupby("category").sum()
-        df = df.sort_index()
-        return df
+        request_df_min = (
+            events_valid[["request_id", "env_time", "duration"]]
+            .groupby("request_id")
+            .min()
+            .sort_index()
+        )
+        request_df_max = (
+            events_valid[["request_id", "env_time", "duration"]]
+            .groupby("request_id")
+            .max()
+            .sort_index()
+        )
+
+        # Summarize all the downtime-specific data for all requests
+        downtime_df = events_valid.loc[events_valid.system_operating_level < 1][
+            ["request_id", "env_time", "duration"]
+        ]
+        downtime_df_min = (
+            downtime_df[["request_id", "env_time", "duration"]]
+            .groupby("request_id")
+            .min()
+            .sort_index()
+        )
+        downtime_df_max = (
+            downtime_df[["request_id", "env_time", "duration"]]
+            .groupby("request_id")
+            .max()
+            .sort_index()
+        )
+
+        reason_df = (
+            events_valid.drop_duplicates(subset=["request_id"])[
+                ["request_id", "reason"]
+            ]
+            .set_index("request_id")
+            .sort_index()
+        )
+
+        # Create the timing dataframe
+        timing = pd.DataFrame([], index=request_df_min.index)
+        timing = timing.join(reason_df[["reason"]]).rename(
+            columns={"reason": "category"}
+        )
+        timing = timing.join(
+            request_df_min[["env_time"]]
+            .join(request_df_max[["env_time"]], lsuffix="_min", rsuffix="_max")
+            .diff(axis=1)[["env_time_max"]]
+            .rename(columns={"env_time_max": "time_to_completion"})
+        )
+        timing = timing.join(request_df[["duration"]]).rename(
+            columns={"duration": "process_time"}
+        )
+        timing = timing.join(
+            downtime_df_min[["env_time"]]
+            .join(downtime_df_max[["env_time"]], lsuffix="_min", rsuffix="_max")
+            .diff(axis=1)[["env_time_max"]]
+            .rename(columns={"env_time_max": "downtime"})
+        )
+        timing.N = 1
+
+        # Return only the categorically summed data
+        return timing.groupby("category").sum().sort_index()
 
     def power_production(
-        self, frequency: str, by_turbine: bool = False
+        self, frequency: str, by: str = "windfarm", units: str = "gwh"
     ) -> float | pd.DataFrame:
         """Calculates the power production for the simulation at a project, annual, or
         monthly level that can be broken out by turbine.
@@ -1780,9 +1823,10 @@ class Metrics:
         ----------
         frequency : str
             One of "project", "annual", "monthly", or "month-year".
-        by_turbine : bool, optional
-            Indicates whether the values are with resepect to the individual turbines
-            (True) or the windfarm (False), by default False.
+        by : str
+            One of "windfarm" or "turbine".
+        units : str
+            One of "gwh", "mwh", or "kwh".
 
         Returns
         -------
@@ -1804,8 +1848,22 @@ class Metrics:
         """
         frequency = _check_frequency(frequency, which="all")
 
-        if not isinstance(by_turbine, bool):
-            raise ValueError("``by_turbine`` must be one of ``True`` or ``False``")
+        by = by.lower().strip()
+        if by not in ("windfarm", "turbine"):
+            raise ValueError('``by`` must be one of "windfarm" or "turbine".')
+        by_turbine = by == "turbine"
+
+        if units not in ("gwh", "mwh", "kwh"):
+            raise ValueError('``units`` must be one of "gwh", "mwh", or "kwh".')
+        if units == "gwh":
+            divisor = 1e6
+            label = "Project Energy Production (GWh)"
+        elif units == "mwh":
+            divisor = 1e3
+            label = "Project Energy Production (MWh)"
+        else:
+            divisor = 1
+            label = "Project Energy Production (kWh)"
 
         if frequency == "annual":
             group_cols = ["year"]
@@ -1820,13 +1878,16 @@ class Metrics:
 
         if frequency == "project":
             production = self.production[col_filter].sum(axis=0)
-            production = pd.DataFrame(
-                production.values.reshape(1, -1),
-                columns=col_filter,
-                index=["Project Energy Production (kWh)"],
+            production = (
+                pd.DataFrame(
+                    production.values.reshape(1, -1),
+                    columns=col_filter,
+                    index=[label],
+                )
+                / divisor
             )
             return production
-        return self.production.groupby(by=group_cols)[col_filter].sum()
+        return self.production.groupby(by=group_cols)[col_filter].sum() / divisor
 
     # Windfarm Financials
 

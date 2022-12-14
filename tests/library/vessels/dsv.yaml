@@ -1,0 +1,23 @@
+name: Diving Support Vessel
+equipment_rate: 75000
+charter_days: 4
+start_year: 1996
+end_year: 2015
+onsite: false
+capability: DSV
+mobilization_cost: 225000
+mobilization_days: 15
+speed: 29.63
+max_windspeed_transport: 99
+max_windspeed_repair: 99
+max_waveheight_transport: 2
+max_waveheight_repair: 2
+strategy: requests
+strategy_threshold: 1
+crew_transfer_time: 0.25
+n_crews: 1
+crew:
+  day_rate: 0  # crew comes with the vessel
+  n_day_rate: 0
+  hourly_rate: 0
+  n_hourly_rate: 0

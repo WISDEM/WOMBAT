@@ -1,0 +1,27 @@
+name: Field Support Vessel
+equipment_rate: 9500
+start_month: 6
+start_day: 1
+end_month: 6
+end_day: 28
+start_year: 2002
+end_year: 2014
+onsite: false
+capability: SCN
+mobilization_cost: 0
+mobilization_days: 21
+speed: 22.22
+max_windspeed_transport: 99
+max_windspeed_repair: 99
+max_waveheight_transport: 1.5
+max_waveheight_repair: 1.5
+workday_start: 0
+workday_end: 24
+strategy: scheduled
+crew_transfer_time: 0.5
+n_crews: 1
+crew:
+  day_rate: 0  # crew comes with vessel
+  n_day_rate: 0
+  hourly_rate: 0
+  n_hourly_rate: 0

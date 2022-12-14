@@ -10,6 +10,27 @@
   - When a setting is defined in multiple locations, the more conservative restriction is applied
   - Variables `non_operational_start`, `non_operational_end` create the annualized period where operations are prohibited, resulting in the creation of the array `non_operational_dates` and set `non_operational_dates_set`.
   - Variables `reduced_speed_start`, `reduced_speed_end` create the annualized period where the maximum speed, `reduced_speed`, for all operations is imposed, resulting in the creation of the array `reduced_speed_dates` and set `reduced_speed_dates_set`.
+- New library structure that mirrors ORBIT (see below diagram)! In v0.7, the orignal library structure will be officially deprecated in favor of the below, and during the v0.6 lifecycle a warning will be raised to instruct users where to place and structure folders going forward.
+  ```
+  <library>
+    ├── project
+      ├── config       <- Project-level configuration files
+      ├── port         <- Port configuration files
+      ├── plant        <- Wind farm layout files
+    ├── cables         <- Export and Array cable configuration files
+    ├── substructures  <- Substructure configuration files
+    ├── turbines       <- Turbine configuration and power curve files
+    ├── vessels        <- Land-based and offshore servicing equipment configuration files
+    ├── weather        <- Weather profiles
+    ├── results        <- The analysis log files and any saved output data
+  ```
+- Logging is now based on directly writing to CSV in place of the `logging`-based infrastructure
+  - All underlying infrastructure withing the simulation have also been updated to accommodate the different file types, which allows for more direct interation at the end of the simulation and enables PyArrow csv read/write
+  - This enables:
+    - deprecation warnings to be passed directly to the terminal/notebook without interfering with the file handling
+    - reasonable speedups to simulation times by not having additional overhead from the logging and buffering
+- `Metrics.process_times()` has been converted to efficient pandas code for fast computation.
+- The Metrics example usage documentation page has been rewritten and reformatted to provide more helpful information to users
 
 ## 0.5.1 (22 July 2022)
 - Updates to use the most recent pandas API/recommendations, which fixes numerous warnings in the `Metrics` class

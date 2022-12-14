@@ -68,8 +68,8 @@ intersphinx_mapping = {
 suppress_warnings = ["myst.domains"]
 
 myst_enable_extensions = [
-    # "dollarmath",
-    # "amsmath",
+    "dollarmath",
+    "amsmath",
     "deflist",
     # "html_admonition",
     # "html_image",
@@ -95,7 +95,7 @@ nb_execution_allow_errors = True
 #     "*_demonstration.ipynb"
 # ]  # only used for quick docs building when updating the how to example
 
-myst_heading_anchors = 3
+myst_heading_anchors = 2
 
 # -- Options for HTML output -------------------------------------------------
 

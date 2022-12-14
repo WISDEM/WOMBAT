@@ -948,7 +948,7 @@ def test_equipment_map(env_setup):
 
     # Test for a requests-based equipment
     hlv = ServiceEquipmentData(
-        load_yaml(env.data_dir / "repair" / "transport", "hlv_requests.yaml")
+        load_yaml(env.data_dir / "vessels", "hlv_requests.yaml")
     ).determine_type()
     mapping = EquipmentMap(equipment=hlv, strategy_threshold=hlv.strategy_threshold)
     assert mapping.equipment == hlv
@@ -956,7 +956,7 @@ def test_equipment_map(env_setup):
 
     # Test for a downtime-based equipment
     hlv = ServiceEquipmentData(
-        load_yaml(env.data_dir / "repair" / "transport", "hlv_downtime.yaml")
+        load_yaml(env.data_dir / "vessels", "hlv_downtime.yaml")
     ).determine_type()
     mapping = EquipmentMap(equipment=hlv, strategy_threshold=hlv.strategy_threshold)
     assert mapping.equipment == hlv
@@ -978,7 +978,7 @@ def test_strategy_map(env_setup):
     assert not mapping.is_running
 
     # Test for bad input
-    hlv = load_yaml(env.data_dir / "repair" / "transport", "hlv_requests.yaml")
+    hlv = load_yaml(env.data_dir / "vessels", "hlv_requests.yaml")
     hlv["capability"] = ["SCN", "LCN"]
     hlv = ServiceEquipmentData(hlv).determine_type()
     hlv_map = EquipmentMap(hlv.strategy_threshold, hlv)
@@ -997,7 +997,7 @@ def test_strategy_map(env_setup):
     # Create a few equipment and test for inclusion
 
     # HLV with multiple capabilities
-    hlv = load_yaml(env.data_dir / "repair" / "transport", "hlv_requests.yaml")
+    hlv = load_yaml(env.data_dir / "vessels", "hlv_requests.yaml")
     hlv["capability"] = ["SCN", "LCN"]
     hlv = ServiceEquipmentData(hlv).determine_type()
     hlv_map = EquipmentMap(hlv.strategy_threshold, hlv)
@@ -1007,7 +1007,7 @@ def test_strategy_map(env_setup):
     assert mapping.is_running
 
     # Cabling vessel with one capability
-    cab = load_yaml(env.data_dir / "repair" / "transport", "cabling.yaml")
+    cab = load_yaml(env.data_dir / "vessels", "cabling.yaml")
     cab = ServiceEquipmentData(cab).determine_type()
     for capability in cab.capability:
         mapping.update(capability, cab.strategy_threshold, cab)
@@ -1016,7 +1016,7 @@ def test_strategy_map(env_setup):
     assert mapping.is_running
 
     # Diving support vessel
-    dsv = load_yaml(env.data_dir / "repair" / "transport", "dsv.yaml")
+    dsv = load_yaml(env.data_dir / "vessels", "dsv.yaml")
     dsv = ServiceEquipmentData(dsv).determine_type()
     for capability in dsv.capability:
         mapping.update(capability, dsv.strategy_threshold, dsv)
@@ -1025,7 +1025,7 @@ def test_strategy_map(env_setup):
     assert mapping.is_running
 
     # Remote reset
-    rmt = load_yaml(env.data_dir / "repair" / "transport", "rmt.yaml")
+    rmt = load_yaml(env.data_dir / "vessels", "rmt.yaml")
     rmt = ServiceEquipmentData(rmt).determine_type()
     for capability in rmt.capability:
         mapping.update(capability, rmt.strategy_threshold, rmt)
@@ -1034,7 +1034,7 @@ def test_strategy_map(env_setup):
     assert mapping.is_running
 
     # Drone repair
-    drn = load_yaml(env.data_dir / "repair" / "transport", "drn.yaml")
+    drn = load_yaml(env.data_dir / "vessels", "drn.yaml")
     drn = ServiceEquipmentData(drn).determine_type()
     for capability in drn.capability:
         mapping.update(capability, drn.strategy_threshold, drn)
@@ -1043,7 +1043,7 @@ def test_strategy_map(env_setup):
     assert mapping.is_running
 
     # Crew tranfer
-    ctv = load_yaml(env.data_dir / "repair" / "transport", "ctv_requests.yaml")
+    ctv = load_yaml(env.data_dir / "vessels", "ctv_requests.yaml")
     ctv = ServiceEquipmentData(ctv).determine_type()
     for capability in ctv.capability:
         mapping.update(capability, ctv.strategy_threshold, ctv)
@@ -1052,7 +1052,7 @@ def test_strategy_map(env_setup):
     assert mapping.is_running
 
     # Update an existing category with another piece of equipment
-    fsv = load_yaml(env.data_dir / "repair" / "transport", "fsv_downtime.yaml")
+    fsv = load_yaml(env.data_dir / "vessels", "fsv_downtime.yaml")
     fsv = ServiceEquipmentData(fsv).determine_type()
     for capability in fsv.capability:
         mapping.update(capability, fsv.strategy_threshold, fsv)

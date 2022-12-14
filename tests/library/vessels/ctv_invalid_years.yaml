@@ -1,0 +1,26 @@
+name: Crew Transfer Vessel
+equipment_rate: 1750
+start_month: 1
+start_day: 1
+end_month: 12
+end_day: 31
+start_year: 1990
+end_year: 2021
+onsite: True
+capability: CTV
+max_severity: 10
+mobilization_cost: 0
+mobilization_days: 0
+speed: 37.04
+max_windspeed_transport: 99
+max_windspeed_repair: 99
+max_waveheight_transport: 1.5
+max_waveheight_repair: 1.5
+strategy: scheduled
+crew_transfer_time: 0.25
+n_crews: 1
+crew:
+  day_rate: 0  # crew comes with vessel
+  n_day_rate: 0
+  hourly_rate: 0
+  n_hourly_rate: 0

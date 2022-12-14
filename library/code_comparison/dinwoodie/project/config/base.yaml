@@ -1,0 +1,20 @@
+name: dinwoodie_base
+library: DINWOODIE
+weather: alpha_ventus_weather_2002_2014.csv  # located in: dinwoodie / weather
+service_equipment:
+# YAML-encoded list, but could also be created in standard Python list notation with
+# square brackets: [ctv1.yaml, ctv2.yaml, ..., hlv_requests.yaml]
+# All below equipment configurations are located in: dinwoodie / repair / transport
+  - ctv1.yaml
+  - ctv2.yaml
+  - ctv3.yaml
+  - fsv_requests.yaml
+  - hlv_requests.yaml
+layout: layout.csv  # located in: dinwoodie / windfarm
+inflation_rate: 0
+fixed_costs: fixed_costs.yaml  # located in: dinwoodie / windfarm
+workday_start: 7
+workday_end: 19
+start_year: 2003
+end_year: 2012
+project_capacity: 240

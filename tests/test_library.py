@@ -12,7 +12,7 @@ def test_load_yaml():
     """Tests `load_yaml`."""
     # Test loading the offshore substation from the Dinwoodie library
     library = library_map["DINWOODIE"]
-    folder = "windfarm"
+    folder = "substations"
     correct_substation = dict(
         capacity_kw=0,
         capex_kw=0,
@@ -47,7 +47,7 @@ def test_load_yaml():
 
     # Test loading CTV1 from the IEA26 project
     library = library_map["IEA26"]
-    folder = Path("repair") / "transport"  # type: ignore
+    folder = "vessels"
     correct_ctv = dict(
         name="Crew Transfer Vessel 1",
         equipment_rate=3500,
@@ -85,7 +85,7 @@ def test_load_yaml():
 
     # Test loading CTV1 from the IEA_26 project
     library = library_map["IEA_26"]
-    folder = Path("repair") / "transport"  # type: ignore
+    folder = "vessels"
     correct_ctv = dict(
         name="Crew Transfer Vessel 1",
         equipment_rate=3500,

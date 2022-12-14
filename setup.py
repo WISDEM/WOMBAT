@@ -37,7 +37,7 @@ REQUIRED = [
     "numpy>=1.21",
     "scipy",
     "pandas>=1.3",
-    "pyarrow>=6",
+    "pyarrow>=10",
     "jupyterlab",
     "simpy>=4.0.1",
     "pyyaml",

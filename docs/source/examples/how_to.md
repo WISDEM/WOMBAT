@@ -48,17 +48,40 @@ case.
 ````{note}
 One important item to note is that the library structure is enforced within the code so all
 data must be placed in the appropriate locations in your analysis' library as follows:
+
+As of v0.6, the following structure will be adopted to mirror the format of the
+[ORBIT library structure](https://github.com/WISDEM/ORBIT/blob/master/ORBIT/core/library.py#L7-L24)
+to increase compatibility between similar libraries.
+
 ```
-<libray path>
-├── config                <- Simulation configuration files
-├── windfarm              <- Windfarm layout file(s); turbine, substation, and cable configurations
-├── outputs
-│   ├── logs              <- The raw anaylsis log files
-│   ├── metrics           <- A place to save metrics/computed outputs.
-│   ├── <self-defined>    <- Any other folder you choose for saving outputs (not enforced)
-├── repair                <- Overarching folder for repair configurations, such as ports
-│   ├── transport         <- Servicing equipment configurations
-├── weather               <- Weather profiles
+<library>
+  ├── project
+    ├── config     <- Project-level configuration files
+    ├── port       <- Port configuration files
+    ├── plant      <- Wind farm layout files
+  ├── cables       <- Export and Array cable configuration files
+  ├── substations  <- Substation configuration files
+  ├── turbines     <- Turbine configuration and power curve files
+  ├── vessels      <- Land-based and offshore servicing equipment configuration files
+  ├── weather      <- Weather profiles
+  ├── results      <- The analysis log files and any saved output data
+```
+
+```{warning}
+The previous library strucuture (below) will only be supported until v0.7 (date TBD) to
+allow users to migrate to the new version (above) during the v0.6 lifecycle.
+```
+```
+<libray>
+  ├── config            <- Simulation configuration files
+  ├── windfarm          <- Windfarm layout file(s); turbine, substation, and cable configurations
+  ├── outputs
+    ├── logs            <- The raw anaylsis log files
+    ├── metrics         <- A place to save metrics/computed outputs.
+    ├── <self-defined>  <- Any other folder you choose for saving outputs (not enforced)
+  ├── repair            <- Overarching folder for repair configurations, such as ports
+    ├── transport       <- Servicing equipment configurations
+  ├── weather           <- Weather profiles
 ```
 
 As a convenience feature you can import the provided validation data libraries as
@@ -475,7 +498,7 @@ will know where to go for these pointers when the simulation is initialized so t
 is constructed and validated correctly.
 
 ```{code-cell} ipython3
-config = load_yaml(library_path / "config", "base.yaml")
+config = load_yaml(library_path / "project/config", "base.yaml")
 ```
 
 ```{code-block} yaml
@@ -520,7 +543,7 @@ Load the file from the `Configuration` object that was created in the prior code
 sim = Simulation.from_config(config)
 
 # Delete any files that get initialized through the simulation environment
-sim.env.cleanup_log_files(log_only=False)
+sim.env.cleanup_log_files()
 ```
 
 ### Option 2: `Simulation()`
@@ -575,10 +598,7 @@ sim.run()
 end = perf_counter()
 
 timing = end - start
-if timing > 60 * 2:
-    print(f"Run time: {timing / 60:,.2f} minutes")
-else:
-    print(f"Run time: {timing:,.4f} seconds")
+print(f"Run time: {timing / 60:,.2f} minutes")
 ```
 
 
@@ -590,17 +610,17 @@ be shown here
 ```{code-cell} ipython3
 net_cf = sim.metrics.capacity_factor(which="net", frequency="project", by="windfarm").values[0][0]
 gross_cf = sim.metrics.capacity_factor(which="gross", frequency="project", by="windfarm").values[0][0]
-print(f"  Net Capacity Factor: {net_cf:2.1f}%")
-print(f"Gross Capacity Factor: {gross_cf:2.1f}%")
+print(f"  Net Capacity Factor: {net_cf:2.1%}")
+print(f"Gross Capacity Factor: {gross_cf:2.1%}")
 ```
 
 ```{code-cell} ipython3
 # Report back a subset of the metrics
 total = sim.metrics.time_based_availability(frequency="project", by="windfarm")
-print(f"  Project time-based availability: {total.values[0][0] * 100:.1f}%")
+print(f"  Project time-based availability: {total.windfarm[0]:.1%}")
 
 total = sim.metrics.production_based_availability(frequency="project", by="windfarm")
-print(f"Project energy-based availability: {total.values[0][0] * 100:.1f}%")
+print(f"Project energy-based availability: {total.windfarm[0]:.1%}")
 
 total = sim.metrics.equipment_costs(frequency="project", by_equipment=False)
 print(f"          Project equipment costs: ${total.values[0][0] / sim.metrics.project_capacity:,.2f}/MW")
@@ -613,5 +633,5 @@ print(f"          Project equipment costs: ${total.values[0][0] / sim.metrics.pr
 In the case that a lot of simulations are going to be run, and the processed outputs are all that is required, then there is a convenience method to cleanup these files automatically once you are done.
 
 ```{code-cell} ipython3
-sim.env.cleanup_log_files(log_only=False)
+sim.env.cleanup_log_files()
 ```

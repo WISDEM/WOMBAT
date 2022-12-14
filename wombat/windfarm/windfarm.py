@@ -1,6 +1,9 @@
 """Creates the Windfarm class/model."""
 from __future__ import annotations
 
+import csv
+import logging
+import datetime as dt
 from math import fsum
 from itertools import chain, combinations
 
@@ -43,16 +46,11 @@ class Windfarm:
 
         # Create the logging items
         self.system_list = list(self.graph.nodes)
-        self._log_columns = [
-            "datetime",
-            "name",
-            "level",
-            "env_datetime",
-            "env_time",
-        ] + self.system_list
+        self._setup_logger()
 
         # Register the windfarm and start the logger
         self.repair_manager._register_windfarm(self)
+        self.env._register_windfarm(self)
         self.env.process(self._log_operations())
 
     def _create_graph_layout(self, windfarm_layout: str) -> None:
@@ -64,12 +62,23 @@ class Windfarm:
         windfarm_layout : str
             Filename to use for reading in the windfarm layout; must be a csv file.
         """
-        layout_path = str(self.env.data_dir / "windfarm" / windfarm_layout)
-        layout = (
-            pd.read_csv(layout_path)
-            .sort_values(by=["string", "order"])
-            .reset_index(drop=True)
-        )
+        try:
+            layout_path = str(self.env.data_dir / "project/plant" / windfarm_layout)
+            layout = (
+                pd.read_csv(layout_path)
+                .sort_values(by=["string", "order"])
+                .reset_index(drop=True)
+            )
+        except FileNotFoundError:
+            layout_path = str(self.env.data_dir / "windfarm" / windfarm_layout)
+            layout = (
+                pd.read_csv(layout_path)
+                .sort_values(by=["string", "order"])
+                .reset_index(drop=True)
+            )
+            logging.warning(
+                "DeprecationWarning: In v0.7, all wind farm layout files must be located in: '<library>/project/plant/"
+            )
         layout.subassembly = layout.subassembly.fillna("")
         layout.upstream_cable = layout.upstream_cable.fillna("")
 
@@ -78,8 +87,7 @@ class Windfarm:
 
         # Assign the data attributes to the graph nodes
         for col in ("name", "latitude", "longitude", "subassembly"):
-            d = {i: n for i, n in layout[["id", col]].values}
-            nx.set_node_attributes(windfarm, d, name=col)
+            nx.set_node_attributes(windfarm, dict(layout[["id", col]].values), name=col)
 
         # Determine which nodes are substations and which are turbines
         substation_filter = layout.id == layout.substation_id
@@ -118,15 +126,23 @@ class Windfarm:
         ValueError
             Raised if the subassembly data is not provided in the layout file.
         """
+        bad_data_location_messages = []
         for system_id, data in self.graph.nodes(data=True):
             if data["subassembly"] == "":
                 raise ValueError(
                     "A 'subassembly' file must be specified for all nodes in the windfarm layout!"
                 )
 
-            subassembly_dict = load_yaml(
-                self.env.data_dir / "windfarm", data["subassembly"]
-            )
+            try:
+                subassembly_dict = load_yaml(
+                    self.env.data_dir / f"{data['type']}s", data["subassembly"]
+                )
+            except FileNotFoundError:
+                subassembly_dict = load_yaml(
+                    self.env.data_dir / "windfarm", data["subassembly"]
+                )
+                message = f"In v0.7, all {data['type']} configurations must be located in: '<library>/{data['type']}s"
+                bad_data_location_messages.append(message)
             self.graph.nodes[system_id]["system"] = System(
                 self.env,
                 self.repair_manager,
@@ -135,6 +151,11 @@ class Windfarm:
                 subassembly_dict,
                 data["type"],
             )
+
+        # Raise the warning for soon-to-be deprecated library structure
+        bad_data_location_messages = list(set(bad_data_location_messages))
+        for message in bad_data_location_messages:
+            logging.warning(f"DeprecationWarning: {message}")
 
     def _create_cables(self) -> None:
         """Instantiates the cable models as defined in the user-provided layout file,
@@ -146,13 +167,20 @@ class Windfarm:
         ValueError
             Raised if the cable model is not specified.
         """
+        bad_data_location_messages = []
         for start_node, end_node, data in self.graph.edges(data=True):
             # Check that the cable data is provided
             if data["cable"] == "":
                 raise ValueError(
                     "A 'cable' file must be specified for all nodes in the windfarm layout!"
                 )
-            cable_dict = load_yaml(self.env.data_dir / "windfarm", data["cable"])
+            try:
+                cable_dict = load_yaml(self.env.data_dir / "cables", data["cable"])
+            except FileNotFoundError:
+                cable_dict = load_yaml(self.env.data_dir / "windfarm", data["cable"])
+                bad_data_location_messages.append(
+                    "In v0.7, all cable configurations must be located in: '<library>/cables/"
+                )
 
             start_coordinates = (
                 self.graph.nodes[start_node]["latitude"],
@@ -181,6 +209,11 @@ class Windfarm:
             # Calaculate the geometric center point
             end_points = np.array((start_coordinates, end_coordinates))
             data["latitude"], data["longitude"] = end_points.mean(axis=0)
+
+        # Raise the warning for soon-to-be deprecated library structure
+        bad_data_location_messages = list(set(bad_data_location_messages))
+        for message in bad_data_location_messages:
+            logging.warning(f"DeprecationWarning: {message}")
 
     def calculate_distance_matrix(self) -> None:
         """Calculates the geodesic distance, in km, between all of the windfarm's nodes, e.g.,
@@ -229,29 +262,46 @@ class Windfarm:
         }
         self.substation_turbine_map = s_t_map
 
+    def _setup_logger(self, initial: bool = True):
+        self._log_columns = [
+            "datetime",
+            "env_datetime",
+            "env_time",
+        ] + self.system_list
+
+        self.env._operations_writer = csv.DictWriter(
+            self.env._operations_csv, delimiter="|", fieldnames=self._log_columns
+        )
+        if initial:
+            self.env._operations_writer.writeheader()
+
     def _log_operations(self):
         """Logs the operational data for a simulation."""
-        self.env._operations_logger.info("|".join(self._log_columns))
-
-        message = [self.env.simulation_time, self.env.now]
-        message.extend(
-            [self.system(system).operating_level for system in self.system_list]
+        message = dict(
+            datetime=dt.datetime.now(),
+            env_datetime=self.env.simulation_time,
+            env_time=self.env.now,
         )
-        message = "|".join((f"{m}" for m in message))  # type: ignore
-        self.env._operations_logger.info(message)
+        message.update(
+            {system: self.system(system).operating_level for system in self.system_list}
+        )
+        self.env._operations_writer.writerow(message)
 
         HOURS = 1
         while True:
             yield self.env.timeout(HOURS)
-            message = [f"{self.env.simulation_time}", f"{self.env.now}"]
-            message.extend(
-                [
-                    f"{self.system(system).operating_level}"
-                    for system in self.system_list
-                ]
+            message = dict(
+                datetime=dt.datetime.now(),
+                env_datetime=self.env.simulation_time,
+                env_time=self.env.now,
             )
-            message = "|".join(message)  # type: ignore
-            self.env._operations_logger.info(message)
+            message.update(
+                {
+                    system: self.system(system).operating_level
+                    for system in self.system_list
+                }
+            )
+            self.env._operations_writer.writerow(message)
 
     @cache
     def system(self, system_id: str) -> System:

@@ -57,7 +57,7 @@ def test_service_equipment_init(env_setup):
 
     ctv = ServiceEquipment(env, windfarm, manager, "ctv_quick_load.yaml")
     ctv.finish_setup_with_environment_variables()
-    ctv_dict = load_yaml(env.data_dir / "repair" / "transport", "ctv_quick_load.yaml")
+    ctv_dict = load_yaml(env.data_dir / "vessels", "ctv_quick_load.yaml")
 
     # Check the basic attribute assignments
     assert ctv.env == env
@@ -104,7 +104,7 @@ def test_service_equipment_init(env_setup):
     # Check the initializtion for an unscheduled vessel for a downtime-basis
     hlv = ServiceEquipment(env, windfarm, manager, "hlv_downtime.yaml")
     hlv.finish_setup_with_environment_variables()
-    hlv_dict = load_yaml(env.data_dir / "repair" / "transport", "hlv_downtime.yaml")
+    hlv_dict = load_yaml(env.data_dir / "vessels", "hlv_downtime.yaml")
 
     # Check the basic attribute assignments
     assert hlv.env == env
@@ -136,7 +136,7 @@ def test_service_equipment_init(env_setup):
     # Check the initializtion for an unscheduled vessel for a request-basis
     hlv = ServiceEquipment(env, windfarm, manager, "hlv_requests.yaml")
     hlv.finish_setup_with_environment_variables()
-    hlv_dict = load_yaml(env.data_dir / "repair" / "transport", "hlv_requests.yaml")
+    hlv_dict = load_yaml(env.data_dir / "vessels", "hlv_requests.yaml")
 
     # Check the basic attribute assignments
     assert hlv.env == env
@@ -204,7 +204,7 @@ def test_calculate_salary_cost(env_setup):
     windfarm = Windfarm(env, "layout.csv", manager)
     ctv = ServiceEquipment(env, windfarm, manager, "ctv_wages.yaml")
     ctv.finish_setup_with_environment_variables()
-    ctv_dict = load_yaml(env.data_dir / "repair" / "transport", "ctv_wages.yaml")
+    ctv_dict = load_yaml(env.data_dir / "vessels", "ctv_wages.yaml")
     ctv_crew = ctv_dict["crew"]
 
     # Test a small, even number
@@ -225,7 +225,7 @@ def test_calculate_hourly_cost(env_setup):
     windfarm = Windfarm(env, "layout.csv", manager)
     ctv = ServiceEquipment(env, windfarm, manager, "ctv_wages.yaml")
     ctv.finish_setup_with_environment_variables()
-    ctv_dict = load_yaml(env.data_dir / "repair" / "transport", "ctv_wages.yaml")
+    ctv_dict = load_yaml(env.data_dir / "vessels", "ctv_wages.yaml")
     ctv_crew = ctv_dict["crew"]
 
     n_hours = 4
@@ -244,7 +244,7 @@ def test_calculate_equipment_cost(env_setup):
     windfarm = Windfarm(env, "layout.csv", manager)
     ctv = ServiceEquipment(env, windfarm, manager, "ctv.yaml")
     ctv.finish_setup_with_environment_variables()
-    ctv_dict = load_yaml(env.data_dir / "repair" / "transport", "ctv.yaml")
+    ctv_dict = load_yaml(env.data_dir / "vessels", "ctv.yaml")
 
     n_hours = 4
     cost = ctv.calculate_equipment_cost(n_hours)

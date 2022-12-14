@@ -27,6 +27,7 @@
 
 
 ## Metrics Computation
+For example usage of the Metrics class and its associated methods, please see the [examples documentation page](../examples/metrics_demonstration)
 ```{eval-rst}
 .. autoclass:: wombat.core.post_processor.Metrics
    :members: from_simulation_outputs, power_production, time_based_availability,
