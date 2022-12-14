@@ -46,12 +46,12 @@ class Windfarm:
 
         # Create the logging items
         self.system_list = list(self.graph.nodes)
-        self._setup_logger()
+        # self._setup_logger()
 
         # Register the windfarm and start the logger
         self.repair_manager._register_windfarm(self)
         self.env._register_windfarm(self)
-        self.env.process(self._log_operations())
+        # self.env.process(self._log_operations())
 
     def _create_graph_layout(self, windfarm_layout: str) -> None:
         """Creates a network layout of the windfarm start from the substation(s) to
@@ -90,13 +90,23 @@ class Windfarm:
             nx.set_node_attributes(windfarm, dict(layout[["id", col]].values), name=col)
 
         # Determine which nodes are substations and which are turbines
-        substation_filter = layout.id == layout.substation_id
-        self.substation_id = layout[substation_filter].id.unique()
-        self.turbine_id = layout[~substation_filter].id.unique()
-        _type = {True: "substation", False: "turbine"}
-        d = {i: _type[val] for i, val in zip(layout.id, substation_filter.values)}
-        nx.set_node_attributes(windfarm, d, name="type")
+        if "type" in layout.columns:
+            if layout.loc[~layout.type.isin(("substation", "turbine"))].size > 0:
+                raise ValueError(
+                    "At least one value in the 'type' column are not one of 'substation' or 'turbine'."
+                )
+            substation_filter = layout.type == "substation"
+            nx.set_node_attributes(
+                windfarm, dict(layout[["id", "type"]].values), name="type"
+            )
+        else:
+            substation_filter = layout.id == layout.substation_id
+            _type = {True: "substation", False: "turbine"}
+            d = {i: _type[val] for i, val in zip(layout.id, substation_filter.values)}
+            nx.set_node_attributes(windfarm, d, name="type")
 
+        self.substation_id = layout.loc[substation_filter, "id"].values
+        self.turbine_id = layout.loc[~substation_filter, "id"].values
         substations = layout[substation_filter].copy()
         turbines = layout[~substation_filter].copy()
         substation_sections = [
