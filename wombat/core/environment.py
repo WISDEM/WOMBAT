@@ -731,6 +731,10 @@ class WombatEnvironment(simpy.Environment):
         # dataframe generation step, the original logs were deleted
 
         logging.shutdown()
+        if not self._events_csv.closed:
+            self._events_csv.close()
+        if not self._operations_csv.closed:
+            self._operations_csv.close()
 
         try:
             self.events_log_fname.unlink()
