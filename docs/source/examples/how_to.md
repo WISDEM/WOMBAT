@@ -498,7 +498,7 @@ will know where to go for these pointers when the simulation is initialized so t
 is constructed and validated correctly.
 
 ```{code-cell} ipython3
-config = load_yaml(library_path / "config", "base.yaml")
+config = load_yaml(library_path / "project/config", "base.yaml")
 ```
 
 ```{code-block} yaml
@@ -543,7 +543,7 @@ Load the file from the `Configuration` object that was created in the prior code
 sim = Simulation.from_config(config)
 
 # Delete any files that get initialized through the simulation environment
-sim.env.cleanup_log_files(log_only=False)
+sim.env.cleanup_log_files()
 ```
 
 ### Option 2: `Simulation()`
@@ -633,5 +633,5 @@ print(f"          Project equipment costs: ${total.values[0][0] / sim.metrics.pr
 In the case that a lot of simulations are going to be run, and the processed outputs are all that is required, then there is a convenience method to cleanup these files automatically once you are done.
 
 ```{code-cell} ipython3
-sim.env.cleanup_log_files(log_only=False)
+sim.env.cleanup_log_files()
 ```
