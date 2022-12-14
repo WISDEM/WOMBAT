@@ -30,6 +30,7 @@
     - deprecation warnings to be passed directly to the terminal/notebook without interfering with the file handling
     - reasonable speedups to simulation times by not having additional overhead from the logging and buffering
 - `Metrics.process_times()` has been converted to efficient pandas code for fast computation.
+- The Metrics example usage documentation page has been rewritten and reformatted to provide more helpful information to users
 
 ## 0.5.1 (22 July 2022)
 - Updates to use the most recent pandas API/recommendations, which fixes numerous warnings in the `Metrics` class
