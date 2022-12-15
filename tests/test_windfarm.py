@@ -13,6 +13,7 @@ from wombat.windfarm import Windfarm
 from wombat.windfarm.system import Cable, System
 
 from tests.conftest import (
+    EXPORT,
     SUBSTATION,
     VESTAS_V90,
     ARRAY_33KV_240MM,
@@ -36,6 +37,7 @@ def test_windfarm_init(env_setup):
         for _id, _name in zip(correct_turbine_ids, correct_turbine_names)
     ]
     correct_edge_keys = [
+        ("OSS1", "OSS1"),
         ("OSS1", "S00T1"),
         ("S00T1", "S00T2"),
         ("S00T2", "S00T3"),  # string 1
@@ -45,6 +47,13 @@ def test_windfarm_init(env_setup):
     ]
     correct_cable_ids = ["::".join(("cable", *el)) for el in correct_edge_keys]
     correct_cable_list = [
+        Cable(
+            windfarm,
+            env,
+            "OSS1",
+            "OSS1",
+            EXPORT,
+        ),
         Cable(
             windfarm,
             env,
@@ -76,7 +85,7 @@ def test_windfarm_init(env_setup):
         ),
         Cable(windfarm, env, "S01T5", "S01T6", ARRAY_33KV_240MM),
     ]
-    correct_N_edges = 6
+    correct_N_edges = 7
     correct_N_nodes = 7
     correct_capacity = VESTAS_V90["capacity_kw"] * len(correct_turbine_ids)
     correct_substation_turbine_map = {
