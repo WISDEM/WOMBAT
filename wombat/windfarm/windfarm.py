@@ -123,6 +123,14 @@ class Windfarm:
                 windfarm.add_edge(
                     start, current, length=row.distance, cable=row.upstream_cable
                 )
+        for substation in self.substation_id:
+            row = layout.loc[layout.id == substation]
+            windfarm.add_edge(
+                row.substation_id.values[0],
+                substation,
+                length=row.distance.values[0],
+                cable=row.upstream_cable.values[0],
+            )
 
         self.graph = windfarm
 
