@@ -46,12 +46,12 @@ class Windfarm:
 
         # Create the logging items
         self.system_list = list(self.graph.nodes)
-        # self._setup_logger()
+        self._setup_logger()
 
         # Register the windfarm and start the logger
         self.repair_manager._register_windfarm(self)
         self.env._register_windfarm(self)
-        # self.env.process(self._log_operations())
+        self.env.process(self._log_operations())
 
     def _create_graph_layout(self, windfarm_layout: str) -> None:
         """Creates a network layout of the windfarm start from the substation(s) to
@@ -279,7 +279,7 @@ class Windfarm:
                 / self.capacity
             )
 
-        self.substation_turbine_map = s_t_map
+        self.substation_turbine_map: dict[str, dict[str, np.ndarray]] = s_t_map
 
     def _setup_logger(self, initial: bool = True):
         self._log_columns = [

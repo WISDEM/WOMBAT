@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 from copy import deepcopy  # type: ignore
+from math import fsum
 from pathlib import Path  # type: ignore
 from itertools import product  # type: ignore
 
@@ -103,6 +104,7 @@ class Metrics:
         turbine_capacities: list[float],
         substation_id: str | list[str],
         turbine_id: str | list[str],
+        substation_turbine_map: dict[str, dict[str, list[str]]],
         service_equipment_names: str | list[str],
         fixed_costs: str | None = None,
         SAM_settings: str | None = None,
@@ -134,6 +136,11 @@ class Metrics:
             The substation id(s).
         turbine_id : str | list[str]
             The turbine id(s).
+        substation_turbine_map : dict[str, dict[str, list[str]]]
+            A copy of ``Windfarm.substation_turbine_map``. This is a dictionary mapping
+            of the subation IDs (keys) and a nested dictionary of its associated turbine
+            IDs and each turbine's total plant weighting (turbine capacity / plant
+            capacity).
         service_equipment_names : str | list[str]
             The names of the servicing equipment, corresponding to
             ``ServiceEquipment.settings.name`` for each ``ServiceEquipment`` in the
@@ -177,6 +184,13 @@ class Metrics:
         if isinstance(turbine_id, str):
             turbine_id = [turbine_id]
         self.turbine_id = turbine_id
+
+        self.substation_turbine_map = substation_turbine_map
+        self.turbine_weights = (
+            pd.concat([pd.DataFrame(val) for val in substation_turbine_map.values()])
+            .set_index("turbines")
+            .T
+        )
 
         if isinstance(service_equipment_names, str):
             service_equipment_names = [service_equipment_names]
@@ -248,7 +262,7 @@ class Metrics:
         Parameters
         ----------
         data : pd.DataFrame
-            The freshly imported csv log data.
+            The csv log data.
         kind : str
             The category of the input provided to ``data``. Should be one of:
              - "operations"
@@ -261,6 +275,7 @@ class Metrics:
         pd.DataFrame
             A tidied data frame to be used for all the operations in this class.
         """
+        data = data = data.convert_dtypes()
         if data.index.name != "datetime":
             try:
                 data.datetime = pd.to_datetime(data.datetime)
@@ -275,11 +290,18 @@ class Metrics:
             day=data.env_datetime.dt.day,
         )
         if kind == "operations":
-            data["windfarm"] = data[self.substation_id].mean(axis=1) * data[
-                self.turbine_id
-            ].mean(axis=1)
-        elif kind in ("potential", "production"):
             data[self.turbine_id] = data[self.turbine_id].astype(float)
+            data["windfarm"] = np.sum(
+                [
+                    (
+                        self.turbine_weights[val["turbines"]].values
+                        * data[val["turbines"]]
+                    ).apply(lambda row: fsum(row.values), axis=1)
+                    * data[sub]
+                    for sub, val in self.substation_turbine_map.items()
+                ],
+                axis=0,
+            ).astype(float)
         return data
 
     def _read_data(self, fname: str) -> pd.DataFrame:
@@ -387,23 +409,25 @@ class Metrics:
             raise ValueError('``by`` must be one of "windfarm" or "turbine".')
         by_turbine = by == "turbine"
 
-        operations = deepcopy(self.operations)
-        substation = np.prod(operations[self.substation_id], axis=1).values.reshape(
-            (-1, 1)
-        )
-        hourly = substation * operations.loc[:, self.turbine_id].values
+        # Determine the operational capacity of each turbine with substation downtime impacts
+        operations_cols = ["year", "month", "day", "windfarm"] + self.turbine_id
+        turbine_operations = self.operations[operations_cols].copy()
+        for sub, val in self.substation_turbine_map.items():
+            turbine_operations[val["turbines"]] *= self.operations[[sub]].values
+
+        hourly = turbine_operations.loc[:, self.turbine_id].values
 
         if frequency == "project":
             availability = _calculate_time_availability(hourly, by_turbine=by_turbine)
-            if by == "windfarm":
+            if not by_turbine:
                 return pd.DataFrame([availability], columns=["windfarm"])
             availability = pd.DataFrame(
                 availability.reshape(1, -1), columns=self.turbine_id  # type: ignore
             )
             return availability
         elif frequency == "annual":
-            date_time = operations[["year"]]
-            counts = operations.groupby(by="year").count()
+            date_time = turbine_operations[["year"]]
+            counts = turbine_operations.groupby(by="year").count()
             counts = counts[self.turbine_id] if by_turbine else counts[["windfarm"]]
             annual = [
                 _calculate_time_availability(
@@ -413,8 +437,8 @@ class Metrics:
             ]
             return pd.DataFrame(annual, index=counts.index, columns=counts.columns)
         elif frequency == "monthly":
-            date_time = operations[["month"]]
-            counts = operations.groupby(by="month").count()
+            date_time = turbine_operations[["month"]]
+            counts = turbine_operations.groupby(by="month").count()
             counts = counts[self.turbine_id] if by_turbine else counts[["windfarm"]]
             monthly = [
                 _calculate_time_availability(
@@ -424,8 +448,8 @@ class Metrics:
             ]
             return pd.DataFrame(monthly, index=counts.index, columns=counts.columns)
         elif frequency == "month-year":
-            date_time = operations[["year", "month"]]
-            counts = operations.groupby(by=["year", "month"]).count()
+            date_time = turbine_operations[["year", "month"]]
+            counts = turbine_operations.groupby(by=["year", "month"]).count()
             counts = counts[self.turbine_id] if by_turbine else counts[["windfarm"]]
             month_year = [
                 _calculate_time_availability(
