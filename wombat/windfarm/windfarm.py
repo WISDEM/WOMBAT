@@ -260,24 +260,25 @@ class Windfarm:
         the dependent turbines in the windfarm, and the weighting of each turbine in the
         windfarm.
         """
-        # Get all turbines dependent on each substation
-        s_t_map = {
-            s_id: list(
-                chain.from_iterable(nx.dfs_successors(self.graph, source=s_id).values())
-            )
-            for s_id in self.substation_id
-        }
+        # Get all turbines connected to each substation, excepting any connected via
+        # export cables that connect substations as these operate independently
+        s_t_map = {s: {"turbines": [], "weights": []} for s in self.substation_id}  # type: ignore
+        for substation_id in self.substation_id:
+            nodes = set(
+                nx.bfs_tree(self.graph, substation_id, depth_limit=1).nodes
+            ).difference(self.substation_id)
+            for node in list(nodes):
+                nodes.update(list(chain(*nx.dfs_successors(self.graph, node).values())))
+            s_t_map[substation_id]["turbines"] = np.array(list(nodes))
 
         # Reorient the mapping to have the turbine list and the capacity-based weighting
         # of each turbine
-        s_t_map = {
-            s_id: dict(  # type: ignore
-                turbines=np.array(s_t_map[s_id]),
-                weights=np.array([self.system(t).capacity for t in s_t_map[s_id]])
-                / self.capacity,
+        for s_id in s_t_map:
+            s_t_map[s_id]["weights"] = (
+                np.array([self.system(t).capacity for t in s_t_map[s_id]["turbines"]])
+                / self.capacity
             )
-            for s_id in s_t_map
-        }
+
         self.substation_turbine_map = s_t_map
 
     def _setup_logger(self, initial: bool = True):
