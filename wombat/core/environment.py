@@ -705,6 +705,8 @@ class WombatEnvironment(simpy.Environment):
             write_options=write_options,
         )
 
+        # TODO: The actual windfarm production needs to be clipped at each subgraph to
+        # the max of the substation's operating capacity and then summed.
         production_df = potential_df.copy()
         production_df[turbines] = (
             production_df[turbines].values * operations[turbines].values
