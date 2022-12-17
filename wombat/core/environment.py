@@ -622,7 +622,7 @@ class WombatEnvironment(simpy.Environment):
         while True:
             yield self.timeout(HOURS)
             self._events_writer.writerows(self._events_buffer)
-            self._events_buffer = []
+            self._events_buffer.clear()
 
     def load_events_log_dataframe(self) -> pd.DataFrame:
         """Imports the logging file created in ``run`` and returns it as a formatted
