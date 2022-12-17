@@ -308,19 +308,22 @@ class Windfarm:
 
         HOURS = 1
         while True:
-            yield self.env.timeout(HOURS)
-            message = dict(
-                datetime=dt.datetime.now(),
-                env_datetime=self.env.simulation_time,
-                env_time=self.env.now,
-            )
-            message.update(
-                {
-                    system: self.system(system).operating_level
-                    for system in self.system_list
-                }
-            )
-            self.env._operations_writer.writerow(message)
+            for _ in range(10000):
+                yield self.env.timeout(HOURS)
+                message = dict(
+                    datetime=dt.datetime.now(),
+                    env_datetime=self.env.simulation_time,
+                    env_time=self.env.now,
+                )
+                message.update(
+                    {
+                        system: self.system(system).operating_level
+                        for system in self.system_list
+                    }
+                )
+                self.env._operations_buffer.append(message)
+            self.env._operations_writer.writerows(self.env._operations_buffer)
+            self.env._operations_buffer.clear()
 
     @cache
     def system(self, system_id: str) -> System:

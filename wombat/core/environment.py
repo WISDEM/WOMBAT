@@ -172,6 +172,7 @@ class WombatEnvironment(simpy.Environment):
 
         self.simulation_name = simulation_name
         self._logging_setup()
+        self.process(self._log_actions())
 
     def _register_windfarm(self, windfarm: Windfarm) -> None:
         """Adds the simulation windfarm to the class attributes"""
@@ -208,12 +209,20 @@ class WombatEnvironment(simpy.Environment):
             super().run(until=until)
         except BaseException as e:
             # Flush the logs to so the simulation up to the point of failure is logged
+            self._events_writer.writerows(self._events_buffer)
+            self._events_buffer.clear()
             self._events_csv.close()
+            self._operations_writer.writerows(self._operations_buffer)
+            self._operations_buffer.clear()
             self._operations_csv.close()
             raise e
 
         # Ensure all logged events make it to their target file
+        self._events_writer.writerows(self._events_buffer)
+        self._events_buffer.clear()
         self._events_csv.close()
+        self._operations_writer.writerows(self._operations_buffer)
+        self._operations_buffer.clear()
         self._operations_csv.close()
 
     def _logging_setup(self) -> None:
@@ -249,6 +258,9 @@ class WombatEnvironment(simpy.Environment):
             self._events_csv, delimiter="|", fieldnames=EVENTS_COLUMNS
         )
         self._events_writer.writeheader()
+
+        self._events_buffer: list[dict] = []
+        self._operations_buffer: list[dict] = []
 
     @property
     def simulation_time(self) -> datetime:
@@ -602,7 +614,15 @@ class WombatEnvironment(simpy.Environment):
             total_labor_cost=total_labor_cost,
             total_cost=total_cost,
         )
-        self._events_writer.writerow(row)
+        self._events_buffer.append(row)
+
+    def _log_actions(self):
+        """Writes the action log items every 1000 hours"""
+        HOURS = 7500
+        while True:
+            yield self.timeout(HOURS)
+            self._events_writer.writerows(self._events_buffer)
+            self._events_buffer = []
 
     def load_events_log_dataframe(self) -> pd.DataFrame:
         """Imports the logging file created in ``run`` and returns it as a formatted
@@ -699,10 +719,6 @@ class WombatEnvironment(simpy.Environment):
             env_time=operations.env_time.values,
             env_datetime=operations.env_datetime.values,
         )
-        # potential_df.windspeed = windspeed.values
-        # potential_df.windfarm = potential.sum(axis=1)
-        # potential_df.env_time = operations.env_time.values
-        # potential_df.env_datetime = operations.env_datetime.values
         pa.csv.write_csv(
             pa.Table.from_pandas(potential_df),
             self.power_potential_fname,
