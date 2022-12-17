@@ -683,22 +683,26 @@ class WombatEnvironment(simpy.Environment):
 
         turbines = windfarm.turbine_id
         windspeed = self.weather.windspeed
-        windspeed = windspeed.loc[operations.env_datetime]
-
-        potential = np.vstack(
-            ([windfarm.system(t_id).power(windspeed) for t_id in turbines])
-        ).T
+        windspeed = windspeed.loc[operations.env_datetime].values
         potential_df = pd.DataFrame(
             [],
-            index=windspeed.index,
+            index=operations.env_datetime,
             columns=["env_time", "env_datetime", "windspeed", "windfarm"]
             + turbines.tolist(),
         )
-        potential_df[turbines] = potential
-        potential_df.windspeed = windspeed.values
-        potential_df.windfarm = potential.sum(axis=1)
-        potential_df.env_time = operations.env_time.values
-        potential_df.env_datetime = operations.env_datetime.values
+        potential_df[turbines] = np.vstack(
+            ([windfarm.system(t_id).power(windspeed) for t_id in turbines])
+        ).T
+        potential_df = potential_df.assign(
+            windspeed=windspeed,
+            windfarm=potential_df[turbines].sum(axis=1),
+            env_time=operations.env_time.values,
+            env_datetime=operations.env_datetime.values,
+        )
+        # potential_df.windspeed = windspeed.values
+        # potential_df.windfarm = potential.sum(axis=1)
+        # potential_df.env_time = operations.env_time.values
+        # potential_df.env_datetime = operations.env_datetime.values
         pa.csv.write_csv(
             pa.Table.from_pandas(potential_df),
             self.power_potential_fname,
@@ -708,9 +712,7 @@ class WombatEnvironment(simpy.Environment):
         # TODO: The actual windfarm production needs to be clipped at each subgraph to
         # the max of the substation's operating capacity and then summed.
         production_df = potential_df.copy()
-        production_df[turbines] = (
-            production_df[turbines].values * operations[turbines].values
-        )
+        production_df[turbines] *= operations[turbines].values
         production_df.windfarm = production_df[turbines].sum(axis=1)
         pa.csv.write_csv(
             pa.Table.from_pandas(production_df),
