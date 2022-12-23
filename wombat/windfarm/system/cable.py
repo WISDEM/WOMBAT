@@ -219,6 +219,7 @@ class Cable:
                         maintenance,
                         cable=True,
                         upstream_turbines=self.upstream_nodes,
+                        upstream_cables=self.upstream_cables,
                     )
                     repair_request = self.system.repair_manager.register_request(
                         repair_request
@@ -288,6 +289,7 @@ class Cable:
                         failure,
                         cable=True,
                         upstream_turbines=self.upstream_nodes,
+                        upstream_cables=self.upstream_cables,
                     )
                     repair_request = self.system.repair_manager.register_request(
                         repair_request

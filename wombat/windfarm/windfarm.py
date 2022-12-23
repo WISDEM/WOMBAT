@@ -4,8 +4,8 @@ from __future__ import annotations
 import csv
 import logging
 import datetime as dt
+import itertools
 from math import fsum
-from itertools import chain, combinations
 
 import numpy as np
 import pandas as pd  # type: ignore
@@ -15,6 +15,7 @@ from geopy import distance  # type: ignore
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.core.library import load_yaml
 from wombat.windfarm.system import Cable, System
+from wombat.core.data_classes import String, SubString, WindFarmMap, SubstationMap
 from wombat.utilities.utilities import cache
 
 
@@ -106,6 +107,11 @@ class Windfarm:
             nx.set_node_attributes(windfarm, d, name="type")
 
         self.substation_id = layout.loc[substation_filter, "id"].values
+        for substation in self.substation_id:
+            windfarm.nodes[substation]["connection"] = layout.loc[
+                layout.id == substation, "substation_id"
+            ].values[0]
+
         self.turbine_id = layout.loc[~substation_filter, "id"].values
         substations = layout[substation_filter].copy()
         turbines = layout[~substation_filter].copy()
@@ -216,6 +222,11 @@ class Windfarm:
                     start_coordinates, end_coordinates, ellipsoid="WGS-84"
                 ).km
 
+            if self.graph.nodes[end_node]["type"] == "substation":
+                data["type"] = "export"
+            else:
+                data["type"] = "array"
+
             data["cable"] = Cable(
                 self,
                 self.env,
@@ -244,7 +255,9 @@ class Windfarm:
             for *_, data in (*self.graph.nodes(data=True), *self.graph.edges(data=True))
         ]
 
-        dist = [distance.geodesic(c1, c2).km for c1, c2 in combinations(coords, 2)]
+        dist = [
+            distance.geodesic(c1, c2).km for c1, c2 in itertools.combinations(coords, 2)
+        ]
         dist_arr = np.ones((len(ids), len(ids)))
         triangle_ix = np.triu_indices_from(dist_arr, 1)
         dist_arr[triangle_ix] = dist_arr.T[triangle_ix] = dist
@@ -268,7 +281,9 @@ class Windfarm:
                 nx.bfs_tree(self.graph, substation_id, depth_limit=1).nodes
             ).difference(self.substation_id)
             for node in list(nodes):
-                nodes.update(list(chain(*nx.dfs_successors(self.graph, node).values())))
+                nodes.update(
+                    list(itertools.chain(*nx.dfs_successors(self.graph, node).values()))
+                )
             s_t_map[substation_id]["turbines"] = np.array(list(nodes))
 
         # Reorient the mapping to have the turbine list and the capacity-based weighting
@@ -280,6 +295,52 @@ class Windfarm:
             )
 
         self.substation_turbine_map: dict[str, dict[str, np.ndarray]] = s_t_map
+
+    def _create_windfarm_map(self) -> None:
+        """Creates a secondary graph object strictly for traversing the windfarm to turn
+        on/off the appropriate turbines, substations, and cables more easily.
+        """
+        substations = self.substation_id
+        graph = self.graph
+        wind_map = dict(zip(substations, itertools.repeat({})))
+        for s_id in self.substation_id:
+            start_nodes = list(
+                set(nx.bfs_tree(graph, s_id, depth_limit=1).nodes).difference(
+                    substations
+                )
+            )
+            wind_map[s_id] = dict(strings=start_nodes)
+
+            for start_node in start_nodes:
+                upstream = list(
+                    itertools.chain(*nx.dfs_successors(graph, start_node).values())
+                )
+                wind_map[s_id]["strings"][start_node] = {
+                    start_node: SubString(downstream=s_id, upstream=upstream)  # type: ignore
+                }
+
+                downstream = start_node
+                for node in upstream:
+                    wind_map[s_id]["strings"][start_node][node] = SubString(  # type: ignore
+                        downstream=downstream,
+                        upstream=list(
+                            itertools.chain(*nx.dfs_successors(graph, node).values())
+                        ),
+                    )
+                    downstream = node
+
+                wind_map[s_id]["strings"][start_node] = String(  # type: ignore
+                    start=start_node, upstream_map=wind_map[s_id]["strings"][start_node]
+                )
+            wind_map[s_id] = SubstationMap(  # type: ignore
+                string_starts=start_nodes,
+                string_map=wind_map[s_id]["strings"],
+                downstream=graph[s_id]["connection"],
+            )
+        self.wind_farm_map = WindFarmMap(  # type: ignore
+            substation_map=wind_map,
+            export_cables=[el for el in graph.edges if el[1] in substations],
+        )
 
     def _setup_logger(self, initial: bool = True):
         self._log_columns = [

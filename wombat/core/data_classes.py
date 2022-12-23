@@ -632,6 +632,8 @@ class RepairRequest(FromDictMixin):
         Indicator that the request is for a cable, by default False.
     upstream_turbines : list[str]
         The cable's upstream turbines, by default []. No need to use this if ``cable`` == False.
+    upstream_cables : list[str]
+        The cable's upstream cables, by default []. No need to use this if ``cable`` == False.
     """
 
     system_id: str = field(converter=str)
@@ -644,6 +646,7 @@ class RepairRequest(FromDictMixin):
     )
     cable: bool = field(default=False, converter=bool, kw_only=True)
     upstream_turbines: list[str] = field(default=Factory(list), kw_only=True)
+    upstream_cables: list[str] = field(default=Factory(list), kw_only=True)
     request_id: str = field(init=False)
 
     def assign_id(self, request_id: str) -> None:
@@ -1799,3 +1802,77 @@ class FixedCosts(FromDictMixin):
                 }
             },
         )
+
+
+@define(auto_attribs=True)
+class SubString:
+    """
+    A list of the upstream connections for a turbine and its downstream connector.
+
+    Parameters
+    ----------
+    downstream : str
+        The downstream turbine/substation connection id.
+    upstream : list[str]
+        A list of the upstream turbine connections.
+    """
+
+    downstream: str
+    upstream: list[str]
+
+
+@define(auto_attribs=True)
+class String:
+    """
+    All of the connection information for a complete string in a wind farm.
+
+    Parameters
+    ----------
+    start : str
+        The substation's ID (``System.id``)
+    upstream_map : dict[str, SubString]
+        The dictionary of each turbine ID in the string and it's upstream ``SubString``.
+    """
+
+    start: str
+    upstream_map: dict[str, SubString]
+
+
+@define(auto_attribs=True)
+class SubstationMap:
+    """
+    A mapping of every ``String`` connected to a substation, excluding export
+    connections to other substations.
+
+    Parameters
+    ----------
+    string_starts : list[str]
+        A list of every first turbine's ``System.id`` in a string connected to the substation.
+    string_map : dict[str, String]
+        A dictionary mapping each string starting turbine to its ``String`` data.
+    downstream : str
+        The ``System.id`` of where the export cable leads. This should be the same
+        ``System.id`` as the substation for an interconnection point, or another
+        connecting substation.
+    """
+
+    string_starts: list[str]
+    string_map: dict[str, String]
+    downstream: str
+
+
+@define(auto_attribs=True)
+class WindFarmMap:
+    """
+    A list of the upstream connections for a turbine and its downstream connector.
+
+    Parameters
+    ----------
+    substation_map : list[str]
+        A dictionary mapping of each substation and its ``SubstationMap``.
+    export_cables : list[tuple[str, str]]
+        A list of the export cable connections.
+    """
+
+    substation_map: dict[str, SubstationMap]
+    export_cables: list[tuple[str, str]]

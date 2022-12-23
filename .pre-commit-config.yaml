@@ -2,14 +2,14 @@ default_language_version:
     python: python3
 repos:
 -   repo: https://github.com/pycqa/isort
-    rev: 5.10.1
+    rev: 5.11.4
     hooks:
         - id: isort
           name: isort
           stages: [commit]
 
 -   repo: https://github.com/psf/black
-    rev: 22.10.0
+    rev: 22.12.0
     hooks:
         - id: black
           name: black
