@@ -1876,3 +1876,39 @@ class WindFarmMap:
 
     substation_map: dict[str, SubstationMap]
     export_cables: list[tuple[str, str]]
+
+    def get_upstream_connections(
+        self, substation: str, string_start: str, node: str, cables: bool = True
+    ) -> list[str] | tuple[list[str], list[str]]:
+        """Retrieves the upstream turbines (and optionally cables) within the windfarm graph.
+
+        Parameters
+        ----------
+        substation : str
+            The substation's ``System.id``.
+        string_start : str
+            The ``System.id`` of the first turbine in the string.
+        node : str
+            The ``System.id`` of the ending node for a cable connection.
+        cables : bool
+            Indicates if the ``Cable.id`` should be generated for each of the turbines
+            Defaults to True.
+
+        Returns
+        -------
+        list[str] | tuple[list[str], list[str]]
+            A list of ``System.id`` for all of the upstream turbines of ``node`` if
+            ``cables=False``, otherwise the upstream turbine and the ``Cable.id`` lists
+            are returned.
+        """
+        strings = self.substation_map[substation].string_map
+        upstream = strings[string_start].upstream_map
+        turbines = upstream[node].upstream
+        if cables:
+            start = node
+            cable_list = []
+            for turbine in turbines:
+                cable_list.append(f"cable::{start}::{turbine}")
+                start = turbine
+            return turbines, cable_list
+        return turbines

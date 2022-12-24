@@ -43,6 +43,7 @@ class Windfarm:
             self.system(turb).capacity for turb in self.turbine_id
         )
         self._create_substation_turbine_map()
+        self._create_wind_farm_map()
         self.calculate_distance_matrix()
 
         # Create the logging items
@@ -230,6 +231,7 @@ class Windfarm:
             data["cable"] = Cable(
                 self,
                 self.env,
+                data["type"],
                 start_node,
                 end_node,
                 cable_dict,
@@ -296,7 +298,7 @@ class Windfarm:
 
         self.substation_turbine_map: dict[str, dict[str, np.ndarray]] = s_t_map
 
-    def _create_windfarm_map(self) -> None:
+    def _create_wind_farm_map(self) -> None:
         """Creates a secondary graph object strictly for traversing the windfarm to turn
         on/off the appropriate turbines, substations, and cables more easily.
         """
@@ -309,7 +311,7 @@ class Windfarm:
                     substations
                 )
             )
-            wind_map[s_id] = dict(strings=start_nodes)
+            wind_map[s_id] = dict(strings=dict(zip(start_nodes, itertools.repeat({}))))
 
             for start_node in start_nodes:
                 upstream = list(
@@ -327,6 +329,7 @@ class Windfarm:
                             itertools.chain(*nx.dfs_successors(graph, node).values())
                         ),
                     )
+                    self.cable((downstream, node)).set_string_details(start_node, s_id)
                     downstream = node
 
                 wind_map[s_id]["strings"][start_node] = String(  # type: ignore
@@ -335,7 +338,7 @@ class Windfarm:
             wind_map[s_id] = SubstationMap(  # type: ignore
                 string_starts=start_nodes,
                 string_map=wind_map[s_id]["strings"],
-                downstream=graph[s_id]["connection"],
+                downstream=graph.nodes[s_id]["connection"],
             )
         self.wind_farm_map = WindFarmMap(  # type: ignore
             substation_map=wind_map,

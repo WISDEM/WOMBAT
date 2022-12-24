@@ -400,6 +400,35 @@ class ServiceEquipment(RepairsMixin):
                 self.settings.capability
             )
 
+    def _alt_register_repair(
+        self,
+        subassembly: Subassembly | Cable,
+        repair: RepairRequest,
+        # starting_operating_level: float,
+    ) -> None:
+        # Array cables
+        # 1) get the upsteam cables and turbines
+        # 2) loop over the turbines and connections and reset the turbine.cable_failure and cable.downstream_failure
+        # 3) unless the cable has a 0 operating level, then end the loop because there are other repairs required
+
+        # Export cables
+        # 1) For each connecting string follow the above logic
+        if repair.cable and repair.details.operation_reduction == 1:
+            assert isinstance(subassembly, Cable)  # mypy helper
+            if subassembly.connection_type == "array":
+                farm = self.manager.windfarm
+                turbines, cables = farm.wind_farm_map.get_upstream_connections(
+                    subassembly.substation,
+                    subassembly.string_start,
+                    subassembly.end_node,
+                )
+                for t_id, c_id in zip(turbines, cables):
+                    cable = farm.cable(c_id)
+                    if cable.operating_level == 0:
+                        break
+                    cable.downstream_failure.succeed()
+                    farm.system(t_id).cable_failure.succeed()
+
     def register_repair_with_subassembly(
         self,
         subassembly: Subassembly | Cable,
