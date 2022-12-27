@@ -291,17 +291,21 @@ class Metrics:
         )
         if kind == "operations":
             data[self.turbine_id] = data[self.turbine_id].astype(float)
-            data["windfarm"] = np.sum(
+            turbines = (
+                self.turbine_weights[self.turbine_id].values * data[self.turbine_id]
+            )
+            windfarm = np.sum(
                 [
-                    (
-                        self.turbine_weights[val["turbines"]].values
-                        * data[val["turbines"]]
-                    ).apply(lambda row: fsum(row.values), axis=1)
-                    * data[sub]
+                    data[[sub]]
+                    * np.array(
+                        [[fsum(row)] for _, row in turbines[val["turbines"]].iterrows()]
+                    ).reshape(-1, 1)
                     for sub, val in self.substation_turbine_map.items()
                 ],
                 axis=0,
-            ).astype(float)
+            )
+            windfarm = pd.DataFrame(windfarm, columns=["windfarm"], index=data.index)
+            data = pd.concat([data, windfarm], axis=1)
         return data
 
     def _read_data(self, fname: str) -> pd.DataFrame:
