@@ -412,6 +412,11 @@ class ServiceEquipment(RepairsMixin):
         """
         farm = self.manager.windfarm
         if subassembly.connection_type == "array":
+            # If there is another failure downstream of the repaired cable, do nothing
+            if subassembly.downstream_failure:
+                return
+
+            # For each upstream turbine and cable, reset their operations
             turbines, cables = farm.wind_farm_map.get_upstream_connections(
                 subassembly.substation,
                 subassembly.string_start,
@@ -425,8 +430,16 @@ class ServiceEquipment(RepairsMixin):
                 farm.system(t_id).cable_failure.succeed()
 
         if subassembly.connection_type == "export":
+            # Get the substation mapping and IDs
             substation_id = subassembly.end_node
             substation_map = farm.wind_farm_map.substation_map[substation_id]
+
+            # Reset the substation's cable failure and the failed cable
+            farm.system(substation_id).cable_failure.succeed()
+            subassembly.downstream_failure.succeed()
+
+            # For each string connected to the substation reset all the turbines and cables
+            # until another cable failure is encoountered, then move to the next string
             for start_node in substation_map.string_starts:
                 cable = farm.cable((substation_id, start_node))
                 if cable.operating_level == 0:
@@ -480,14 +493,8 @@ class ServiceEquipment(RepairsMixin):
             subassembly.operating_level /= 1 - repair.details.operation_reduction
 
         # Register that the servicing is now over
-        if isinstance(subassembly, Subassembly):
-            subassembly.system.servicing.succeed()
-        elif isinstance(subassembly, Cable):
-            subassembly.servicing.succeed()
-        else:
-            raise ValueError(
-                f"Passed subassembly of type: `{type(subassembly)}` invalid."
-            )
+        system = subassembly if isinstance(subassembly, Cable) else subassembly.system
+        system.servicing.succeed()
         self.manager.enable_requests_for_system(repair.system_id)
 
     def _register_repair_with_subassembly(
