@@ -617,8 +617,8 @@ class WombatEnvironment(simpy.Environment):
         self._events_buffer.append(row)
 
     def _log_actions(self):
-        """Writes the action log items every 1000 hours"""
-        HOURS = 7500
+        """Writes the action log items every 8000 hours"""
+        HOURS = 8000
         while True:
             yield self.timeout(HOURS)
             self._events_writer.writerows(self._events_buffer)
