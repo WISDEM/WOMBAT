@@ -7,8 +7,9 @@
   - Variables `non_operational_start`, `non_operational_end` create the annualized period where operations are prohibited, resulting in the creation of the array `non_operational_dates` and set `non_operational_dates_set`.
   - Variables `reduced_speed_start`, `reduced_speed_end` create the annualized period where the maximum speed, `reduced_speed`, for all operations is imposed, resulting in the creation of the array `reduced_speed_dates` and set `reduced_speed_dates_set`.
 - Export Cables
-  - Allows for connecting export cables to another subsations or a single export cable. In the case of export cables connecting substations, the behavior will be similar to that of an array cable, so users should be cautious in how `operating_reduction` factors are applied.
+  - Models the export cabling system as a single cable between the substation and the interconnection point or as a connection between multiple subsations. for multiple connected substations, the model assumes they are independent systems.
   - Adds support for "type" in the wind farm layout CSV file, which should be filled with either "substation" or "turbine". This column supports multi-substation farms so that accurate plots and connections can be made. For instance, multiple connected substatation, can now be accurately rendered and modeled in the farm.
+  - Adds support for "upstream_cable_name" in the wind farm layout CSV file, to provide an individualized name to a cable in place of using the name field in the cable settings file for all similar cables.
 - New library structure that mirrors ORBIT (see below diagram)! In v0.7, the orignal library structure will be officially deprecated in favor of the below, and during the v0.6 lifecycle a warning will be raised to instruct users where to place and structure folders going forward.
   ```
   <library>
