@@ -4,6 +4,7 @@
 import numpy as np
 import pytest
 
+from wombat.windfarm import Windfarm
 from wombat.windfarm.system import System, Subassembly
 from wombat.core.data_classes import Failure, Maintenance
 from wombat.core.repair_management import RepairManager
@@ -228,6 +229,7 @@ def test_timeouts_for_zeroed_out(env_setup):
     ENV = env_setup
     MANAGER = RepairManager(ENV)
     TURBINE = System(ENV, MANAGER, "WTG001", "Vestas V90 001", VESTAS_V90, "turbine")
+    windfarm = Windfarm(ENV, "layout.csv", MANAGER)
 
     # Run the simulation 1 timestep to get it started, then inspec the process timeouts
     ENV.run(1)

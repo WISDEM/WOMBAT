@@ -47,43 +47,13 @@ def test_windfarm_init(env_setup):
     ]
     correct_cable_ids = ["::".join(("cable", *el)) for el in correct_edge_keys]
     correct_cable_list = [
-        Cable(
-            windfarm,
-            env,
-            "OSS1",
-            "OSS1",
-            EXPORT,
-        ),
-        Cable(
-            windfarm,
-            env,
-            "OSS1",
-            "S00T1",
-            ARRAY_33KV_630MM,
-        ),
-        Cable(
-            windfarm,
-            env,
-            "S00T1",
-            "S00T2",
-            ARRAY_33KV_240MM,
-        ),
-        Cable(windfarm, env, "S00T2", "S00T3", ARRAY_33KV_240MM),
-        Cable(
-            windfarm,
-            env,
-            "OSS1",
-            "S01T4",
-            ARRAY_33KV_630MM,
-        ),
-        Cable(
-            windfarm,
-            env,
-            "S01T4",
-            "S01T5",
-            ARRAY_33KV_240MM,
-        ),
-        Cable(windfarm, env, "S01T5", "S01T6", ARRAY_33KV_240MM),
+        Cable(windfarm, env, "export", "OSS1", "OSS1", EXPORT),
+        Cable(windfarm, env, "array", "OSS1", "S00T1", ARRAY_33KV_630MM),
+        Cable(windfarm, env, "array", "S00T1", "S00T2", ARRAY_33KV_240MM),
+        Cable(windfarm, env, "array", "S00T2", "S00T3", ARRAY_33KV_240MM),
+        Cable(windfarm, env, "array", "OSS1", "S01T4", ARRAY_33KV_630MM),
+        Cable(windfarm, env, "array", "S01T4", "S01T5", ARRAY_33KV_240MM),
+        Cable(windfarm, env, "array", "S01T5", "S01T6", ARRAY_33KV_240MM),
     ]
     correct_N_edges = 7
     correct_N_nodes = 7
@@ -124,7 +94,11 @@ def test_windfarm_init(env_setup):
     )
     oss1_map = windfarm.substation_turbine_map["OSS1"]
     correct_oss1_map = correct_substation_turbine_map["OSS1"]
-    npt.assert_equal(oss1_map["turbines"], correct_oss1_map["turbines"])
+
+    # For the substation map with turbines and their weights, the ordering of the turbines
+    # doesn't matter when comparing because the weights are in the same order as the turbines
+    # and the capacities in this model are all the same
+    npt.assert_equal(sorted(oss1_map["turbines"]), sorted(correct_oss1_map["turbines"]))
     npt.assert_equal(oss1_map["weights"], correct_oss1_map["weights"])
 
     # TODO: CHECK THE DISTANCE MATRIX

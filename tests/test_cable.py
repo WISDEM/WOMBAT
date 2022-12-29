@@ -28,36 +28,12 @@ def test_cable_init(env_setup):
     ]
     correct_cable_ids = ["::".join(("cable", *el)) for el in correct_edge_keys]
     correct_cable_list = [
-        Cable(
-            windfarm,
-            env,
-            "OSS1",
-            "S00T1",
-            ARRAY_33KV_630MM,
-        ),
-        Cable(
-            windfarm,
-            env,
-            "S00T1",
-            "S00T2",
-            ARRAY_33KV_240MM,
-        ),
-        Cable(windfarm, env, "S00T2", "S00T3", ARRAY_33KV_240MM),
-        Cable(
-            windfarm,
-            env,
-            "OSS1",
-            "S01T4",
-            ARRAY_33KV_630MM,
-        ),
-        Cable(
-            windfarm,
-            env,
-            "S01T4",
-            "S01T5",
-            ARRAY_33KV_240MM,
-        ),
-        Cable(windfarm, env, "S01T5", "S01T6", ARRAY_33KV_240MM),
+        Cable(windfarm, env, "array", "OSS1", "S00T1", ARRAY_33KV_630MM),
+        Cable(windfarm, env, "array", "S00T1", "S00T2", ARRAY_33KV_240MM),
+        Cable(windfarm, env, "array", "S00T2", "S00T3", ARRAY_33KV_240MM),
+        Cable(windfarm, env, "array", "OSS1", "S01T4", ARRAY_33KV_630MM),
+        Cable(windfarm, env, "array", "S01T4", "S01T5", ARRAY_33KV_240MM),
+        Cable(windfarm, env, "array", "S01T5", "S01T6", ARRAY_33KV_240MM),
     ]
 
     for key, _id, correct_cable in zip(
