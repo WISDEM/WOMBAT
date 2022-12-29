@@ -46,7 +46,7 @@ REQUIRED = [
     "matplotlib>=3.3",
     "nrel-pysam",
     # required for pre-commit CI
-    # "types-attrs>=19",
+    "types-attrs>=19",
     "types-typed-ast>=1.5",
     "types-PyYAML>=6",
     "types-python-dateutil>=2.8",
