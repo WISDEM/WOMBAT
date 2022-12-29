@@ -44,9 +44,10 @@ REQUIRED = [
     "geopy",
     "networkx",
     "matplotlib>=3.3",
-    "nrel-pysam",
+    "nrel-pysam>=4",
     # required for pre-commit CI
     "types-attrs>=19",
+    "types-typed-ast>=1.5",
     "types-PyYAML>=6",
     "types-python-dateutil>=2.8",
 ]
@@ -112,7 +113,7 @@ setup(
     include_package_data=True,
     package_data={"": ["*.yaml", "*.csv"]},
     install_requires=REQUIRED,
-    python_requires=">=3.8",
+    python_requires=">=3.8, <=3.10",
     extras_require=extra_package_requirements,
     test_suite="pytest",
     tests_require=["pytest", "pytest-xdist", "pytest-cov"],

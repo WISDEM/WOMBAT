@@ -4,8 +4,8 @@ from __future__ import annotations
 import csv
 import logging
 import datetime as dt
+import itertools
 from math import fsum
-from itertools import chain, combinations
 
 import numpy as np
 import pandas as pd  # type: ignore
@@ -15,6 +15,7 @@ from geopy import distance  # type: ignore
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.core.library import load_yaml
 from wombat.windfarm.system import Cable, System
+from wombat.core.data_classes import String, SubString, WindFarmMap, SubstationMap
 from wombat.utilities.utilities import cache
 
 
@@ -42,6 +43,7 @@ class Windfarm:
             self.system(turb).capacity for turb in self.turbine_id
         )
         self._create_substation_turbine_map()
+        self._create_wind_farm_map()
         self.calculate_distance_matrix()
 
         # Create the logging items
@@ -90,13 +92,28 @@ class Windfarm:
             nx.set_node_attributes(windfarm, dict(layout[["id", col]].values), name=col)
 
         # Determine which nodes are substations and which are turbines
-        substation_filter = layout.id == layout.substation_id
-        self.substation_id = layout[substation_filter].id.unique()
-        self.turbine_id = layout[~substation_filter].id.unique()
-        _type = {True: "substation", False: "turbine"}
-        d = {i: _type[val] for i, val in zip(layout.id, substation_filter.values)}
-        nx.set_node_attributes(windfarm, d, name="type")
+        if "type" in layout.columns:
+            if layout.loc[~layout.type.isin(("substation", "turbine"))].size > 0:
+                raise ValueError(
+                    "At least one value in the 'type' column are not one of 'substation' or 'turbine'."
+                )
+            substation_filter = layout.type == "substation"
+            nx.set_node_attributes(
+                windfarm, dict(layout[["id", "type"]].values), name="type"
+            )
+        else:
+            substation_filter = layout.id == layout.substation_id
+            _type = {True: "substation", False: "turbine"}
+            d = {i: _type[val] for i, val in zip(layout.id, substation_filter.values)}
+            nx.set_node_attributes(windfarm, d, name="type")
 
+        self.substation_id = layout.loc[substation_filter, "id"].values
+        for substation in self.substation_id:
+            windfarm.nodes[substation]["connection"] = layout.loc[
+                layout.id == substation, "substation_id"
+            ].values[0]
+
+        self.turbine_id = layout.loc[~substation_filter, "id"].values
         substations = layout[substation_filter].copy()
         turbines = layout[~substation_filter].copy()
         substation_sections = [
@@ -113,8 +130,17 @@ class Windfarm:
                 windfarm.add_edge(
                     start, current, length=row.distance, cable=row.upstream_cable
                 )
+        for substation in self.substation_id:
+            row = layout.loc[layout.id == substation]
+            windfarm.add_edge(
+                row.substation_id.values[0],
+                substation,
+                length=row.distance.values[0],
+                cable=row.upstream_cable.values[0],
+            )
 
         self.graph = windfarm
+        self.layout_df = layout
 
     def _create_turbines_and_substations(self) -> None:
         """Instantiates the turbine and substation models as defined in the
@@ -167,6 +193,7 @@ class Windfarm:
         ValueError
             Raised if the cable model is not specified.
         """
+        get_name = "upstream_cable_name" in self.layout_df
         bad_data_location_messages = []
         for start_node, end_node, data in self.graph.edges(data=True):
             # Check that the cable data is provided
@@ -191,6 +218,12 @@ class Windfarm:
                 self.graph.nodes[end_node]["longitude"],
             )
 
+            name = None
+            if get_name:
+                name, *_ = self.layout_df.loc[
+                    self.layout_df.id == end_node, "upstream_cable_name"
+                ]
+
             # If the real distance/cable length is not input, then the geodesic distance
             # is calculated
             if data["length"] == 0:
@@ -198,12 +231,13 @@ class Windfarm:
                     start_coordinates, end_coordinates, ellipsoid="WGS-84"
                 ).km
 
+            if self.graph.nodes[end_node]["type"] == "substation":
+                data["type"] = "export"
+            else:
+                data["type"] = "array"
+
             data["cable"] = Cable(
-                self,
-                self.env,
-                start_node,
-                end_node,
-                cable_dict,
+                self, self.env, data["type"], start_node, end_node, cable_dict, name
             )
 
             # Calaculate the geometric center point
@@ -226,7 +260,9 @@ class Windfarm:
             for *_, data in (*self.graph.nodes(data=True), *self.graph.edges(data=True))
         ]
 
-        dist = [distance.geodesic(c1, c2).km for c1, c2 in combinations(coords, 2)]
+        dist = [
+            distance.geodesic(c1, c2).km for c1, c2 in itertools.combinations(coords, 2)
+        ]
         dist_arr = np.ones((len(ids), len(ids)))
         triangle_ix = np.triu_indices_from(dist_arr, 1)
         dist_arr[triangle_ix] = dist_arr.T[triangle_ix] = dist
@@ -242,25 +278,75 @@ class Windfarm:
         the dependent turbines in the windfarm, and the weighting of each turbine in the
         windfarm.
         """
-        # Get all turbines dependent on each substation
-        s_t_map = {
-            s_id: list(
-                chain.from_iterable(nx.dfs_successors(self.graph, source=s_id).values())
-            )
-            for s_id in self.substation_id
-        }
+        # Get all turbines connected to each substation, excepting any connected via
+        # export cables that connect substations as these operate independently
+        s_t_map = {s: {"turbines": [], "weights": []} for s in self.substation_id}  # type: ignore
+        for substation_id in self.substation_id:
+            nodes = set(
+                nx.bfs_tree(self.graph, substation_id, depth_limit=1).nodes
+            ).difference(self.substation_id)
+            for node in list(nodes):
+                nodes.update(
+                    list(itertools.chain(*nx.dfs_successors(self.graph, node).values()))
+                )
+            s_t_map[substation_id]["turbines"] = np.array(list(nodes))
 
         # Reorient the mapping to have the turbine list and the capacity-based weighting
         # of each turbine
-        s_t_map = {
-            s_id: dict(  # type: ignore
-                turbines=np.array(s_t_map[s_id]),
-                weights=np.array([self.system(t).capacity for t in s_t_map[s_id]])
-                / self.capacity,
+        for s_id in s_t_map:
+            s_t_map[s_id]["weights"] = (
+                np.array([self.system(t).capacity for t in s_t_map[s_id]["turbines"]])
+                / self.capacity
             )
-            for s_id in s_t_map
-        }
-        self.substation_turbine_map = s_t_map
+
+        self.substation_turbine_map: dict[str, dict[str, np.ndarray]] = s_t_map
+
+    def _create_wind_farm_map(self) -> None:
+        """Creates a secondary graph object strictly for traversing the windfarm to turn
+        on/off the appropriate turbines, substations, and cables more easily.
+        """
+        substations = self.substation_id
+        graph = self.graph
+        wind_map = dict(zip(substations, itertools.repeat({})))
+        for s_id in self.substation_id:
+            start_nodes = list(
+                set(nx.bfs_tree(graph, s_id, depth_limit=1).nodes).difference(
+                    substations
+                )
+            )
+            wind_map[s_id] = dict(strings=dict(zip(start_nodes, itertools.repeat({}))))
+
+            for start_node in start_nodes:
+                upstream = list(
+                    itertools.chain(*nx.dfs_successors(graph, start_node).values())
+                )
+                wind_map[s_id]["strings"][start_node] = {
+                    start_node: SubString(downstream=s_id, upstream=upstream)  # type: ignore
+                }
+
+                downstream = start_node
+                for node in upstream:
+                    wind_map[s_id]["strings"][start_node][node] = SubString(  # type: ignore
+                        downstream=downstream,
+                        upstream=list(
+                            itertools.chain(*nx.dfs_successors(graph, node).values())
+                        ),
+                    )
+                    self.cable((downstream, node)).set_string_details(start_node, s_id)
+                    downstream = node
+
+                wind_map[s_id]["strings"][start_node] = String(  # type: ignore
+                    start=start_node, upstream_map=wind_map[s_id]["strings"][start_node]
+                )
+            wind_map[s_id] = SubstationMap(  # type: ignore
+                string_starts=start_nodes,
+                string_map=wind_map[s_id]["strings"],
+                downstream=graph.nodes[s_id]["connection"],
+            )
+        self.wind_farm_map = WindFarmMap(  # type: ignore
+            substation_map=wind_map,
+            export_cables=[el for el in graph.edges if el[1] in substations],
+        )
 
     def _setup_logger(self, initial: bool = True):
         self._log_columns = [
@@ -289,19 +375,22 @@ class Windfarm:
 
         HOURS = 1
         while True:
-            yield self.env.timeout(HOURS)
-            message = dict(
-                datetime=dt.datetime.now(),
-                env_datetime=self.env.simulation_time,
-                env_time=self.env.now,
-            )
-            message.update(
-                {
-                    system: self.system(system).operating_level
-                    for system in self.system_list
-                }
-            )
-            self.env._operations_writer.writerow(message)
+            for _ in range(10000):
+                yield self.env.timeout(HOURS)
+                message = dict(
+                    datetime=dt.datetime.now(),
+                    env_datetime=self.env.simulation_time,
+                    env_time=self.env.now,
+                )
+                message.update(
+                    {
+                        system: self.system(system).operating_level
+                        for system in self.system_list
+                    }
+                )
+                self.env._operations_buffer.append(message)
+            self.env._operations_writer.writerows(self.env._operations_buffer)
+            self.env._operations_buffer.clear()
 
     @cache
     def system(self, system_id: str) -> System:

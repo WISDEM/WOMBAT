@@ -32,6 +32,7 @@ from wombat.core.library import load_yaml
 from wombat.windfarm.system import System
 from wombat.core.data_classes import (
     UNSCHEDULED_STRATEGIES,
+    WindFarmMap,
     ScheduledServiceEquipmentData,
     UnscheduledServiceEquipmentData,
 )
@@ -400,6 +401,64 @@ class ServiceEquipment(RepairsMixin):
                 self.settings.capability
             )
 
+    def enable_string_operations(self, subassembly: Cable) -> None:
+        """Traverses the upstream cable and turbine connections and resets the
+        ``System.cable_failure`` and ``Cable.downstream_failure`` until it hits
+        another cable failure, then the loop exits.
+
+        Parameters
+        ----------
+        subassembly : Cable
+            The `Cable` or `System`
+        """
+        farm = self.manager.windfarm
+        farm_map = farm.wind_farm_map  # type: ignore
+        assert isinstance(farm_map, WindFarmMap)  # mypy helper
+        if subassembly.connection_type == "array":
+            # If there is another failure downstream of the repaired cable, do nothing
+            if subassembly.downstream_failure:
+                return
+
+            # For each upstream turbine and cable, reset their operations
+            turbines, cables = farm_map.get_upstream_connections(
+                subassembly.substation,
+                subassembly.string_start,
+                subassembly.end_node,
+            )
+            for t_id, c_id in zip(turbines, cables):
+                cable = farm.cable(c_id)
+                if cable.operating_level == 0:
+                    break
+                cable.downstream_failure.succeed()
+                farm.system(t_id).cable_failure.succeed()
+
+        if subassembly.connection_type == "export":
+            # Get the substation mapping and IDs
+            substation_id = subassembly.end_node
+            substation_map = farm_map.substation_map[substation_id]
+
+            # Reset the substation's cable failure and the failed cable
+            farm.system(substation_id).cable_failure.succeed()
+            subassembly.downstream_failure.succeed()
+
+            # For each string connected to the substation reset all the turbines and cables
+            # until another cable failure is encoountered, then move to the next string
+            for start_node in substation_map.string_starts:
+                cable = farm.cable((substation_id, start_node))
+                if cable.operating_level == 0:
+                    continue
+                cable.downstream_failure.succeed()
+                farm.system(start_node).cable_failure.succeed()
+                turbines, cables = farm_map.get_upstream_connections(
+                    substation_id, start_node, start_node
+                )
+                for t_id, c_id in zip(turbines, cables):
+                    cable = farm.cable(c_id)
+                    if cable.operating_level == 0:
+                        break
+                    cable.downstream_failure.succeed()
+                    farm.system(t_id).cable_failure.succeed()
+
     def register_repair_with_subassembly(
         self,
         subassembly: Subassembly | Cable,
@@ -420,19 +479,9 @@ class ServiceEquipment(RepairsMixin):
         starting_operating_level : float
             The operating level before a repair was started.
         """
-        # If this is a cable repair and returning it back to operating, then reset all
-        # upstream turbines to be operating as long as there isn't another fatal cable
-        # failure preventing it from operating
         if repair.cable and repair.details.operation_reduction == 1:
-            start: str = ""
-            for i, turbine_id in enumerate(repair.upstream_turbines):
-                if i > 0:
-                    cable = self.windfarm.cable((start, turbine_id))
-                    if cable.operating_level == 0:
-                        break
-                turbine = self.windfarm.system(turbine_id)
-                turbine.cable_failure.succeed()
-                start = turbine_id
+            assert isinstance(subassembly, Cable)  # mypy helper
+            self.enable_string_operations(subassembly)
 
         # Put the subassembly/component back to good as new condition
         if repair.details.operation_reduction == 1:
@@ -447,14 +496,8 @@ class ServiceEquipment(RepairsMixin):
             subassembly.operating_level /= 1 - repair.details.operation_reduction
 
         # Register that the servicing is now over
-        if isinstance(subassembly, Subassembly):
-            subassembly.system.servicing.succeed()
-        elif isinstance(subassembly, Cable):
-            subassembly.servicing.succeed()
-        else:
-            raise ValueError(
-                f"Passed subassembly of type: `{type(subassembly)}` invalid."
-            )
+        system = subassembly if isinstance(subassembly, Cable) else subassembly.system
+        system.servicing.succeed()
         self.manager.enable_requests_for_system(repair.system_id)
 
     def wait_until_next_operational_period(

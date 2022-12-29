@@ -1,5 +1,5 @@
 """"Defines the Cable class and cable simulations."""
-
+from __future__ import annotations
 
 from typing import Generator  # type: ignore
 from itertools import chain
@@ -44,9 +44,11 @@ class Cable:
         self,
         windfarm,
         env: WombatEnvironment,
+        connection_type: str,
         start_node: str,
         end_node: str,
         cable_data: dict,
+        name: str | None = None,
     ) -> None:
         """Initializes the ``Cable`` class.
 
@@ -56,6 +58,8 @@ class Cable:
             The ``Windfarm`` object.
         env : WombatEnvironment
             The simulation environment.
+        connection_type : str
+            One of "export" or "array".
         cable_id : str
             The unique identifier for the cable.
         start_node : str
@@ -64,10 +68,13 @@ class Cable:
             The ending point (``system.id``) (turbine or substation) of the cable segment.
         cable_data : dict
             The dictionary defining the cable segment.
+        name : str | None
+            The name of the cable to use during logging.
         """
 
         self.env = env
         self.windfarm = windfarm
+        self.connection_type = connection_type
         self.start_node = start_node
         self.end_node = end_node
         self.id = f"cable::{start_node}::{end_node}"
@@ -75,6 +82,11 @@ class Cable:
         self.system = windfarm.graph.nodes(data=True)[start_node][
             "system"
         ]  # MAKE THIS START
+
+        if self.connection_type not in ("array", "export"):
+            raise ValueError(
+                f"Input to `connection_type` for {self.id} must be one of 'array' or 'export'."
+            )
 
         # Map the upstream substations and turbines, and cables
         upstream = nx.dfs_successors(self.windfarm.graph, end_node)
@@ -85,7 +97,7 @@ class Cable:
 
         cable_data = {**cable_data, "system_value": self.system.value}
         self.data = SubassemblyData.from_dict(cable_data)
-        self.name = self.data.name
+        self.name = self.data.name if name is None else name
 
         self.operating_level = 1.0
         self.servicing = self.env.event()
@@ -99,6 +111,20 @@ class Cable:
 
         # TODO: need to get the time scale of a distribution like this
         self.processes = dict(self._create_processes())
+
+    def set_string_details(self, start_node: str, substation: str):
+        """Sets the starting turbine for the string to be used for traversing the
+        correct upstream connections when resetting after a failure.
+
+        Parameters
+        ----------
+        start_node : str
+            The ``System.id`` for the starting turbine on a string.
+        substation : str
+            The ``System.id`` for the string's connecting substation.
+        """
+        self.string_start = start_node
+        self.substation = substation
 
     def _create_processes(self):
         """Creates the processes for each of the failure and maintenance types.
@@ -219,6 +245,7 @@ class Cable:
                         maintenance,
                         cable=True,
                         upstream_turbines=self.upstream_nodes,
+                        upstream_cables=self.upstream_cables,
                     )
                     repair_request = self.system.repair_manager.register_request(
                         repair_request
@@ -288,6 +315,7 @@ class Cable:
                         failure,
                         cable=True,
                         upstream_turbines=self.upstream_nodes,
+                        upstream_cables=self.upstream_cables,
                     )
                     repair_request = self.system.repair_manager.register_request(
                         repair_request

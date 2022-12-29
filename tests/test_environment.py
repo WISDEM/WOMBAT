@@ -9,7 +9,8 @@ import pytest
 import numpy.testing as npt
 from pandas.testing import assert_index_equal
 
-from wombat.core import WombatEnvironment
+from wombat.core import RepairManager, WombatEnvironment
+from wombat.windfarm import Windfarm
 
 from tests.conftest import TEST_DATA
 
@@ -188,6 +189,8 @@ def test_timing():
         workday_end=16,
         simulation_name="testing_setup",
     )
+    manager = RepairManager(env)
+    windfarm = Windfarm(env, "layout.csv", manager)
 
     # Run for 96 hours from the start to this point in the data
     # 1/5/02 0:00,8.238614098,0.37854216
@@ -241,6 +244,8 @@ def test_is_workshift():
         workday_end=16,
         simulation_name="testing_setup",
     )
+    manager = RepairManager(env)
+    windfarm = Windfarm(env, "layout.csv", manager)
     # Test for the 24 hours of the day with a basic 8am to 4pm workday
     assert not env.is_workshift()
     for i in range(23):
@@ -278,6 +283,8 @@ def test_hour_in_shift():
         workday_end=16,
         simulation_name="testing_setup",
     )
+    manager = RepairManager(env)
+    windfarm = Windfarm(env, "layout.csv", manager)
 
     # Test the boundary conditions at midnight
 
@@ -321,6 +328,8 @@ def test_hours_to_next_shift():
         workday_end=16,
         simulation_name="testing_setup",
     )
+    manager = RepairManager(env)
+    windfarm = Windfarm(env, "layout.csv", manager)
 
     # Test that at hour 0, there are 8 hours until 8am
     assert env.hours_to_next_shift() == 8
@@ -357,6 +366,8 @@ def test_weather_forecast():
         workday_end=16,
         simulation_name="testing_setup",
     )
+    manager = RepairManager(env)
+    windfarm = Windfarm(env, "layout.csv", manager)
 
     # Test for the next 5 hours, but at the top of the hour
     # Starts with hour 0, and ends with the 5th hour following

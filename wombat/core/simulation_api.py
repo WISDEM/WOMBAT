@@ -328,6 +328,13 @@ class Simulation(FromDictMixin):
         power_potential, power_production = self.env.power_production_potential_to_csv(
             windfarm=self.windfarm, operations=operations, return_df=True
         )
+        substation_turbine_map = {
+            s_id: {k: v.tolist() for k, v in dict.items()}
+            for s_id, dict in self.windfarm.substation_turbine_map.items()
+        }
+        capacities = [
+            self.windfarm.system(t).capacity for t in self.windfarm.turbine_id
+        ]
         self.metrics = Metrics(
             data_dir=self.config.library,
             events=events,
@@ -336,12 +343,11 @@ class Simulation(FromDictMixin):
             production=power_production,
             inflation_rate=self.config.inflation_rate,
             project_capacity=self.config.project_capacity,
-            turbine_capacities=[
-                self.windfarm.system(t_id).capacity for t_id in self.windfarm.turbine_id
-            ],
+            turbine_capacities=capacities,
             fixed_costs=self.config.fixed_costs,  # type: ignore
             substation_id=self.windfarm.substation_id.tolist(),
             turbine_id=self.windfarm.turbine_id.tolist(),
+            substation_turbine_map=substation_turbine_map,
             service_equipment_names=[el.settings.name for el in self.service_equipment],  # type: ignore
             SAM_settings=self.config.SAM_settings,
         )
