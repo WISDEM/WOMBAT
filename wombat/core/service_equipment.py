@@ -497,63 +497,6 @@ class ServiceEquipment(RepairsMixin):
         system.servicing.succeed()
         self.manager.enable_requests_for_system(repair.system_id)
 
-    def _register_repair_with_subassembly(
-        self,
-        subassembly: Subassembly | Cable,
-        repair: RepairRequest,
-        starting_operating_level: float,
-    ) -> None:
-        """Goes into the repaired subassembly, component, or cable and returns its
-        ``operating_level`` back to good as new for the specific repair. For fatal cable
-        failures, all upstream turbines are turned back on unless there is another fatal
-        cable failure preventing any more from operating.
-
-        Parameters
-        ----------
-        subassembly : Subassembly | Cable
-            The subassembly or cable that was repaired.
-        repair : RepairRequest
-            The request for repair that was submitted.
-        starting_operating_level : float
-            The operating level before a repair was started.
-        """
-        # If this is a cable repair and returning it back to operating, then reset all
-        # upstream turbines to be operating as long as there isn't another fatal cable
-        # failure preventing it from operating
-        if repair.cable and repair.details.operation_reduction == 1:
-            start: str = ""
-            for i, turbine_id in enumerate(repair.upstream_turbines):
-                if i > 0:
-                    cable = self.windfarm.cable((start, turbine_id))
-                    if cable.operating_level == 0:
-                        break
-                turbine = self.windfarm.system(turbine_id)
-                turbine.cable_failure.succeed()
-                start = turbine_id
-
-        # Put the subassembly/component back to good as new condition
-        if repair.details.operation_reduction == 1:
-            subassembly.operating_level = 1
-            _ = self.manager.purge_subassembly_requests(
-                repair.system_id, repair.subassembly_id
-            )
-            subassembly.broken.succeed()
-        elif repair.details.operation_reduction == 0:
-            subassembly.operating_level = starting_operating_level
-        else:
-            subassembly.operating_level /= 1 - repair.details.operation_reduction
-
-        # Register that the servicing is now over
-        if isinstance(subassembly, Subassembly):
-            subassembly.system.servicing.succeed()
-        elif isinstance(subassembly, Cable):
-            subassembly.servicing.succeed()
-        else:
-            raise ValueError(
-                f"Passed subassembly of type: `{type(subassembly)}` invalid."
-            )
-        self.manager.enable_requests_for_system(repair.system_id)
-
     def wait_until_next_operational_period(
         self, *, less_mobilization_hours: int = 0
     ) -> Generator[Timeout, None, None]:
