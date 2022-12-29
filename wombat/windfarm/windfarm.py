@@ -140,6 +140,7 @@ class Windfarm:
             )
 
         self.graph = windfarm
+        self.layout_df = layout
 
     def _create_turbines_and_substations(self) -> None:
         """Instantiates the turbine and substation models as defined in the
@@ -192,6 +193,7 @@ class Windfarm:
         ValueError
             Raised if the cable model is not specified.
         """
+        get_name = "upstream_cable_name" in self.layout_df
         bad_data_location_messages = []
         for start_node, end_node, data in self.graph.edges(data=True):
             # Check that the cable data is provided
@@ -216,6 +218,12 @@ class Windfarm:
                 self.graph.nodes[end_node]["longitude"],
             )
 
+            name = None
+            if get_name:
+                name, *_ = self.layout_df.loc[
+                    self.layout_df.id == end_node, "upstream_cable_name"
+                ]
+
             # If the real distance/cable length is not input, then the geodesic distance
             # is calculated
             if data["length"] == 0:
@@ -229,12 +237,7 @@ class Windfarm:
                 data["type"] = "array"
 
             data["cable"] = Cable(
-                self,
-                self.env,
-                data["type"],
-                start_node,
-                end_node,
-                cable_dict,
+                self, self.env, data["type"], start_node, end_node, cable_dict, name
             )
 
             # Calaculate the geometric center point

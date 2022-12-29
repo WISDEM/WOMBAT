@@ -1,5 +1,5 @@
 """"Defines the Cable class and cable simulations."""
-
+from __future__ import annotations
 
 from typing import Generator  # type: ignore
 from itertools import chain
@@ -48,6 +48,7 @@ class Cable:
         start_node: str,
         end_node: str,
         cable_data: dict,
+        name: str | None = None,
     ) -> None:
         """Initializes the ``Cable`` class.
 
@@ -67,6 +68,8 @@ class Cable:
             The ending point (``system.id``) (turbine or substation) of the cable segment.
         cable_data : dict
             The dictionary defining the cable segment.
+        name : str | None
+            The name of the cable to use during logging.
         """
 
         self.env = env
@@ -94,7 +97,7 @@ class Cable:
 
         cable_data = {**cable_data, "system_value": self.system.value}
         self.data = SubassemblyData.from_dict(cable_data)
-        self.name = self.data.name
+        self.name = self.data.name if name is None else name
 
         self.operating_level = 1.0
         self.servicing = self.env.event()
