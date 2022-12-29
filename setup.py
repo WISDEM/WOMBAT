@@ -44,7 +44,7 @@ REQUIRED = [
     "geopy",
     "networkx",
     "matplotlib>=3.3",
-    "nrel-pysam",
+    "nrel-pysam>=4",
     # required for pre-commit CI
     "types-attrs>=19",
     "types-typed-ast>=1.5",
