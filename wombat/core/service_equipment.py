@@ -412,7 +412,8 @@ class ServiceEquipment(RepairsMixin):
             The `Cable` or `System`
         """
         farm = self.manager.windfarm
-        farm_map: WindFarmMap = farm.wind_farm_map
+        farm_map = farm.wind_farm_map  # type: ignore
+        assert isinstance(farm_map, WindFarmMap)  # mypy helper
         if subassembly.connection_type == "array":
             # If there is another failure downstream of the repaired cable, do nothing
             if subassembly.downstream_failure:
