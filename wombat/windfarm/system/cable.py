@@ -2,11 +2,9 @@
 from __future__ import annotations
 
 from typing import Generator  # type: ignore
-from itertools import chain
 
 import numpy as np  # type: ignore
 import simpy  # type: ignore
-import networkx as nx
 
 from wombat.core import (
     Failure,
@@ -34,6 +32,8 @@ class Cable:
         The simulation environment.
     cable_id : str
         The unique identifier for the cable.
+    connection_type : str
+        The type of cable. Must be one of "array" or "export".
     start_node : str
         The starting point (``system.id``) (turbine or substation) of the cable segment.
     cable_data : dict
@@ -78,22 +78,12 @@ class Cable:
         self.start_node = start_node
         self.end_node = end_node
         self.id = f"cable::{start_node}::{end_node}"
-        # TODO: need to be able to handle substations, which are not being modeled currently
-        self.system = windfarm.graph.nodes(data=True)[start_node][
-            "system"
-        ]  # MAKE THIS START
+        self.system = windfarm.system(start_node)
 
         if self.connection_type not in ("array", "export"):
             raise ValueError(
                 f"Input to `connection_type` for {self.id} must be one of 'array' or 'export'."
             )
-
-        # Map the upstream substations and turbines, and cables
-        upstream = nx.dfs_successors(self.windfarm.graph, end_node)
-        self.upstream_nodes = [self.end_node]
-        if len(upstream) > 0:
-            self.upstream_nodes = list(chain(self.upstream_nodes, *upstream.values()))
-        self.upstream_cables = list(nx.edge_dfs(self.windfarm.graph, end_node))
 
         cable_data = {**cable_data, "system_value": self.system.value}
         self.data = SubassemblyData.from_dict(cable_data)
@@ -125,6 +115,34 @@ class Cable:
         """
         self.string_start = start_node
         self.substation = substation
+
+    def finish_setup(self) -> None:
+        """Creates the ``upstream_nodes`` and ``upstream_cables`` attributes for use by
+        the cable when triggering usptream failures and resetting them after the repair
+        is complete.
+        """
+
+        wf_map = self.windfarm.wind_farm_map
+        if self.connection_type == "array":
+            turbines = []
+            if self.end_node == self.string_start:
+                turbines.append(self.end_node)
+                _turbines, cables = wf_map.get_upstream_connections(
+                    self.substation, self.string_start, self.string_start
+                )
+            else:
+                _turbines, cables = wf_map.get_upstream_connections(
+                    self.substation, self.string_start, self.start_node
+                )
+            turbines.extend(_turbines)
+
+        if self.connection_type == "export":
+            turbines, cables = wf_map.get_upstream_connections_from_substation(
+                self.substation
+            )
+
+        self.upstream_nodes = turbines
+        self.upstream_cables = cables
 
     def _create_processes(self):
         """Creates the processes for each of the failure and maintenance types.
@@ -183,7 +201,7 @@ class Cable:
                 agent=self.name,
                 action="repair request",
                 reason=failure.description,
-                additional="cable failure shutting off all upstream cables and turbines that are still operating",
+                additional="downstream cable failure",
                 request_id=failure.request_id,
             )
 
@@ -199,7 +217,7 @@ class Cable:
                 agent=self.name,
                 action="repair request",
                 reason=failure.description,
-                additional="cable failure shutting off all upstream cables and turbines that are still operating",
+                additional="downstream cable failure",
                 request_id=failure.request_id,
             )
 

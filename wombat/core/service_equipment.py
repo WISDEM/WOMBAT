@@ -401,7 +401,7 @@ class ServiceEquipment(RepairsMixin):
                 self.settings.capability
             )
 
-    def enable_string_operations(self, subassembly: Cable) -> None:
+    def enable_string_operations(self, cable: Cable) -> None:
         """Traverses the upstream cable and turbine connections and resets the
         ``System.cable_failure`` and ``Cable.downstream_failure`` until it hits
         another cable failure, then the loop exits.
@@ -414,32 +414,27 @@ class ServiceEquipment(RepairsMixin):
         farm = self.manager.windfarm
         farm_map = farm.wind_farm_map  # type: ignore
         assert isinstance(farm_map, WindFarmMap)  # mypy helper
-        if subassembly.connection_type == "array":
+        if cable.connection_type == "array":
             # If there is another failure downstream of the repaired cable, do nothing
-            if subassembly.downstream_failure:
+            if cable.downstream_failure:
                 return
 
             # For each upstream turbine and cable, reset their operations
-            turbines, cables = farm_map.get_upstream_connections(
-                subassembly.substation,
-                subassembly.string_start,
-                subassembly.end_node,
-            )
-            for t_id, c_id in zip(turbines, cables):
+            for t_id, c_id in zip(cable.upstream_nodes, cable.upstream_cables):
                 cable = farm.cable(c_id)
                 if cable.operating_level == 0:
                     break
                 cable.downstream_failure.succeed()
                 farm.system(t_id).cable_failure.succeed()
 
-        if subassembly.connection_type == "export":
+        if cable.connection_type == "export":
             # Get the substation mapping and IDs
-            substation_id = subassembly.end_node
+            substation_id = cable.end_node
             substation_map = farm_map.substation_map[substation_id]
 
             # Reset the substation's cable failure and the failed cable
             farm.system(substation_id).cable_failure.succeed()
-            subassembly.downstream_failure.succeed()
+            cable.downstream_failure.succeed()
 
             # For each string connected to the substation reset all the turbines and cables
             # until another cable failure is encoountered, then move to the next string
