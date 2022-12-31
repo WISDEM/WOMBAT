@@ -1906,7 +1906,7 @@ class WindFarmMap:
         turbines = upstream[node].upstream
         if return_cables:
             cables = [
-                f"cable::{string_start if i == 0 else turbines[i - 1]}::{t}"
+                f"cable::{node if i == 0 else turbines[i - 1]}::{t}"
                 for i, t in enumerate(turbines)
             ]
             return turbines, cables

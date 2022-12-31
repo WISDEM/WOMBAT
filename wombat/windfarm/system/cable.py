@@ -132,7 +132,7 @@ class Cable:
                 )
             else:
                 _turbines, cables = wf_map.get_upstream_connections(
-                    self.substation, self.string_start, self.start_node
+                    self.substation, self.string_start, self.end_node
                 )
             turbines.extend(_turbines)
 
@@ -180,45 +180,64 @@ class Cable:
         self.interrupt_processes()
 
     def stop_all_upstream_processes(self, failure: Failure) -> None:
-        """Stops all upstream turbines from producing power by setting their
-        ``System.cable_failure`` to ``True``.
+        """Stops all upstream turbines and cables from producing power by creating a
+        ``env.event()`` for each ``System.cable_failure`` and
+        ``Cable.downstream_failure``, respectively. In the case of an export cable, each
+        string is traversed to stop the substation and upstream turbines and cables.
 
         Parameters
         ----------
         failure : Failre
             The ``Failure`` that is causing a string shutdown.
         """
-        # Shut down all upstream objects and set the flag for an downstream cable failure
-        for node in self.upstream_nodes:
-            system = self.windfarm.system(node)
-            system.interrupt_all_subassembly_processes()
-            system.cable_failure = self.env.event()
+        shared_logging = dict(
+            agent=self.id,
+            action="repair_request",
+            reason=failure.description,
+            additional="downstream cable failure",
+            request_id=failure.request_id,
+        )
+        upstream_nodes = self.upstream_nodes
+        upstream_cables = self.upstream_cables
+        if self.connection_type == "export":
+            # Flatten the list of lists for shutting down the upstream connections
+            upstream_nodes = [el for string in upstream_nodes for el in string]
+            upstream_cables = [el for string in upstream_cables for el in string]
+
+            # Turn off the subation
+            substation = self.windfarm.system(self.end_node)
+            substation.interrupt_all_subassembly_processes()
+            substation.cable_failure = self.env.event()
             self.env.log_action(
-                system_id=node,
-                system_name=system.name,
-                system_ol=system.operating_level,
+                system_id=self.end_node,
+                system_name=substation.name,
+                system_ol=substation.operating_level,
                 part_ol=np.nan,
-                agent=self.name,
-                action="repair request",
-                reason=failure.description,
-                additional="downstream cable failure",
-                request_id=failure.request_id,
+                **shared_logging,  # type: ignore
             )
 
-        for edge in self.upstream_cables:
-            cable = self.windfarm.cable(edge)
+        for t_id, c_id in zip(upstream_nodes, upstream_cables):
+            turbine = self.windfarm.system(t_id)
+            turbine.cable_failure = self.env.event()
+            turbine.interrupt_all_subassembly_processes()
+            self.env.log_action(
+                system_id=t_id,
+                system_name=turbine.name,
+                system_ol=turbine.operating_level,
+                part_ol=np.nan,
+                **shared_logging,  # type: ignore
+            )
+            cable = self.windfarm.cable(c_id)
             cable.interrupt_processes()
             cable.downstream_failure = self.env.event()
             self.env.log_action(
-                part_id=cable.id,
+                system_id=c_id,
+                system_name=cable.name,
+                part_id=c_id,
                 part_name=cable.name,
                 system_ol=np.nan,
                 part_ol=cable.operating_level,
-                agent=self.name,
-                action="repair request",
-                reason=failure.description,
-                additional="downstream cable failure",
-                request_id=failure.request_id,
+                **shared_logging,  # type: ignore
             )
 
     def run_single_maintenance(self, maintenance: Maintenance) -> Generator:
@@ -338,17 +357,6 @@ class Cable:
                     repair_request = self.system.repair_manager.register_request(
                         repair_request
                     )
-
-                    if failure.operation_reduction == 1:
-                        self.broken = self.env.event()
-
-                        # Remove previously submitted requests as a replacement is required
-                        _ = self.system.repair_manager.purge_subassembly_requests(
-                            self.id, self.id, exclude=[repair_request.request_id]
-                        )
-                        self.interrupt_processes()
-                        self.stop_all_upstream_processes(failure)
-
                     self.env.log_action(
                         system_id=self.id,
                         system_name=self.name,
@@ -362,6 +370,17 @@ class Cable:
                         additional=f"severity level {failure.level}",
                         request_id=repair_request.request_id,
                     )
+
+                    if failure.operation_reduction == 1:
+                        self.broken = self.env.event()
+
+                        # Remove previously submitted requests as a replacement is required
+                        _ = self.system.repair_manager.purge_subassembly_requests(
+                            self.id, self.id, exclude=[repair_request.request_id]
+                        )
+                        self.interrupt_processes()
+                        self.stop_all_upstream_processes(failure)
+
                     self.system.repair_manager.submit_request(repair_request)
                 except simpy.Interrupt:
                     if not self.broken.triggered:

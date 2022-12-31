@@ -428,25 +428,12 @@ class ServiceEquipment(RepairsMixin):
                 farm.system(t_id).cable_failure.succeed()
 
         if cable.connection_type == "export":
-            # Get the substation mapping and IDs
-            substation_id = cable.end_node
-            substation_map = farm_map.substation_map[substation_id]
-
-            # Reset the substation's cable failure and the failed cable
-            farm.system(substation_id).cable_failure.succeed()
-            cable.downstream_failure.succeed()
+            # Reset the substation's cable failure
+            farm.system(cable.end_node).cable_failure.succeed()
 
             # For each string connected to the substation reset all the turbines and cables
             # until another cable failure is encoountered, then move to the next string
-            for start_node in substation_map.string_starts:
-                cable = farm.cable((substation_id, start_node))
-                if cable.operating_level == 0:
-                    continue
-                cable.downstream_failure.succeed()
-                farm.system(start_node).cable_failure.succeed()
-                turbines, cables = farm_map.get_upstream_connections(
-                    substation_id, start_node, start_node
-                )
+            for turbines, cables in zip(cable.upstream_nodes, cable.upstream_cables):
                 for t_id, c_id in zip(turbines, cables):
                     cable = farm.cable(c_id)
                     if cable.operating_level == 0:
