@@ -320,7 +320,7 @@ class RepairManager(FilterStore):
         if requests == []:
             return None
 
-        requests = sorted(requests, key=lambda x: x.severity_level, reverse=True)
+        requests = sorted(requests, key=lambda x: x.severity_level)
         for request in requests:
             if equipment_capability.intersection(request.details.service_equipment):  # type: ignore
                 if request.system_id not in self.invalid_systems:
