@@ -32,7 +32,6 @@ from wombat.core.library import load_yaml
 from wombat.windfarm.system import System
 from wombat.core.data_classes import (
     UNSCHEDULED_STRATEGIES,
-    WindFarmMap,
     ScheduledServiceEquipmentData,
     UnscheduledServiceEquipmentData,
 )
@@ -412,8 +411,6 @@ class ServiceEquipment(RepairsMixin):
             The `Cable` or `System`
         """
         farm = self.manager.windfarm
-        farm_map = farm.wind_farm_map  # type: ignore
-        assert isinstance(farm_map, WindFarmMap)  # mypy helper
         if cable.connection_type == "array":
             # If there is another failure downstream of the repaired cable, do nothing
             if cable.downstream_failure:
