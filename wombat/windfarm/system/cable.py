@@ -179,7 +179,7 @@ class Cable:
         """Thin wrapper for ``interrupt_processes`` to keep usage the same as systems."""
         self.interrupt_processes()
 
-    def stop_all_upstream_processes(self, failure: Failure) -> None:
+    def stop_all_upstream_processes(self, failure: Failure | Maintenance) -> None:
         """Stops all upstream turbines and cables from producing power by creating a
         ``env.event()`` for each ``System.cable_failure`` and
         ``Cable.downstream_failure``, respectively. In the case of an export cable, each
@@ -240,6 +240,59 @@ class Cable:
                 **shared_logging,  # type: ignore
             )
 
+    def trigger_request(self, action: Maintenance | Failure):
+        """Triggers the actual repair or maintenance logic for a failure or maintenance
+        event, respectively.
+
+        Parameters
+        ----------
+        action : Maintenance | Failure
+            The maintenance or failure event that triggers a ``RepairRequest``.
+        """
+        which = "maintenance" if isinstance(action, Maintenance) else "repair"
+        self.operating_level *= 1 - action.operation_reduction
+
+        # Automatically submit a repair request
+        # NOTE: mypy is not caught up with attrs yet :(
+        repair_request = RepairRequest(  # type: ignore
+            self.id,
+            self.name,
+            self.id,
+            self.name,
+            action.level,
+            action,
+            cable=True,
+            upstream_turbines=self.upstream_nodes,
+            upstream_cables=self.upstream_cables,
+        )
+        repair_request = self.system.repair_manager.register_request(repair_request)
+        self.env.log_action(
+            system_id=self.id,
+            system_name=self.name,
+            part_id=self.id,
+            part_name=self.name,
+            system_ol=self.operating_level,
+            part_ol=self.operating_level,
+            agent=self.name,
+            action=f"{which} request",
+            reason=action.description,
+            additional=f"severity level {action.level}",
+            request_id=repair_request.request_id,
+        )
+
+        if action.operation_reduction == 1:
+            self.broken = self.env.event()
+            self.interrupt_processes()
+            self.stop_all_upstream_processes(action)
+
+        # Remove previously submitted requests as a replacement is required
+        if action.replacement:
+            _ = self.system.repair_manager.purge_subassembly_requests(
+                self.id, self.id, exclude=[repair_request.request_id]
+            )
+
+        self.system.repair_manager.submit_request(repair_request)
+
     def run_single_maintenance(self, maintenance: Maintenance) -> Generator:
         """Runs a process to trigger one type of maintenance request throughout the simulation.
 
@@ -270,37 +323,7 @@ class Cable:
                     start = self.env.now
                     yield self.env.timeout(hours_to_next)
                     hours_to_next = 0
-
-                    # Automatically submit a repair request
-                    # NOTE: mypy is not caught up with attrs yet :(
-                    repair_request = RepairRequest(  # type: ignore
-                        self.system.id,
-                        self.system.name,
-                        self.id,
-                        self.name,
-                        0,
-                        maintenance,
-                        cable=True,
-                        upstream_turbines=self.upstream_nodes,
-                        upstream_cables=self.upstream_cables,
-                    )
-                    repair_request = self.system.repair_manager.register_request(
-                        repair_request
-                    )
-                    self.env.log_action(
-                        system_id=self.system.id,
-                        system_name=self.system.name,
-                        part_id=self.id,
-                        part_name=self.name,
-                        system_ol=self.system.operating_level,
-                        part_ol=self.operating_level,
-                        agent=self.name,
-                        action="maintenance request",
-                        reason=maintenance.description,
-                        additional="request",
-                        request_id=repair_request.request_id,
-                    )
-                    self.system.repair_manager.submit_request(repair_request)
+                    self.trigger_request(maintenance)
                 except simpy.Interrupt:
                     if not self.broken.triggered:
                         # The subassembly had to restart the maintenance cycle
@@ -339,49 +362,7 @@ class Cable:
                     start = self.env.now
                     yield self.env.timeout(hours_to_next)
                     hours_to_next = 0
-                    self.operating_level *= 1 - failure.operation_reduction
-
-                    # Automatically submit a repair request
-                    # NOTE: mypy is not caught up with attrs yet :(
-                    repair_request = RepairRequest(  # type: ignore
-                        self.id,
-                        self.name,
-                        self.id,
-                        self.name,
-                        failure.level,
-                        failure,
-                        cable=True,
-                        upstream_turbines=self.upstream_nodes,
-                        upstream_cables=self.upstream_cables,
-                    )
-                    repair_request = self.system.repair_manager.register_request(
-                        repair_request
-                    )
-                    self.env.log_action(
-                        system_id=self.id,
-                        system_name=self.name,
-                        part_id=self.id,
-                        part_name=self.name,
-                        system_ol=self.system.operating_level,
-                        part_ol=self.operating_level,
-                        agent=self.name,
-                        action="repair request",
-                        reason=failure.description,
-                        additional=f"severity level {failure.level}",
-                        request_id=repair_request.request_id,
-                    )
-
-                    if failure.operation_reduction == 1:
-                        self.broken = self.env.event()
-
-                        # Remove previously submitted requests as a replacement is required
-                        _ = self.system.repair_manager.purge_subassembly_requests(
-                            self.id, self.id, exclude=[repair_request.request_id]
-                        )
-                        self.interrupt_processes()
-                        self.stop_all_upstream_processes(failure)
-
-                    self.system.repair_manager.submit_request(repair_request)
+                    self.trigger_request(failure)
                 except simpy.Interrupt:
                     if not self.broken.triggered:
                         # Restart after fixing

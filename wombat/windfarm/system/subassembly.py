@@ -1,5 +1,6 @@
 """Provides the Subassembly class"""
 
+from __future__ import annotations
 
 from typing import Generator  # type: ignore
 
@@ -93,6 +94,53 @@ class Subassembly:
         """Thin wrapper for ``system.interrupt_all_subassembly_processes``."""
         self.system.interrupt_all_subassembly_processes()
 
+    def trigger_request(self, action: Maintenance | Failure):
+        """Triggers the actual repair or maintenance logic for a failure or maintenance
+        event, respectively.
+
+        Parameters
+        ----------
+        action : Maintenance | Failure
+            The maintenance or failure event that triggers a ``RepairRequest``.
+        """
+        which = "maintenance" if isinstance(action, Maintenance) else "repair"
+        self.operating_level *= 1 - action.operation_reduction
+        if action.operation_reduction == 1:
+            self.broken = self.env.event()
+            self.interrupt_all_subassembly_processes()
+
+        # Remove previously submitted requests if a replacement is required
+        if action.replacement:
+            _ = self.system.repair_manager.purge_subassembly_requests(
+                self.system.id, self.id
+            )
+
+        # Automatically submit a repair request
+        # NOTE: mypy is not caught up with attrs yet :(
+        repair_request = RepairRequest(  # type: ignore
+            system_id=self.system.id,
+            system_name=self.system.name,
+            subassembly_id=self.id,
+            subassembly_name=self.name,
+            severity_level=action.level,
+            details=action,
+        )
+        repair_request = self.system.repair_manager.register_request(repair_request)
+        self.env.log_action(
+            system_id=self.system.id,
+            system_name=self.system.name,
+            part_id=self.id,
+            part_name=self.name,
+            system_ol=self.system.operating_level,
+            part_ol=self.operating_level,
+            agent=self.name,
+            action=f"{which} request",
+            reason=action.description,
+            additional=f"severity level {action.level}",
+            request_id=repair_request.request_id,
+        )
+        self.system.repair_manager.submit_request(repair_request)
+
     def run_single_maintenance(self, maintenance: Maintenance) -> Generator:
         """Runs a process to trigger one type of maintenance request throughout the simulation.
 
@@ -123,34 +171,7 @@ class Subassembly:
                     start = self.env.now
                     yield self.env.timeout(hours_to_next)
                     hours_to_next = 0
-
-                    # Automatically submit a repair request
-                    # NOTE: mypy is not caught up with attrs yet :(
-                    repair_request = RepairRequest(  # type: ignore
-                        system_id=self.system.id,
-                        system_name=self.system.name,
-                        subassembly_id=self.id,
-                        subassembly_name=self.name,
-                        severity_level=0,
-                        details=maintenance,
-                    )
-                    repair_request = self.system.repair_manager.register_request(
-                        repair_request
-                    )
-                    self.env.log_action(
-                        system_id=self.system.id,
-                        system_name=self.system.name,
-                        part_id=self.id,
-                        part_name=self.name,
-                        system_ol=self.system.operating_level,
-                        part_ol=self.operating_level,
-                        agent=self.name,
-                        action="maintenance request",
-                        reason=maintenance.description,
-                        additional="request",
-                        request_id=repair_request.request_id,
-                    )
-                    self.system.repair_manager.submit_request(repair_request)
+                    self.trigger_request(maintenance)
 
                 except simpy.Interrupt:
                     if not self.broken.triggered:
@@ -181,57 +202,19 @@ class Subassembly:
                     yield self.env.timeout(remainder)
                 except simpy.Interrupt:
                     remainder -= self.env.now
-            else:
-                while hours_to_next > 0:  # type: ignore
-                    try:
-                        yield self.system.servicing & self.system.cable_failure & self.broken
-                        start = self.env.now
-                        yield self.env.timeout(hours_to_next)
+                continue
+            while hours_to_next > 0:  # type: ignore
+                try:
+                    yield self.system.servicing & self.system.cable_failure & self.broken
+                    start = self.env.now
+                    yield self.env.timeout(hours_to_next)
+                    hours_to_next = 0
+                    self.trigger_request(failure)
+
+                except simpy.Interrupt:
+                    if not self.broken.triggered:
+                        # The subassembly had to be replaced so reset the timing
                         hours_to_next = 0
-                        self.operating_level *= 1 - failure.operation_reduction
-                        if failure.operation_reduction == 1:
-                            self.broken = self.env.event()
-                            self.interrupt_all_subassembly_processes()
-
-                            # Remove previously submitted requests as a replacement is required
-                            _ = self.system.repair_manager.purge_subassembly_requests(
-                                self.system.id, self.id
-                            )
-
-                        # Automatically submit a repair request
-                        # NOTE: mypy is not caught up with attrs yet :(
-                        repair_request = RepairRequest(  # type: ignore
-                            self.system.id,
-                            self.system.name,
-                            self.id,
-                            self.name,
-                            failure.level,
-                            failure,
-                        )
-                        repair_request = self.system.repair_manager.register_request(
-                            repair_request
-                        )
-                        self.env.log_action(
-                            system_id=self.system.id,
-                            system_name=self.system.name,
-                            part_id=self.id,
-                            part_name=self.name,
-                            system_ol=self.system.operating_level,
-                            part_ol=self.operating_level,
-                            agent=self.name,
-                            action="repair request",
-                            reason=failure.description,
-                            additional=f"severity level {failure.level}",
-                            request_id=repair_request.request_id,
-                        )
-                        self.system.repair_manager.submit_request(repair_request)
-
-                    except simpy.Interrupt:
-                        if not self.broken.triggered:
-                            # The subassembly had to be replaced so reset the timing
-                            hours_to_next = 0
-                        else:
-                            # A different subassembly failed, so subtract the elapsed time
-                            hours_to_next -= (
-                                self.env.now - start  # pylint: disable=E0601
-                            )
+                    else:
+                        # A different subassembly failed, so subtract the elapsed time
+                        hours_to_next -= self.env.now - start  # pylint: disable=E0601

@@ -416,6 +416,10 @@ class Maintenance(FromDictMixin):
         Turbine replacement value. Used if the materials cost is a proportional cost.
     description : str
         A short text description to be used for logging.
+    operation_reduction : float
+        Performance reduction caused by the failure, between (0, 1]. Defaults to 0.
+    level : int, optional
+        Severity level of the maintenance. Defaults to 0.
     """
 
     time: float = field(converter=float)
@@ -431,8 +435,9 @@ class Maintenance(FromDictMixin):
     system_value: int | float = field(converter=float)
     description: str = field(default="routine maintenance", converter=str)
     operation_reduction: float = field(default=0.0, converter=float)
+    level: int = field(default=0, converter=int)
     request_id: str = field(init=False)
-    level: int = field(default=0, init=False)
+    replacement: bool = field(default=False, init=False)
 
     def __attrs_post_init__(self):
         """Convert frequency to hours (simulation time scale) and the equipment
@@ -493,6 +498,9 @@ class Failure(FromDictMixin):
          - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
     system_value : Union[int, float]
         Turbine replacement value. Used if the materials cost is a proportional cost.
+    replacement : bool
+        True if triggering the failure requires a subassembly replacement, False, if
+        only a repair is necessary. Defaults to False
     description : str
         A short text description to be used for logging.
     """
@@ -511,6 +519,7 @@ class Failure(FromDictMixin):
         ),
     )
     system_value: int | float = field(converter=float)
+    replacement: bool = field(default=False, converter=bool)
     description: str = field(default="failure", converter=str)
     weibull: weibull_min = field(init=False, eq=False)
     request_id: str = field(init=False)
