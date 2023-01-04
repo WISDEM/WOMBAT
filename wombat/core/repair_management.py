@@ -466,8 +466,9 @@ class RepairManager(FilterStore):
         """Creates an updated mapping between the servicing equipment capabilities and
         the number of requests that fall into each capability category (nonzero values only).
         """
-        # mapping = dict(CTV=0, SCN=0, LCN=0, CAB=0, RMT=0, DRN=0, DSV=0)
-        all_requests = [request.details.service_equipment for request in self.items]
-        requests = dict(Counter(chain.from_iterable(all_requests)))
-        # mapping.update(requests)
+        requests = dict(
+            Counter(
+                chain.from_iterable((r.details.service_equipment for r in self.items))
+            )
+        )
         return requests
