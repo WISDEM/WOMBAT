@@ -1029,7 +1029,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     equipment_rate: float = field(converter=float)
     n_crews: int = field(converter=int)
     crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
-    capability: list[str] | str = field(
+    capability: list[str] = field(
         converter=convert_to_list_upper,  # type: ignore
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
@@ -1240,7 +1240,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     equipment_rate: float = field(converter=float)
     n_crews: int = field(converter=int)
     crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
-    capability: list[str] | str = field(
+    capability: list[str] = field(
         converter=convert_to_list_upper,  # type: ignore
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
