@@ -76,7 +76,7 @@ def test_cable_failures(env_setup):
     catastrophic_timeout = 13.85
     env.run(catastrophic_timeout + 1)
 
-    assert windfarm.current_availability == 0.5  # half the farm is off
+    assert windfarm.current_availability == 2.0 / 3.0  # two-thirds of the farm is off
 
     # Check the cable is broken
     cable = windfarm.cable(("OSS1", "S00T1"))
@@ -101,7 +101,7 @@ def test_cable_failures(env_setup):
     assert oss.operating_level == 1
 
     # Check the appropriate turbines are broken
-    for turbine in ("S00T1", "S00T2", "S00T3"):
+    for turbine in ("S00T1", "S00T2"):
         turbine = windfarm.system(turbine)
         assert not turbine.cable_failure.triggered
         assert turbine.operating_level == 0
@@ -111,7 +111,7 @@ def test_cable_failures(env_setup):
         assert all((s.operating_level == 1 for s in turbine.subassemblies))
 
     # Check the appropriate turbines are operating
-    for turbine in ("S01T4", "S01T5", "S01T6"):
+    for turbine in ("S00T3", "S01T4", "S01T5", "S01T6"):
         turbine = windfarm.system(turbine)
         assert turbine.cable_failure.triggered
         assert turbine.operating_level == 1
