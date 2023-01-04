@@ -829,7 +829,10 @@ class Metrics:
         ]
         operating_filter = self.events.action.isin(operating_actions)
         return_filter = self.events.action == "delay"
-        return_filter &= self.events.reason == "work is complete"
+        return_filter &= (
+            (self.events.reason == "work is complete")
+            & (self.events.additional == "will return next year")
+        ) | (self.events.reason == "non-operational period")
         return_filter &= self.events.additional == "will return next year"
         for name in self.service_equipment_names:
             equipment_filter = self.events.agent == name
