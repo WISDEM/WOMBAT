@@ -1344,6 +1344,7 @@ class Metrics:
             "work shift has ended; waiting for next shift to start",
             "no more return visits will be made",
             "will return next year",
+            "waiting for next operational period",
         )
         weather_hours = ("weather delay", "weather unsuitable to transfer crew")
         costs.loc[
