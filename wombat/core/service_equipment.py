@@ -458,21 +458,25 @@ class ServiceEquipment(RepairsMixin):
         starting_operating_level : float
             The operating level before a repair was started.
         """
+        operation_reduction = repair.details.operation_reduction
+
         if repair.cable and repair.details.operation_reduction == 1:
             assert isinstance(subassembly, Cable)  # mypy helper
             self.enable_string_operations(subassembly)
 
         # Put the subassembly/component back to good as new condition
-        if repair.details.operation_reduction == 1:
+        if repair.details.replacement:
             subassembly.operating_level = 1
             _ = self.manager.purge_subassembly_requests(
                 repair.system_id, repair.subassembly_id
             )
+        elif operation_reduction == 1:
+            subassembly.operating_level = starting_operating_level
             subassembly.broken.succeed()
-        elif repair.details.operation_reduction == 0:
+        elif operation_reduction == 0:
             subassembly.operating_level = starting_operating_level
         else:
-            subassembly.operating_level /= 1 - repair.details.operation_reduction
+            subassembly.operating_level /= 1 - operation_reduction
 
         # Register that the servicing is now over
         system = subassembly if isinstance(subassembly, Cable) else subassembly.system
@@ -1682,7 +1686,7 @@ class ServiceEquipment(RepairsMixin):
             system_name=request.system_name,
             request_id=request.request_id,
             agent=self.settings.name,
-            reason=f"{request.details.description} has triggered tow-to-port",
+            reason=request.details.description,
         )
 
         # Travel to the turbine
