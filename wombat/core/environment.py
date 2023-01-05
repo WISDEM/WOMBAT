@@ -2,19 +2,19 @@
 from __future__ import annotations
 
 import csv
-import math  # type: ignore
-import logging  # type: ignore
-import datetime as dt  # type: ignore
-from typing import TYPE_CHECKING, Tuple, Union, Optional  # type: ignore
-from pathlib import Path  # type: ignore
-from datetime import datetime, timedelta  # type: ignore
+import math
+import logging
+import datetime as dt
+from typing import TYPE_CHECKING, Tuple, Union, Optional
+from pathlib import Path
+from datetime import datetime, timedelta
 
-import numpy as np  # type: ignore
-import simpy  # type: ignore
-import pandas as pd  # type: ignore
+import numpy as np
+import simpy
+import pandas as pd
 import pyarrow as pa
 import pyarrow.csv  # pylint: disable=W0611
-from simpy.events import Event  # type: ignore
+from simpy.events import Event
 from pandas.core.indexes.datetimes import DatetimeIndex
 
 import wombat  # pylint: disable=W0611

@@ -1,10 +1,10 @@
 """"Defines the Cable class and cable simulations."""
 from __future__ import annotations
 
-from typing import Generator  # type: ignore
+from typing import Generator
 
-import numpy as np  # type: ignore
-import simpy  # type: ignore
+import numpy as np
+import simpy
 
 from wombat.core import (
     Failure,

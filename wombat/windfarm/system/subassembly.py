@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Generator  # type: ignore
+from typing import Generator
 
-import simpy  # type: ignore
+import simpy
 
 from wombat.core import (
     Failure,

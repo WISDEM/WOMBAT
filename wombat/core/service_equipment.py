@@ -9,13 +9,13 @@ from __future__ import annotations
 import logging
 from copy import deepcopy
 from math import ceil
-from typing import TYPE_CHECKING, Any, Optional, Generator  # type: ignore
+from typing import TYPE_CHECKING, Any, Optional, Generator
 from pathlib import Path
 from datetime import timedelta
 
-import numpy as np  # type: ignore
+import numpy as np
 import pandas as pd
-from simpy.events import Event, Process, Timeout  # type: ignore
+from simpy.events import Event, Process, Timeout
 from pandas.core.indexes.datetimes import DatetimeIndex
 
 from wombat.core import (

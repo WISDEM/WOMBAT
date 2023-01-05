@@ -3,12 +3,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, Sequence  # type: ignore
+from typing import TYPE_CHECKING, Optional, Sequence
 from itertools import chain
 from collections import Counter
 
 import numpy as np
-from simpy.resources.store import FilterStore, FilterStoreGet  # type: ignore
+from simpy.resources.store import FilterStore, FilterStoreGet
 
 from wombat.core import (
     Failure,

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Callable  # type: ignore
+from typing import Callable
 from operator import mul
 from functools import reduce
 

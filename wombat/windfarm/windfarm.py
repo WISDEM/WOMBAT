@@ -8,9 +8,9 @@ import itertools
 from math import fsum
 
 import numpy as np
-import pandas as pd  # type: ignore
-import networkx as nx  # type: ignore
-from geopy import distance  # type: ignore
+import pandas as pd
+import networkx as nx
+from geopy import distance
 
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.core.library import load_yaml
