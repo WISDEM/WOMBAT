@@ -41,6 +41,7 @@ EVENTS_COLUMNS = [
     "system_operating_level",
     "part_operating_level",
     "duration",
+    "distance_km",
     "request_id",
     "location",
     "materials_cost",
@@ -535,6 +536,7 @@ class WombatEnvironment(simpy.Environment):
         system_ol: float | int = 0,
         part_ol: float | int = 0,
         duration: float = 0,
+        distance_km: float = 0,
         request_id: str = "na",
         location: str = "na",
         materials_cost: Union[int, float] = 0,
@@ -574,6 +576,8 @@ class WombatEnvironment(simpy.Environment):
             enroute, or system, by default "na".
         duration : float
             Length of time the action lasted, by default 0.
+        distance : float
+            Distance traveled, in km, if applicable, by default 0.
         materials_cost : Union[int, float], optional
             Total cost of materials for action, in USD, by default 0.
         hourly_labor_cost : Union[int, float], optional
@@ -605,6 +609,7 @@ class WombatEnvironment(simpy.Environment):
             reason=reason,
             additional=additional,
             duration=duration,
+            distance_km=distance_km,
             request_id=request_id,
             location=location,
             materials_cost=materials_cost,

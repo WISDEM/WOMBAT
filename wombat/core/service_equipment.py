@@ -748,7 +748,9 @@ class ServiceEquipment(RepairsMixin):
         yield self.env.timeout(hours)
 
     @cache
-    def _calculate_intra_site_time(self, start: str | None, end: str | None) -> float:
+    def _calculate_intra_site_time(
+        self, start: str | None, end: str | None
+    ) -> tuple[float, float]:
         """Calculates the time it takes to travel between port and site or between
         systems on site.
 
@@ -761,8 +763,8 @@ class ServiceEquipment(RepairsMixin):
 
         Returns
         -------
-        float
-            The travel time between two locations.
+        tuple[float, float]
+            The travel time and distance between two locations.
         """
         distance = 0  # setting for invalid cases to have no traveling
         valid_sys = self.windfarm.distance_matrix.columns
@@ -777,7 +779,7 @@ class ServiceEquipment(RepairsMixin):
         # Infinity is the result of "traveling" between a system twice in a row
         if travel_time == float("inf"):
             travel_time = 0
-        return travel_time
+        return travel_time, distance
 
     def _calculate_uninterrupted_travel_time(
         self, distance: float, tow: bool = False
@@ -888,6 +890,7 @@ class ServiceEquipment(RepairsMixin):
         end: str,
         set_current: str | None = None,
         hours: float | None = None,
+        distance: float | None = None,
         **kwargs,
     ) -> Generator[Timeout | Process, None, None]:
         """The process for traveling between port and site, or two systems onsite.
@@ -906,6 +909,8 @@ class ServiceEquipment(RepairsMixin):
         hours : float, optional
             The number hours required for traveling between ``start`` and ``end``.
             If provided, no internal travel time will be calculated.
+        distance : float, optional
+            The distance, in km, to be traveled. Only used if hours is provided
 
         Yields
         -------
@@ -914,21 +919,26 @@ class ServiceEquipment(RepairsMixin):
         """
         validate_end_points(start, end)
         if hours is None:
+            hours = 0.0
+            distance = 0.0
+            additional = f"traveling from {start} to {end}"
+
             if start == end == "system":
                 additional = f"traveling from {self.current_system} to {set_current}"
-                hours = self._calculate_intra_site_time(
+                hours, distance = self._calculate_intra_site_time(
                     self.current_system, set_current
                 )
             elif set((start, end)) == set(("site", "port")):
                 additional = f"traveling from {start} to {end}"
-                hours = self._calculate_interrupted_travel_time(
-                    self.settings.port_distance
-                )
-            else:
-                additional = f"traveling from {start} to {end}"
-                hours = 0
+                distance = self.settings.port_distance
+                hours = self._calculate_interrupted_travel_time(distance)
         else:
-            hours = 0  # takes care of invalid cases
+            if distance is None:
+                raise ValueError("`distance` must be provided if `hours` is provided.")
+
+        # MyPy helper
+        assert isinstance(hours, float)
+        assert isinstance(distance, float)
 
         # If the the equipment will arive after the shift is over, then it must travel
         # back to port (if needed), and wait for the next shift
@@ -963,6 +973,7 @@ class ServiceEquipment(RepairsMixin):
             action="traveling",
             additional=additional,
             duration=hours,
+            distance_km=distance,
             salary_labor_cost=salary_cost,
             hourly_labor_cost=hourly_cost,
             equipment_cost=equipment_cost,
@@ -1034,6 +1045,7 @@ class ServiceEquipment(RepairsMixin):
         equipment_cost = self.calculate_equipment_cost(hours)
         self.env.log_action(
             duration=hours,
+            distance_km=distance,
             action="towing",
             salary_labor_cost=salary_labor_cost,
             hourly_labor_cost=hourly_labor_cost,
