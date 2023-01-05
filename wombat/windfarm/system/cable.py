@@ -15,12 +15,6 @@ from wombat.core import (
 )
 
 
-# TODO: Need a better method for checking if a repair has been made to bring the
-# subassembly back online
-HOURS = 8760
-TIMEOUT = 24  # Wait time of 1 day for replacement to occur
-
-
 class Cable:
     """The cable system/asset class.
 
