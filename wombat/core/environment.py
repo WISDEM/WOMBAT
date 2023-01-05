@@ -148,10 +148,10 @@ class WombatEnvironment(simpy.Environment):
 
         self.workday_start = int(workday_start)
         self.workday_end = int(workday_end)
-        if not 0 <= self.workday_start < 24:
-            raise ValueError("workday_start must be a valid 24hr time before midnight!")
-        if not 0 <= self.workday_end < 24:
-            raise ValueError("workday_end must be a valid 24hr time before midnight!")
+        if not 0 <= self.workday_start <= 24:
+            raise ValueError("workday_start must be a valid 24hr time before midnight.")
+        if not 0 <= self.workday_end <= 24:
+            raise ValueError("workday_end must be a valid 24hr time.")
         if self.workday_end <= self.workday_start:
             raise ValueError(
                 "Work shifts must end after they start ({self.workday_start}hrs)."
@@ -294,7 +294,7 @@ class WombatEnvironment(simpy.Environment):
             True if it's valid working hours, False otherwise.
         """
         if -1 in (workday_start, workday_end):
-            # Return true if the shift is around the clock
+            # Return True if the shift is around the clock
             if self.workday_start == 0 and self.workday_end == 24:
                 return True
             return self.workday_start <= self.simulation_time.hour < self.workday_end
