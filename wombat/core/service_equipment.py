@@ -766,7 +766,7 @@ class ServiceEquipment(RepairsMixin):
         tuple[float, float]
             The travel time and distance between two locations.
         """
-        distance = 0  # setting for invalid cases to have no traveling
+        distance = 0.0  # setting for invalid cases to have no traveling
         valid_sys = self.windfarm.distance_matrix.columns
         intra_site = start in valid_sys and end in valid_sys
         if intra_site:

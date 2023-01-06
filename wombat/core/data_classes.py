@@ -698,7 +698,7 @@ class DateLimitsMixin:
     """
 
     # MyPy type hints
-    port_distance: float
+    port_distance: float = field(converter=float)
     non_operational_start: datetime.datetime = field(converter=parse_date)
     non_operational_end: datetime.datetime = field(converter=parse_date)
     reduced_speed_start: datetime.datetime = field(converter=parse_date)
@@ -730,7 +730,7 @@ class DateLimitsMixin:
         if distance <= 0:
             return
         if self.port_distance <= 0:  # type: ignore
-            object.__setattr__(self, "port_distance", distance)
+            object.__setattr__(self, "port_distance", float(distance))
 
     def _compare_dates(
         self,
@@ -1059,7 +1059,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     speed_reduction_factor: float = field(
         default=0.0, converter=float, validator=valid_reduction
     )
-    port_distance: float = field(default=0, converter=float)
+    port_distance: float = field(default=0.0, converter=float)
     onsite: bool = field(default=False, converter=bool)
     method: str = field(  # type: ignore
         default="severity",
@@ -1269,7 +1269,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     speed_reduction_factor: float = field(
         default=0.0, converter=float, validator=valid_reduction
     )
-    port_distance: float = field(default=0, converter=float)
+    port_distance: float = field(default=0.0, converter=float)
     onsite: bool = field(default=False, converter=bool)
     method: str = field(  # type: ignore
         default="severity",
@@ -1561,7 +1561,7 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
     max_operations: int = field(default=1, converter=int)
     workday_start: int = field(default=-1, converter=int, validator=valid_hour)
     workday_end: int = field(default=-1, converter=int, validator=valid_hour)
-    site_distance: float = field(default=0, converter=float)
+    site_distance: float = field(default=0.0, converter=float)
     annual_fee: float = field(
         default=0, converter=float, validator=greater_than_equal_to_zero
     )
