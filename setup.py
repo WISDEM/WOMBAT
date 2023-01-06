@@ -35,7 +35,7 @@ description = "Windfarm operations and maintenance cost-benefit analysis tool"
 REQUIRED = [
     "attrs>=21",
     "numpy>=1.21",
-    "scipy",
+    "scipy>=1.7",
     "pandas>=1.3",
     "pyarrow>=10",
     "jupyterlab",
