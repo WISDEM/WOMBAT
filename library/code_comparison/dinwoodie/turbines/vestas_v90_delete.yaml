@@ -19,5 +19,6 @@ turbine:
       materials: 0
       service_equipment: CTV
       operation_reduction: 0.0
+      replacement: true
       level: 1
       description: manual reset

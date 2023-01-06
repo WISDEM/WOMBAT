@@ -14,5 +14,6 @@ failures:
     materials: 400000  # 350,000 EUR round up to 400,000 USD
     operation_reduction: 1
     service_equipment: [CAB]
+    replacement: true
     level: 4
     description: cable replacement

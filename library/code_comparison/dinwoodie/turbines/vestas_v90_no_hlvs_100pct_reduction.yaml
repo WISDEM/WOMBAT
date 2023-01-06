@@ -37,6 +37,7 @@ turbine:
       materials: 18500
       service_equipment: CTV
       operation_reduction: 1.0
+      replacement: true
       level: 3
       description: medium repair
     4:
