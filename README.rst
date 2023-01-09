@@ -1,5 +1,6 @@
+####################################################################
 WOMBAT: Windfarm Operations & Maintenance cost-Benefit Analysis Tool
-====================================================================
+####################################################################
 
 .. image:: https://img.shields.io/badge/DOI-10.2172%2F1894867-brightgreen?link=https://doi.org/10.2172/1894867
    :target: https://www.osti.gov/biblio/1894867
@@ -64,10 +65,16 @@ If you use this library please cite our NREL Technical Report:
 
 
 WOMBAT in Action
-----------------
+================
 
 There a few Jupyter notebooks to get users up and running with WOMBAT in the `examples/`
 folder, but here are a few highlights:
+
+.. note::
+
+   In v0.6 the results will diverge significantly under certain modeling conditions from
+   past versions due to substantial model upgrades on the backend and new/updated
+   features to better specify how repairs are managed.
 
 * Dinwoodie, et al. replication for `wombat` can be found in the
   `examples folder <https://github.com/WISDEM/WOMBAT/blob/main/examples/dinwoodie_validation.ipynb>`_.
@@ -75,16 +82,36 @@ folder, but here are a few highlights:
   `validation exercise  <https://github.com/WISDEM/WOMBAT/blob/main/examples/iea_26_validation.ipynb>`_.
 * Presentations: `slides  <https://github.com/WISDEM/WOMBAT/blob/main/presentation_material/>`_.
 
+
+=====
 Setup
------
+=====
 
 Requirements
-~~~~~~~~~~~~
+------------
 
-* Python 3.8+, see the next section for more.
+* Python 3.8 through 3.10
+
+.. note::
+
+   For Python 3.10 users that seek to install more than the base dependencies, it has
+   been noted that pip may take a long time to resolve all of the package requirements,
+   so it is recommended to use the following workflow:
+
+   .. code-block:: console
+
+      # Enter the source code directory
+      cd wombat/
+
+      # First install the base package requirements
+      pip install -e .
+
+      # Then install whichever additional dependencies are required/desired
+      pip install -e '.[dev]'  # '.[docs]' or '.[all]'
+
 
 Environment Setup
-~~~~~~~~~~~~~~~~~
+-----------------
 
 Download the latest version of `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_
 for the appropriate OS. Follow the remaining `steps <https://conda.io/projects/conda/en/latest/user-guide/install/index.html#regular-installation>`_
@@ -104,11 +131,11 @@ Using conda, create a new virtual environment:
 
 
 Installation
-~~~~~~~~~~~~
+------------
 
 
 Pip
-~~~
+^^^
 
 .. code-block:: console
 
@@ -116,7 +143,7 @@ Pip
 
 
 From Source
-~~~~~~~~~~~
+^^^^^^^^^^^
 
 Install it directly into an activated virtual environment:
 
@@ -126,24 +153,75 @@ Install it directly into an activated virtual environment:
    cd wombat
    python setup.py install
 
+   # Alternatively:
+   pip install .
 
-or if you will be contributing:
+
+Usage
+-----
+
+After installation, the package can imported:
+
+.. code-block:: console
+
+   python
+   import wombat
+   wombat.__version__
+
+For further usage, please see the documentation site at https://wisdem.github.io/WOMBAT.
+
+
+Requirements for Contributing to WOMBAT
+---------------------------------------
+
+Code Contributions
+^^^^^^^^^^^^^^^^^^
+
+Code contributors should note that there is both an additional dependency suite for
+running the tests and enabling the pre-commit workflow to automically standardize the
+core code formatting principles.
 
 .. code-block:: console
 
    git clone https://github.com/WISDEM/WOMBAT.git
    cd wombat
+
+   # Install the additional dependencies for running the tests and automatic code formatting
    pip install -e '.[dev]'
 
-
-Required for automatic code formatting!
-
-.. code-block:: console
-
+   # Enable the pre-commit workflow for automatic code formatting
    pre-commit install
 
+   # ... contributions and commits ...
 
-or for documentation:
+   # Run the tests and ensure they all pass
+   pytest tests
+
+
+Basic pre-commit issues that users might encounter and their remedies:
+
+* For any failed run, changes may have been either automatically applied or require
+  further edits from the contributor. In either case, after changes have been made,
+  contributors will have to rerun `git add <the changed files>` and
+  `git commit -m <the commit message>` to restart the pre-commit workflow with the
+  applied changes. Once all checks pass, the commit is safe to be pushed.
+* `isort`, `black`, or simple file checks failed, but made changes
+  * rerun the `add` and `commit` processes as needed until the changes satisfy the checks
+* `pylint` or `flake8` failed:
+  * Address the errors and rerun the `add` and `commit` processes
+* `mypy` has type errors that seem incorrect
+  * Double check the typing is in fact as correct as it seems it should be and rerun the
+  `add` and `commit` processes
+  * If `mypy` simply seems confused with seemingly correct types, the following statement
+  can be added above the `mypy` error:
+  `assert isinstance(<variable of concern>, <the type you think mypy should be registering>)`
+  * If that's still not working, but you are definitely sure the types are correct,
+  simply add a `# type ignore` comment at the end of the line. Sometimes `mypy` struggles
+  with complex scenarios, or especially with certain `attrs` conventions.
+
+
+Documentation Contributions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: console
 
@@ -161,27 +239,16 @@ build the site.
 .. code-block:: console
 
    cd docs/
-   make html
+   sphinx-build -b html source _build && make html
 
 
 View the results: `docs/_build/html/index.html`
 
-or both at once:
+Code and Documentation Contributions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: console
 
    git clone https://github.com/WISDEM/WOMBAT.git
    cd wombat
    pip install -e '.[all]'
-
-
-Usage
------
-
-After installation, the package can imported:
-
-.. code-block:: console
-
-   python
-   import wombat
-   wombat.__version__
