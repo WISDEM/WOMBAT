@@ -1,34 +1,4 @@
-====================================================================
-WOMBAT: Windfarm Operations & Maintenance cost-Benefit Analysis Tool
-====================================================================
-
-<!-- .. image:: https://img.shields.io/badge/DOI-10.2172%2F1894867-brightgreen?link=https://doi.org/10.2172/1894867
-   :target: https://www.osti.gov/biblio/1894867 -->
-
-<!-- .. image:: https://badge.fury.io/py/wombat.svg
-   :target: https://badge.fury.io/py/wombat -->
-
-<!-- .. image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
-   :target: https://opensource.org/licenses/Apache-2.0 -->
-
-<!-- .. image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples -->
-
-<!-- .. image:: https://jupyterbook.org/badge.svg
-   :target: https://wisdem.github.io/WOMBAT -->
-
-<!-- | -->
-
-<!-- .. image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
-   :target: https://github.com/pre-commit/pre-commit
-   :alt: pre-commit -->
-
-<!-- .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-   :target: https://github.com/psf/black -->
-
-<!-- .. image:: https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336
-   :target: https://pycqa.github.io/isort/ -->
-
+# WOMBAT: Windfarm Operations & Maintenance cost-Benefit Analysis Tool
 
 [![DOI 10.2172/1894867](https://img.shields.io/badge/DOI-10.2172%2F1894867-brightgreen?link=https://doi.org/10.2172/1894867)](https://www.osti.gov/biblio/1894867)
 [![PyPI version](https://badge.fury.io/py/wombat.svg)](https://badge.fury.io/py/wombat)
@@ -39,7 +9,6 @@ WOMBAT: Windfarm Operations & Maintenance cost-Benefit Analysis Tool
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
-
 
 This library provides a tool to simulate the operation and maintenance phase (O&M) of
 distributed, land-based, and offshore windfarms using a discrete event simultaion
@@ -72,7 +41,7 @@ If you use this library please cite our NREL Technical Report:
    }
 ```
 
-# WOMBAT in Action
+## WOMBAT in Action
 
 There a few Jupyter notebooks to get users up and running with WOMBAT in the `examples/`
 folder, but here are a few highlights:
@@ -89,119 +58,107 @@ folder, but here are a few highlights:
 * Presentations: `slides  <https://github.com/WISDEM/WOMBAT/blob/main/presentation_material/>`_.
 
 
-=====
-Setup
-=====
+## Setup
 
-Requirements
-------------
+### Requirements
 
 * Python 3.8 through 3.10
 
-.. note::
-   For Python 3.10 users that seek to install more than the base dependencies, it has
-   been noted that pip may take a long time to resolve all of the package requirements,
-   so it is recommended to use the following workflow:
+> **Note**
+> For Python 3.10 users that seek to install more than the base dependencies, it has
+> been noted that pip may take a long time to resolve all of the package requirements,
+> so it is recommended to use the following workflow:
 
-   .. code-block:: console
+```console
+# Enter the source code directory
+cd wombat/
 
-      # Enter the source code directory
-      cd wombat/
+# First install the base package requirements
+pip install -e .
 
-      # First install the base package requirements
-      pip install -e .
+# Then install whichever additional dependencies are required/desired
+pip install -e '.[dev]'  # '.[docs]' or '.[all]'
+```
 
-      # Then install whichever additional dependencies are required/desired
-      pip install -e '.[dev]'  # '.[docs]' or '.[all]'
+### Environment Setup
 
-
-Environment Setup
------------------
-
-Download the latest version of `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_
-for the appropriate OS. Follow the remaining `steps <https://conda.io/projects/conda/en/latest/user-guide/install/index.html#regular-installation>`_
+Download the latest version of [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
+for the appropriate OS. Follow the remaining
+[steps](https://conda.io/projects/conda/en/latest/user-guide/install/index.html#regular-installation)
 for the appropriate OS version.
 
 Using conda, create a new virtual environment:
 
-.. code-block:: console
+```console
+conda create -n <environment_name> python=3.8 --no-default-packages
+conda activate <environment_name>
+conda install -c anaconda pip
 
-   conda create -n <environment_name> python=3.8 --no-default-packages
-   conda activate <environment_name>
-   conda install -c anaconda pip
+# activate the environment
+conda activate <environment_name>
 
-   # to deactivate
-   conda deactivate
+# to deactivate
+conda deactivate
+```
 
-
-
-Installation
-------------
-
-
-Pip
-^^^
-
-.. code-block:: console
-
-   pip install wombat
+### Installation
 
 
-From Source
-^^^^^^^^^^^
+#### Pip
+
+```console
+pip install wombat
+```
+
+#### From Source
 
 Install it directly into an activated virtual environment:
 
-.. code-block:: console
+```console
+git clone https://github.com/WISDEM/WOMBAT.git
+cd wombat
+python setup.py install
 
-   git clone https://github.com/WISDEM/WOMBAT.git
-   cd wombat
-   python setup.py install
+# Alternatively:
+pip install .
+```
 
-   # Alternatively:
-   pip install .
-
-
-Usage
------
+#### Usage
 
 After installation, the package can imported:
 
-.. code-block:: console
-
-   python
-   import wombat
-   wombat.__version__
+```console
+python
+import wombat
+wombat.__version__
+```
 
 For further usage, please see the documentation site at https://wisdem.github.io/WOMBAT.
 
 
-Requirements for Contributing to WOMBAT
----------------------------------------
+### Requirements for Contributing to WOMBAT
 
-Code Contributions
-^^^^^^^^^^^^^^^^^^
+#### Code Contributions
 
 Code contributors should note that there is both an additional dependency suite for
 running the tests and enabling the pre-commit workflow to automically standardize the
 core code formatting principles.
 
-.. code-block:: console
+```console
+git clone https://github.com/WISDEM/WOMBAT.git
+cd wombat
 
-   git clone https://github.com/WISDEM/WOMBAT.git
-   cd wombat
+# Install the additional dependencies for running the tests and automatic code formatting
+pip install -e '.[dev]'
 
-   # Install the additional dependencies for running the tests and automatic code formatting
-   pip install -e '.[dev]'
+# Enable the pre-commit workflow for automatic code formatting
+pre-commit install
 
-   # Enable the pre-commit workflow for automatic code formatting
-   pre-commit install
+# ... contributions and commits ...
 
-   # ... contributions and commits ...
-
-   # Run the tests and ensure they all pass
-   pytest tests
-
+# Run the tests and ensure they all pass
+pytest tests
+```
 
 Basic pre-commit issues that users might encounter and their remedies:
 
@@ -210,58 +167,46 @@ Basic pre-commit issues that users might encounter and their remedies:
   contributors will have to rerun `git add <the changed files>` and
   `git commit -m <the commit message>` to restart the pre-commit workflow with the
   applied changes. Once all checks pass, the commit is safe to be pushed.
-
 * `isort`, `black`, or simple file checks failed, but made changes
-
   * rerun the `add` and `commit` processes as needed until the changes satisfy the checks
-
 * `pylint` or `flake8` failed:
-
   * Address the errors and rerun the `add` and `commit` processes
-
 * `mypy` has type errors that seem incorrect
-
   * Double check the typing is in fact as correct as it seems it should be and rerun the
   `add` and `commit` processes
-
   * If `mypy` simply seems confused with seemingly correct types, the following statement
   can be added above the `mypy` error:
   `assert isinstance(<variable of concern>, <the type you think mypy should be registering>)`
-
   * If that's still not working, but you are definitely sure the types are correct,
   simply add a `# type ignore` comment at the end of the line. Sometimes `mypy` struggles
   with complex scenarios, or especially with certain `attrs` conventions.
 
+#### Documentation Contributions
 
-Documentation Contributions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: console
-
-   git clone https://github.com/WISDEM/WOMBAT.git
-   cd wombat
-   pip install -e '.[docs]'
-
+```console
+git clone https://github.com/WISDEM/WOMBAT.git
+cd wombat
+pip install -e '.[docs]'
+```
 
 Build the site
 
-NOTE: You may want to change the "execute_notebook" parameter in the `conf.py` file to
-"off" unless you're updating the coded examples or they will be run every time you
-build the site.
+> **Note**
+> You may want to change the "execute_notebook" parameter in the `conf.py` file to
+> "off" unless you're updating the coded examples or they will be run every time you
+> build the site.
 
-.. code-block:: console
-
-   cd docs/
-   sphinx-build -b html source _build && make html
-
+```console
+cd docs/
+sphinx-build -b html source _build && make html
+```
 
 View the results: `docs/_build/html/index.html`
 
-Code and Documentation Contributions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#### Code and Documentation Contributions
 
-.. code-block:: console
-
-   git clone https://github.com/WISDEM/WOMBAT.git
-   cd wombat
-   pip install -e '.[all]'
+```console
+git clone https://github.com/WISDEM/WOMBAT.git
+cd wombat
+pip install -e '.[all]'
+```
