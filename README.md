@@ -8,53 +8,57 @@ WOMBAT: Windfarm Operations & Maintenance cost-Benefit Analysis Tool
 <!-- .. image:: https://badge.fury.io/py/wombat.svg
    :target: https://badge.fury.io/py/wombat -->
 
-[![DOI 10.2172/1894867](https://img.shields.io/badge/DOI-10.2172%2F1894867-brightgreen?link=https://doi.org/10.2172/1894867)](https://www.osti.gov/biblio/1894867)
+<!-- .. image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
+   :target: https://opensource.org/licenses/Apache-2.0 -->
 
-[![PyPI version](https://badge.fury.io/py/wombat.svg)](https://badge.fury.io/py/wombat)
+<!-- .. image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples -->
 
-.. image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
-   :target: https://opensource.org/licenses/Apache-2.0
+<!-- .. image:: https://jupyterbook.org/badge.svg
+   :target: https://wisdem.github.io/WOMBAT -->
 
-.. image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples
+<!-- | -->
 
-.. image:: https://jupyterbook.org/badge.svg
-   :target: https://wisdem.github.io/WOMBAT
-
-|
-
-.. image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
+<!-- .. image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
    :target: https://github.com/pre-commit/pre-commit
-   :alt: pre-commit
+   :alt: pre-commit -->
 
-.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-   :target: https://github.com/psf/black
+<!-- .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+   :target: https://github.com/psf/black -->
 
-.. image:: https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336
-   :target: https://pycqa.github.io/isort/
+<!-- .. image:: https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336
+   :target: https://pycqa.github.io/isort/ -->
 
+
+[![DOI 10.2172/1894867](https://img.shields.io/badge/DOI-10.2172%2F1894867-brightgreen?link=https://doi.org/10.2172/1894867)](https://www.osti.gov/biblio/1894867)
+[![PyPI version](https://badge.fury.io/py/wombat.svg)](https://badge.fury.io/py/wombat)
+[![Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples)
+[![Jupyter Book](https://jupyterbook.org/badge.svg)](https://wisdem.github.io/WOMBAT)
+
+[![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
+[![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 
 
 This library provides a tool to simulate the operation and maintenance phase (O&M) of
 distributed, land-based, and offshore windfarms using a discrete event simultaion
 framework.
 
-WOMBAT is written around the `SimPy <https://gitlab.com/team-simpy/simpy>`_ framework
-for discrete event simulation framework. Additionally, this is supported using a
-flexible and modular object-oriented code base, which enables the modeling of
-arbitrarily large (or small) windfarms with as many or as few failure and maintenance
-tasks that can be encoded.
+WOMBAT is written around the [`SimPy`](https://gitlab.com/team-simpy/simpy) discrete
+event simulation framework. Additionally, this is supported using a flexible and modular
+object-oriented code base, which enables the modeling of arbitrarily large (or small)
+windfarms with as many or as few failure and maintenance tasks that can be encoded.
 
 Please note that this is still heavily under development, so you may find some functionality
 to be incomplete at the current moment, but rest assured the functionality is expanding.
 With that said, it would be greatly appreciated for issues or PRs to be submitted for
 any improvements at all, from fixing typos (guaranteed to be a few) to features to
-testing (coming FY22!).
+testing.
 
 If you use this library please cite our NREL Technical Report:
 
-.. code-block:: bibtex
-
+```bibtex
    @techreport{hammond2022wombat,
       title = {Windfarm Operations and Maintenance cost-Benefit Analysis Tool (WOMBAT)},
       author = {Hammond, Rob and Cooperman, Aubryn},
@@ -66,18 +70,17 @@ If you use this library please cite our NREL Technical Report:
       month = {10},
       institution = {National Renewable Energy Lab. (NREL)},
    }
+```
 
-
-WOMBAT in Action
-================
+# WOMBAT in Action
 
 There a few Jupyter notebooks to get users up and running with WOMBAT in the `examples/`
 folder, but here are a few highlights:
 
-.. note::
-   In v0.6 the results will diverge significantly under certain modeling conditions from
-   past versions due to substantial model upgrades on the backend and new/updated
-   features to better specify how repairs are managed.
+> **Note**
+> In v0.6 the results will diverge significantly under certain modeling conditions from
+> past versions due to substantial model upgrades on the backend and new/updated
+> features to better specify how repairs are managed.
 
 * Dinwoodie, et al. replication for `wombat` can be found in the
   `examples folder <https://github.com/WISDEM/WOMBAT/blob/main/examples/dinwoodie_validation.ipynb>`_.
