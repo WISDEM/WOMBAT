@@ -80,7 +80,7 @@ class WombatEnvironment(simpy.Environment):
         ``data_dir``/outputs/logs/``simulation_name``.log.
 
         .. note: spaces (" ") will be replaced with underscores ("_"), for example:
-        "my example analysis" becomes "my_example_analysis".
+            "my example analysis" becomes "my_example_analysis".
 
     start_year : int | None, optional
         Custom starting year for the weather profile, by default None. If ``None`` or
@@ -117,7 +117,6 @@ class WombatEnvironment(simpy.Environment):
         The maximum operating speed during the annualized reduced speed operations.
         When defined at the environment level, an undefined or faster value will be
         overridden for all servicing equipment and any modeled port, by default 0.0.
-
 
     Raises
     ------
