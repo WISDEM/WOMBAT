@@ -4,9 +4,9 @@
 from __future__ import annotations
 
 import re
-from typing import Callable  # type: ignore
+from typing import Callable
 
-import numpy as np  # type: ignore
+import numpy as np
 import pandas as pd
 
 

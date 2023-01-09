@@ -2,16 +2,16 @@
 from __future__ import annotations
 
 import logging
-from copy import deepcopy  # type: ignore
+from copy import deepcopy
 from math import fsum
-from pathlib import Path  # type: ignore
-from itertools import product  # type: ignore
+from pathlib import Path
+from itertools import product
 
-import numpy as np  # type: ignore
+import numpy as np
 import PySAM
-import pandas as pd  # type: ignore
-import PySAM.PySSC as pssc  # type: ignore
-import PySAM.Singleowner as pysam_singleowner_financial_model  # type: ignore
+import pandas as pd
+import PySAM.PySSC as pssc
+import PySAM.Singleowner as pysam_singleowner_financial_model
 
 from wombat.core import FixedCosts
 from wombat.core.library import load_yaml
@@ -829,7 +829,10 @@ class Metrics:
         ]
         operating_filter = self.events.action.isin(operating_actions)
         return_filter = self.events.action == "delay"
-        return_filter &= self.events.reason == "work is complete"
+        return_filter &= (
+            (self.events.reason == "work is complete")
+            & (self.events.additional == "will return next year")
+        ) | (self.events.reason == "non-operational period")
         return_filter &= self.events.additional == "will return next year"
         for name in self.service_equipment_names:
             equipment_filter = self.events.agent == name
@@ -1341,6 +1344,7 @@ class Metrics:
             "work shift has ended; waiting for next shift to start",
             "no more return visits will be made",
             "will return next year",
+            "waiting for next operational period",
         )
         weather_hours = ("weather delay", "weather unsuitable to transfer crew")
         costs.loc[

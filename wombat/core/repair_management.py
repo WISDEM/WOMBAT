@@ -3,12 +3,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, Sequence  # type: ignore
+from typing import TYPE_CHECKING, Optional, Sequence
 from itertools import chain
 from collections import Counter
 
 import numpy as np
-from simpy.resources.store import FilterStore, FilterStoreGet  # type: ignore
+from simpy.resources.store import FilterStore, FilterStoreGet
 
 from wombat.core import (
     Failure,
@@ -287,7 +287,9 @@ class RepairManager(FilterStore):
         return None
 
     def get_next_highest_severity_request(
-        self, equipment_capability: Sequence[str], severity_level: Optional[int] = None
+        self,
+        equipment_capability: list[str] | set[str],
+        severity_level: Optional[int] = None,
     ) -> Optional[FilterStoreGet]:
         """Gets the next repair request by ``severity_level``.
 
@@ -306,31 +308,30 @@ class RepairManager(FilterStore):
         if not self.items:
             return None
 
-        equipment_capability = set(equipment_capability)  # type: ignore
+        equipment_capability = set(equipment_capability)
 
-        # Filter the requests by severity level
         requests = self.items
         if severity_level is not None:
+            # Capture only the desired severity level, if specified
             requests = [
-                el
-                for el in self.items
-                if (el.severity_level == severity_level)
-                and (el.system_id not in self.invalid_systems)
+                el for el in self.items if (el.severity_level == severity_level)
             ]
-        if requests == []:
-            return None
+            if requests == []:
+                return None
 
+        # Re-order requests by severity (high to low) and the order they were submitted
+        # Need to ensure that the requests are in submission order in case any get put
+        # back
         requests = sorted(requests, key=lambda x: x.severity_level, reverse=True)
         for request in requests:
-            if equipment_capability.intersection(request.details.service_equipment):  # type: ignore
-                if request.system_id not in self.invalid_systems:
+            if request.system_id not in self.invalid_systems:
+                if equipment_capability.intersection(request.details.service_equipment):
                     self.invalid_systems.append(request.system_id)
                     return self.get(lambda x: x == request)
 
-        # This return statement ensures there is always a known return type,
-        # but consider raising an error here if the loop is always assumed to
-        # break when something is found.
-
+        # Ensure None is returned if nothing is found in the loop just as a FilterGet
+        # would if allowed to oeprate without the above looping to identify multiple
+        # criteria and acting on the request before it's processed
         return None
 
     def halt_requests_for_system(self, system: System | Cable) -> None:
@@ -465,8 +466,9 @@ class RepairManager(FilterStore):
         """Creates an updated mapping between the servicing equipment capabilities and
         the number of requests that fall into each capability category (nonzero values only).
         """
-        # mapping = dict(CTV=0, SCN=0, LCN=0, CAB=0, RMT=0, DRN=0, DSV=0)
-        all_requests = [request.details.service_equipment for request in self.items]
-        requests = dict(Counter(chain.from_iterable(all_requests)))
-        # mapping.update(requests)
+        requests = dict(
+            Counter(
+                chain.from_iterable((r.details.service_equipment for r in self.items))
+            )
+        )
         return requests

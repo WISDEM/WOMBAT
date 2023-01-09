@@ -25,6 +25,8 @@
     ├── results        <- The analysis log files and any saved output data
   ```
   - Adds `create_library_structure` to `wombat.core.library` so that users can create the appropriate folder structure for a new project without having to manually create each and every folder.
+- ``Maintenance.operation_reduction`` has been enabled to better resemble the effect of unaddressed maintenance.
+- ``Failure`` now has a boolean flag for ``replacement`` to indicate if a replacement is required, which allows for operational shutdowns without necessitating a full replacement of the subassembly. Additionally, this flag enables a replacement event for non-shutdown failures.
 
 ### General Improvements
 - Bump Python versioning requirements to 3.8+
@@ -40,6 +42,8 @@
 - `Metrics.process_times()` has been converted to efficient pandas code for fast computation.
 - The Metrics example usage documentation page has been rewritten and reformatted to provide more helpful information to users
 - `Metrics` methods now accurately account for the effect of substation oeprating reductions on upstream turbines so that each substation's subgraph multiplies the turbine operating capacity by the subastation operating capacity.
+- Fixes a bug in the `RepairManager.get_next_highest_severity_request()` where requests aren't processed in first in, first out order with a serverity level priority.
+- Remove duplicated logic in the the ``Subassembly`` and ``Cable`` maintenance and failure modeling ensuring that repetitive logic is identical between scenarios.
 
 ## 0.5.1 (22 July 2022)
 - Updates to use the most recent pandas API/recommendations, which fixes numerous warnings in the `Metrics` class

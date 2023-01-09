@@ -9,13 +9,13 @@ from __future__ import annotations
 import logging
 from copy import deepcopy
 from math import ceil
-from typing import TYPE_CHECKING, Any, Optional, Generator  # type: ignore
+from typing import TYPE_CHECKING, Any, Optional, Generator
 from pathlib import Path
 from datetime import timedelta
 
-import numpy as np  # type: ignore
+import numpy as np
 import pandas as pd
-from simpy.events import Event, Process, Timeout  # type: ignore
+from simpy.events import Event, Process, Timeout
 from pandas.core.indexes.datetimes import DatetimeIndex
 
 from wombat.core import (
@@ -32,7 +32,6 @@ from wombat.core.library import load_yaml
 from wombat.windfarm.system import System
 from wombat.core.data_classes import (
     UNSCHEDULED_STRATEGIES,
-    WindFarmMap,
     ScheduledServiceEquipmentData,
     UnscheduledServiceEquipmentData,
 )
@@ -401,7 +400,7 @@ class ServiceEquipment(RepairsMixin):
                 self.settings.capability
             )
 
-    def enable_string_operations(self, subassembly: Cable) -> None:
+    def enable_string_operations(self, cable: Cable) -> None:
         """Traverses the upstream cable and turbine connections and resets the
         ``System.cable_failure`` and ``Cable.downstream_failure`` until it hits
         another cable failure, then the loop exits.
@@ -412,46 +411,26 @@ class ServiceEquipment(RepairsMixin):
             The `Cable` or `System`
         """
         farm = self.manager.windfarm
-        farm_map = farm.wind_farm_map  # type: ignore
-        assert isinstance(farm_map, WindFarmMap)  # mypy helper
-        if subassembly.connection_type == "array":
+        if cable.connection_type == "array":
             # If there is another failure downstream of the repaired cable, do nothing
-            if subassembly.downstream_failure:
+            if cable.downstream_failure:
                 return
 
             # For each upstream turbine and cable, reset their operations
-            turbines, cables = farm_map.get_upstream_connections(
-                subassembly.substation,
-                subassembly.string_start,
-                subassembly.end_node,
-            )
-            for t_id, c_id in zip(turbines, cables):
+            for t_id, c_id in zip(cable.upstream_nodes, cable.upstream_cables):
                 cable = farm.cable(c_id)
                 if cable.operating_level == 0:
                     break
                 cable.downstream_failure.succeed()
                 farm.system(t_id).cable_failure.succeed()
 
-        if subassembly.connection_type == "export":
-            # Get the substation mapping and IDs
-            substation_id = subassembly.end_node
-            substation_map = farm_map.substation_map[substation_id]
-
-            # Reset the substation's cable failure and the failed cable
-            farm.system(substation_id).cable_failure.succeed()
-            subassembly.downstream_failure.succeed()
+        if cable.connection_type == "export":
+            # Reset the substation's cable failure
+            farm.system(cable.end_node).cable_failure.succeed()
 
             # For each string connected to the substation reset all the turbines and cables
             # until another cable failure is encoountered, then move to the next string
-            for start_node in substation_map.string_starts:
-                cable = farm.cable((substation_id, start_node))
-                if cable.operating_level == 0:
-                    continue
-                cable.downstream_failure.succeed()
-                farm.system(start_node).cable_failure.succeed()
-                turbines, cables = farm_map.get_upstream_connections(
-                    substation_id, start_node, start_node
-                )
+            for turbines, cables in zip(cable.upstream_nodes, cable.upstream_cables):
                 for t_id, c_id in zip(turbines, cables):
                     cable = farm.cable(c_id)
                     if cable.operating_level == 0:
@@ -479,21 +458,25 @@ class ServiceEquipment(RepairsMixin):
         starting_operating_level : float
             The operating level before a repair was started.
         """
+        operation_reduction = repair.details.operation_reduction
+
         if repair.cable and repair.details.operation_reduction == 1:
             assert isinstance(subassembly, Cable)  # mypy helper
             self.enable_string_operations(subassembly)
 
         # Put the subassembly/component back to good as new condition
-        if repair.details.operation_reduction == 1:
+        if repair.details.replacement:
             subassembly.operating_level = 1
             _ = self.manager.purge_subassembly_requests(
                 repair.system_id, repair.subassembly_id
             )
+        elif operation_reduction == 1:
+            subassembly.operating_level = starting_operating_level
             subassembly.broken.succeed()
-        elif repair.details.operation_reduction == 0:
+        elif operation_reduction == 0:
             subassembly.operating_level = starting_operating_level
         else:
-            subassembly.operating_level /= 1 - repair.details.operation_reduction
+            subassembly.operating_level /= 1 - operation_reduction
 
         # Register that the servicing is now over
         system = subassembly if isinstance(subassembly, Cable) else subassembly.system
@@ -765,7 +748,9 @@ class ServiceEquipment(RepairsMixin):
         yield self.env.timeout(hours)
 
     @cache
-    def _calculate_intra_site_time(self, start: str | None, end: str | None) -> float:
+    def _calculate_intra_site_time(
+        self, start: str | None, end: str | None
+    ) -> tuple[float, float]:
         """Calculates the time it takes to travel between port and site or between
         systems on site.
 
@@ -778,10 +763,10 @@ class ServiceEquipment(RepairsMixin):
 
         Returns
         -------
-        float
-            The travel time between two locations.
+        tuple[float, float]
+            The travel time and distance between two locations.
         """
-        distance = 0  # setting for invalid cases to have no traveling
+        distance = 0.0  # setting for invalid cases to have no traveling
         valid_sys = self.windfarm.distance_matrix.columns
         intra_site = start in valid_sys and end in valid_sys
         if intra_site:
@@ -794,7 +779,7 @@ class ServiceEquipment(RepairsMixin):
         # Infinity is the result of "traveling" between a system twice in a row
         if travel_time == float("inf"):
             travel_time = 0
-        return travel_time
+        return travel_time, distance
 
     def _calculate_uninterrupted_travel_time(
         self, distance: float, tow: bool = False
@@ -905,6 +890,7 @@ class ServiceEquipment(RepairsMixin):
         end: str,
         set_current: str | None = None,
         hours: float | None = None,
+        distance: float | None = None,
         **kwargs,
     ) -> Generator[Timeout | Process, None, None]:
         """The process for traveling between port and site, or two systems onsite.
@@ -923,6 +909,8 @@ class ServiceEquipment(RepairsMixin):
         hours : float, optional
             The number hours required for traveling between ``start`` and ``end``.
             If provided, no internal travel time will be calculated.
+        distance : float, optional
+            The distance, in km, to be traveled. Only used if hours is provided
 
         Yields
         -------
@@ -931,21 +919,26 @@ class ServiceEquipment(RepairsMixin):
         """
         validate_end_points(start, end)
         if hours is None:
+            hours = 0.0
+            distance = 0.0
+            additional = f"traveling from {start} to {end}"
+
             if start == end == "system":
                 additional = f"traveling from {self.current_system} to {set_current}"
-                hours = self._calculate_intra_site_time(
+                hours, distance = self._calculate_intra_site_time(
                     self.current_system, set_current
                 )
             elif set((start, end)) == set(("site", "port")):
                 additional = f"traveling from {start} to {end}"
-                hours = self._calculate_interrupted_travel_time(
-                    self.settings.port_distance
-                )
-            else:
-                additional = f"traveling from {start} to {end}"
-                hours = 0
+                distance = self.settings.port_distance
+                hours = self._calculate_interrupted_travel_time(distance)
         else:
-            hours = 0  # takes care of invalid cases
+            if distance is None:
+                raise ValueError("`distance` must be provided if `hours` is provided.")
+
+        # MyPy helper
+        assert isinstance(hours, float)
+        assert isinstance(distance, float)
 
         # If the the equipment will arive after the shift is over, then it must travel
         # back to port (if needed), and wait for the next shift
@@ -980,6 +973,7 @@ class ServiceEquipment(RepairsMixin):
             action="traveling",
             additional=additional,
             duration=hours,
+            distance_km=distance,
             salary_labor_cost=salary_cost,
             hourly_labor_cost=hourly_cost,
             equipment_cost=equipment_cost,
@@ -1051,6 +1045,7 @@ class ServiceEquipment(RepairsMixin):
         equipment_cost = self.calculate_equipment_cost(hours)
         self.env.log_action(
             duration=hours,
+            distance_km=distance,
             action="towing",
             salary_labor_cost=salary_labor_cost,
             hourly_labor_cost=hourly_labor_cost,
@@ -1703,7 +1698,7 @@ class ServiceEquipment(RepairsMixin):
             system_name=request.system_name,
             request_id=request.request_id,
             agent=self.settings.name,
-            reason=f"{request.details.description} has triggered tow-to-port",
+            reason=request.details.description,
         )
 
         # Travel to the turbine

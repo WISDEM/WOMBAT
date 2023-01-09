@@ -8,9 +8,9 @@ import itertools
 from math import fsum
 
 import numpy as np
-import pandas as pd  # type: ignore
-import networkx as nx  # type: ignore
-from geopy import distance  # type: ignore
+import pandas as pd
+import networkx as nx
+from geopy import distance
 
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.core.library import load_yaml
@@ -44,6 +44,7 @@ class Windfarm:
         )
         self._create_substation_turbine_map()
         self._create_wind_farm_map()
+        self.finish_setup()
         self.calculate_distance_matrix()
 
         # Create the logging items
@@ -308,6 +309,11 @@ class Windfarm:
         substations = self.substation_id
         graph = self.graph
         wind_map = dict(zip(substations, itertools.repeat({})))
+
+        export = [el for el in graph.edges if el[1] in substations]
+        for cable_tuple in export:
+            self.cable(cable_tuple).set_string_details(*cable_tuple[::-1])
+
         for s_id in self.substation_id:
             start_nodes = list(
                 set(nx.bfs_tree(graph, s_id, depth_limit=1).nodes).difference(
@@ -323,6 +329,7 @@ class Windfarm:
                 wind_map[s_id]["strings"][start_node] = {
                     start_node: SubString(downstream=s_id, upstream=upstream)  # type: ignore
                 }
+                self.cable((s_id, start_node)).set_string_details(start_node, s_id)
 
                 downstream = start_node
                 for node in upstream:
@@ -343,10 +350,12 @@ class Windfarm:
                 string_map=wind_map[s_id]["strings"],
                 downstream=graph.nodes[s_id]["connection"],
             )
-        self.wind_farm_map = WindFarmMap(  # type: ignore
-            substation_map=wind_map,
-            export_cables=[el for el in graph.edges if el[1] in substations],
-        )
+        self.wind_farm_map = WindFarmMap(substation_map=wind_map, export_cables=export)  # type: ignore
+
+    def finish_setup(self) -> None:
+        """Final initialization hook for any substations, turbines, or cables."""
+        for start_node, end_node in self.graph.edges():
+            self.cable((start_node, end_node)).finish_setup()
 
     def _setup_logger(self, initial: bool = True):
         self._log_columns = [

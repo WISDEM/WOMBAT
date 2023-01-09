@@ -55,5 +55,6 @@ turbine:
       materials: 0
       service_equipment: LCN
       operation_reduction: 0
+      replacement: true
       level: 5
       description: major replacement

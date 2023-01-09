@@ -9,7 +9,7 @@ from pathlib import Path
 import yaml
 import pandas as pd
 from attrs import Attribute, field, define
-from simpy.events import Event  # type: ignore
+from simpy.events import Event
 
 from wombat.core import (
     Metrics,

@@ -25,7 +25,7 @@ import re
 from typing import Any
 from pathlib import Path
 
-import yaml  # type: ignore
+import yaml
 
 
 ROOT = Path(__file__).parents[2].resolve()

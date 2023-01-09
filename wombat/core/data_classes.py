@@ -5,16 +5,16 @@ from __future__ import annotations
 
 import datetime
 from math import fsum
-from typing import TYPE_CHECKING, Any, Callable, Sequence  # type: ignore
+from typing import TYPE_CHECKING, Any, Callable, Sequence
 from pathlib import Path
-from functools import partial, update_wrapper  # type: ignore
+from functools import partial, update_wrapper
 
 import attr
 import attrs
-import numpy as np  # type: ignore
-import pandas as pd  # type: ignore
-from attrs import Factory, Attribute, field, define  # type: ignore
-from scipy.stats import weibull_min  # type: ignore
+import numpy as np
+import pandas as pd
+from attrs import Factory, Attribute, field, define
+from scipy.stats import weibull_min
 
 from wombat.utilities import HOURS_IN_DAY, HOURS_IN_YEAR
 from wombat.utilities.time import parse_date
@@ -416,6 +416,10 @@ class Maintenance(FromDictMixin):
         Turbine replacement value. Used if the materials cost is a proportional cost.
     description : str
         A short text description to be used for logging.
+    operation_reduction : float
+        Performance reduction caused by the failure, between (0, 1]. Defaults to 0.
+    level : int, optional
+        Severity level of the maintenance. Defaults to 0.
     """
 
     time: float = field(converter=float)
@@ -431,8 +435,9 @@ class Maintenance(FromDictMixin):
     system_value: int | float = field(converter=float)
     description: str = field(default="routine maintenance", converter=str)
     operation_reduction: float = field(default=0.0, converter=float)
+    level: int = field(default=0, converter=int)
     request_id: str = field(init=False)
-    level: int = field(default=0, init=False)
+    replacement: bool = field(default=False, init=False)
 
     def __attrs_post_init__(self):
         """Convert frequency to hours (simulation time scale) and the equipment
@@ -493,6 +498,9 @@ class Failure(FromDictMixin):
          - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
     system_value : Union[int, float]
         Turbine replacement value. Used if the materials cost is a proportional cost.
+    replacement : bool
+        True if triggering the failure requires a subassembly replacement, False, if
+        only a repair is necessary. Defaults to False
     description : str
         A short text description to be used for logging.
     """
@@ -511,6 +519,7 @@ class Failure(FromDictMixin):
         ),
     )
     system_value: int | float = field(converter=float)
+    replacement: bool = field(default=False, converter=bool)
     description: str = field(default="failure", converter=str)
     weibull: weibull_min = field(init=False, eq=False)
     request_id: str = field(init=False)
@@ -689,7 +698,7 @@ class DateLimitsMixin:
     """
 
     # MyPy type hints
-    port_distance: float
+    port_distance: float = field(converter=float)
     non_operational_start: datetime.datetime = field(converter=parse_date)
     non_operational_end: datetime.datetime = field(converter=parse_date)
     reduced_speed_start: datetime.datetime = field(converter=parse_date)
@@ -721,7 +730,7 @@ class DateLimitsMixin:
         if distance <= 0:
             return
         if self.port_distance <= 0:  # type: ignore
-            object.__setattr__(self, "port_distance", distance)
+            object.__setattr__(self, "port_distance", float(distance))
 
     def _compare_dates(
         self,
@@ -1029,7 +1038,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     equipment_rate: float = field(converter=float)
     n_crews: int = field(converter=int)
     crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
-    capability: list[str] | str = field(
+    capability: list[str] = field(
         converter=convert_to_list_upper,  # type: ignore
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
@@ -1050,7 +1059,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     speed_reduction_factor: float = field(
         default=0.0, converter=float, validator=valid_reduction
     )
-    port_distance: float = field(default=0, converter=float)
+    port_distance: float = field(default=0.0, converter=float)
     onsite: bool = field(default=False, converter=bool)
     method: str = field(  # type: ignore
         default="severity",
@@ -1240,7 +1249,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     equipment_rate: float = field(converter=float)
     n_crews: int = field(converter=int)
     crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
-    capability: list[str] | str = field(
+    capability: list[str] = field(
         converter=convert_to_list_upper,  # type: ignore
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
@@ -1260,7 +1269,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     speed_reduction_factor: float = field(
         default=0.0, converter=float, validator=valid_reduction
     )
-    port_distance: float = field(default=0, converter=float)
+    port_distance: float = field(default=0.0, converter=float)
     onsite: bool = field(default=False, converter=bool)
     method: str = field(  # type: ignore
         default="severity",
@@ -1552,7 +1561,7 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
     max_operations: int = field(default=1, converter=int)
     workday_start: int = field(default=-1, converter=int, validator=valid_hour)
     workday_end: int = field(default=-1, converter=int, validator=valid_hour)
-    site_distance: float = field(default=0, converter=float)
+    site_distance: float = field(default=0.0, converter=float)
     annual_fee: float = field(
         default=0, converter=float, validator=greater_than_equal_to_zero
     )
@@ -1878,9 +1887,9 @@ class WindFarmMap:
     export_cables: list[tuple[str, str]]
 
     def get_upstream_connections(
-        self, substation: str, string_start: str, node: str, cables: bool = True
+        self, substation: str, string_start: str, node: str, return_cables: bool = True
     ) -> list[str] | tuple[list[str], list[str]]:
-        """Retrieves the upstream turbines (and optionally cables) within the windfarm graph.
+        """Retrieves the upstream turbines (and optionally cables) within the wind farm graph.
 
         Parameters
         ----------
@@ -1890,9 +1899,9 @@ class WindFarmMap:
             The ``System.id`` of the first turbine in the string.
         node : str
             The ``System.id`` of the ending node for a cable connection.
-        cables : bool
-            Indicates if the ``Cable.id`` should be generated for each of the turbines
-            Defaults to True.
+        return_cables : bool
+            Indicates if the ``Cable.id`` should be generated for each of the turbines,
+            by default True.
 
         Returns
         -------
@@ -1904,11 +1913,60 @@ class WindFarmMap:
         strings = self.substation_map[substation].string_map
         upstream = strings[string_start].upstream_map
         turbines = upstream[node].upstream
-        if cables:
-            start = node
-            cable_list = []
-            for turbine in turbines:
-                cable_list.append(f"cable::{start}::{turbine}")
-                start = turbine
-            return turbines, cable_list
+        if return_cables:
+            cables = [
+                f"cable::{node if i == 0 else turbines[i - 1]}::{t}"
+                for i, t in enumerate(turbines)
+            ]
+            return turbines, cables
+        return turbines
+
+    def get_upstream_connections_from_substation(
+        self, substation: str, return_cables: bool = True, by_string: bool = True
+    ) -> list[str] | tuple[list[str], list[str]] | list[list[str]] | tuple[
+        list[list[str]], list[list[str]]
+    ]:
+        """Retrieves the upstream turbines (and optionally, cables) connected to a
+        py:attr:`substation` in the wind farm graph.
+
+        Parameters
+        ----------
+        substation : str
+            The py:attr:`System.id` for the substation.
+        return_cables : bool, optional
+            Indicates if the ``Cable.id`` should be generated for each of the turbines,
+            by default True
+        by_string : bool, optional
+            Indicates if the list of turbines (and cables) should be a nested list for
+            each string (py:obj:`True`), or as 1-D list (py:obj:`False`), by default True.
+
+        Returns
+        -------
+        list[str] | tuple[list[str], list[str]]
+            A list of ``System.id`` for all of the upstream turbines of ``node`` if
+            ``return_cables=False``, otherwise the upstream turbine and the ``Cable.id`` lists
+            are returned. These are bifurcated in lists of lists for each string if ``by_string=True``
+        """
+        turbines, cables = [], []
+        substation_map = self.substation_map[substation]
+        start_nodes = substation_map.string_starts
+        for start_node in start_nodes:
+
+            # Add the starting node of the string and substation-turbine array cable
+            _turbines = [start_node]
+            _cables = [f"cable::{substation}::{start_node}"]
+
+            # Add the main components of the string
+            _t, _c = self.get_upstream_connections(substation, start_node, start_node)
+            _turbines.extend(_t)
+            _cables.extend(_c)
+            turbines.append(_turbines)
+            cables.append(_cables)
+
+        if not by_string:
+            turbines = [el for string in turbines for el in string]  # type: ignore
+            cables = [el for string in cables for el in string]  # type: ignore
+
+        if return_cables:
+            return turbines, cables
         return turbines
