@@ -71,7 +71,6 @@ There a few Jupyter notebooks to get users up and running with WOMBAT in the `ex
 folder, but here are a few highlights:
 
 .. note::
-
    In v0.6 the results will diverge significantly under certain modeling conditions from
    past versions due to substantial model upgrades on the backend and new/updated
    features to better specify how repairs are managed.
@@ -93,7 +92,6 @@ Requirements
 * Python 3.8 through 3.10
 
 .. note::
-
    For Python 3.10 users that seek to install more than the base dependencies, it has
    been noted that pip may take a long time to resolve all of the package requirements,
    so it is recommended to use the following workflow:
@@ -205,16 +203,24 @@ Basic pre-commit issues that users might encounter and their remedies:
   contributors will have to rerun `git add <the changed files>` and
   `git commit -m <the commit message>` to restart the pre-commit workflow with the
   applied changes. Once all checks pass, the commit is safe to be pushed.
+
 * `isort`, `black`, or simple file checks failed, but made changes
+
   * rerun the `add` and `commit` processes as needed until the changes satisfy the checks
+
 * `pylint` or `flake8` failed:
+
   * Address the errors and rerun the `add` and `commit` processes
+
 * `mypy` has type errors that seem incorrect
+
   * Double check the typing is in fact as correct as it seems it should be and rerun the
   `add` and `commit` processes
+
   * If `mypy` simply seems confused with seemingly correct types, the following statement
   can be added above the `mypy` error:
   `assert isinstance(<variable of concern>, <the type you think mypy should be registering>)`
+
   * If that's still not working, but you are definitely sure the types are correct,
   simply add a `# type ignore` comment at the end of the line. Sometimes `mypy` struggles
   with complex scenarios, or especially with certain `attrs` conventions.
