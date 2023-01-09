@@ -93,7 +93,7 @@ metrics = sim.metrics
 
 Before diving into each and every metric, and how they can be customized, it is is worth noting some of the most common parameters used throughout, and their meanings to reduce redundancy. The varying output forms are demonstrated in the [availability](#availability) section below.
 
-#### `frequency`
+### `frequency`
 
   project
   : Computed across the whole simulation, with the resulting `DataFrame` having an empty index.
@@ -107,7 +107,7 @@ Before diving into each and every metric, and how they can be customized, it is 
   month-year
   : computed on a month-by-year basis, producing the results for every month of the simulation, with the resulting `DataFrame` having "year" and "month" as the index.
 
-#### `by`
+### `by`
 
   windfarm
   : Aggregated across all turbines, with the resulting `DataFrame` having only "windfarm" as a column

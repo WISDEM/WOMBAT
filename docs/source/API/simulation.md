@@ -12,14 +12,14 @@ below will show how each of the APIs are powered to enable the full flexibility 
 :width: 2400px
 ```
 
-### Environment
+### WOMBAT Environment
 ```{eval-rst}
 .. autoclass:: wombat.core.environment.WombatEnvironment
    :members:
    :undoc-members:
 ```
 
-### Repair Managemnt
+### Repair Management
 ```{eval-rst}
 .. autoclass:: wombat.core.repair_management.RepairManager
    :members:
