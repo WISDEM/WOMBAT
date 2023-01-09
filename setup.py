@@ -8,10 +8,16 @@ from pathlib import Path
 from setuptools import setup, find_packages
 
 
+HERE = Path(__file__).parent
+
+with open(HERE / "README.md", "r", newline="") as readme:
+    long_description = readme.read()
+    long_description_content_type = "text/markdown"
+
+
 def read(relative_path: Path | str) -> str:
     """Reads the `relative_path` file."""
-    here = Path(__file__).resolve().parent
-    with codecs.open(str(here / relative_path), "r") as fp:
+    with codecs.open(str(HERE / relative_path), "r") as fp:
         return fp.read()
 
 
@@ -25,11 +31,9 @@ def get_version(relative_path: Path | str) -> str:
         raise RuntimeError("Unable to find version string.")
 
 
-with open("README.rst", "r") as fh:
-    long_description = fh.read()
-
-name = "wombat"
 description = "Windfarm operations and maintenance cost-benefit analysis tool"
+version = get_version(HERE / "wombat" / "__init__.py")
+
 
 # Requirements
 REQUIRED = [
@@ -80,12 +84,13 @@ extra_package_requirements = {
 
 
 setup(
-    name=name,
+    name="wombat",
     author="Rob Hammond",
     author_email="rob.hammond@nrel.gov",
-    version=get_version(Path("wombat") / "__init__.py"),
+    version=version,
     description=description,
     long_description=long_description,
+    long_description_content_type=long_description_content_type,
     project_urls={
         "Source": "https://github.com/WISDEM/WOMBAT",
         "Documentation": "https://wisdem.github.io/WOMBAT/",
@@ -115,5 +120,5 @@ setup(
     python_requires=">=3.8, <3.11",
     extras_require=extra_package_requirements,
     test_suite="pytest",
-    tests_require=["pytest", "pytest-xdist", "pytest-cov"],
+    tests_require=["pytest", "pytest-cov"],
 )
