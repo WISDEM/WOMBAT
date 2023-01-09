@@ -112,7 +112,7 @@ setup(
     include_package_data=True,
     package_data={"": ["*.yaml", "*.csv"]},
     install_requires=REQUIRED,
-    python_requires=">=3.8, <=3.10",
+    python_requires=">=3.8, <3.11",
     extras_require=extra_package_requirements,
     test_suite="pytest",
     tests_require=["pytest", "pytest-xdist", "pytest-cov"],
