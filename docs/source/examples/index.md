@@ -108,6 +108,6 @@ and for the [IEA Task 26, 2016 comparison](https://github.com/WISDEM/blob/main/W
 :caption: Examples
 
 how_to
-strategy_demonstration.ipynb
+strategy_demonstration
 metrics_demonstration
 ```

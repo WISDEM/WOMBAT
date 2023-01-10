@@ -41,6 +41,11 @@ style = partial(
 ## Table of Contents
 
 Below is a list of top-level sections to demonstrate how to use WOMBAT's `Metrics` class methods and an explanation of each individual metric.
+
+If you don't see a metric or result computation that is core to your work, please submit
+an [issue](https://github.com/WISDEM/WOMBAT/issues/new) with details on what the metric
+is, and how it should be computed.
+
  - [Setup](#setup): Running a simulation to gather the results
  - [Common Parameters](#common-parameter-explanations): Explanation of frequently used parameter settings
  - [Availability](#availability): Time-based and energy-based availability
@@ -58,7 +63,7 @@ Below is a list of top-level sections to demonstrate how to use WOMBAT's `Metric
  - [Process Times](#process-times): Timing of various stages of repair and maintenance
  - [Power Production](#power-production): Potential and actually produced power
  - [Net Present Value](#net-present-value): Project NPV calculator
- - [PySAM-Powered Results](#pysam-powered-results): PySAM results, if configuration is provided
+ - [PySAM-Powered Results](#pysam-powered-results): PySAM results, if configuration is provided--currently unavailable
 
 
 (setup)=
@@ -480,7 +485,7 @@ style(metrics.power_production(frequency="project", by="windfarm", units="kwh"))
 ```{code-cell} ipython3
 :tags: ["output_scroll"]
 # Project totals, in MWh, at the wind farm level
-(metrics.power_production(frequency="project", units="mwh"))
+style(metrics.power_production(frequency="project", units="mwh"))
 ```
 ```{code-cell} ipython3
 :tags: ["output_scroll"]
@@ -490,7 +495,9 @@ style(metrics.power_production(frequency="project"))
 
 ## Net Present Value
 
-Calcualtes the net present value (NPV) for the project, as $NPV = (Power * OfftakePrice - OpEx) / (1 + DiscountRate)$. For further documentation, see the API docs here: {py:meth}`wombat.core.post_processor.Metrics.npv`.
+Calcualtes the net present value (NPV) for the project, as $NPV = (Power * OfftakePrice - OpEx) / (1 + DiscountRate)$.
+
+For further documentation, see the API docs here: {py:meth}`wombat.core.post_processor.Metrics.npv`.
 
 **Inputs**:
 
