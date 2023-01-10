@@ -60,7 +60,7 @@ DEVELOPER = [
     "pylint>=2.14",
     "flake8>=5",
     "flake8-docstrings>=1.6",
-    "black>=22.1",
+    "flake8_sphinx_links==0.2.1" "black>=22.1",
     "isort>=5.10",
     "pytest>=7",
     "pytest-cov>=4",
