@@ -12,7 +12,7 @@ below will show how each of the APIs are powered to enable the full flexibility 
 :width: 2400px
 ```
 
-### WOMBAT Environment
+### Environment
 ```{eval-rst}
 .. autoclass:: wombat.core.environment.WombatEnvironment
    :members:

@@ -2,9 +2,12 @@
 Reference
 =========
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples)
+This page provides an overview of what WOMBAT is currently able to model, broken down by
+general category. Following this, there are separate pages for how this is done as
+demonstrated through example notebooks. To fully follow the particulars of each example,
+it is recommended to see how each model's configuration files are composed.
 
-## Features
+## Feature Overview
 
 For a complete and detailed description of the functionality provided in WOMBAT, it is
 recommended to read the API documentation. However, that is quite a task, so below is
@@ -20,7 +23,7 @@ a short listing of the core functionality that WOMBAT can provide.
   `reduced_speed` (km/hr). This translates to a maximum speed of `reduced_speed` being
   enforced between the starting and ending dates each year of the simulation. For more
   details, see the documentation pages for the
-  [environment](../API/simulation.md#wombat-environment), [port](../API/simulation.md#port),
+  [environment](../API/simulation.md#environment), [port](../API/simulation.md#port),
   [unshcheduled servicing equipment](../API/types.md#unscheduled-service-equipment), or
   [scheduled servicing equipment](../API/types.md#scheduled-service-equipment).
 - Prohibited operation periods. This dictates periods of time where a site or port may
@@ -90,6 +93,8 @@ modeling assumptions as well as the basic operations of the maintenance and fail
 
 
 ## Examples and Validation Work
+
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples)
 
 Below are a few examples to get started, for users interested in the validation work in
 the [code-to-code comparison presentations](../presentations.rst#code-to-code-comparison),
