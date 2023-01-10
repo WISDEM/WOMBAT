@@ -7,6 +7,9 @@ general category. Following this, there are separate pages for how this is done 
 demonstrated through example notebooks. To fully follow the particulars of each example,
 it is recommended to see how each model's configuration files are composed.
 
+For thorough explanations of the design and implementation ethos of the model, please
+see our NREL Technical Report: https://www.osti.gov/biblio/1894867, which was published
+alongside v0.5.1, so some functionality has been updated.
 ## Feature Overview
 
 For a complete and detailed description of the functionality provided in WOMBAT, it is

@@ -1,4 +1,4 @@
-## Unreleased
+## v0.6.0 (10 January 2023)
 ### New and Updated Features
 - Environmental and logistics considerations via prohibited operations periods and speed reduction periods.
   - All periods can be set for each servicing equipment, or across the board when set at the environment level

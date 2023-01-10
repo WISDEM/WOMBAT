@@ -38,10 +38,25 @@ for the windfarm lifecycle research community. Specifically, WOMBAT is meant to 
 a what-if, or scenario-based, simulation tool, so that you can model the trade-offs in
 decision making for the operations and maintenance phase of a windfarm.
 
-Please note that for the current version, the documentation is fairly sparse outside of
-the core API documentation. This will be updated, along with the model by the end of the
-summer when more development is completed. By that point the model should include more
-functionality surrounding unscheduled maintenance in addition to added documentation.
+As a supplement to this documentation site, there is also an NREL Technical Report that
+goes through much of the design and implementation details available at:
+https://www.osti.gov/biblio/1894867. If you use this software, please cite it using the
+follwing BibTex information, or in commonly used citation formats
+[here](https://www.osti.gov/biblio/1894867).
+
+.. code-block:: bibtex
+
+   @techreport{hammond2022wombat,
+      title = {Windfarm Operations and Maintenance cost-Benefit Analysis Tool (WOMBAT)},
+      author = {Hammond, Rob and Cooperman, Aubryn},
+      abstractNote = {This report provides technical documentation and background on the newly-developed Wind Operations and Maintenance cost-Benefit Analysis Tool (WOMBAT) software. WOMBAT is an open-source model that can be used to obtain cost estimates for operations and maintenance of land-based or offshore wind power plants. The software was designed to be flexible and modular to allow for implementation of new strategies and technological innovations for wind plant maintenance. WOMBAT uses a process-based simulation approach to model day-to-day operations, repairs, and weather conditions. High-level outputs from WOMBAT, including time-based availability and annual operating costs, are found to agree with published results from other models.},
+      doi = {10.2172/1894867},
+      url = {https://www.osti.gov/biblio/1894867},
+      place = {United States},
+      year = {2022},
+      month = {10},
+      institution = {National Renewable Energy Lab. (NREL)},
+   }
 
 For any questions, feel free to open up an issue in the repository or email:
 rob.hammond@nrel.gov.
