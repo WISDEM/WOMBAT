@@ -13,6 +13,17 @@ For a complete and detailed description of the functionality provided in WOMBAT,
 recommended to read the API documentation. However, that is quite a task, so below is
 a short listing of the core functionality that WOMBAT can provide.
 
+### Post Processing and the Simulation API
+
+- The [`Simulation` class](../API/simulation_api.md#simulation-api) and its
+  [`Configuration`](../API/simulation_api.md#configuration) allow users unfamiliar with
+  Python to run the simulation library with minimal code. This was the primary design
+  choice for the model: to create a configuration-based model to enable users with nearly
+  any level Python exposure.
+- The [`Metrics`](../API/simulation_api.md#metrics-computation) class provides a
+  straightfoward interface for computing a wide variety of operational summary statistics
+  from performance to wind power plant financials.
+
 ### Environmental Considerations
 
 - Windspeed (m/s) and wave height (m) for the duration of a simulation (user-provided,
@@ -88,9 +99,27 @@ modeling assumptions as well as the basic operations of the maintenance and fail
     equipment or equipment with an annual visit schedule during safe weather, or on
     an unscheduled basis with a threshold for number of submitted repair requests or
     farm operating level.
-  -
+  - Mobilizations can be modeled with a fixed number of days to get to site and a flat
+    cost for both scheduled and unscheduled servicing equipment. For scheduled equipment,
+    the mobilization is scheduled so that the equipment arrives at the site for the
+    start of it's first scheduled day.
+  - A wide range of generalized capabilities can be specified for various modeling
+    scenarios.
+    - RMT: remote (no actual equipment BUT no special implementation)
+    - DRN: drone
+    - CTV: crew transfer vessel/vehicle
+    - SCN: small crane (i.e., field support vessel)
+    - LCN: large crane (i.e., heavy lift vessel)
+    - CAB: cabling vessel/vehicle
+    - DSV: diving support vessel
+  - Operating limits can be applied for both transiting and repair logic to ensure site
+    safety is considered in the model.
 - Ports
-
+  - Currently only used for tow-to-port repairs or tugboat based repairs, which adds the
+    following additional capabilities:
+    - TOW: tugboat or towing equipment
+    - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
+  - See the [API docs](../API/simulation.md#port) for more details
 
 ## Examples and Validation Work
 

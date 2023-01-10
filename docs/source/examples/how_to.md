@@ -25,7 +25,7 @@ from time import perf_counter  # timing purposes only
 import numpy as np
 import pandas as pd
 
-from wombat.core import Simulation
+from wombat import Simulation
 from wombat.core.library import load_yaml, DINWOODIE
 
 # Seed the random variable for consistently randomized results
@@ -45,13 +45,30 @@ purposes of this tutorial, we'll be working with the data under
 `library/code_comparison/dinwoodie` in the Github repository, and specifically the base
 case.
 
-````{note}
 One important item to note is that the library structure is enforced within the code so all
 data must be placed in the appropriate locations in your analysis' library as follows:
 
+```{warning}
 As of v0.6, the following structure will be adopted to mirror the format of the
 [ORBIT library structure](https://github.com/WISDEM/ORBIT/blob/master/ORBIT/core/library.py#L7-L24)
 to increase compatibility between similar libraries.
+
+WOMBAT will still support the original structure until either v0.7 or v0.8, depending
+on the release timeframe, to allow users to update in their own time.
+```
+
+To help users convert to the new structure, the following method is provided to create
+the required folder structure for users.
+
+```{code-block} python
+
+from wombat import create_library_structure  # located in wombat.core.library
+
+new_library = "library"
+create_library_structure(new_library)
+```
+
+The above method call will produce the below folder and subfolder structure.
 
 ```
 <library>
@@ -67,10 +84,9 @@ to increase compatibility between similar libraries.
   ├── results      <- The analysis log files and any saved output data
 ```
 
-```{warning}
-The previous library strucuture (below) will only be supported until v0.7 (date TBD) to
-allow users to migrate to the new version (above) during the v0.6 lifecycle.
-```
+Users can then migrate their data from the old (below) structure to the new (above)
+structure using their preferred method.
+
 ```
 <libray>
   ├── config            <- Simulation configuration files
@@ -90,7 +106,6 @@ enabled.
 
 In practice, any folder location can be used so long as it follows the subfolder structure provided
 here.
-````
 
 
 ### Windfarm Layout
@@ -106,6 +121,9 @@ substation_id (required)
 
 name (required)
 : A descriptive name for the turbine, if desired. This can be the same as id.
+
+type (optional)
+: One of "turbine" or "substation". This is required to accurately model a multi-substation wind farm. The base assumption is that a substation connects to itself as a means to model the export cable connecting to the interconnection point, however, this is not always the case, as substations may be connected through their export systems. Using this filed allows for that connection to be modeled accurately.
 
 longitude (optional)
 : The longitudinal position of the asset, can be in any geospatial reference; optional.
@@ -128,6 +146,9 @@ subassembly (required)
 upstream_cable (required)
 : The file that defines the upstream cable's modeling parameters.
 
+upstream_cable_name (optional)
+: The descriptive name to give to the cable that will be used during logging. This enables users to use a single cable definition file while maintaining the naming conventions used for the wind farm being simulated.
+
 ```{note}
 In the example below, there are a few noteworthy caveats that will set the stage for
 later input reviews:
@@ -141,16 +162,18 @@ later input reviews:
      used as appopriate.
 ```
 
-| id | substation_id | name | longitude | latitude | string | order | distance | subassembly | upstream_cable |
-| :-- | :-- | :-- | --: | --: | --: | --: | --: | :-- | :-- |
-| OSS1 | OSS1 | OSS1 | 0 | 0 |  |  |  | offshore_substation.yaml | export.yaml |
-| S00T1 | OSS1 | S00T1 | 0 | 0 | 0 | 0 | 0 | vestas_v90.yaml | array.yaml |
-| S00T2 | OSS1 | S00T2 | 0 | 0 | 0 | 1 | 0 | vestas_v90.yaml | array.yaml |
-| S00T3 | OSS1 | S00T3 | 0 | 0 | 0 | 2 | 0 | vestas_v90.yaml | array.yaml |
-| ... |
-| S00T79 | OSS1 | S00T79 | 0 | 0 | 0 | 78 | 0 | vestas_v90.yaml | array.yaml |
-| S00T80 | OSS1 | S00T80 | 0 | 0 | 0 | 79 | 0 | vestas_v90.yaml | array.yaml |
+<div style="overflow-y:auto;overflow-x:auto">
 
+| id | substation_id | name | type | longitude | latitude | string | order | distance | subassembly | upstream_cable |
+| :-- | :-- | :-- | :-- | --: | --: | --: | --: | --: | :-- | :-- |
+| OSS1 | OSS1 | OSS1 | substation | 0 | 0 |  |  |  | offshore_substation.yaml | export.yaml |
+| S00T1 | OSS1 | S00T1 | turbine | 0 | 0 | 0 | 0 | 0 | vestas_v90.yaml | array.yaml |
+| S00T2 | OSS1 | S00T2 | turbine | 0 | 0 | 0 | 1 | 0 | vestas_v90.yaml | array.yaml |
+| S00T3 | OSS1 | S00T3 | turbine | 0 | 0 | 0 | 2 | 0 | vestas_v90.yaml | array.yaml |
+| ... |
+| S00T79 | OSS1 | S00T79 | turbine | 0 | 0 | 0 | 78 | 0 | vestas_v90.yaml | array.yaml |
+| S00T80 | OSS1 | S00T80 | turbine | 0 | 0 | 0 | 79 | 0 | vestas_v90.yaml | array.yaml |
+</div>
 
 ### Weather Profile
 
@@ -310,12 +333,10 @@ two types of repair models:
 - maintenance: scheduled, fixed time interval-based maintenance tasks
 - failures: unscheduled, Weibull distribution-based modeled, maintenance tasks
 
-```{note}
-As of v0.5, the subassemblies keys in the system YAML definition can be user-defined
+The subassemblies keys in the system YAML definition can be user-defined
 to accommodate the varying language among industry groups and generations of wind
 technologies. The only restrictions are the YAML keys must not contain any special
 characters, and cannot be repeated
-```
 
 In the example below we show a `generator` subassembly with an annual service task and
 frequent manual reset. For a thorough definition, please read the API
@@ -328,13 +349,14 @@ given failure. For more details on the complete subassembly definition, please v
 
 ```{code-block} yaml
 generator:
-  name: generator
+  name: generator  # doesn't need to match the subassembly key that becomes System.id
   maintenance:
   - description: annual service
     time: 60
     materials: 18500
     service_equipment: CTV
     frequency: 365
+    operation_reduction: 0  # default value
   failures:
     1:
       scale: 0.1333
@@ -343,6 +365,7 @@ generator:
       materials: 0
       service_equipment: CTV
       operation_reduction: 0.0
+      replacement: False  # daefault value
       level: 1  # Note that the "level" value matches the key "1"
       description: manual reset
 ```
@@ -434,13 +457,18 @@ turbine power curves, please visit the
 #### Cables
 
 ```{note}
-Currently, only array cables are modeled, though in the future export cables will also
-be modeled.
+New, in v0.6: export cables can be modeled and used to connect substations!
 ```
 
 The array cable is the simplest format in that you only define a descriptive name,
 and the maintenance and failure events as below. It should be noted that the scheme
-is a combination of both the system and subassembly configuration
+is a combination of both the system and subassembly configuration.
+
+For export cables that connect substations, as opposed to an interconnection, they will
+not create dependencies because it is assumed they bypass the substation altogether,
+and connect directly with the export system. This means that if there is a failure at a
+downstream substation, the connecting export cable and its upstream turbine, substation,
+and cable connections will continue to operate normally.
 
 ```{code-block} yaml
 name: array cable
@@ -477,6 +505,10 @@ manner. Here the `DINWOODIE` reference is going to be used again.
 ```{note}
 If a custom library is being used, the `library_path` must be the full path name to the
 location of the folder where the configuration data is contained.
+```
+
+```{warning}
+In v0.6, a new library structure
 ```
 
 ```{code-cell} ipython3
