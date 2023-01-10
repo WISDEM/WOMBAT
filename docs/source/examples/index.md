@@ -97,7 +97,7 @@ modeling assumptions as well as the basic operations of the maintenance and fail
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples)
 
 Below are a few examples to get started, for users interested in the validation work in
-the [code-to-code comparison presentations](../presentations.rst#code-to-code-comparison),
+the [code-to-code comparison presentations](../presentations.md#code-to-code-comparison),
 the notebooks generating [the most up-to-date results can be found in the main repository](https://github.com/WISDEM/WOMBAT/examples/), where there is a separate analysis
 for the
 [Dinwoodie, et. al, 2015 comparison](https://github.com/WISDEM/WOMBAT/blob/main/examples/dinwoodie_validation.ipynb),
