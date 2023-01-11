@@ -1,4 +1,6 @@
-## Unreleased
+## v0.6.0 (10 January 2023)
+
+In v0.6, due to a series of bug fixes, logic improvements, and feature additions (all described below), users can expect mild to significant shifts in their results. These shifts, while startling, move WOMBAT towards more accurate results now that servicing equipment can't be dispatched multiple times in a row, statuses can't be reset without failure. Additionally, in our validation cases this has led to an average speedup of 71%, or 3.5x faster run times.
 ### New and Updated Features
 - Environmental and logistics considerations via prohibited operations periods and speed reduction periods.
   - All periods can be set for each servicing equipment, or across the board when set at the environment level

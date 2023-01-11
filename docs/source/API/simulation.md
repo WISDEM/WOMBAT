@@ -19,7 +19,7 @@ below will show how each of the APIs are powered to enable the full flexibility 
    :undoc-members:
 ```
 
-### Repair Managemnt
+### Repair Management
 ```{eval-rst}
 .. autoclass:: wombat.core.repair_management.RepairManager
    :members:

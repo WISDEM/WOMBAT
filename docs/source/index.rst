@@ -1,14 +1,22 @@
 WOMBAT - Windfarm Operations and Maintenance cost-Benefit Analysis Tool
 =======================================================================
 
+.. image:: https://img.shields.io/badge/DOI-10.2172%2F1894867-brightgreen?link=https://doi.org/10.2172/1894867
+   :target: https://www.osti.gov/biblio/1894867
+
 .. image:: https://badge.fury.io/py/wombat.svg
    :target: https://badge.fury.io/py/wombat
+
+.. image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
+   :target: https://opensource.org/licenses/Apache-2.0
 
 .. image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples
 
-.. image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
-   :target: https://opensource.org/licenses/Apache-2.0
+.. image:: https://jupyterbook.org/badge.svg
+   :target: https://wisdem.github.io/WOMBAT
+
+|
 
 .. image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
    :target: https://github.com/pre-commit/pre-commit
@@ -21,6 +29,7 @@ WOMBAT - Windfarm Operations and Maintenance cost-Benefit Analysis Tool
    :target: https://pycqa.github.io/isort/
 
 
+
 Overview
 --------
 
@@ -29,20 +38,35 @@ for the windfarm lifecycle research community. Specifically, WOMBAT is meant to 
 a what-if, or scenario-based, simulation tool, so that you can model the trade-offs in
 decision making for the operations and maintenance phase of a windfarm.
 
-Please note that for the current version, the documentation is fairly sparse outside of
-the core API documentation. This will be updated, along with the model by the end of the
-summer when more development is completed. By that point the model should include more
-functionality surrounding unscheduled maintenance in addition to added documentation.
+As a supplement to this documentation site, there is also an NREL Technical Report that
+goes through much of the design and implementation details available at:
+https://www.osti.gov/biblio/1894867. If you use this software, please cite it using the
+follwing BibTex information, or in commonly used citation formats
+[here](https://www.osti.gov/biblio/1894867).
+
+.. code-block:: bibtex
+
+   @techreport{hammond2022wombat,
+      title = {Windfarm Operations and Maintenance cost-Benefit Analysis Tool (WOMBAT)},
+      author = {Hammond, Rob and Cooperman, Aubryn},
+      abstractNote = {This report provides technical documentation and background on the newly-developed Wind Operations and Maintenance cost-Benefit Analysis Tool (WOMBAT) software. WOMBAT is an open-source model that can be used to obtain cost estimates for operations and maintenance of land-based or offshore wind power plants. The software was designed to be flexible and modular to allow for implementation of new strategies and technological innovations for wind plant maintenance. WOMBAT uses a process-based simulation approach to model day-to-day operations, repairs, and weather conditions. High-level outputs from WOMBAT, including time-based availability and annual operating costs, are found to agree with published results from other models.},
+      doi = {10.2172/1894867},
+      url = {https://www.osti.gov/biblio/1894867},
+      place = {United States},
+      year = {2022},
+      month = {10},
+      institution = {National Renewable Energy Lab. (NREL)},
+   }
 
 For any questions, feel free to open up an issue in the repository or email:
 rob.hammond@nrel.gov.
 
-What's New in v0.5?
--------------------
-- Tow-to-port for offshore wind farms!
-- More metrics!
-- Bug fixes!
-- See the changelog for full details
+Latest Changes?
+---------------
+Please see the CHANGELOG for details!
+
+* On this site: https://wisdem.github.io/WOMBAT/changelog.html
+* On GitHub: https://github.com/WISDEM/WOMBAT/blob/main/CHANGELOG.md
 
 
 The Model in 30 Seconds Or Less
@@ -50,11 +74,12 @@ The Model in 30 Seconds Or Less
 
 In general, the model has 2 overarching branches: the windfarm itself, and the
 simulation environment. For the wind farm model we can control the varying assets
-(or system in the code) as well as the components (or subassemblies in the code). This
-separation allows for each turbine, cable, or substation component to have its own unique
-failure and maintenance models.
+(system in the code)--substations, turbines, and cables--as well as the components that
+comprise each asset (subassemblies in the code). This separation allows for each
+turbine, cable, or substation component to have its own unique failure and maintenance
+models.
 
-As for the environment, this is where the discrete event simulation itself happens in
+As for the environment, this is where the discrete event simulation itself happens, in
 addition to logging, repair logic, and other necessary modeling pieces. The image
 below provides a more visual representation of this description.
 
@@ -135,4 +160,4 @@ License
 -------
 
 Apache 2.0; please see the repository for license information:
-https://github.com/WISDEM/WOMBAT/blob/master/LICENSE
+https://github.com/WISDEM/WOMBAT/blob/main/LICENSE

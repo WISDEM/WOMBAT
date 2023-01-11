@@ -940,7 +940,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         Number of crew units for the equipment.
 
         .. note:: the input to this does not matter yet, as multi-crew functionality
-        is not yet implemented.
+            is not yet implemented.
 
     crew : ServiceCrew
         The crew details, see ``ServiceCrew`` for more information.
@@ -958,7 +958,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         The year to end operations for the rig and crew.
 
         .. note:: if the rig comes annually, then the enter the year for the last year
-        that the rig and crew will be available.
+            that the rig and crew will be available.
 
     capability : str
         The type of capabilities the equipment contains. Must be one of:
@@ -1002,8 +1002,8 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         Indicator for if the rig and crew are based onsite.
 
         .. note:: if the rig and crew are onsite be sure that the start and end dates
-        represent the first and last day/month of the year, respectively, and the start
-        and end years represent the fist and last year in the weather file.
+            represent the first and last day/month of the year, respectively, and the
+            start and end years represent the fist and last year in the weather file.
 
     method : str
         Determines if the ship will do all maximum severity repairs first or do all
@@ -1136,7 +1136,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         Number of crew units for the equipment.
 
         .. note: the input to this does not matter yet, as multi-crew functionality
-        is not yet implemented.
+            is not yet implemented.
 
     crew : ServiceCrew
         The crew details, see ``ServiceCrew`` for more information.
@@ -1159,7 +1159,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         The maximum transit speed when towing, km/hr.
 
         .. note:: This is only required for when the servicing equipment is tugboat
-        enabled for a tow-to-port scenario (capability = "TOW")
+            enabled for a tow-to-port scenario (capability = "TOW")
 
     speed_reduction_factor : flaot
         Reduction factor for traveling in inclement weather, default 0. When 0, travel
@@ -1197,8 +1197,8 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         Indicator for if the rig and crew are based onsite.
 
         .. note:: if the rig and crew are onsite be sure that the start and end dates
-        represent the first and last day/month of the year, respectively, and the start
-        and end years represent the fist and last year in the weather file.
+            represent the first and last day/month of the year, respectively, and the
+            start and end years represent the fist and last year in the weather file.
 
     method : str
         Determines if the ship will do all maximum severity repairs first or do all
@@ -1593,9 +1593,9 @@ class FixedCosts(FromDictMixin):
         and marine activities.
 
         .. note:: This should only be used when not breaking down the cost into the following
-        categories: ``project_management_administration``,
-        ``operation_management_administration``, ``marine_management``, and/or
-        ``weather_forecasting``
+            categories: ``project_management_administration``,
+            ``operation_management_administration``, ``marine_management``, and/or
+            ``weather_forecasting``
 
     project_management_administration : float
         Financial reporting, public relations, procurement, parts and stock management,
@@ -1619,9 +1619,9 @@ class FixedCosts(FromDictMixin):
         Insurance policies during operational period including All Risk Property,
         Buisness Interuption, Third Party Liability, and Brokers Fee, and Storm Coverage.
 
-        .. note:: This should only be used when not breaking down the cost into the following
-        categories: ``brokers_fee``, ``operations_all_risk``, ``business_interruption``,
-        ``third_party_liability``, and/or ``storm_coverage``
+        .. note:: This should only be used when not breaking down the cost into the
+            following categories: ``brokers_fee``, ``operations_all_risk``,
+            ``business_interruption``, ``third_party_liability``, and/or ``storm_coverage``
 
     brokers_fee : float
         Fees for arranging the insurance package.
@@ -1643,8 +1643,9 @@ class FixedCosts(FromDictMixin):
         Transmission Systems Operators or Transmission Asseet Owners for rights to
         transport generated power.
 
-        .. note:: This should only be used when not breaking down the cost into the following
-        categories: ``submerge_land_lease_costs`` and/or ``transmission_charges_rights``
+        .. note:: This should only be used when not breaking down the cost into the
+            following categories: ``submerge_land_lease_costs`` and/or
+            ``transmission_charges_rights``
 
     submerge_land_lease_costs : float
         Payments to submerged land owners for rights to build project during operations.
@@ -1655,8 +1656,9 @@ class FixedCosts(FromDictMixin):
         Inspections of cables, transformer, switch gears, power compensation equipment,
         etc. and infrequent repairs
 
-        This should only be used if not modeling these as processes within the model.
-        Currently, onshore modeling is not included.
+        .. warning:: This should only be used if not modeling these as processes within
+            the model. Currently, onshore modeling is not included.
+
     labor : float
         The costs associated with labor, if not being modeled through the simulated
         processes.

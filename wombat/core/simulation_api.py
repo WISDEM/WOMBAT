@@ -356,6 +356,10 @@ class Simulation(FromDictMixin):
         """Saves the inputs for the `Metrics` initialization with either a direct
         copy of the data or a file reference that can be loaded later.
         """
+        substation_turbine_map = {
+            s_id: {k: v.tolist() for k, v in dict.items()}
+            for s_id, dict in self.windfarm.substation_turbine_map.items()
+        }
         data = dict(
             data_dir=str(self.config.library),
             events=str(self.env.events_log_fname.with_suffix(".csv")),
@@ -370,6 +374,7 @@ class Simulation(FromDictMixin):
             fixed_costs=self.config.fixed_costs,
             substation_id=self.windfarm.substation_id.tolist(),
             turbine_id=self.windfarm.turbine_id.tolist(),
+            substation_turbine_map=substation_turbine_map,
             service_equipment_names=[el.settings.name for el in self.service_equipment],  # type: ignore
             SAM_settings=self.config.SAM_settings,
         )
