@@ -1,4 +1,23 @@
 # Presentations and Publications
+## Publications
+[![DOI 10.2172/1894867](https://img.shields.io/badge/DOI-10.2172%2F1894867-brightgreen?link=https://doi.org/10.2172/1894867)](https://www.osti.gov/biblio/1894867)
+
+Please cite our below publication if you use this software in your studies!
+
+Hammond, Rob, & Cooperman, Aubryn. Windfarm Operations and Maintenance cost-Benefit Analysis Tool (WOMBAT). United States. https://doi.org/10.2172/1894867
+
+```bibtex
+@techreport{hammond2022wombat,
+    title = {Windfarm Operations and Maintenance cost-Benefit Analysis Tool (WOMBAT)},
+    author = {Hammond, Rob and Cooperman, Aubryn},
+    doi = {10.2172/1894867},
+    url = {https://www.osti.gov/biblio/1894867},
+    place = {United States},
+    year = {2022},
+    month = {10},
+    institution = {National Renewable Energy Lab. (NREL)},
+}
+```
 
 ## FY20 DOE Presentation
 
@@ -17,9 +36,9 @@ Dinwoodie, et. al, 2015 [^dinwoodie2015reference] and IEA, 2016 [^smart2016iea].
 {download}`presentation PDF <../../presentation_material/code_comparison.pdf>`
 
 
-### IEA Task 26 Presentation
+## IEA Task 26 Presentation
 
-This presentation was given to the IEA Task Force responsible for :footcite:`smart2016iea`
+This presentation was given to the IEA Task Force responsible for [^smart2016iea]
 as a demonstration of NREL's efforts on O&M model development.
 <br/>
 {download}`presentation PDF <../../presentation_material/WOMBAT_IEA_task_26_presentation_6_May_2021.pdf>`
