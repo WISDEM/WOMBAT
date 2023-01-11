@@ -3,12 +3,9 @@
 from re import M
 from copy import deepcopy
 
-import attrs
 import numpy as np
 import pytest
 
-from wombat import windfarm
-from wombat.core import repair_management, service_equipment
 from wombat.core.library import load_yaml
 from wombat.core.data_classes import (
     VALID_EQUIPMENT,
@@ -57,7 +54,7 @@ def test_repair_manager_init(env_setup):
 
     # Add a downtime-based piece of equipment
     mapping = StrategyMap()
-    fsv = load_yaml(env.data_dir / "repair" / "transport", "fsv_downtime.yaml")
+    fsv = load_yaml(env.data_dir / "vessels", "fsv_downtime.yaml")
     fsv_data = ServiceEquipmentData(fsv).determine_type()
     for capability in fsv_data.capability:
         mapping.update(capability, fsv_data.strategy_threshold, fsv_data)
@@ -157,11 +154,13 @@ def test_register_request_and_submit_request_and_get_request(env_setup):
     retrieved_request = manager.get_request_by_system(["CTV"], system_id=turbine.id)
     assert retrieved_request.value == repair_request_failure
 
-    # Get the request back to ensure it's the same object
+    # Ensure that the turbine has been labeled invalid so that another servicing
+    # equipment can't access it
+    assert manager.invalid_systems == [turbine.id]
     retrieved_request = manager.get_request_by_system(["CTV"], system_id=turbine.id)
-    assert retrieved_request.value == repair_request_maintenance
+    assert retrieved_request is None
 
-    assert manager.items == []
+    assert manager.items == [repair_request_maintenance]
 
 
 def test_request_map(env_setup):
@@ -316,12 +315,15 @@ def test_get_requests(env_setup):
         ["LCN", "CAB", "DSV", "RMT", "DRN"], turbine2.id
     )
     assert request is None
+    manager.enable_requests_for_system(turbine2.id)
 
     request = manager.get_request_by_system(["CTV"], turbine2.id)
     assert request.value == annual_reset2
+    manager.enable_requests_for_system(turbine2.id)
 
     request = manager.get_request_by_system(capability_list, turbine2.id)
     assert request.value == minor_repair2
+    manager.enable_requests_for_system(turbine2.id)
 
     # With 1 requests left, ensure they're produced in the correct order and that
     # specifying incorrect severity levesls returns None
@@ -331,6 +333,7 @@ def test_get_requests(env_setup):
     request = manager.get_next_highest_severity_request(capability_list, 2)
     assert request is None
 
+    manager.enable_requests_for_system(turbine3.id)
     request = manager.get_next_highest_severity_request(capability_list, 3)
     assert request.value == medium_repair3
 

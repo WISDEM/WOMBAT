@@ -1,3 +1,52 @@
+## v0.6.0 (10 January 2023)
+
+In v0.6, due to a series of bug fixes, logic improvements, and feature additions (all described below), users can expect mild to significant shifts in their results. These shifts, while startling, move WOMBAT towards more accurate results now that servicing equipment can't be dispatched multiple times in a row, statuses can't be reset without failure. Additionally, in our validation cases this has led to an average speedup of 71%, or 3.5x faster run times.
+### New and Updated Features
+- Environmental and logistics considerations via prohibited operations periods and speed reduction periods.
+  - All periods can be set for each servicing equipment, or across the board when set at the environment level
+  - For ports, the same logic applies where the environment can set the port variables and the port can set its associated tugboats' variables
+  - When a setting is defined in multiple locations, the more conservative restriction is applied
+  - Variables `non_operational_start`, `non_operational_end` create the annualized period where operations are prohibited, resulting in the creation of the array `non_operational_dates` and set `non_operational_dates_set`.
+  - Variables `reduced_speed_start`, `reduced_speed_end` create the annualized period where the maximum speed, `reduced_speed`, for all operations is imposed, resulting in the creation of the array `reduced_speed_dates` and set `reduced_speed_dates_set`.
+- Export Cables
+  - Models the export cabling system as a single cable between the substation and the interconnection point or as a connection between multiple subsations. for multiple connected substations, the model assumes they are independent systems.
+  - Adds support for "type" in the wind farm layout CSV file, which should be filled with either "substation" or "turbine". This column supports multi-substation farms so that accurate plots and connections can be made. For instance, multiple connected substatation, can now be accurately rendered and modeled in the farm.
+  - Adds support for "upstream_cable_name" in the wind farm layout CSV file, to provide an individualized name to a cable in place of using the name field in the cable settings file for all similar cables.
+- New library structure that mirrors ORBIT (see below diagram)! In v0.7, the orignal library structure will be officially deprecated in favor of the below, and during the v0.6 lifecycle a warning will be raised to instruct users where to place and structure folders going forward.
+  ```
+  <library>
+    ├── project
+      ├── config       <- Project-level configuration files
+      ├── port         <- Port configuration files
+      ├── plant        <- Wind farm layout files
+    ├── cables         <- Export and Array cable configuration files
+    ├── substructures  <- Substructure configuration files
+    ├── turbines       <- Turbine configuration and power curve files
+    ├── vessels        <- Land-based and offshore servicing equipment configuration files
+    ├── weather        <- Weather profiles
+    ├── results        <- The analysis log files and any saved output data
+  ```
+  - Adds `create_library_structure` to `wombat.core.library` so that users can create the appropriate folder structure for a new project without having to manually create each and every folder.
+- ``Maintenance.operation_reduction`` has been enabled to better resemble the effect of unaddressed maintenance.
+- ``Failure`` now has a boolean flag for ``replacement`` to indicate if a replacement is required, which allows for operational shutdowns without necessitating a full replacement of the subassembly. Additionally, this flag enables a replacement event for non-shutdown failures.
+
+### General Improvements
+- Bump Python versioning requirements to 3.8+
+- Add PyArrow dependency for fasting save/load processes for CSV reading and writing
+- Convert boolean operational statuses for `System`, `Subassembly`, `Cable`, and `ServiceEquipment` to SimPy events for more efficient processing and accurate delays for restarting
+- Fix numerous bugs in the repair logic introduced by the use of boolean checks and status switches, which also improve simulation performance. These issues were primarily caused by erroneously resetting the status, but with the new event setting and `.succeed()` logic to clear an operation, the previously incorrect resetting is much harder to do.
+- Continue to improve the performance of low-level simulation operations to realize further improvements in memory usage and simulation performance
+- Logging is now based on directly writing to CSV in place of the `logging`-based infrastructure
+  - All underlying infrastructure withing the simulation have also been updated to accommodate the different file types, which allows for more direct interation at the end of the simulation and enables PyArrow csv read/write
+  - This enables:
+    - deprecation warnings to be passed directly to the terminal/notebook without interfering with the file handling
+    - reasonable speedups to simulation times by not having additional overhead from the logging and buffering
+- `Metrics.process_times()` has been converted to efficient pandas code for fast computation.
+- The Metrics example usage documentation page has been rewritten and reformatted to provide more helpful information to users
+- `Metrics` methods now accurately account for the effect of substation oeprating reductions on upstream turbines so that each substation's subgraph multiplies the turbine operating capacity by the subastation operating capacity.
+- Fixes a bug in the `RepairManager.get_next_highest_severity_request()` where requests aren't processed in first in, first out order with a serverity level priority.
+- Remove duplicated logic in the the ``Subassembly`` and ``Cable`` maintenance and failure modeling ensuring that repetitive logic is identical between scenarios.
+
 ## 0.5.1 (22 July 2022)
 - Updates to use the most recent pandas API/recommendations, which fixes numerous warnings in the `Metrics` class
 - Fixes inconsistency in returning floats vs `DataFrame`s in the  `Metrics` class

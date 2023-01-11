@@ -13,6 +13,7 @@ from wombat.windfarm import Windfarm
 from wombat.windfarm.system import Cable, System
 
 from tests.conftest import (
+    EXPORT,
     SUBSTATION,
     VESTAS_V90,
     ARRAY_33KV_240MM,
@@ -36,6 +37,7 @@ def test_windfarm_init(env_setup):
         for _id, _name in zip(correct_turbine_ids, correct_turbine_names)
     ]
     correct_edge_keys = [
+        ("OSS1", "OSS1"),
         ("OSS1", "S00T1"),
         ("S00T1", "S00T2"),
         ("S00T2", "S00T3"),  # string 1
@@ -45,38 +47,15 @@ def test_windfarm_init(env_setup):
     ]
     correct_cable_ids = ["::".join(("cable", *el)) for el in correct_edge_keys]
     correct_cable_list = [
-        Cable(
-            windfarm,
-            env,
-            "OSS1",
-            "S00T1",
-            ARRAY_33KV_630MM,
-        ),
-        Cable(
-            windfarm,
-            env,
-            "S00T1",
-            "S00T2",
-            ARRAY_33KV_240MM,
-        ),
-        Cable(windfarm, env, "S00T2", "S00T3", ARRAY_33KV_240MM),
-        Cable(
-            windfarm,
-            env,
-            "OSS1",
-            "S01T4",
-            ARRAY_33KV_630MM,
-        ),
-        Cable(
-            windfarm,
-            env,
-            "S01T4",
-            "S01T5",
-            ARRAY_33KV_240MM,
-        ),
-        Cable(windfarm, env, "S01T5", "S01T6", ARRAY_33KV_240MM),
+        Cable(windfarm, env, "export", "OSS1", "OSS1", EXPORT),
+        Cable(windfarm, env, "array", "OSS1", "S00T1", ARRAY_33KV_630MM),
+        Cable(windfarm, env, "array", "S00T1", "S00T2", ARRAY_33KV_240MM),
+        Cable(windfarm, env, "array", "S00T2", "S00T3", ARRAY_33KV_240MM),
+        Cable(windfarm, env, "array", "OSS1", "S01T4", ARRAY_33KV_630MM),
+        Cable(windfarm, env, "array", "S01T4", "S01T5", ARRAY_33KV_240MM),
+        Cable(windfarm, env, "array", "S01T5", "S01T6", ARRAY_33KV_240MM),
     ]
-    correct_N_edges = 6
+    correct_N_edges = 7
     correct_N_nodes = 7
     correct_capacity = VESTAS_V90["capacity_kw"] * len(correct_turbine_ids)
     correct_substation_turbine_map = {
@@ -115,7 +94,11 @@ def test_windfarm_init(env_setup):
     )
     oss1_map = windfarm.substation_turbine_map["OSS1"]
     correct_oss1_map = correct_substation_turbine_map["OSS1"]
-    npt.assert_equal(oss1_map["turbines"], correct_oss1_map["turbines"])
+
+    # For the substation map with turbines and their weights, the ordering of the turbines
+    # doesn't matter when comparing because the weights are in the same order as the turbines
+    # and the capacities in this model are all the same
+    npt.assert_equal(sorted(oss1_map["turbines"]), sorted(correct_oss1_map["turbines"]))
     npt.assert_equal(oss1_map["weights"], correct_oss1_map["weights"])
 
     # TODO: CHECK THE DISTANCE MATRIX
@@ -213,8 +196,12 @@ def test_windfarm_init(env_setup):
         assert cable.system == correct_cable.system
         assert cable.data.name == cable.data.name
         assert cable.operating_level == correct_cable.operating_level == 1
-        assert cable.broken == correct_cable.broken is False
-        assert cable.downstream_failure == correct_cable.downstream_failure is False
+        assert cable.broken.triggered == correct_cable.broken.triggered is True
+        assert (
+            cable.downstream_failure.triggered
+            == correct_cable.downstream_failure.triggered
+            is True
+        )
 
         # Rough check of the subassemblies and maintenance/failure creation
         assert cable.processes.keys() == correct_cable.processes.keys()

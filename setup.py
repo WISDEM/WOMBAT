@@ -1,20 +1,27 @@
 """The package setup for installations."""
 
+from __future__ import annotations
 
-import os
 import codecs
+from pathlib import Path
 
 from setuptools import setup, find_packages
 
 
-def read(relative_path):
+HERE = Path(__file__).parent
+
+with open(HERE / "README.md", "r", newline="") as readme:
+    long_description = readme.read()
+    long_description_content_type = "text/markdown"
+
+
+def read(relative_path: Path | str) -> str:
     """Reads the `relative_path` file."""
-    here = os.path.abspath(os.path.dirname(__file__))
-    with codecs.open(os.path.join(here, relative_path), "r") as fp:
+    with codecs.open(str(HERE / relative_path), "r") as fp:
         return fp.read()
 
 
-def get_version(relative_path):
+def get_version(relative_path: Path | str) -> str:
     """Retreives the version number."""
     for line in read(relative_path).splitlines():
         if line.startswith("__version__"):
@@ -24,82 +31,95 @@ def get_version(relative_path):
         raise RuntimeError("Unable to find version string.")
 
 
-with open("README.rst", "r") as fh:
-    long_description = fh.read()
-
-name = "wombat"
 description = "Windfarm operations and maintenance cost-benefit analysis tool"
-extra_package_requirements = {
-    "dev": [
-        "pre-commit",
-        "pylint",
-        "flake8",
-        "flake8-docstrings",
-        "black",
-        "isort",
-        "pytest",
-        "pytest-cov",
-        "pytest-xdist",
-        "mypy",
-    ],
-    "docs": [
-        "sphinx",
-        "myst-nb",
-        "myst-parser",
-        "sphinx-panels",
-        "sphinx-book-theme",
-        "sphinxcontrib-spelling",
-        "linkify-it-py",
-        "sphinxcontrib-bibtex",
-    ],
-}
-extra_package_requirements["all"] = [
-    *extra_package_requirements["dev"],
-    *extra_package_requirements["docs"],
+version = get_version(HERE / "wombat" / "__init__.py")
+
+
+# Requirements
+REQUIRED = [
+    "attrs>=21",
+    "numpy>=1.21",
+    "scipy>=1.8",
+    "pandas>=1.4",
+    "pyarrow>=10",
+    "jupyterlab>=3",
+    "simpy>=4.0.1",
+    "pyyaml>=6",
+    "geopy>=2.3",
+    "networkx>=2.7",
+    "matplotlib>=3.3",
+    "nrel-pysam>=4",
+    # required for pre-commit CI
+    "types-attrs>=19",
+    "types-typed-ast>=1.5",
+    "types-PyYAML>=6",
+    "types-python-dateutil>=2.8",
 ]
+DEVELOPER = [
+    "pre-commit>=2.20",
+    "pylint>=2.14",
+    "flake8>=5",
+    "flake8-docstrings>=1.6",
+    "flake8_sphinx_links==0.2.1",
+    "black>=22.1",
+    "isort>=5.10",
+    "pytest>=7",
+    "pytest-cov>=4",
+    "mypy>=0.991",
+]
+DOCUMENTATION = [
+    "Sphinx==4.*",
+    "myst-nb>=0.16",
+    "myst-parser>=0.17",
+    "sphinx-panels>=0.6",
+    "sphinx-book-theme>=0.3.3",
+    "sphinxcontrib-spelling>=7",
+    "linkify-it-py>=2",
+    "sphinxcontrib-bibtex>=2.4",
+]
+extra_package_requirements = {
+    "dev": DEVELOPER,
+    "docs": DOCUMENTATION,
+    "all": DEVELOPER + DOCUMENTATION,
+}
 
 
 setup(
-    name=name,
+    name="wombat",
     author="Rob Hammond",
     author_email="rob.hammond@nrel.gov",
-    version=get_version(os.path.join("wombat", "__init__.py")),
+    version=version,
     description=description,
     long_description=long_description,
+    long_description_content_type=long_description_content_type,
     project_urls={
-        # "Documentation": "https://pip.pypa.io",
         "Source": "https://github.com/WISDEM/WOMBAT",
+        "Documentation": "https://wisdem.github.io/WOMBAT/",
     },
     classifiers=[
-        # TODO: https://pypi.org/pypi?%3Aaction=list_classifiers
-        "Development Status :: 1 - Planning",
+        # TODO: https://pypi.org/classifiers
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: Other Audience",
+        "License :: OSI Approved :: Apache Software License",
         "Natural Language :: English",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Topics :: Scientific/Engineering",
+        "Topics :: Software Development :: Libraries :: Python Modules",
+        "Typing :: Typed",
     ],
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     include_package_data=True,
     package_data={"": ["*.yaml", "*.csv"]},
-    install_requires=[
-        "attrs>=21",
-        "numpy>=1.21",
-        "scipy",
-        "pandas",
-        "jupyterlab",
-        "simpy>=4.0.1",
-        "pyyaml",
-        "geopy",
-        "networkx",
-        "matplotlib>=3.3",
-        "nrel-pysam",
-        # required for pre-commit CI
-        "types-attrs",
-        "types-PyYAML",
-    ],
-    python_requires=">=3.7",
+    install_requires=REQUIRED,
+    python_requires=">=3.8, <3.11",
     extras_require=extra_package_requirements,
     test_suite="pytest",
-    tests_require=["pytest", "pytest-xdist", "pytest-cov"],
+    tests_require=["pytest", "pytest-cov"],
 )

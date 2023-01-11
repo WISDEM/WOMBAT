@@ -12,7 +12,8 @@
    :members:
    :undoc-members:
    :exclude-members: name, library, layout, service_equipment, weather, workday_start,
-    workday_end, inflation_rate, fixed_costs, project_capacity, start_year, end_year
+    workday_end, inflation_rate, fixed_costs, project_capacity, start_year, end_year,
+    port, SAM_settings
 ```
 
 ## Simulation Interface
@@ -21,11 +22,12 @@
    :members:
    :undoc-members:
    :exclude-members: setup_simulation, config, env, initialize_metrics, library_path,
-    metrics, repair_manager, service_equipment, windfarm
+    metrics, repair_manager, service_equipment, windfarm, port
 ```
 
 
 ## Metrics Computation
+For example usage of the Metrics class and its associated methods, please see the [examples documentation page](../examples/metrics_demonstration)
 ```{eval-rst}
 .. autoclass:: wombat.core.post_processor.Metrics
    :members: from_simulation_outputs, power_production, time_based_availability,

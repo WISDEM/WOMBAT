@@ -46,22 +46,23 @@ def env_setup_full_profile():
     env.cleanup_log_files()
 
 
-SUBSTATION = load_yaml(TEST_DATA / "windfarm", "offshore_substation.yaml")
-VESTAS_V90 = load_yaml(TEST_DATA / "windfarm", "vestas_v90.yaml")
+SUBSTATION = load_yaml(TEST_DATA / "substations", "offshore_substation.yaml")
+VESTAS_V90 = load_yaml(TEST_DATA / "turbines", "vestas_v90.yaml")
 VESTAS_V90_1_SUBASSEMBLY = load_yaml(
-    TEST_DATA / "windfarm", "vestas_v90_single_subassembly.yaml"
+    TEST_DATA / "turbines", "vestas_v90_single_subassembly.yaml"
 )
 VESTAS_V90_NO_SUBASSEMBLY = load_yaml(
-    TEST_DATA / "windfarm", "vestas_v90_no_subassemblies.yaml"
+    TEST_DATA / "turbines", "vestas_v90_no_subassemblies.yaml"
 )
 VESTAS_V90_TEST_TIMEOUTS = load_yaml(
-    TEST_DATA / "windfarm", "vestas_v90_test_timeouts.yaml"
+    TEST_DATA / "turbines", "vestas_v90_test_timeouts.yaml"
 )
-ARRAY_33KV_240MM = load_yaml(TEST_DATA / "windfarm", "array_33kv_240mm.yaml")
-ARRAY_33KV_630MM = load_yaml(TEST_DATA / "windfarm", "array_33kv_630mm.yaml")
+ARRAY_33KV_240MM = load_yaml(TEST_DATA / "cables", "array_33kv_240mm.yaml")
+ARRAY_33KV_630MM = load_yaml(TEST_DATA / "cables", "array_33kv_630mm.yaml")
+EXPORT = load_yaml(TEST_DATA / "cables", "export.yaml")
 
 
-power_curve = TEST_DATA / "windfarm" / "vestas_v90_power_curve.csv"
+power_curve = TEST_DATA / "turbines" / "vestas_v90_power_curve.csv"
 power_curve = pd.read_csv(f"{power_curve}")
 power_curve = power_curve.loc[power_curve.power_kw != 0].reset_index(drop=True)
 VESTAS_POWER_CURVE = IEC_power_curve(

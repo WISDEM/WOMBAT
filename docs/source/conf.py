@@ -56,7 +56,7 @@ templates_path = ["_templates"]
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+nb_execution_excludepatterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 bibtex_bibfiles = ["refs.bib"]
 
@@ -68,8 +68,8 @@ intersphinx_mapping = {
 suppress_warnings = ["myst.domains"]
 
 myst_enable_extensions = [
-    # "dollarmath",
-    # "amsmath",
+    "dollarmath",
+    "amsmath",
     "deflist",
     # "html_admonition",
     # "html_image",
@@ -88,10 +88,10 @@ source_suffix = {
 }
 
 # toggle this between auto/off to rerun full documentation build
-nb_execution_mode = "off"
+nb_execution_mode = "auto"
 nb_execution_timeout = -1
 nb_execution_allow_errors = True
-# execution_excludepatterns = ["*_demonstration.ipynb"]  # only used for quick docs building when updating the how to example
+# nb_execution_excludepatterns.append("*_demonstration.md")  # used for targeted updating
 
 myst_heading_anchors = 3
 

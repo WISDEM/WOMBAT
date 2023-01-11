@@ -9,7 +9,8 @@ import pytest
 import numpy.testing as npt
 from pandas.testing import assert_index_equal
 
-from wombat.core import WombatEnvironment
+from wombat.core import RepairManager, WombatEnvironment
+from wombat.windfarm import Windfarm
 
 from tests.conftest import TEST_DATA
 
@@ -188,11 +189,14 @@ def test_timing():
         workday_end=16,
         simulation_name="testing_setup",
     )
+    manager = RepairManager(env)
+    windfarm = Windfarm(env, "layout.csv", manager)
 
     # Run for 96 hours from the start to this point in the data
     # 1/5/02 0:00,8.238614098,0.37854216
     correct_index = 96
     correct_date = datetime.date(2002, 1, 5)
+    correct_hour = 0
     correct_datetime = datetime.datetime(2002, 1, 5, 0, 0, 0)
     correct_wind = 8.238614098
     correct_wave = 0.37854216
@@ -204,7 +208,7 @@ def test_timing():
     assert env.now == correct_index
     assert env.simulation_time == correct_datetime
     assert env.hours_to_next_shift() == 8
-    assert all(env.weather_now == (correct_wind, correct_wave))
+    assert all(env.weather_now == (correct_wind, correct_wave, correct_hour))
     assert not env.is_workshift()
 
     # Test for a non-even timing of 128.7 hours
@@ -214,6 +218,7 @@ def test_timing():
     correct_date = datetime.date(2002, 1, 6)
     correct_datetime = datetime.datetime(2002, 1, 6, 8, 42)
     correct_hours_to_next_shift = 23.3
+    correct_hour = 8
     correct_wind = 8.321216829
     correct_wave = 0.795805105
     assert env.date_ix(correct_date) == correct_index
@@ -223,7 +228,7 @@ def test_timing():
     assert env.now == until
     assert env.simulation_time == correct_datetime
     assert env.hours_to_next_shift() == correct_hours_to_next_shift
-    assert all(env.weather_now == (correct_wind, correct_wave))
+    assert all(env.weather_now == (correct_wind, correct_wave, correct_hour))
     assert env.is_workshift()
 
     env.cleanup_log_files()  # delete the logged data
@@ -239,6 +244,8 @@ def test_is_workshift():
         workday_end=16,
         simulation_name="testing_setup",
     )
+    manager = RepairManager(env)
+    windfarm = Windfarm(env, "layout.csv", manager)
     # Test for the 24 hours of the day with a basic 8am to 4pm workday
     assert not env.is_workshift()
     for i in range(23):
@@ -276,6 +283,8 @@ def test_hour_in_shift():
         workday_end=16,
         simulation_name="testing_setup",
     )
+    manager = RepairManager(env)
+    windfarm = Windfarm(env, "layout.csv", manager)
 
     # Test the boundary conditions at midnight
 
@@ -319,6 +328,8 @@ def test_hours_to_next_shift():
         workday_end=16,
         simulation_name="testing_setup",
     )
+    manager = RepairManager(env)
+    windfarm = Windfarm(env, "layout.csv", manager)
 
     # Test that at hour 0, there are 8 hours until 8am
     assert env.hours_to_next_shift() == 8
@@ -355,6 +366,8 @@ def test_weather_forecast():
         workday_end=16,
         simulation_name="testing_setup",
     )
+    manager = RepairManager(env)
+    windfarm = Windfarm(env, "layout.csv", manager)
 
     # Test for the next 5 hours, but at the top of the hour
     # Starts with hour 0, and ends with the 5th hour following
@@ -362,6 +375,7 @@ def test_weather_forecast():
         pd.date_range("1/1/2002 00:00:00", "1/1/2002 04:00:00", freq="1H"),
         name="datetime",
     )
+    correct_hour = np.array([0, 1, 2, 3, 4], dtype=float)
     correct_wind = np.array(
         [11.75561096, 10.41321252, 8.959270788, 9.10014808, 9.945059601]
     )
@@ -369,9 +383,11 @@ def test_weather_forecast():
         [1.281772405, 1.586584315, 1.725690828, 1.680982063, 1.552232138]
     )
 
-    ix, wind, wave = env.weather_forecast(hours=5)
+    print(env.weather.shape)
+    ix, hour, wind, wave = env.weather_forecast(hours=5)
     assert ix.size == wind.size == wave.size == 5
     assert_index_equal(ix, correct_index)
+    npt.assert_equal(hour, correct_hour)
     npt.assert_equal(wind, correct_wind)
     npt.assert_equal(wave, correct_wave)
 
@@ -382,6 +398,7 @@ def test_weather_forecast():
         pd.date_range("1/1/2002 00:00:00", "1/1/2002 05:00:00", freq="1H"),
         name="datetime",
     )
+    correct_hour = np.arange(6, dtype=float)
     correct_wind = np.array(
         [11.75561096, 10.41321252, 8.959270788, 9.10014808, 9.945059601, 11.50807971]
     )
@@ -389,9 +406,10 @@ def test_weather_forecast():
         [1.281772405, 1.586584315, 1.725690828, 1.680982063, 1.552232138, 1.335083363]
     )
 
-    ix, wind, wave = env.weather_forecast(hours=5)
-    assert ix.size == wind.size == wave.size == 6
+    ix, hour, wind, wave = env.weather_forecast(hours=5)
+    assert ix.size == hour.size == wind.size == wave.size == 6
     assert_index_equal(ix, correct_index)
+    npt.assert_equal(hour, correct_hour)
     npt.assert_equal(wind, correct_wind)
     npt.assert_equal(wave, correct_wave)
 
@@ -402,6 +420,7 @@ def test_weather_forecast():
         pd.date_range("1/1/2002 01:00:00", "1/1/2002 07:00:00", freq="1H"),
         name="datetime",
     )
+    correct_hour = np.arange(1, 8, dtype=float)
     correct_wind = np.array(
         [
             10.41321252,
@@ -425,9 +444,10 @@ def test_weather_forecast():
         ]
     )
 
-    ix, wind, wave = env.weather_forecast(hours=5.5)
-    assert ix.size == wind.size == wave.size == 7
+    ix, hour, wind, wave = env.weather_forecast(hours=5.5)
+    assert ix.size == hour.size == wind.size == wave.size == 7
     assert_index_equal(ix, correct_index)
+    npt.assert_equal(hour, correct_hour)
     npt.assert_equal(wind, correct_wind)
     npt.assert_equal(wave, correct_wave)
 

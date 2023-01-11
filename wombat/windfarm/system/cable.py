@@ -1,12 +1,10 @@
 """"Defines the Cable class and cable simulations."""
+from __future__ import annotations
 
+from typing import Generator
 
-from typing import Generator  # type: ignore
-from itertools import chain
-
-import numpy as np  # type: ignore
-import simpy  # type: ignore
-import networkx as nx
+import numpy as np
+import simpy
 
 from wombat.core import (
     Failure,
@@ -15,12 +13,6 @@ from wombat.core import (
     SubassemblyData,
     WombatEnvironment,
 )
-
-
-# TODO: Need a better method for checking if a repair has been made to bring the
-# subassembly back online
-HOURS = 8760
-TIMEOUT = 24  # Wait time of 1 day for replacement to occur
 
 
 class Cable:
@@ -34,6 +26,8 @@ class Cable:
         The simulation environment.
     cable_id : str
         The unique identifier for the cable.
+    connection_type : str
+        The type of cable. Must be one of "array" or "export".
     start_node : str
         The starting point (``system.id``) (turbine or substation) of the cable segment.
     cable_data : dict
@@ -44,9 +38,11 @@ class Cable:
         self,
         windfarm,
         env: WombatEnvironment,
+        connection_type: str,
         start_node: str,
         end_node: str,
         cable_data: dict,
+        name: str | None = None,
     ) -> None:
         """Initializes the ``Cable`` class.
 
@@ -56,6 +52,8 @@ class Cable:
             The ``Windfarm`` object.
         env : WombatEnvironment
             The simulation environment.
+        connection_type : str
+            One of "export" or "array".
         cable_id : str
             The unique identifier for the cable.
         start_node : str
@@ -64,36 +62,81 @@ class Cable:
             The ending point (``system.id``) (turbine or substation) of the cable segment.
         cable_data : dict
             The dictionary defining the cable segment.
+        name : str | None
+            The name of the cable to use during logging.
         """
 
         self.env = env
         self.windfarm = windfarm
+        self.connection_type = connection_type
         self.start_node = start_node
         self.end_node = end_node
         self.id = f"cable::{start_node}::{end_node}"
-        # TODO: need to be able to handle substations, which are not being modeled currently
-        self.system = windfarm.graph.nodes(data=True)[start_node][
-            "system"
-        ]  # MAKE THIS START
+        self.system = windfarm.system(start_node)
 
-        # Map the upstream substations and turbines, and cables
-        upstream = nx.dfs_successors(self.windfarm.graph, end_node)
-        self.upstream_nodes = [self.end_node]
-        if len(upstream) > 0:
-            self.upstream_nodes = list(chain(self.upstream_nodes, *upstream.values()))
-        self.upstream_cables = list(nx.edge_dfs(self.windfarm.graph, end_node))
+        if self.connection_type not in ("array", "export"):
+            raise ValueError(
+                f"Input to `connection_type` for {self.id} must be one of 'array' or 'export'."
+            )
 
         cable_data = {**cable_data, "system_value": self.system.value}
         self.data = SubassemblyData.from_dict(cable_data)
-        self.name = self.data.name
+        self.name = self.data.name if name is None else name
 
-        self.downstream_failure = False
         self.operating_level = 1.0
-        self.servicing = False
-        self.broken = False
+        self.servicing = self.env.event()
+        self.downstream_failure = self.env.event()
+        self.broken = self.env.event()
+
+        # Ensure events start as processed and inactive
+        self.servicing.succeed()
+        self.downstream_failure.succeed()
+        self.broken.succeed()
 
         # TODO: need to get the time scale of a distribution like this
         self.processes = dict(self._create_processes())
+
+    def set_string_details(self, start_node: str, substation: str):
+        """Sets the starting turbine for the string to be used for traversing the
+        correct upstream connections when resetting after a failure.
+
+        Parameters
+        ----------
+        start_node : str
+            The ``System.id`` for the starting turbine on a string.
+        substation : str
+            The ``System.id`` for the string's connecting substation.
+        """
+        self.string_start = start_node
+        self.substation = substation
+
+    def finish_setup(self) -> None:
+        """Creates the ``upstream_nodes`` and ``upstream_cables`` attributes for use by
+        the cable when triggering usptream failures and resetting them after the repair
+        is complete.
+        """
+
+        wf_map = self.windfarm.wind_farm_map
+        if self.connection_type == "array":
+            turbines = []
+            if self.end_node == self.string_start:
+                turbines.append(self.end_node)
+                _turbines, cables = wf_map.get_upstream_connections(
+                    self.substation, self.string_start, self.string_start
+                )
+            else:
+                _turbines, cables = wf_map.get_upstream_connections(
+                    self.substation, self.string_start, self.end_node
+                )
+            turbines.extend(_turbines)
+
+        if self.connection_type == "export":
+            turbines, cables = wf_map.get_upstream_connections_from_substation(
+                self.substation
+            )
+
+        self.upstream_nodes = turbines
+        self.upstream_cables = cables
 
     def _create_processes(self):
         """Creates the processes for each of the failure and maintenance types.
@@ -130,47 +173,119 @@ class Cable:
         """Thin wrapper for ``interrupt_processes`` to keep usage the same as systems."""
         self.interrupt_processes()
 
-    def stop_all_upstream_processes(self, failure: Failure) -> None:
-        """Stops all upstream turbines from producing power by setting their
-        ``System.cable_failure`` to ``True``.
+    def stop_all_upstream_processes(self, failure: Failure | Maintenance) -> None:
+        """Stops all upstream turbines and cables from producing power by creating a
+        ``env.event()`` for each ``System.cable_failure`` and
+        ``Cable.downstream_failure``, respectively. In the case of an export cable, each
+        string is traversed to stop the substation and upstream turbines and cables.
 
         Parameters
         ----------
         failure : Failre
             The ``Failure`` that is causing a string shutdown.
         """
-        # Shut down all upstream objects and set the flag for an downstream cable failure
-        for node in self.upstream_nodes:
-            system = self.windfarm.system(node)
-            system.interrupt_all_subassembly_processes()
-            system.cable_failure = True
+        shared_logging = dict(
+            agent=self.id,
+            action="repair_request",
+            reason=failure.description,
+            additional="downstream cable failure",
+            request_id=failure.request_id,
+        )
+        upstream_nodes = self.upstream_nodes
+        upstream_cables = self.upstream_cables
+        if self.connection_type == "export":
+            # Flatten the list of lists for shutting down the upstream connections
+            upstream_nodes = [el for string in upstream_nodes for el in string]
+            upstream_cables = [el for string in upstream_cables for el in string]
+
+            # Turn off the subation
+            substation = self.windfarm.system(self.end_node)
+            substation.interrupt_all_subassembly_processes()
+            substation.cable_failure = self.env.event()
             self.env.log_action(
-                system_id=node,
-                system_name=system.name,
-                system_ol=system.operating_level,
+                system_id=self.end_node,
+                system_name=substation.name,
+                system_ol=substation.operating_level,
                 part_ol=np.nan,
-                agent=self.name,
-                action="repair request",
-                reason=failure.description,
-                additional="cable failure shutting off all upstream cables and turbines that are still operating",
-                request_id=failure.request_id,
+                **shared_logging,  # type: ignore
             )
 
-        for edge in self.upstream_cables:
-            cable = self.windfarm.cable(edge)
-            cable.interrupt_processes()
-            cable.downstream_failure = True
+        for t_id, c_id in zip(upstream_nodes, upstream_cables):
+            turbine = self.windfarm.system(t_id)
+            turbine.cable_failure = self.env.event()
+            turbine.interrupt_all_subassembly_processes()
             self.env.log_action(
-                part_id=cable.id,
+                system_id=t_id,
+                system_name=turbine.name,
+                system_ol=turbine.operating_level,
+                part_ol=np.nan,
+                **shared_logging,  # type: ignore
+            )
+            cable = self.windfarm.cable(c_id)
+            cable.interrupt_processes()
+            cable.downstream_failure = self.env.event()
+            self.env.log_action(
+                system_id=c_id,
+                system_name=cable.name,
+                part_id=c_id,
                 part_name=cable.name,
                 system_ol=np.nan,
                 part_ol=cable.operating_level,
-                agent=self.name,
-                action="repair request",
-                reason=failure.description,
-                additional="cable failure shutting off all upstream cables and turbines that are still operating",
-                request_id=failure.request_id,
+                **shared_logging,  # type: ignore
             )
+
+    def trigger_request(self, action: Maintenance | Failure):
+        """Triggers the actual repair or maintenance logic for a failure or maintenance
+        event, respectively.
+
+        Parameters
+        ----------
+        action : Maintenance | Failure
+            The maintenance or failure event that triggers a ``RepairRequest``.
+        """
+        which = "maintenance" if isinstance(action, Maintenance) else "repair"
+        self.operating_level *= 1 - action.operation_reduction
+
+        # Automatically submit a repair request
+        # NOTE: mypy is not caught up with attrs yet :(
+        repair_request = RepairRequest(  # type: ignore
+            self.id,
+            self.name,
+            self.id,
+            self.name,
+            action.level,
+            action,
+            cable=True,
+            upstream_turbines=self.upstream_nodes,
+            upstream_cables=self.upstream_cables,
+        )
+        repair_request = self.system.repair_manager.register_request(repair_request)
+        self.env.log_action(
+            system_id=self.id,
+            system_name=self.name,
+            part_id=self.id,
+            part_name=self.name,
+            system_ol=self.operating_level,
+            part_ol=self.operating_level,
+            agent=self.name,
+            action=f"{which} request",
+            reason=action.description,
+            additional=f"severity level {action.level}",
+            request_id=repair_request.request_id,
+        )
+
+        if action.operation_reduction == 1:
+            self.broken = self.env.event()
+            self.interrupt_processes()
+            self.stop_all_upstream_processes(action)
+
+        # Remove previously submitted requests as a replacement is required
+        if action.replacement:
+            _ = self.system.repair_manager.purge_subassembly_requests(
+                self.id, self.id, exclude=[repair_request.request_id]
+            )
+
+        self.system.repair_manager.submit_request(repair_request)
 
     def run_single_maintenance(self, maintenance: Maintenance) -> Generator:
         """Runs a process to trigger one type of maintenance request throughout the simulation.
@@ -197,53 +312,19 @@ class Cable:
             while hours_to_next > 0:
                 try:
                     # If the replacement has not been completed, then wait another minute
-                    if self.broken or self.downstream_failure or self.servicing:
-                        yield self.env.timeout(TIMEOUT)
-                        continue
+                    yield self.servicing & self.downstream_failure & self.broken
 
                     start = self.env.now
                     yield self.env.timeout(hours_to_next)
                     hours_to_next = 0
-
-                    # Automatically submit a repair request
-                    # NOTE: mypy is not caught up with attrs yet :(
-                    repair_request = RepairRequest(  # type: ignore
-                        self.system.id,
-                        self.system.name,
-                        self.id,
-                        self.name,
-                        0,
-                        maintenance,
-                        cable=True,
-                        upstream_turbines=self.upstream_nodes,
-                    )
-                    repair_request = self.system.repair_manager.register_request(
-                        repair_request
-                    )
-                    self.env.log_action(
-                        system_id=self.system.id,
-                        system_name=self.system.name,
-                        part_id=self.id,
-                        part_name=self.name,
-                        system_ol=self.system.operating_level,
-                        part_ol=self.operating_level,
-                        agent=self.name,
-                        action="maintenance request",
-                        reason=maintenance.description,
-                        additional="request",
-                        request_id=repair_request.request_id,
-                    )
-                    self.system.repair_manager.submit_request(repair_request)
-
+                    self.trigger_request(maintenance)
                 except simpy.Interrupt:
-                    if self.broken:
-                        # The subassembly had so restart the maintenance cycle
+                    if not self.broken.triggered:
+                        # The subassembly had to restart the maintenance cycle
                         hours_to_next = 0
-                        continue
                     else:
-                        # A different subassembly failed so we need to subtract the
-                        # amount of passed time
-                        hours_to_next -= self.env.now - start
+                        # A different interruption occurred, so subtract the elapsed time
+                        hours_to_next -= self.env.now - start  # pylint: disable=E0601
 
     def run_single_failure(self, failure: Failure) -> Generator:
         """Runs a process to trigger one type of failure repair request throughout the simulation.
@@ -267,65 +348,19 @@ class Cable:
                 except simpy.Interrupt:
                     remainder -= self.env.now
 
+            assert isinstance(hours_to_next, (int, float))  # mypy helper
             while hours_to_next > 0:  # type: ignore
                 try:
-                    if self.operating_level == 0 or self.downstream_failure:
-                        yield self.env.timeout(TIMEOUT)
-                        continue
+                    yield self.servicing & self.downstream_failure & self.broken
 
                     start = self.env.now
                     yield self.env.timeout(hours_to_next)
                     hours_to_next = 0
-                    self.operating_level *= 1 - failure.operation_reduction
-
-                    # Automatically submit a repair request
-                    # NOTE: mypy is not caught up with attrs yet :(
-                    repair_request = RepairRequest(  # type: ignore
-                        self.id,
-                        self.name,
-                        self.id,
-                        self.name,
-                        failure.level,
-                        failure,
-                        cable=True,
-                        upstream_turbines=self.upstream_nodes,
-                    )
-                    repair_request = self.system.repair_manager.register_request(
-                        repair_request
-                    )
-
-                    if failure.operation_reduction == 1:
-                        self.broken = True
-
-                        # Remove previously submitted requests as a replacement is required
-                        _ = self.system.repair_manager.purge_subassembly_requests(
-                            self.id, self.id, exclude=[repair_request.request_id]
-                        )
-                        self.interrupt_processes()
-                        self.stop_all_upstream_processes(failure)
-
-                    self.env.log_action(
-                        system_id=self.id,
-                        system_name=self.name,
-                        part_id=self.id,
-                        part_name=self.name,
-                        system_ol=self.system.operating_level,
-                        part_ol=self.operating_level,
-                        agent=self.name,
-                        action="repair request",
-                        reason=failure.description,
-                        additional=f"severity level {failure.level}",
-                        request_id=repair_request.request_id,
-                    )
-                    self.system.repair_manager.submit_request(repair_request)
-
+                    self.trigger_request(failure)
                 except simpy.Interrupt:
-                    if self.broken:
-                        # The subassembly had to be replaced so the timing to next failure
-                        # will reset
+                    if not self.broken.triggered:
+                        # Restart after fixing
                         hours_to_next = 0
-                        continue
                     else:
-                        # A different subassembly failed so we need to subtract the
-                        # amount of passed time
-                        hours_to_next -= self.env.now - start
+                        # A different interruption occurred, so subtract the elapsed time
+                        hours_to_next -= self.env.now - start  # pylint: disable=E0601

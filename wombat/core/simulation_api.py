@@ -1,13 +1,15 @@
 """The main API for the ``wombat``."""
 from __future__ import annotations
 
+import logging
+import datetime
 from typing import Optional
 from pathlib import Path
 
 import yaml
 import pandas as pd
 from attrs import Attribute, field, define
-from simpy.events import Event  # type: ignore
+from simpy.events import Event
 
 from wombat.core import (
     Metrics,
@@ -19,6 +21,7 @@ from wombat.core import (
 from wombat.windfarm import Windfarm
 from wombat.core.port import Port
 from wombat.core.library import load_yaml, library_map
+from wombat.core.data_classes import convert_to_list
 
 
 def _library_mapper(file_path: str | Path) -> Path:
@@ -72,6 +75,10 @@ class Configuration(FromDictMixin):
     port : dict | str | Path
         The port configuration file or dictionary that will be used to setup a
         tow-to-port repair strategy, default None.
+    port_distance : int | float
+        The simulation-wide daily travel distance for servicing equipment. This should
+        be used as a base setting when multiple or all servicing equipment will be
+        operating out of the same base location, but can be individually modified.
     start_year : int
         Start year of the simulation. The exact date will be determined by
         the first valid date of this year in ``weather``.
@@ -81,26 +88,52 @@ class Configuration(FromDictMixin):
     SAM_settings : str
         The SAM settings file to be used for financial modeling, optional, by
         default None.
+    non_operational_start : str | datetime.datetime | None
+        The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of prohibited operations. When defined at the environment level, an
+        undefined or later starting date will be overridden for all servicing equipment
+        and any modeled port, by default None.
+    non_operational_end : str | datetime.datetime | None
+        The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of prohibited operations. When defined at the environment level, an
+        undefined or earlier ending date will be overridden for all servicing equipment
+        and any modeled port, by default None.
+    reduced_speed_start : str | datetime.datetime | None
+        The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of reduced speed operations. When defined at the environment level, an
+        undefined or later starting date will be overridden for all servicing equipment
+        and any modeled port, by default None.
+    reduced_speed_end : str | datetime.datetime | None
+        The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+        period of reduced speed operations. When defined at the environment level, an
+        undefined or earlier ending date will be overridden for all servicing equipment
+        and any modeled port, by default None.
+    reduced_speed : float
+        The maximum operating speed during the annualized reduced speed operations.
+        When defined at the environment level, an undefined or faster value will be
+        overridden for all servicing equipment and any modeled port, by default 0.0.
     """
 
     name: str
     library: Path = field(converter=_library_mapper)
     layout: str
-    service_equipment: str | list[str]
+    service_equipment: str | list[str] = field(converter=convert_to_list)
     weather: str | pd.DataFrame
-    workday_start: int
-    workday_end: int
-    inflation_rate: float
-    fixed_costs: str
-    project_capacity: int | float
+    workday_start: int = field(converter=int)
+    workday_end: int = field(converter=int)
+    inflation_rate: float = field(converter=float)
+    project_capacity: int | float = field(converter=float)
+    fixed_costs: dict | str | Path = field(default=None)
     port: dict | str | Path = field(default=None)
     start_year: int = field(default=None)
     end_year: int = field(default=None)
     SAM_settings: str = field(default=None)
-
-    def __attrs_post_init__(self):
-        if isinstance(self.service_equipment, str):
-            object.__setattr__(self, "service_equipment", [self.service_equipment])
+    port_distance: int | float = field(default=None)
+    non_operational_start: str | datetime.datetime | None = field(default=None)
+    non_operational_end: str | datetime.datetime | None = field(default=None)
+    reduced_speed_start: str | datetime.datetime | None = field(default=None)
+    reduced_speed_end: str | datetime.datetime | None = field(default=None)
+    reduced_speed: float = field(default=0.0)
 
 
 @define(auto_attribs=True)
@@ -134,7 +167,7 @@ class Simulation(FromDictMixin):
 
     @config.validator  # type: ignore
     def _create_configuration(
-        self, attribute: Attribute, value: str | dict | Configuration
+        self, attribute: Attribute, value: str | Path | dict | Configuration
     ) -> None:
         """Validates the configuration object and creates the ``Configuration`` object
         for the simulation.Raises:
@@ -153,8 +186,14 @@ class Simulation(FromDictMixin):
         Configuration
             The validated simulation configuration
         """
-        if isinstance(value, str):
-            value = load_yaml(self.library_path / "config", value)
+        if isinstance(value, (str, Path)):
+            try:
+                value = load_yaml(self.library_path / "project/config", value)
+            except FileNotFoundError:
+                value = load_yaml(self.library_path / "config", value)  # type: ignore
+                logging.warning(
+                    "DeprecationWarning: In v0.7, all project configurations must be located in: '<library>/project/config/"
+                )
         if isinstance(value, dict):
             value = Configuration.from_dict(value)
         if isinstance(value, Configuration):
@@ -171,20 +210,20 @@ class Simulation(FromDictMixin):
             )
 
     @classmethod
-    def from_config(cls, config: str | dict | Configuration):
+    def from_config(cls, config: str | Path | dict | Configuration):
         """Creates the ``Simulation`` object only the configuration contents as either a
         full file path to the configuration file, a dictionary of the configuration
         contents, or pre-loaded ``Configuration`` object.
 
         Parameters
         ----------
-        config : str | dict | Configuration
+        config : str | Path | dict | Configuration
             The simulation configuration, see ``Configuration`` for more details on the
             contents. The following is a description of the acceptable contents:
 
-             - ``str`` : the full file path of the configuration yaml file.
-             - ``dict`` : a dictionary with the requried configuration settings.
-             - ``Configuration`` : a pre-created ``Configuration`` object.
+            - ``str`` : the full file path of the configuration yaml file.
+            - ``dict`` : a dictionary with the requried configuration settings.
+            - ``Configuration`` : a pre-created ``Configuration`` object.
 
         Raises
         ------
@@ -199,7 +238,7 @@ class Simulation(FromDictMixin):
         """
         if isinstance(config, (str, Path)):
             config = Path(config).resolve()  # type: ignore
-            assert isinstance(config, Path)  # lets mypy know that I know what I'm doing
+            assert isinstance(config, Path)  # mypy helper
             config = load_yaml(config.parent, config.name)
         if isinstance(config, dict):
             config = Configuration.from_dict(config)
@@ -207,7 +246,7 @@ class Simulation(FromDictMixin):
             raise TypeError(
                 "``config`` must be a dictionary or ``Configuration`` object!"
             )
-        assert isinstance(config, Configuration)  # lets mypy know it's a Configuration
+        assert isinstance(config, Configuration)  # mypy helper
         # NOTE: mypy is not caught up with attrs yet :(
         return cls(config.library, config)  # type: ignore
 
@@ -221,21 +260,38 @@ class Simulation(FromDictMixin):
             workday_end=self.config.workday_end,
             start_year=self.config.start_year,
             end_year=self.config.end_year,
+            port_distance=self.config.port_distance,
+            non_operational_start=self.config.non_operational_start,
+            non_operational_end=self.config.non_operational_end,
+            reduced_speed_start=self.config.reduced_speed_start,
+            reduced_speed_end=self.config.reduced_speed_end,
+            reduced_speed=self.config.reduced_speed,
         )
         self.repair_manager = RepairManager(self.env)
         self.windfarm = Windfarm(self.env, self.config.layout, self.repair_manager)
+
+        # Create the servicing equipment and set the necessary environment variables
         self.service_equipment = []
         for service_equipment in self.config.service_equipment:
-            self.service_equipment.append(
-                ServiceEquipment(
-                    self.env, self.windfarm, self.repair_manager, service_equipment
-                )
+            equipment = ServiceEquipment(
+                self.env, self.windfarm, self.repair_manager, service_equipment
             )
+            equipment.finish_setup_with_environment_variables()
+            self.service_equipment.append(equipment)
+
+        # Create the port and add any tugboats to the available servicing equipment list
         if self.config.port is not None:
             self.port = Port(
                 self.env, self.windfarm, self.repair_manager, self.config.port
             )
             self.service_equipment.extend(self.port.tugboat_manager.items)
+
+        if self.config.project_capacity * 1000 != round(self.windfarm.capacity, 6):
+            raise ValueError(
+                f"Input `project_capacity`: {self.config.project_capacity:,.6f} MW is"
+                f" not equal to the sum of turbine capacities:"
+                f" {self.windfarm.capacity / 1000:,.6f} MW"
+            )
 
     def run(
         self,
@@ -267,10 +323,18 @@ class Simulation(FromDictMixin):
 
     def initialize_metrics(self) -> None:
         """Instantiates the ``metrics`` attribute after the simulation is run."""
-        operations, events = self.env.convert_logs_to_csv(return_df=True)
+        events = self.env.load_events_log_dataframe()
+        operations = self.env.load_operations_log_dataframe()
         power_potential, power_production = self.env.power_production_potential_to_csv(
             windfarm=self.windfarm, operations=operations, return_df=True
         )
+        substation_turbine_map = {
+            s_id: {k: v.tolist() for k, v in dict.items()}
+            for s_id, dict in self.windfarm.substation_turbine_map.items()
+        }
+        capacities = [
+            self.windfarm.system(t).capacity for t in self.windfarm.turbine_id
+        ]
         self.metrics = Metrics(
             data_dir=self.config.library,
             events=events,
@@ -279,12 +343,11 @@ class Simulation(FromDictMixin):
             production=power_production,
             inflation_rate=self.config.inflation_rate,
             project_capacity=self.config.project_capacity,
-            turbine_capacities=[
-                self.windfarm.system(t_id).capacity for t_id in self.windfarm.turbine_id
-            ],
-            fixed_costs=self.config.fixed_costs,
+            turbine_capacities=capacities,
+            fixed_costs=self.config.fixed_costs,  # type: ignore
             substation_id=self.windfarm.substation_id.tolist(),
             turbine_id=self.windfarm.turbine_id.tolist(),
+            substation_turbine_map=substation_turbine_map,
             service_equipment_names=[el.settings.name for el in self.service_equipment],  # type: ignore
             SAM_settings=self.config.SAM_settings,
         )
@@ -293,6 +356,10 @@ class Simulation(FromDictMixin):
         """Saves the inputs for the `Metrics` initialization with either a direct
         copy of the data or a file reference that can be loaded later.
         """
+        substation_turbine_map = {
+            s_id: {k: v.tolist() for k, v in dict.items()}
+            for s_id, dict in self.windfarm.substation_turbine_map.items()
+        }
         data = dict(
             data_dir=str(self.config.library),
             events=str(self.env.events_log_fname.with_suffix(".csv")),
@@ -307,6 +374,7 @@ class Simulation(FromDictMixin):
             fixed_costs=self.config.fixed_costs,
             substation_id=self.windfarm.substation_id.tolist(),
             turbine_id=self.windfarm.turbine_id.tolist(),
+            substation_turbine_map=substation_turbine_map,
             service_equipment_names=[el.settings.name for el in self.service_equipment],  # type: ignore
             SAM_settings=self.config.SAM_settings,
         )

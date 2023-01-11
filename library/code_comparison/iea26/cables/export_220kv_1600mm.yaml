@@ -1,0 +1,19 @@
+name: array cable
+maintenance:
+  -
+    description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+failures:
+  4:
+    scale: 2
+    shape: 1
+    time: 32
+    materials: 400000  # 350,000 EUR round up to 400,000 USD
+    operation_reduction: 1
+    service_equipment: [CAB]
+    replacement: true
+    level: 4
+    description: cable replacement

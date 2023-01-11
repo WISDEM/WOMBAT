@@ -4,9 +4,36 @@ from __future__ import annotations
 
 import datetime
 
+from dateutil.parser import parse
+
 
 HOURS_IN_DAY = 24
 HOURS_IN_YEAR = 8760
+
+
+def parse_date(value: str | None | datetime.datetime) -> datetime.datetime | None:
+    """Thin wrapper for ``dateutil.parser.parse`` that converts string dates and returns
+    back None or the original value if it's None or a ``datetime.datetime`` object,
+    respectively.
+
+    Parameters
+    ----------
+    value : str | None | datetime.datetime
+        A month/date or month-date formatted string to be converted to a
+        ``datetime.datetime`` object, or ``datetime.datetime`` object, or None.
+
+    Returns
+    -------
+    datetime.datetime | None
+        A converted ``datetime.datetime`` object or None.
+    """
+    if value is None:
+        return value
+    if isinstance(value, datetime.datetime):
+        return value
+
+    # Ensure there is a common comparison year for all datetime values
+    return parse(value).replace(year=2022)
 
 
 def convert_dt_to_hours(diff: datetime.timedelta) -> float:

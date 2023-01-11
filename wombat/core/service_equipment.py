@@ -6,13 +6,16 @@ servicing equipment.
 # TODO: NEED A SPECIFIC STARTUP METHOD
 from __future__ import annotations
 
+import logging
 from copy import deepcopy
 from math import ceil
-from typing import TYPE_CHECKING, Optional, Generator  # type: ignore
+from typing import TYPE_CHECKING, Any, Optional, Generator
+from pathlib import Path
 from datetime import timedelta
 
-import numpy as np  # type: ignore
-from simpy.events import Process, Timeout  # type: ignore
+import numpy as np
+import pandas as pd
+from simpy.events import Event, Process, Timeout
 from pandas.core.indexes.datetimes import DatetimeIndex
 
 from wombat.core import (
@@ -126,7 +129,7 @@ def reset_system_operations(system: System) -> None:
     """Completely resets the failure and maintenance events for a given system
     and its subassemblies, and puts each ``Subassembly.operating_level`` back to 100%.
 
-    ... note:: This is only intended to be used in conjunction with a tow-to-port
+    .. note:: This is only intended to be used in conjunction with a tow-to-port
         repair where a turbine will be completely serviced.
 
     Parameters
@@ -137,7 +140,7 @@ def reset_system_operations(system: System) -> None:
     for subassembly in system.subassemblies:
         subassembly.operating_level = 1.0
         subassembly.recreate_processes()
-    system.servicing = False
+    system.servicing.succeed()
 
 
 class ServiceEquipment(RepairsMixin):
@@ -190,7 +193,7 @@ class ServiceEquipment(RepairsMixin):
         env: WombatEnvironment,
         windfarm: Windfarm,
         repair_manager: RepairManager,
-        equipment_data_file: str,
+        equipment_data_file: str | Path | dict,
     ):
         """Initializes the ``ServiceEquipment`` class.
 
@@ -209,13 +212,24 @@ class ServiceEquipment(RepairsMixin):
         self.windfarm = windfarm
         self.manager = repair_manager
         self.onsite = False
+        self.dispatched = False
         self.enroute = False
         self.at_port = False
         self.at_system = False
         self.transferring_crew = False
         self.current_system = None  # type: str | None
 
-        data = load_yaml(env.data_dir / "repair" / "transport", equipment_data_file)
+        if isinstance(equipment_data_file, (str, Path)):
+            try:
+                data = load_yaml(env.data_dir / "vessels", equipment_data_file)
+            except FileNotFoundError:
+                data = load_yaml(env.data_dir / "repair/transport", equipment_data_file)
+                logging.warning(
+                    "DeprecationWarning: In v0.7, all servicing equipment configurations must be located in: '<library>/vessels/"
+                )
+        else:
+            data = equipment_data_file
+
         try:
             if data["start_year"] < self.env.start_year:
                 data["start_year"] = self.env.start_year
@@ -227,7 +241,6 @@ class ServiceEquipment(RepairsMixin):
 
         # NOTE: mypy is not caught up with attrs yet :(
         self.settings: ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData = ServiceEquipmentData(data).determine_type()  # type: ignore
-        self._check_working_hours()
 
         # Register servicing equipment with the repair manager if it is using an
         # unscheduled maintenance scenario, so it can be dispatched as needed
@@ -242,6 +255,26 @@ class ServiceEquipment(RepairsMixin):
         # Create partial functions for the labor and equipment costs for clarity
         self.initialize_cost_calculators(which="equipment")
 
+    def finish_setup_with_environment_variables(self) -> None:
+        """A post-initialization step that will override unset parameters with those
+        from the the environemt that may have already been set.
+        """
+        self._check_working_hours(which="env")
+        self.settings._set_port_distance(self.env.port_distance)
+        self.settings.set_non_operational_dates(
+            self.env.non_operational_start,
+            self.env.start_year,
+            self.env.non_operational_end,
+            self.env.end_year,
+        )
+        self.settings.set_reduced_speed_parameters(
+            self.env.reduced_speed_start,
+            self.env.start_year,
+            self.env.reduced_speed_end,
+            self.env.end_year,
+            self.env.reduced_speed,
+        )
+
     def _register_port(self, port: "Port") -> None:
         """Method for a tugboat at attach the port for two-way communications. This also
         sets the vessel to be at the port, and updates the port_distance.
@@ -253,7 +286,26 @@ class ServiceEquipment(RepairsMixin):
         """
         self.port = port
         self.at_port = True
-        self.settings._set_distance(port.settings.site_distance)  # type: ignore
+        self.settings._set_port_distance(port.settings.site_distance)  # type: ignore
+
+        self._check_working_hours(which="port")
+
+        # Set the non-operational start/end dates if needed
+        self.settings.set_non_operational_dates(
+            port.settings.non_operational_start,
+            self.env.start_year,
+            port.settings.non_operational_end,
+            self.env.end_year,
+        )
+
+        # Set the reduced speed start/end dates if needed
+        self.settings.set_reduced_speed_parameters(
+            port.settings.reduced_speed_start,
+            self.env.start_year,
+            port.settings.reduced_speed_end,
+            self.env.end_year,
+            port.settings.reduced_speed,
+        )
 
     def _set_location(self, end: str, set_current: Optional[str] = None) -> None:
         """Keeps track of the servicing equipment by setting the location at either:
@@ -279,7 +331,7 @@ class ServiceEquipment(RepairsMixin):
 
     def _weather_forecast(
         self, hours: int | float, which: str
-    ) -> tuple[DatetimeIndex, np.ndarray]:
+    ) -> tuple[DatetimeIndex, np.ndarray, np.ndarray]:
         """Retrieves the weather forecast from the simulation environment, and
         translates it to a boolean for satisfactory (True) and unsatisfactory (False)
         weather conditions.
@@ -293,10 +345,10 @@ class ServiceEquipment(RepairsMixin):
 
         Returns
         -------
-        tuple[DatetimeIndex, np.ndarray]
-            The pandas DatetimeIndex and the boolean array of where the weather
-            conditions are within safe operating limits for the servicing equipment
-            (True) or not (False).
+        tuple[DatetimeIndex, np.ndarray, np.ndarray]
+            The pandas DatetimeIndex, the hour of day array, and the boolean array of
+            where the weather conditions are within safe operating limits for the
+            servicing equipment (True) or not (False).
         """
         if which == "repair":
             max_wind = self.settings.max_windspeed_repair
@@ -307,9 +359,31 @@ class ServiceEquipment(RepairsMixin):
         else:
             raise ValueError("`which` must be one of `repair` or `transport`.")
 
-        dt, wind, wave = self.env.weather_forecast(hours)
+        dt, hour, wind, wave = self.env.weather_forecast(hours)
         all_clear = (wind <= max_wind) & (wave <= max_wave)
-        return dt, all_clear
+        return dt, hour, all_clear
+
+    def get_speed(self, tow: bool = False) -> float:
+        """Determines the appropriate speed that the servicing equipment should be
+        traveling at for towing or traveling, and if the timeframe is during a reduced
+        speed scenario.
+
+        Parameters
+        ----------
+        tow : bool, optional
+            True indicates the servicing equipment should be using the towing speed,
+            and if False, then the traveling speed should be used, by default False.
+
+        Returns
+        -------
+        float
+            The maximum speed the servicing equipment should be traveling/towing at.
+        """
+        speed = self.settings.tow_speed if tow else self.settings.speed  # type: ignore
+        if self.env.simulation_time.date() in self.settings.reduced_speed_dates_set:  # type: ignore
+            if speed > self.settings.reduced_speed:
+                speed = self.settings.reduced_speed
+        return speed
 
     def get_next_request(self):
         """Gets the next request by the rig's method for processing repairs.
@@ -325,6 +399,44 @@ class ServiceEquipment(RepairsMixin):
             return self.manager.get_next_highest_severity_request(
                 self.settings.capability
             )
+
+    def enable_string_operations(self, cable: Cable) -> None:
+        """Traverses the upstream cable and turbine connections and resets the
+        ``System.cable_failure`` and ``Cable.downstream_failure`` until it hits
+        another cable failure, then the loop exits.
+
+        Parameters
+        ----------
+        subassembly : Cable
+            The `Cable` or `System`
+        """
+        farm = self.manager.windfarm
+        if cable.connection_type == "array":
+            # If there is another failure downstream of the repaired cable, do nothing
+            if cable.downstream_failure:
+                return
+
+            # For each upstream turbine and cable, reset their operations
+            for t_id, c_id in zip(cable.upstream_nodes, cable.upstream_cables):
+                cable = farm.cable(c_id)
+                if cable.operating_level == 0:
+                    break
+                cable.downstream_failure.succeed()
+                farm.system(t_id).cable_failure.succeed()
+
+        if cable.connection_type == "export":
+            # Reset the substation's cable failure
+            farm.system(cable.end_node).cable_failure.succeed()
+
+            # For each string connected to the substation reset all the turbines and cables
+            # until another cable failure is encoountered, then move to the next string
+            for turbines, cables in zip(cable.upstream_nodes, cable.upstream_cables):
+                for t_id, c_id in zip(turbines, cables):
+                    cable = farm.cable(c_id)
+                    if cable.operating_level == 0:
+                        break
+                    cable.downstream_failure.succeed()
+                    farm.system(t_id).cable_failure.succeed()
 
     def register_repair_with_subassembly(
         self,
@@ -346,40 +458,30 @@ class ServiceEquipment(RepairsMixin):
         starting_operating_level : float
             The operating level before a repair was started.
         """
-        # If this is a cable repair and returning it back to operating, then reset all
-        # upstream turbines to be operating as long as there isn't another fatal cable
-        # failure preventing it from operating
+        operation_reduction = repair.details.operation_reduction
+
         if repair.cable and repair.details.operation_reduction == 1:
-            start: str = ""
-            for i, turbine_id in enumerate(repair.upstream_turbines):
-                if i > 0:
-                    cable = self.windfarm.cable((start, turbine_id))
-                    if cable.operating_level == 0:
-                        break
-                turbine = self.windfarm.system(turbine_id)
-                turbine.cable_failure = False
-                start = turbine_id
+            assert isinstance(subassembly, Cable)  # mypy helper
+            self.enable_string_operations(subassembly)
 
         # Put the subassembly/component back to good as new condition
-        if repair.details.operation_reduction == 1:
+        if repair.details.replacement:
             subassembly.operating_level = 1
             _ = self.manager.purge_subassembly_requests(
                 repair.system_id, repair.subassembly_id
             )
-        elif repair.details.operation_reduction == 0:
+        elif operation_reduction == 1:
+            subassembly.operating_level = starting_operating_level
+            subassembly.broken.succeed()
+        elif operation_reduction == 0:
             subassembly.operating_level = starting_operating_level
         else:
-            subassembly.operating_level /= 1 - repair.details.operation_reduction
+            subassembly.operating_level /= 1 - operation_reduction
 
         # Register that the servicing is now over
-        if isinstance(subassembly, Subassembly):
-            subassembly.system.servicing = False
-        elif isinstance(subassembly, Cable):
-            subassembly.servicing = False
-        else:
-            raise ValueError(
-                f"Passed subassembly of type: `{type(subassembly)}` invalid."
-            )
+        system = subassembly if isinstance(subassembly, Cable) else subassembly.system
+        system.servicing.succeed()
+        self.manager.enable_requests_for_system(repair.system_id)
 
     def wait_until_next_operational_period(
         self, *, less_mobilization_hours: int = 0
@@ -452,7 +554,7 @@ class ServiceEquipment(RepairsMixin):
             and when the next operational period starts.
         """
         mobilization_hours = self.settings.mobilization_days * HOURS_IN_DAY
-        yield self.env.process(
+        yield self.env.process(  # type: ignore
             self.wait_until_next_operational_period(
                 less_mobilization_hours=mobilization_hours
             )
@@ -551,8 +653,8 @@ class ServiceEquipment(RepairsMixin):
         if hours_required > max_hours:
             return max_hours, True
 
-        dt_ix, all_clear = self._weather_forecast(max_hours, which="repair")
-        all_clear &= self._is_workshift(dt_ix)
+        _, hour, all_clear = self._weather_forecast(max_hours, which="repair")
+        all_clear &= self._is_workshift(hour)
         safe_operating_windows = consecutive_groups(np.where(all_clear)[0])
         window_lengths = np.array([window.size for window in safe_operating_windows])
 
@@ -602,10 +704,10 @@ class ServiceEquipment(RepairsMixin):
         hours_required = ceil(hours_required)
 
         for i in range(10):  # no more than 10 attempts to find a window
-            dt_ix, weather = self._weather_forecast(
+            dt_ix, hour_ix, weather = self._weather_forecast(
                 hours_required + (i * 24), which="repair"
             )
-            working_hours = self._is_workshift(dt_ix)
+            working_hours = self._is_workshift(hour_ix)
             window = weather & working_hours
             if window.sum() >= hours_required:
                 window_found = True
@@ -613,45 +715,42 @@ class ServiceEquipment(RepairsMixin):
 
         return dt_ix, weather, window_found
 
-    def weather_delay(
-        self, hours: int | float, **kwargs
-    ) -> None | Generator[Timeout | Process, None, None]:
-        """Processes a weather delay of length ``hours`` hours.
+    def weather_delay(self, hours: int | float, **kwargs) -> Generator[Event, Any, Any]:
+        """Processes a weather delay of length ``hours`` hours. If ``hours`` = 0, then
+        a Timeout is still processed, but not logging is done (this is to increase
+        consistency and do better typing validation across the codebase).
 
         Parameters
         ----------
         hours : int | float
             The lenght, in hours, of the weather delay.
 
-        Returns
-        -------
-        None
-            If the delay is 0 hours, then nothing happens.
-
         Yields
         -------
-        None | Generator[Timeout | Process, None, None]
+        Generator[Event, Any, Any]
             If the delay is more than 0 hours, then a ``Timeout`` is yielded of length ``hours``.
         """
-        if hours == 0:
-            return
+        if hours > 0:
+            salary_cost = self.calculate_salary_cost(hours)
+            hourly_cost = 0  # contractors not paid for delays
+            equipment_cost = self.calculate_equipment_cost(hours)
+            self.env.log_action(
+                duration=hours,
+                action="delay",
+                additional="weather delay",
+                salary_labor_cost=salary_cost,
+                hourly_labor_cost=hourly_cost,
+                equipment_cost=equipment_cost,
+                **kwargs,
+            )
+            yield self.env.timeout(hours)
 
-        salary_cost = self.calculate_salary_cost(hours)
-        hourly_cost = 0  # contractors not paid for delays
-        equipment_cost = self.calculate_equipment_cost(hours)
-        self.env.log_action(
-            duration=hours,
-            action="delay",
-            additional="weather delay",
-            salary_labor_cost=salary_cost,
-            hourly_labor_cost=hourly_cost,
-            equipment_cost=equipment_cost,
-            **kwargs,
-        )
         yield self.env.timeout(hours)
 
     @cache
-    def _calculate_intra_site_time(self, start: str | None, end: str | None) -> float:
+    def _calculate_intra_site_time(
+        self, start: str | None, end: str | None
+    ) -> tuple[float, float]:
         """Calculates the time it takes to travel between port and site or between
         systems on site.
 
@@ -664,24 +763,23 @@ class ServiceEquipment(RepairsMixin):
 
         Returns
         -------
-        float
-            The travel time between two locations.
+        tuple[float, float]
+            The travel time and distance between two locations.
         """
-        distance = 0  # setting for invalid cases to have no traveling
-        travel_time = 0.0
+        distance = 0.0  # setting for invalid cases to have no traveling
         valid_sys = self.windfarm.distance_matrix.columns
         intra_site = start in valid_sys and end in valid_sys
         if intra_site:
             distance = self.windfarm.distance_matrix.loc[start, end]
 
         # if no speed is set, then there is no traveling time
-        if self.settings.speed > 0:
-            travel_time = distance / self.settings.speed
+        speed = self.get_speed()
+        travel_time = distance / speed if speed > 0 else 0.0
 
         # Infinity is the result of "traveling" between a system twice in a row
         if travel_time == float("inf"):
             travel_time = 0
-        return travel_time
+        return travel_time, distance
 
     def _calculate_uninterrupted_travel_time(
         self, distance: float, tow: bool = False
@@ -708,14 +806,14 @@ class ServiceEquipment(RepairsMixin):
         if distance == 0:
             return 0, 0
 
-        speed = self.settings.tow_speed if tow else self.settings.speed  # type: ignore
+        speed = self.get_speed(tow=tow)
         hours_required = distance / speed
 
         n = 1
         max_extra_days = 4
         while n <= max_extra_days:  # max tries before failing
             hours = hours_required + (24 * n)
-            _, all_clear = self._weather_forecast(hours, which="repair")
+            *_, all_clear = self._weather_forecast(hours, which="repair")
             found, delay = calculate_delay_from_forecast(all_clear, hours_required)
             if found:
                 return delay, hours_required
@@ -743,13 +841,13 @@ class ServiceEquipment(RepairsMixin):
         float
             _description_
         """
-        speed = self.settings.tow_speed if tow else self.settings.speed  # type: ignore
+        speed = self.get_speed(tow=tow)
         reduction_factor = 1 - self.settings.speed_reduction_factor
         reduction_factor = 0.01 if reduction_factor == 0 else reduction_factor
 
         # get the weather forecast with this time for the max travel time
         max_hours = 1 + distance / speed * (1 / reduction_factor)
-        dt, all_clear = self._weather_forecast(max_hours, which="transport")
+        dt, _, all_clear = self._weather_forecast(max_hours, which="transport")
 
         # calculate the distance able to be traveled in each 1-hour window
         distance_traveled = speed * all_clear.astype(float)
@@ -792,6 +890,7 @@ class ServiceEquipment(RepairsMixin):
         end: str,
         set_current: str | None = None,
         hours: float | None = None,
+        distance: float | None = None,
         **kwargs,
     ) -> Generator[Timeout | Process, None, None]:
         """The process for traveling between port and site, or two systems onsite.
@@ -810,6 +909,8 @@ class ServiceEquipment(RepairsMixin):
         hours : float, optional
             The number hours required for traveling between ``start`` and ``end``.
             If provided, no internal travel time will be calculated.
+        distance : float, optional
+            The distance, in km, to be traveled. Only used if hours is provided
 
         Yields
         -------
@@ -818,25 +919,31 @@ class ServiceEquipment(RepairsMixin):
         """
         validate_end_points(start, end)
         if hours is None:
+            hours = 0.0
+            distance = 0.0
+            additional = f"traveling from {start} to {end}"
+
             if start == end == "system":
                 additional = f"traveling from {self.current_system} to {set_current}"
-                hours = self._calculate_intra_site_time(
+                hours, distance = self._calculate_intra_site_time(
                     self.current_system, set_current
                 )
             elif set((start, end)) == set(("site", "port")):
                 additional = f"traveling from {start} to {end}"
-                hours = self._calculate_interrupted_travel_time(
-                    self.settings.port_distance
-                )
-            else:
-                additional = f"traveling from {start} to {end}"
-                hours = 0
+                distance = self.settings.port_distance
+                hours = self._calculate_interrupted_travel_time(distance)
         else:
-            hours = 0  # takes care of invalid cases
+            if distance is None:
+                raise ValueError("`distance` must be provided if `hours` is provided.")
+
+        # MyPy helper
+        assert isinstance(hours, float)
+        assert isinstance(distance, float)
 
         # If the the equipment will arive after the shift is over, then it must travel
         # back to port (if needed), and wait for the next shift
-        is_shift = self._is_workshift(self.env.simulation_time + timedelta(hours=hours))
+        future_time = self.env.simulation_time + timedelta(hours=hours)
+        is_shift = self._is_workshift(future_time.hour)
         if not is_shift and end != "port" and not self.at_port:
             kw: dict[str, str] = {
                 "additional": "insufficient time to complete travel before end of the shift"
@@ -866,6 +973,7 @@ class ServiceEquipment(RepairsMixin):
             action="traveling",
             additional=additional,
             duration=hours,
+            distance_km=distance,
             salary_labor_cost=salary_cost,
             hourly_labor_cost=hourly_cost,
             equipment_cost=equipment_cost,
@@ -913,7 +1021,7 @@ class ServiceEquipment(RepairsMixin):
         if delay == -1:
             if start == "site":
                 kw = deepcopy(kwargs)
-                kw.update({"reason": "Insufficient weather window, returne to port"})
+                kw.update({"reason": "Insufficient weather window, return to port"})
                 yield self.env.process(self.travel("site", "port", **kw))
                 yield self.env.timeout(HOURS_IN_DAY * 4)
                 yield self.env.process(
@@ -929,14 +1037,15 @@ class ServiceEquipment(RepairsMixin):
                     self.tow(start, end, set_current=set_current, **kwargs)
                 )
 
-        if delay > 0:
-            yield self.env.process(self.weather_delay(delay, location=end, **kwargs))
+        else:
+            self.env.process(self.weather_delay(delay, location=end, **kwargs))
 
         salary_labor_cost = self.calculate_salary_cost(hours)
         hourly_labor_cost = self.calculate_hourly_cost(hours)
         equipment_cost = self.calculate_equipment_cost(hours)
         self.env.log_action(
             duration=hours,
+            distance_km=distance,
             action="towing",
             salary_labor_cost=salary_labor_cost,
             hourly_labor_cost=hourly_labor_cost,
@@ -1017,10 +1126,9 @@ class ServiceEquipment(RepairsMixin):
             )
             travel_time -= self.env.now  # will be negative value, but is flipped
             delay -= abs(travel_time)  # decrement the delay by the travel time
-            if delay > 0:
-                yield self.env.process(
-                    self.weather_delay(delay, location="port", **shared_logging)
-                )
+            yield self.env.process(
+                self.weather_delay(delay, location="port", **shared_logging)
+            )
             yield self.env.process(
                 self.wait_until_next_shift(
                     **shared_logging,
@@ -1033,7 +1141,7 @@ class ServiceEquipment(RepairsMixin):
                 )
             )
             yield self.env.process(
-                self.crew_transfer(system, subassembly, request, to_system=to_system)
+                self.crew_transfer(system, subassembly, request, to_system=to_system)  # type: ignore
             )
             return
 
@@ -1130,10 +1238,9 @@ class ServiceEquipment(RepairsMixin):
         delay, shift_delay = self.find_uninterrupted_weather_window(hours_to_process)
         # If there is a shift delay, then wait try again.
         if shift_delay:
-            if delay > 0:
-                yield self.env.process(
-                    self.weather_delay(delay, location="site", **shared_logging)
-                )
+            yield self.env.process(
+                self.weather_delay(delay, location="site", **shared_logging)
+            )
             yield self.env.process(
                 self.wait_until_next_shift(
                     **shared_logging,
@@ -1144,7 +1251,7 @@ class ServiceEquipment(RepairsMixin):
                 )
             )
             yield self.env.process(
-                self.mooring_connection(system, request, which=which)
+                self.mooring_connection(system, request, which=which)  # type: ignore
             )
             return
 
@@ -1220,7 +1327,7 @@ class ServiceEquipment(RepairsMixin):
             cable = request.subassembly_id.split("::")[1:]
             subassembly = self.windfarm.graph.edges[cable]["cable"]
         else:
-            system = self.windfarm.system(request.system_id)
+            system = self.windfarm.system(request.system_id)  # type: ignore
             subassembly = getattr(system, request.subassembly_id)
 
         starting_operational_level = max(
@@ -1272,10 +1379,10 @@ class ServiceEquipment(RepairsMixin):
             )
             # First turn off the turbine, then proceed with the servicing so the
             # turbine is not registered as operating when the turbine is being worked on
-            system.servicing = True
-            subassembly.interrupt_all_subassembly_processes()
+            if system.servicing.triggered:
+                self.manager.halt_requests_for_system(system)
             yield self.env.process(
-                self.crew_transfer(system, subassembly, request, to_system=True)
+                self.crew_transfer(system, subassembly, request, to_system=True)  # type: ignore
             )
         elif self.at_system is not None and not self.at_port:
             yield self.env.process(
@@ -1286,8 +1393,12 @@ class ServiceEquipment(RepairsMixin):
                     **shared_logging,
                 )
             )
+            # First turn off the turbine, then proceed with the servicing so the
+            # turbine is not registered as operating when the turbine is being worked on
+            if system.servicing.triggered:
+                self.manager.halt_requests_for_system(system)
             yield self.env.process(
-                self.crew_transfer(system, subassembly, request, to_system=True)
+                self.crew_transfer(system, subassembly, request, to_system=True)  # type: ignore
             )
         else:
             raise RuntimeError(f"{self.settings.name} is lost!")
@@ -1300,7 +1411,7 @@ class ServiceEquipment(RepairsMixin):
         if not (start_shift == 0 and end_shift == 24):
             hours_available = hours_until_future_hour(current, end_shift)
             hours_available -= self.settings.crew_transfer_time
-            _, weather_forecast = self._weather_forecast(
+            *_, weather_forecast = self._weather_forecast(
                 hours_available, which="repair"
             )
         else:
@@ -1342,7 +1453,7 @@ class ServiceEquipment(RepairsMixin):
                 # Ensure this gets the correct float hours to the start of the target
                 # hour, unless the hours to process is between (0, 1]
                 yield self.env.process(
-                    self.process_repair(
+                    self.process_repair(  # type: ignore
                         hours_to_process, request.details, **shared_logging
                     )
                 )
@@ -1367,7 +1478,7 @@ class ServiceEquipment(RepairsMixin):
         # Reached the end of the shift or the end of the repair, and need to unload crew
         # from the system
         yield self.env.process(
-            self.crew_transfer(system, subassembly, request, to_system=False)
+            self.crew_transfer(system, subassembly, request, to_system=False)  # type: ignore
         )
         if shift_delay:
             yield self.env.process(
@@ -1391,6 +1502,7 @@ class ServiceEquipment(RepairsMixin):
         action = "maintenance" if isinstance(request.details, Maintenance) else "repair"
         self.env.log_action(
             system_id=system.id,
+            system_name=system.name,
             part_id=subassembly.id,
             part_name=subassembly.name,
             system_ol=system.operating_level,
@@ -1401,6 +1513,7 @@ class ServiceEquipment(RepairsMixin):
             materials_cost=request.details.materials,
             additional="complete",
             request_id=request.request_id,
+            location="site",
         )
 
         # If this is the end of the shift, ensure that we're traveling back to port
@@ -1410,7 +1523,8 @@ class ServiceEquipment(RepairsMixin):
             )
 
     def run_scheduled_in_situ(self) -> Generator[Process, None, None]:
-        """Runs the simulation.
+        """Runs the simulation of in situ repairs for scheduled servicing equipment
+        that have the `onsite` designation or don't require mobilization.
 
         Yields
         -------
@@ -1425,7 +1539,7 @@ class ServiceEquipment(RepairsMixin):
 
         while True:
             # Wait for a valid operational period to start
-            if self.env.simulation_time.date() not in self.settings.operating_dates:  # type: ignore
+            if self.env.simulation_time.date() not in self.settings.operating_dates_set:  # type: ignore
                 yield self.env.process(self.mobilize_scheduled())
 
             # Wait for next shift to start
@@ -1468,22 +1582,57 @@ class ServiceEquipment(RepairsMixin):
                 yield self.env.process(self.in_situ_repair(request.value))
 
     def run_unscheduled_in_situ(self) -> Generator[Process, None, None]:
-        """Runs an unscheduled maintenance simulation
+        """Runs an in situ repair simulation for unscheduled servicing equipment, or
+        those that have to be mobilized before performing repairs and maintenance.
 
         Yields
         -------
         Generator[Process, None, None]
             The simulation
         """
+        self.dispatched = True
+        assert isinstance(self.settings, UnscheduledServiceEquipmentData)  # mypy helper
+        mobilization_days = self.settings.mobilization_days
+        charter_end_env_time = self.settings.charter_days * HOURS_IN_DAY
+        charter_end_env_time += mobilization_days * HOURS_IN_DAY
+        charter_end_env_time += self.env.now  # type: ignore
 
-        charter_end_env_time = self.settings.charter_days * HOURS_IN_DAY  # type: ignore
-        charter_end_env_time += self.settings.mobilization_days * HOURS_IN_DAY
-        charter_end_env_time += self.env.now
+        current = self.env.simulation_time
+        charter_start = current + pd.Timedelta(mobilization_days, "D")
+        charter_end = (
+            current
+            + pd.Timedelta(mobilization_days, "D")
+            + pd.Timedelta(self.settings.charter_days, "D")
+        )
+        charter_period = set(pd.date_range(charter_start, charter_end).date)
+
+        # If the charter period contains any non-operational date, then, try again
+        # at the next available date after the end of the attempted charter period
+        intersection = charter_period.intersection(
+            self.settings.non_operational_dates_set
+        )
+        if intersection:
+            hours_to_next = self.hours_to_next_operational_date(
+                start_search_date=max(intersection),
+                exclusion_days=mobilization_days,
+            )
+            self.env.log_action(
+                agent=self.settings.name,
+                action="delay",
+                reason="non-operational period",
+                additional="waiting for next operational period",
+                duration=hours_to_next,
+            )
+            yield self.env.timeout(hours_to_next)  # type: ignore
+            yield self.env.process(self.run_unscheduled_in_situ())
+            return
+
         while True:
             if self.env.now >= charter_end_env_time:
                 self.onsite = False
                 self.at_port = False
                 self.at_system = False
+                self.dispatched = False
                 self.current_system = None
                 self.env.log_action(
                     agent=self.settings.name,
@@ -1542,10 +1691,6 @@ class ServiceEquipment(RepairsMixin):
         ValueError
             Raised if the equipment is not currently at port
         """
-
-        # if not self.at_port:
-        #     raise ValueError(f"{self.settings.name} cannot run tow-to-port if not at port")
-
         system = self.windfarm.system(request.system_id)
 
         shared_logging = dict(
@@ -1553,15 +1698,13 @@ class ServiceEquipment(RepairsMixin):
             system_name=request.system_name,
             request_id=request.request_id,
             agent=self.settings.name,
-            reason=f"{request.details.description} has triggered tow-to-port",
+            reason=request.details.description,
         )
 
-        # Travel to the turbine and shut it down
+        # Travel to the turbine
         yield self.env.process(
             self.travel("port", "site", set_current=system.id, **shared_logging)  # type: ignore
         )
-        self.manager.halt_requests_for_system(system.id)
-        system.servicing = True
 
         # Unmoor the turbine and tow it back to port
         yield self.env.process(self.mooring_connection(system, request, which="unmoor"))  # type: ignore
@@ -1586,9 +1729,6 @@ class ServiceEquipment(RepairsMixin):
         ValueError
             Raised if the equipment is not currently at port
         """
-        # if not self.at_port:
-        #     raise ValueError(f"{self.settings.name} cannot run tow-to-site if not at port")
-
         system = self.windfarm.system(request.system_id)
         shared_logging = dict(
             agent=self.settings.name,
@@ -1612,8 +1752,8 @@ class ServiceEquipment(RepairsMixin):
         )
 
         # Reset the turbine back to operating and return to port
-        self.manager.enable_requests_for_system(system.id)
         reset_system_operations(system)
+        self.manager.enable_requests_for_system(system.id)
         yield self.env.process(
             self.travel(
                 "site",

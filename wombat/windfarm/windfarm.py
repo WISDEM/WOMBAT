@@ -1,17 +1,21 @@
 """Creates the Windfarm class/model."""
 from __future__ import annotations
 
+import csv
+import logging
+import datetime as dt
+import itertools
 from math import fsum
-from itertools import chain, combinations
 
 import numpy as np
-import pandas as pd  # type: ignore
-import networkx as nx  # type: ignore
-from geopy import distance  # type: ignore
+import pandas as pd
+import networkx as nx
+from geopy import distance
 
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.core.library import load_yaml
 from wombat.windfarm.system import Cable, System
+from wombat.core.data_classes import String, SubString, WindFarmMap, SubstationMap
 from wombat.utilities.utilities import cache
 
 
@@ -35,22 +39,21 @@ class Windfarm:
         self._create_graph_layout(windfarm_layout)
         self._create_turbines_and_substations()
         self._create_cables()
-        self.capacity = sum(self.system(turb).capacity for turb in self.turbine_id)
+        self.capacity: int | float = sum(
+            self.system(turb).capacity for turb in self.turbine_id
+        )
         self._create_substation_turbine_map()
+        self._create_wind_farm_map()
+        self.finish_setup()
         self.calculate_distance_matrix()
 
         # Create the logging items
         self.system_list = list(self.graph.nodes)
-        self._log_columns = [
-            "datetime",
-            "name",
-            "level",
-            "env_datetime",
-            "env_time",
-        ] + self.system_list
+        self._setup_logger()
 
         # Register the windfarm and start the logger
         self.repair_manager._register_windfarm(self)
+        self.env._register_windfarm(self)
         self.env.process(self._log_operations())
 
     def _create_graph_layout(self, windfarm_layout: str) -> None:
@@ -62,12 +65,23 @@ class Windfarm:
         windfarm_layout : str
             Filename to use for reading in the windfarm layout; must be a csv file.
         """
-        layout_path = str(self.env.data_dir / "windfarm" / windfarm_layout)
-        layout = (
-            pd.read_csv(layout_path)
-            .sort_values(by=["string", "order"])
-            .reset_index(drop=True)
-        )
+        try:
+            layout_path = str(self.env.data_dir / "project/plant" / windfarm_layout)
+            layout = (
+                pd.read_csv(layout_path)
+                .sort_values(by=["string", "order"])
+                .reset_index(drop=True)
+            )
+        except FileNotFoundError:
+            layout_path = str(self.env.data_dir / "windfarm" / windfarm_layout)
+            layout = (
+                pd.read_csv(layout_path)
+                .sort_values(by=["string", "order"])
+                .reset_index(drop=True)
+            )
+            logging.warning(
+                "DeprecationWarning: In v0.7, all wind farm layout files must be located in: '<library>/project/plant/"
+            )
         layout.subassembly = layout.subassembly.fillna("")
         layout.upstream_cable = layout.upstream_cable.fillna("")
 
@@ -76,17 +90,31 @@ class Windfarm:
 
         # Assign the data attributes to the graph nodes
         for col in ("name", "latitude", "longitude", "subassembly"):
-            d = {i: n for i, n in layout[["id", col]].values}
-            nx.set_node_attributes(windfarm, d, name=col)
+            nx.set_node_attributes(windfarm, dict(layout[["id", col]].values), name=col)
 
         # Determine which nodes are substations and which are turbines
-        substation_filter = layout.id == layout.substation_id
-        self.substation_id = layout[substation_filter].id.unique()
-        self.turbine_id = layout[~substation_filter].id.unique()
-        _type = {True: "substation", False: "turbine"}
-        d = {i: _type[val] for i, val in zip(layout.id, substation_filter.values)}
-        nx.set_node_attributes(windfarm, d, name="type")
+        if "type" in layout.columns:
+            if layout.loc[~layout.type.isin(("substation", "turbine"))].size > 0:
+                raise ValueError(
+                    "At least one value in the 'type' column are not one of 'substation' or 'turbine'."
+                )
+            substation_filter = layout.type == "substation"
+            nx.set_node_attributes(
+                windfarm, dict(layout[["id", "type"]].values), name="type"
+            )
+        else:
+            substation_filter = layout.id == layout.substation_id
+            _type = {True: "substation", False: "turbine"}
+            d = {i: _type[val] for i, val in zip(layout.id, substation_filter.values)}
+            nx.set_node_attributes(windfarm, d, name="type")
 
+        self.substation_id = layout.loc[substation_filter, "id"].values
+        for substation in self.substation_id:
+            windfarm.nodes[substation]["connection"] = layout.loc[
+                layout.id == substation, "substation_id"
+            ].values[0]
+
+        self.turbine_id = layout.loc[~substation_filter, "id"].values
         substations = layout[substation_filter].copy()
         turbines = layout[~substation_filter].copy()
         substation_sections = [
@@ -103,8 +131,17 @@ class Windfarm:
                 windfarm.add_edge(
                     start, current, length=row.distance, cable=row.upstream_cable
                 )
+        for substation in self.substation_id:
+            row = layout.loc[layout.id == substation]
+            windfarm.add_edge(
+                row.substation_id.values[0],
+                substation,
+                length=row.distance.values[0],
+                cable=row.upstream_cable.values[0],
+            )
 
         self.graph = windfarm
+        self.layout_df = layout
 
     def _create_turbines_and_substations(self) -> None:
         """Instantiates the turbine and substation models as defined in the
@@ -116,15 +153,23 @@ class Windfarm:
         ValueError
             Raised if the subassembly data is not provided in the layout file.
         """
+        bad_data_location_messages = []
         for system_id, data in self.graph.nodes(data=True):
             if data["subassembly"] == "":
                 raise ValueError(
                     "A 'subassembly' file must be specified for all nodes in the windfarm layout!"
                 )
 
-            subassembly_dict = load_yaml(
-                self.env.data_dir / "windfarm", data["subassembly"]
-            )
+            try:
+                subassembly_dict = load_yaml(
+                    self.env.data_dir / f"{data['type']}s", data["subassembly"]
+                )
+            except FileNotFoundError:
+                subassembly_dict = load_yaml(
+                    self.env.data_dir / "windfarm", data["subassembly"]
+                )
+                message = f"In v0.7, all {data['type']} configurations must be located in: '<library>/{data['type']}s"
+                bad_data_location_messages.append(message)
             self.graph.nodes[system_id]["system"] = System(
                 self.env,
                 self.repair_manager,
@@ -133,6 +178,11 @@ class Windfarm:
                 subassembly_dict,
                 data["type"],
             )
+
+        # Raise the warning for soon-to-be deprecated library structure
+        bad_data_location_messages = list(set(bad_data_location_messages))
+        for message in bad_data_location_messages:
+            logging.warning(f"DeprecationWarning: {message}")
 
     def _create_cables(self) -> None:
         """Instantiates the cable models as defined in the user-provided layout file,
@@ -144,13 +194,21 @@ class Windfarm:
         ValueError
             Raised if the cable model is not specified.
         """
+        get_name = "upstream_cable_name" in self.layout_df
+        bad_data_location_messages = []
         for start_node, end_node, data in self.graph.edges(data=True):
             # Check that the cable data is provided
             if data["cable"] == "":
                 raise ValueError(
                     "A 'cable' file must be specified for all nodes in the windfarm layout!"
                 )
-            cable_dict = load_yaml(self.env.data_dir / "windfarm", data["cable"])
+            try:
+                cable_dict = load_yaml(self.env.data_dir / "cables", data["cable"])
+            except FileNotFoundError:
+                cable_dict = load_yaml(self.env.data_dir / "windfarm", data["cable"])
+                bad_data_location_messages.append(
+                    "In v0.7, all cable configurations must be located in: '<library>/cables/"
+                )
 
             start_coordinates = (
                 self.graph.nodes[start_node]["latitude"],
@@ -161,6 +219,12 @@ class Windfarm:
                 self.graph.nodes[end_node]["longitude"],
             )
 
+            name = None
+            if get_name:
+                name, *_ = self.layout_df.loc[
+                    self.layout_df.id == end_node, "upstream_cable_name"
+                ]
+
             # If the real distance/cable length is not input, then the geodesic distance
             # is calculated
             if data["length"] == 0:
@@ -168,17 +232,23 @@ class Windfarm:
                     start_coordinates, end_coordinates, ellipsoid="WGS-84"
                 ).km
 
+            if self.graph.nodes[end_node]["type"] == "substation":
+                data["type"] = "export"
+            else:
+                data["type"] = "array"
+
             data["cable"] = Cable(
-                self,
-                self.env,
-                start_node,
-                end_node,
-                cable_dict,
+                self, self.env, data["type"], start_node, end_node, cable_dict, name
             )
 
             # Calaculate the geometric center point
             end_points = np.array((start_coordinates, end_coordinates))
             data["latitude"], data["longitude"] = end_points.mean(axis=0)
+
+        # Raise the warning for soon-to-be deprecated library structure
+        bad_data_location_messages = list(set(bad_data_location_messages))
+        for message in bad_data_location_messages:
+            logging.warning(f"DeprecationWarning: {message}")
 
     def calculate_distance_matrix(self) -> None:
         """Calculates the geodesic distance, in km, between all of the windfarm's nodes, e.g.,
@@ -191,7 +261,9 @@ class Windfarm:
             for *_, data in (*self.graph.nodes(data=True), *self.graph.edges(data=True))
         ]
 
-        dist = [distance.geodesic(c1, c2).km for c1, c2 in combinations(coords, 2)]
+        dist = [
+            distance.geodesic(c1, c2).km for c1, c2 in itertools.combinations(coords, 2)
+        ]
         dist_arr = np.ones((len(ids), len(ids)))
         triangle_ix = np.triu_indices_from(dist_arr, 1)
         dist_arr[triangle_ix] = dist_arr.T[triangle_ix] = dist
@@ -207,45 +279,127 @@ class Windfarm:
         the dependent turbines in the windfarm, and the weighting of each turbine in the
         windfarm.
         """
-        # Get all turbines dependent on each substation
-        s_t_map = {
-            s_id: list(
-                chain.from_iterable(nx.dfs_successors(self.graph, source=s_id).values())
-            )
-            for s_id in self.substation_id
-        }
+        # Get all turbines connected to each substation, excepting any connected via
+        # export cables that connect substations as these operate independently
+        s_t_map = {s: {"turbines": [], "weights": []} for s in self.substation_id}  # type: ignore
+        for substation_id in self.substation_id:
+            nodes = set(
+                nx.bfs_tree(self.graph, substation_id, depth_limit=1).nodes
+            ).difference(self.substation_id)
+            for node in list(nodes):
+                nodes.update(
+                    list(itertools.chain(*nx.dfs_successors(self.graph, node).values()))
+                )
+            s_t_map[substation_id]["turbines"] = np.array(list(nodes))
 
         # Reorient the mapping to have the turbine list and the capacity-based weighting
         # of each turbine
-        s_t_map = {
-            s_id: dict(  # type: ignore
-                turbines=np.array(s_t_map[s_id]),
-                weights=np.array([self.system(t).capacity for t in s_t_map[s_id]])
-                / self.capacity,
+        for s_id in s_t_map:
+            s_t_map[s_id]["weights"] = (
+                np.array([self.system(t).capacity for t in s_t_map[s_id]["turbines"]])
+                / self.capacity
             )
-            for s_id in s_t_map
-        }
-        self.substation_turbine_map = s_t_map
+
+        self.substation_turbine_map: dict[str, dict[str, np.ndarray]] = s_t_map
+
+    def _create_wind_farm_map(self) -> None:
+        """Creates a secondary graph object strictly for traversing the windfarm to turn
+        on/off the appropriate turbines, substations, and cables more easily.
+        """
+        substations = self.substation_id
+        graph = self.graph
+        wind_map = dict(zip(substations, itertools.repeat({})))
+
+        export = [el for el in graph.edges if el[1] in substations]
+        for cable_tuple in export:
+            self.cable(cable_tuple).set_string_details(*cable_tuple[::-1])
+
+        for s_id in self.substation_id:
+            start_nodes = list(
+                set(nx.bfs_tree(graph, s_id, depth_limit=1).nodes).difference(
+                    substations
+                )
+            )
+            wind_map[s_id] = dict(strings=dict(zip(start_nodes, itertools.repeat({}))))
+
+            for start_node in start_nodes:
+                upstream = list(
+                    itertools.chain(*nx.dfs_successors(graph, start_node).values())
+                )
+                wind_map[s_id]["strings"][start_node] = {
+                    start_node: SubString(downstream=s_id, upstream=upstream)  # type: ignore
+                }
+                self.cable((s_id, start_node)).set_string_details(start_node, s_id)
+
+                downstream = start_node
+                for node in upstream:
+                    wind_map[s_id]["strings"][start_node][node] = SubString(  # type: ignore
+                        downstream=downstream,
+                        upstream=list(
+                            itertools.chain(*nx.dfs_successors(graph, node).values())
+                        ),
+                    )
+                    self.cable((downstream, node)).set_string_details(start_node, s_id)
+                    downstream = node
+
+                wind_map[s_id]["strings"][start_node] = String(  # type: ignore
+                    start=start_node, upstream_map=wind_map[s_id]["strings"][start_node]
+                )
+            wind_map[s_id] = SubstationMap(  # type: ignore
+                string_starts=start_nodes,
+                string_map=wind_map[s_id]["strings"],
+                downstream=graph.nodes[s_id]["connection"],
+            )
+        self.wind_farm_map = WindFarmMap(substation_map=wind_map, export_cables=export)  # type: ignore
+
+    def finish_setup(self) -> None:
+        """Final initialization hook for any substations, turbines, or cables."""
+        for start_node, end_node in self.graph.edges():
+            self.cable((start_node, end_node)).finish_setup()
+
+    def _setup_logger(self, initial: bool = True):
+        self._log_columns = [
+            "datetime",
+            "env_datetime",
+            "env_time",
+        ] + self.system_list
+
+        self.env._operations_writer = csv.DictWriter(
+            self.env._operations_csv, delimiter="|", fieldnames=self._log_columns
+        )
+        if initial:
+            self.env._operations_writer.writeheader()
 
     def _log_operations(self):
         """Logs the operational data for a simulation."""
-        self.env._operations_logger.info(" :: ".join(self._log_columns))
-
-        message = [self.env.simulation_time, self.env.now]
-        message.extend(
-            [self.system(system).operating_level for system in self.system_list]
+        message = dict(
+            datetime=dt.datetime.now(),
+            env_datetime=self.env.simulation_time,
+            env_time=self.env.now,
         )
-        message = " :: ".join((f"{m}" for m in message))  # type: ignore
-        self.env._operations_logger.info(message)
+        message.update(
+            {system: self.system(system).operating_level for system in self.system_list}
+        )
+        self.env._operations_writer.writerow(message)
 
         HOURS = 1
         while True:
-            yield self.env.timeout(HOURS)
-            message = [f"{self.env.simulation_time}", f"{self.env.now}"] + [
-                f"{self.system(system).operating_level}" for system in self.system_list
-            ]
-            message = " :: ".join(message)  # type: ignore
-            self.env._operations_logger.info(message)
+            for _ in range(10000):
+                yield self.env.timeout(HOURS)
+                message = dict(
+                    datetime=dt.datetime.now(),
+                    env_datetime=self.env.simulation_time,
+                    env_time=self.env.now,
+                )
+                message.update(
+                    {
+                        system: self.system(system).operating_level
+                        for system in self.system_list
+                    }
+                )
+                self.env._operations_buffer.append(message)
+            self.env._operations_writer.writerows(self.env._operations_buffer)
+            self.env._operations_buffer.clear()
 
     @cache
     def system(self, system_id: str) -> System:

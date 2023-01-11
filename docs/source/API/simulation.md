@@ -14,16 +14,17 @@ below will show how each of the APIs are powered to enable the full flexibility 
 
 ### Environment
 ```{eval-rst}
-.. automodule:: wombat.core.environment
+.. autoclass:: wombat.core.environment.WombatEnvironment
    :members:
    :undoc-members:
 ```
 
-### Repair Managemnt
+### Repair Management
 ```{eval-rst}
-.. automodule:: wombat.core.repair_management
+.. autoclass:: wombat.core.repair_management.RepairManager
    :members:
    :undoc-members:
+   :exclude-members: _current_id
 ```
 
 ### Servicing Equipment
