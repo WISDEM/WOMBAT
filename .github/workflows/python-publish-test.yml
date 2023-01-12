@@ -5,7 +5,8 @@ name: Deploy to Test PyPI
 
 on:
   push:
-    tags: ["*"]
+    tags:
+      - 'v*'
 
 jobs:
   release-pypi:
