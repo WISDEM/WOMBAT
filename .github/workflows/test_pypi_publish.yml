@@ -6,9 +6,6 @@ name: Deploy to Test PyPI
 on:
   push:
     tags: ["*"]
-  release:
-    types:
-      - [created]
 
 jobs:
   release-pypi:
