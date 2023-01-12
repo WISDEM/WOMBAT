@@ -97,7 +97,7 @@ setup(
         "Documentation": "https://wisdem.github.io/WOMBAT/",
     },
     classifiers=[
-        # TODO: https://pypi.org/classifiers
+        # Source: https://pypi.org/classifiers
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
@@ -110,8 +110,8 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        "Topics :: Scientific/Engineering",
-        "Topics :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Scientific/Engineering",
+        "Topic :: Software Development :: Libraries :: Python Modules",
         "Typing :: Typed",
     ],
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
