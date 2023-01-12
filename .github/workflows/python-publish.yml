@@ -8,7 +8,7 @@ on:
     types: [published]
 
 jobs:
-  release-test-pypi:
+  release-pypi:
     environment: release-pypi
     # Upload to PyPI on every published release
     if: github.event.action == 'published'
