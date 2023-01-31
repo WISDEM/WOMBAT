@@ -515,17 +515,22 @@ class Metrics:
         potential["year"] = potential.index.year.values
         potential["month"] = potential.index.month.values
 
+        group_cols = self.turbine_id
         if frequency == "annual":
-            production = production.groupby("year").sum()[self.turbine_id]
-            potential = potential.groupby("year").sum()[self.turbine_id]
+            group_cols.insert(0, "year")
+            production = production[group_cols].groupby("year").sum()
+            potential = potential[group_cols].groupby("year").sum()
 
         elif frequency == "monthly":
-            production = production.groupby("month").sum()[self.turbine_id]
-            potential = potential.groupby("month").sum()[self.turbine_id]
+            group_cols.insert(0, "month")
+            production = production[group_cols].groupby("month").sum()
+            potential = potential[group_cols].groupby("month").sum()
 
         elif frequency == "month-year":
-            production = production.groupby(["year", "month"]).sum()[self.turbine_id]
-            potential = potential.groupby(["year", "month"]).sum()[self.turbine_id]
+            group_cols.insert(0, "year")
+            group_cols.insert(0, "month")
+            production = production[group_cols].groupby(["year", "month"]).sum()
+            potential = potential[group_cols].groupby(["year", "month"]).sum()
 
         if (potential.values == 0).sum() > 0:
             potential.loc[potential.values == 0] = 1
