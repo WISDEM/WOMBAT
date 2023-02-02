@@ -1,3 +1,9 @@
+## Unreleased
+- Warnings from Pandas `.groupby()` calls have been silenced by shifting the column filtering to before the groupby method call.
+- Fixed the towing to port logging message, and subsequent `Metrics.number_of_tows()` search criteria to correctly calculate the number of tows in each direction.
+
+## v0.6.1 (31 January 2023)
+- A hot fix for the code comparison data not being found when installing from PyPI, which was caused by missing `__init__.py` files in the reconfigured library structure.
 ## v0.6.0 (10 January 2023)
 
 In v0.6, due to a series of bug fixes, logic improvements, and feature additions (all described below), users can expect mild to significant shifts in their results. These shifts, while startling, move WOMBAT towards more accurate results now that servicing equipment can't be dispatched multiple times in a row, statuses can't be reset without failure. Additionally, in our validation cases this has led to an average speedup of 71%, or 3.5x faster run times.
