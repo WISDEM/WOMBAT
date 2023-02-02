@@ -1698,17 +1698,18 @@ class ServiceEquipment(RepairsMixin):
             system_name=request.system_name,
             request_id=request.request_id,
             agent=self.settings.name,
-            reason=request.details.description,
         )
 
         # Travel to the turbine
         yield self.env.process(
-            self.travel("port", "site", set_current=system.id, **shared_logging)  # type: ignore
+            self.travel("port", "site", set_current=system.id, reason=request.details.description, **shared_logging)  # type: ignore
         )
 
         # Unmoor the turbine and tow it back to port
         yield self.env.process(self.mooring_connection(system, request, which="unmoor"))  # type: ignore
-        yield self.env.process(self.tow("site", "port", **shared_logging))
+        yield self.env.process(
+            self.tow("site", "port", reason="towing turbine to port", **shared_logging)
+        )
 
     def run_tow_to_site(self, request: RepairRequest) -> Generator[Process, None, None]:
         """Runs the tow to site logic for after a turbine has had its repairs completed
