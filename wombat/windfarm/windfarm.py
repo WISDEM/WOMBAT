@@ -31,7 +31,6 @@ class Windfarm:
         windfarm_layout: str,
         repair_manager: RepairManager,
     ) -> None:
-
         self.env = env
         self.repair_manager = repair_manager
 
