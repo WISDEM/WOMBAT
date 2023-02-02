@@ -421,6 +421,8 @@ class Metrics:
 
         hourly = turbine_operations.loc[:, self.turbine_id].values
 
+        # TODO: The below should be better summarized as: (availability > 0).groupby().sum() / groupby().count()
+
         if frequency == "project":
             availability = _calculate_time_availability(hourly, by_turbine=by_turbine)
             if not by_turbine:
@@ -1067,13 +1069,13 @@ class Metrics:
             raise ValueError("``by_direction`` must be one of ``True`` or ``False``")
 
         # Filter out only the towing events
-        towing = self.events.loc[self.events.action == "towing"]
+        towing = self.events.loc[self.events.action == "towing"].copy()
         if towing.shape[0] == 0:
             # If this is accessed in an in-situ only scenario, or no tows were activated
             # then return back 0
             return pd.DataFrame([[0]], columns=["total_tows"])
         towing.loc[:, "direction"] = "to_site"
-        ix_to_port = towing.reason.str.contains("triggered tow-to-port")
+        ix_to_port = towing.reason == "towing turbine to port"
         towing.loc[ix_to_port, "direction"] = "to_port"
 
         # Get the unique directions and tugboat names
@@ -1109,6 +1111,7 @@ class Metrics:
         # Create the correct time frequency for the number of tows and shell total
         group_cols = ["agent", "direction"]
         if frequency == "project":
+            time_cols = []
             n_tows = n_tows[group_cols + ["N"]].groupby(group_cols).sum()
 
             # If no further work is required, then return the sum as a 1x1 data frame
@@ -1119,21 +1122,26 @@ class Metrics:
 
             total_tows = pd.DataFrame([[0]], columns=["N"])
         elif frequency == "annual":
-            columns = ["year"] + columns
-            group_cols.append("year")
+            time_cols = ["year"]
+            columns = time_cols + columns
+            group_cols.extend(time_cols)
             n_tows = n_tows.groupby(group_cols).sum()[["N"]]
-            total_tows = total_tows[["year", "N"]].groupby(["year"]).sum().reset_index()
+            total_tows = (
+                total_tows[["year", "N"]].groupby(time_cols).sum().reset_index()
+            )
         elif frequency == "monthly":
-            group_cols.append("month")
-            columns = ["month"] + columns
+            time_cols = ["month"]
+            columns = time_cols + columns
+            group_cols.extend(time_cols)
             n_tows = n_tows[group_cols + ["N"]].groupby(group_cols).sum()
             total_tows = (
-                total_tows[["month", "N"]].groupby(["month"]).sum().reset_index()
+                total_tows[["month", "N"]].groupby(time_cols).sum().reset_index()
             )
         elif frequency == "month-year":
             # Already have month-year by default, so skip the n_tows refinement
-            group_cols.extend(["year", "month"])
-            columns = ["year", "month"] + columns
+            time_cols = ["year", "month"]
+            columns = time_cols + columns
+            group_cols.extend(time_cols)
             n_tows = n_tows.set_index(group_cols, drop=True)
 
         # Create a list of the columns needed for creating the broken down totals
@@ -1169,7 +1177,10 @@ class Metrics:
                 total = n_tows.reset_index().groupby(total_cols).sum().reset_index()
                 total_tows = total_tows.merge(total, on=total_cols, how="outer")
                 total_tows = total_tows.fillna(0).rename(columns={"N_y": "total_tows"})
-                return total_tows[columns]
+                total_tows = total_tows[columns]
+                if time_cols:
+                    return total_tows.set_index(time_cols)
+                return total_tows
             else:
                 total = (
                     n_tows.groupby(total_cols)
@@ -1217,16 +1228,30 @@ class Metrics:
                         _total.rename(columns=dict((t, f"{t}_{s}") for t in tugboats)),
                         how="outer",
                     ).fillna(0)
-                return total_tows.reset_index()[columns]
-            total_tows.N = total_tows.sum(axis=1)
-            return total_tows.rename(columns={"N": "total_tows"}).reset_index()[columns]
+                total_tows = total_tows.reset_index()[columns]
+                if time_cols:
+                    return total_tows.set_index(time_cols)
+                else:
+                    return total_tows
+            total_tows = total_tows.assign(N=total_tows.sum(axis=1))
+            total_tows = total_tows.rename(columns={"N": "total_tows"}).reset_index()[
+                columns
+            ]
+            if time_cols:
+                return total_tows.set_index(time_cols)
+            return total_tows
 
         if by_tug:
-            return (
+            total_tows = (
                 total_tows.join(tug_sums, how="outer").fillna(0).reset_index()[columns]
             )
+            if time_cols:
+                return total_tows.set_index(time_cols)
+            return total_tows
 
-        return total_tows.reset_index()[columns]
+        if time_cols:
+            return total_tows[columns].set_index(time_cols)
+        return total_tows[columns]
 
     def labor_costs(
         self, frequency: str, by_type: bool = False
