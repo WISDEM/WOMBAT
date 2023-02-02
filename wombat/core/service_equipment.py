@@ -1126,9 +1126,13 @@ class ServiceEquipment(RepairsMixin):
             )
             travel_time -= self.env.now  # will be negative value, but is flipped
             delay -= abs(travel_time)  # decrement the delay by the travel time
-            yield self.env.process(
-                self.weather_delay(delay, location="port", **shared_logging)
-            )
+
+            # If removing the travel time from the delay puts it past the delay, then
+            # do not process an additional delay, and simply go to the next step
+            if delay >= 0:
+                yield self.env.process(
+                    self.weather_delay(delay, location="port", **shared_logging)
+                )
             yield self.env.process(
                 self.wait_until_next_shift(
                     **shared_logging,
