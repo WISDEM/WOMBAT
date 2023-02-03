@@ -1925,9 +1925,12 @@ class WindFarmMap:
 
     def get_upstream_connections_from_substation(
         self, substation: str, return_cables: bool = True, by_string: bool = True
-    ) -> list[str] | tuple[list[str], list[str]] | list[list[str]] | tuple[
-        list[list[str]], list[list[str]]
-    ]:
+    ) -> (
+        list[str]
+        | tuple[list[str], list[str]]
+        | list[list[str]]
+        | tuple[list[list[str]], list[list[str]]]
+    ):
         """Retrieves the upstream turbines (and optionally, cables) connected to a
         py:attr:`substation` in the wind farm graph.
 
@@ -1953,7 +1956,6 @@ class WindFarmMap:
         substation_map = self.substation_map[substation]
         start_nodes = substation_map.string_starts
         for start_node in start_nodes:
-
             # Add the starting node of the string and substation-turbine array cable
             _turbines = [start_node]
             _cables = [f"cable::{substation}::{start_node}"]
