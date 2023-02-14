@@ -18,6 +18,9 @@ WOMBAT - Windfarm Operations and Maintenance cost-Benefit Analysis Tool
 
 |
 
+.. image:: https://codecov.io/gh/WISDEM/WOMBAT/branch/main/graph/badge.svg?token=SK9M10BZXY
+ :target: https://codecov.io/gh/WISDEM/WOMBAT
+
 .. image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
    :target: https://github.com/pre-commit/pre-commit
    :alt: pre-commit
