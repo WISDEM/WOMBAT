@@ -57,15 +57,16 @@ class Cable:
         cable_id : str
             The unique identifier for the cable.
         start_node : str
-            The starting point (``system.id``) (turbine or substation) of the cable segment.
+            The starting point (``system.id``) (turbine or substation) of the cable
+            segment.
         end_node : str
-            The ending point (``system.id``) (turbine or substation) of the cable segment.
+            The ending point (``system.id``) (turbine or substation) of the cable
+            segment.
         cable_data : dict
             The dictionary defining the cable segment.
         name : str | None
             The name of the cable to use during logging.
         """
-
         self.env = env
         self.windfarm = windfarm
         self.connection_type = connection_type
@@ -76,7 +77,8 @@ class Cable:
 
         if self.connection_type not in ("array", "export"):
             raise ValueError(
-                f"Input to `connection_type` for {self.id} must be one of 'array' or 'export'."
+                f"Input to `connection_type` for {self.id} must be one of 'array'"
+                " or 'export'."
             )
 
         cable_data = {**cable_data, "system_value": self.system.value}
@@ -115,7 +117,6 @@ class Cable:
         the cable when triggering usptream failures and resetting them after the repair
         is complete.
         """
-
         wf_map = self.windfarm.wind_farm_map
         if self.connection_type == "array":
             turbines = []
@@ -142,7 +143,7 @@ class Cable:
         """Creates the processes for each of the failure and maintenance types.
 
         Yields
-        -------
+        ------
         Tuple[Union[str, int], simpy.events.Process]
             Creates a dictionary to keep track of the running processes within the
             subassembly.
@@ -170,7 +171,7 @@ class Cable:
                 pass
 
     def interrupt_all_subassembly_processes(self) -> None:
-        """Thin wrapper for ``interrupt_processes`` to keep usage the same as systems."""
+        """Thin wrapper for ``interrupt_processes`` for consistent usage with system."""
         self.interrupt_processes()
 
     def stop_all_upstream_processes(self, failure: Failure | Maintenance) -> None:
@@ -184,13 +185,13 @@ class Cable:
         failure : Failre
             The ``Failure`` that is causing a string shutdown.
         """
-        shared_logging = dict(
-            agent=self.id,
-            action="repair_request",
-            reason=failure.description,
-            additional="downstream cable failure",
-            request_id=failure.request_id,
-        )
+        shared_logging = {
+            "agent": self.id,
+            "action": "repair_request",
+            "reason": failure.description,
+            "additional": "downstream cable failure",
+            "request_id": failure.request_id,
+        }
         upstream_nodes = self.upstream_nodes
         upstream_cables = self.upstream_cables
         if self.connection_type == "export":
@@ -288,7 +289,8 @@ class Cable:
         self.system.repair_manager.submit_request(repair_request)
 
     def run_single_maintenance(self, maintenance: Maintenance) -> Generator:
-        """Runs a process to trigger one type of maintenance request throughout the simulation.
+        """Runs a process to trigger one type of maintenance request throughout the
+        simulation.
 
         Parameters
         ----------
@@ -296,7 +298,7 @@ class Cable:
             A maintenance category.
 
         Yields
-        -------
+        ------
         simpy.events.Timeout
             Time between maintenance requests.
         """
@@ -312,7 +314,7 @@ class Cable:
             while hours_to_next > 0:
                 start = -1  # Ensure an interruption before processing is caught
                 try:
-                    # If the replacement has not been completed, then wait another minute
+                    # If the replacement has not been completed, then wait
                     yield self.servicing & self.downstream_failure & self.broken
 
                     start = self.env.now
@@ -329,7 +331,8 @@ class Cable:
                         hours_to_next -= 0 if start == -1 else self.env.now - start
 
     def run_single_failure(self, failure: Failure) -> Generator:
-        """Runs a process to trigger one type of failure repair request throughout the simulation.
+        """Runs a process to trigger one type of failure repair request throughout the
+        simulation.
 
         Parameters
         ----------
@@ -337,7 +340,7 @@ class Cable:
             A failure classification.
 
         Yields
-        -------
+        ------
         simpy.events.Timeout
             Time between failure events that need to request a repair.
         """

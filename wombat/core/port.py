@@ -1,8 +1,7 @@
-"""
-Creates the `Port` class that provies the tow-to-port repair capabilities for offshore
-floating wind farms. The `Port` will control a series of tugboats enabled through the
-"TOW" capability that get automatically dispatched once a tow-to-port repair is
-submitted and a tugboat is available (`ServiceEquipment.at_port`). The `Port` also
+"""Creates the `Port` class that provies the tow-to-port repair capabilities for
+offshore floating wind farms. The `Port` will control a series of tugboats enabled
+through the "TOW" capability that get automatically dispatched once a tow-to-port repair
+is submitted and a tugboat is available (`ServiceEquipment.at_port`). The `Port` also
 controls any mooring repairs through the "AHV" capability, which operates similarly to
 the tow-to-port except that it will not be released until the repair is completed, and
 operates on a strict shift scheduling basis.
@@ -35,8 +34,9 @@ class Port(RepairsMixin, FilterStore):
     repairs.
 
     .. note:: The operating costs for the port are incorporated into the ``FixedCosts``
-        functionality in the high-levl cost bucket: ``operations_management_administration``
-        or the more granula cost bucket: ``marine_management``
+        functionality in the high-levl cost bucket:
+        ``operations_management_administration`` or the more granula cost bucket:
+        ``marine_management``
 
     Parameters
     ----------
@@ -47,8 +47,9 @@ class Port(RepairsMixin, FilterStore):
     repair_manager : RepairManager
         The simulation repair manager instance.
     config : dict | str | Path
-        A path to a YAML object or dictionary encoding the port's configuration settings.
-        This will be loaded into a ``PortConfig`` object during initialization.
+        A path to a YAML object or dictionary encoding the port's configuration
+        settings. This will be loaded into a ``PortConfig`` object during
+        initialization.
 
     Attributes
     ----------
@@ -104,7 +105,8 @@ class Port(RepairsMixin, FilterStore):
             except FileNotFoundError:
                 config = load_yaml(env.data_dir / "repair", config)  # type: ignore
                 logging.warning(
-                    "DeprecationWarning: In v0.7, all port configurations must be located in: '<library>/project/port/"
+                    "DeprecationWarning: In v0.7, all port configurations must be"
+                    " located in: '<library>/project/port/"
                 )
         assert isinstance(config, dict)
         self.settings = PortConfig.from_dict(config)
@@ -147,7 +149,7 @@ class Port(RepairsMixin, FilterStore):
             self.env.process(self._log_annual_fee())
 
     def _log_annual_fee(self):
-        """Logs the annual port lease fee on a monthly-basis"""
+        """Logs the annual port lease fee on a monthly-basis."""
         assert isinstance(self.settings, PortConfig)
         monthly_fee = self.settings.annual_fee / 12.0
         ix_month_starts = self.env.weather.index.day == 1  # 1st of the month
@@ -205,15 +207,15 @@ class Port(RepairsMixin, FilterStore):
         # Create the shared logging among the processes
         system = self.windfarm.system(request.system_id)
         subassembly = getattr(system, request.subassembly_id)
-        shared_logging = dict(
-            agent=self.settings.name,
-            reason=request.details.description,
-            system_id=system.id,
-            system_name=system.name,
-            part_id=subassembly.id,
-            part_name=subassembly.name,
-            request_id=request.request_id,
-        )
+        shared_logging = {
+            "agent": self.settings.name,
+            "reason": request.details.description,
+            "system_id": system.id,
+            "system_name": system.name,
+            "part_id": subassembly.id,
+            "part_name": subassembly.name,
+            "request_id": request.request_id,
+        }
 
         # Continue repairing and waiting a shift until the remaining hours to complete
         # the repair is zero
@@ -236,7 +238,7 @@ class Port(RepairsMixin, FilterStore):
             # hours available in the shift
             hours_to_process = min(hours_to_process, hours_remaining)
             yield self.env.process(
-                self.process_repair(hours_to_process, request.details, **shared_logging)  # type: ignore
+                self.process_repair(hours_to_process, request.details, **shared_logging)
             )
 
             # Decrement the remaining hours and reset the default hours to process back
@@ -315,7 +317,7 @@ class Port(RepairsMixin, FilterStore):
         requests = self.transfer_requests_from_manager(system_id)
         if requests is not None:
             self.requests_serviced.update([r.request_id for r in requests])
-            [self.env.process(self.repair_single(request)) for request in requests]  # type: ignore
+            [self.env.process(self.repair_single(request)) for request in requests]
 
     def run_tow_to_port(self, request: RepairRequest) -> Generator[Process, None, None]:
         """The method to initiate a tow-to-port repair sequence.
@@ -329,7 +331,8 @@ class Port(RepairsMixin, FilterStore):
            crews to work on repairs immediately
         4. Requests a tugboat to return the turbine to site
         5. Runs ``ServiceEquipment.tow_to_site()``, which encapsulates the tow back to
-           site, reconnection, resetting the operating status, and returning back to port
+           site, reconnection, resetting the operating status, and returning back to
+           port
 
         Parameters
         ----------
@@ -362,7 +365,7 @@ class Port(RepairsMixin, FilterStore):
         check_range = set(
             pd.date_range(current, current + pd.Timedelta(days=20), freq="D").date
         )
-        intersection = check_range.intersection(self.settings.non_operational_dates_set)  # type: ignore
+        intersection = check_range.intersection(self.settings.non_operational_dates_set)
         if intersection:
             hours_to_next = self.hours_to_next_operational_date(
                 start_search_date=max(intersection)
@@ -393,9 +396,9 @@ class Port(RepairsMixin, FilterStore):
         self.run_repairs(request.system_id)
 
         # Wait for the repairs to complete
-        yield simpy.AllOf(self.env, self.active_repairs[request.system_id].values())  # type: ignore
+        yield simpy.AllOf(self.env, self.active_repairs[request.system_id].values())
 
-        # Request a tugboat to tow the turbine back to site, and open up the turbine queue
+        # Request a tugboat to tow the turbine back to site, and open the turbine queue
         tugboat = yield self.tugboat_manager.get(lambda x: x.at_port)  # type: ignore
         self.turbine_manager.release(turbine_request)
         yield self.env.process(tugboat.run_tow_to_site(request))  # type: ignore
@@ -433,8 +436,8 @@ class Port(RepairsMixin, FilterStore):
         request = yield self.manager.get(lambda x: x == request)
         yield self.env.process(tugboat.in_situ_repair(request))
 
-        # If the tugboat finished mid-shift, the in-situ repair logic will keep it there,
-        # so ensure it returns back to port once it's complete
+        # If the tugboat finished mid-shift, the in-situ repair logic will keep it
+        # there, so ensure it returns back to port once it's complete
         if not tugboat.at_port:
             yield self.env.process(
                 tugboat.travel(

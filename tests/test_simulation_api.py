@@ -1,7 +1,6 @@
 """Test the API functionality."""
 
-import pytest
-
 
 def test_things():
+    """Test nothing."""
     pass

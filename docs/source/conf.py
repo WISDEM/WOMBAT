@@ -24,7 +24,14 @@ sys.path.insert(0, os.path.abspath("."))
 
 project = "WOMBAT"
 copyright = "2022 Alliance for Sustainable Energy, LLC"
-author = "Rob Hammond, Aubryn Cooperman, Aaron Barker, Alicia Key, Matt Shields, Annika Eberle"
+author = (
+    "Rob Hammond,"
+    " Aubryn Cooperman,"
+    " Aaron Barker,"
+    " Alicia Key,"
+    " Matt Shields,"
+    " Annika Eberle"
+)
 
 # The full version, including alpha/beta/rc tags
 release = wombat.__version__
@@ -91,7 +98,7 @@ source_suffix = {
 nb_execution_mode = "auto"
 nb_execution_timeout = -1
 nb_execution_allow_errors = True
-# nb_execution_excludepatterns.append("*_demonstration.md")  # used for targeted updating
+# nb_execution_excludepatterns.append("*_demonstration.md")
 
 myst_heading_anchors = 3
 

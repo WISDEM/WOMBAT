@@ -16,8 +16,7 @@ import pandas as pd
 from attrs import Factory, Attribute, field, define
 from scipy.stats import weibull_min
 
-from wombat.utilities import HOURS_IN_DAY, HOURS_IN_YEAR
-from wombat.utilities.time import parse_date
+from wombat.utilities.time import HOURS_IN_DAY, HOURS_IN_YEAR, parse_date
 
 
 if TYPE_CHECKING:
@@ -34,7 +33,7 @@ VALID_EQUIPMENT = (
     "DRN",  # Drone
     "DSV",  # Diving support vessel
     "TOW",  # Tugboat or support vessel for moving a turbine to a repair facility
-    "AHV",  # Anchor handling vessel, tpyically a tugboat, but doesn't trigger tow-to-port
+    "AHV",  # Anchor handling vessel, typically a tugboat, w/o trigger tow-to-port
 )
 
 # Define the valid unscheduled and valid strategies
@@ -46,7 +45,7 @@ def convert_to_list(
     value: Sequence | str | int | float,
     manipulation: Callable | None = None,
 ) -> list:
-    """Converts an unknown element that could be a list or single, non-sequence element
+    """Convert an unknown element that could be a list or single, non-sequence element
     to a list of elements.
 
     Parameters
@@ -61,7 +60,6 @@ def convert_to_list(
     list
         The new list of elements.
     """
-
     if isinstance(value, (str, int, float)):
         value = [value]
     if manipulation is not None:
@@ -77,7 +75,7 @@ update_wrapper(convert_to_list_lower, convert_to_list)
 
 
 def clean_string_input(value: str | None) -> str | None:
-    """Converts a string to lower case and and removes leading and trailing white spaces.
+    """Convert a string to lower case and and removes leading and trailing white spaces.
 
     Parameters
     ----------
@@ -102,7 +100,7 @@ def annual_date_range(
     start_year: int,
     end_year: int,
 ) -> np.ndarray:
-    """Creates a series of date ranges across multiple years between the starting date
+    """Create a series of date ranges across multiple years between the starting date
     and ending date for each year from starting year to ending year. Will only work if
     the end year is the same as the starting year or later, and the ending month, day
     combinatoion is after the starting month, day combination.
@@ -129,7 +127,7 @@ def annual_date_range(
     ValueError: Raised if the ending year is prior to the starting year.
 
     Yields
-    -------
+    ------
     np.ndarray
         A ``numpy.ndarray`` of ``datetime.date`` objects.
     """
@@ -144,7 +142,7 @@ def annual_date_range(
     end = datetime.datetime(2022, end_month, end_day)
     if end < start:
         raise ValueError(
-            f"The starting month and day {start} is after the ending month and day {end}."
+            f"The starting month/day combination: {start}, is after the ending: {end}."
         )
 
     # Create a list of arrays of date ranges for each year
@@ -165,23 +163,23 @@ def annualized_date_range(
     end_date: datetime.datetime,
     end_year: int,
 ) -> np.ndarray:
-    """Creates an annualized list of dates based on the simulation years.
+    """Create an annualized list of dates based on the simulation years.
 
     Parameters
     ----------
     start_date : str
         The string start month and day in MM/DD or MM-DD format.
     start_year : int
-        _description_
+        The starting year in YYYY format.
     end_date : str
         The string end month and day in MM/DD or MM-DD format.
     end_year : int
-        _description_
+        The ending year in YYYY format.
 
     Returns
     -------
     set[datetime.datetime]
-        _description_
+        The set of dates the servicing equipment is available for operations.
     """
     additional = 1 if end_date < start_date else 0
     date_list = [
@@ -200,7 +198,7 @@ def annualized_date_range(
 
 
 def convert_ratio_to_absolute(ratio: int | float, total: int | float) -> int | float:
-    """Converts a proportional cost to an absolute cost.
+    """Convert a proportional cost to an absolute cost.
 
     Parameters
     ----------
@@ -214,7 +212,6 @@ def convert_ratio_to_absolute(ratio: int | float, total: int | float) -> int | f
     int | float
         The absolute cost of the materials.
     """
-
     if ratio <= 1:
         return ratio * total
     return ratio
@@ -223,7 +220,7 @@ def convert_ratio_to_absolute(ratio: int | float, total: int | float) -> int | f
 def check_start_stop_dates(
     instance: Any, attribute: attr.Attribute, value: datetime.datetime | None
 ) -> None:
-    """Ensures the date range start and stop points are not the same."""
+    """Ensure the date range start and stop points are not the same."""
     if attribute.name == "non_operational_end":
         start_date = instance.non_operational_start
         start_name = "non_operational_start"
@@ -235,12 +232,14 @@ def check_start_stop_dates(
         if start_date is None:
             return
         raise ValueError(
-            f"A starting date was provided, but no ending date was provided for `{attribute.name}`."
+            "A starting date was provided, but no ending date was provided"
+            f" for `{attribute.name}`."
         )
 
     if start_date is None:
         raise ValueError(
-            f"An ending date was provided, but no starting date was provided for `{start_name}`."
+            "An ending date was provided, but no starting date was provided"
+            f" for `{start_name}`."
         )
 
     if start_date == value:
@@ -253,7 +252,7 @@ def check_start_stop_dates(
 def valid_hour(
     instance: Any, attribute: Attribute, value: int  # pylint: disable=W0613
 ) -> None:
-    """Validator that ensures that the input is a valid time or null value (-1).
+    """Validate that the input is a valid time or null value (-1).
 
     Parameters
     ----------
@@ -278,7 +277,7 @@ def valid_hour(
 def valid_reduction(
     instance, attribute: Attribute, value: int | float  # pylint: disable=W0613
 ) -> None:
-    """Checks to see if the reduction factor is between 0 and 1, inclusive.
+    """Check to see if the reduction factor is between 0 and 1, inclusive.
 
     Parameters
     ----------
@@ -287,7 +286,8 @@ def valid_reduction(
     """
     if value < 0 or value > 1:
         raise ValueError(
-            f"Input for {attribute.name}'s `speed_reduction_factor` must be between 0 and 1, inclusive."
+            f"Input for {attribute.name}'s `speed_reduction_factor` must be between"
+            " 0 and 1, inclusive."
         )
 
 
@@ -296,7 +296,7 @@ def greater_than_zero(
     attribute: Attribute,  # pylint: disable=W0613
     value: int | float,
 ) -> None:
-    """Checks if an input is greater than 0.
+    """Check if an input is greater than 0.
 
     Parameters
     ----------
@@ -321,7 +321,7 @@ def greater_than_equal_to_zero(
     attribute: Attribute,  # pylint: disable=W0613
     value: int | float,
 ) -> None:
-    """Checks if an input is at least 0.
+    """Check if an input is at least 0.
 
     Parameters
     ----------
@@ -355,27 +355,30 @@ class FromDictMixin:
 
     @classmethod
     def from_dict(cls, data: dict):
-        """Maps a data dictionary to an `attrs`-defined class.
+        """Map a data dictionary to an `attrs`-defined class.
 
-        TODO: Add an error to ensure that either none or all the parameters are passed in
+        TODO: Add an error to ensure that either none or all the parameters are passed
 
         Parameters
         ----------
             data : dict
                 The data dictionary to be mapped.
+
         Returns
         -------
             cls : Any
                 The `attrs`-defined class.
         """
-        # Get all parameters from the input dictionary that map to the class initialization
+        # Get all parameters from the input dictionary that map to the class init
         kwargs = {  # type: ignore
             a.name: data[a.name]  # type: ignore
             for a in cls.__attrs_attrs__  # type: ignore
             if a.name in data and a.init  # type: ignore
         }
 
-        # Map the inputs must be provided: 1) must be initialized, 2) no default value defined
+        # Map the inputs that must be provided:
+        # 1) must be initialized
+        # 2) no default value defined
         required_inputs = [  # type: ignore
             a.name  # type: ignore
             for a in cls.__attrs_attrs__  # type: ignore
@@ -384,7 +387,8 @@ class FromDictMixin:
         undefined = sorted(set(required_inputs) - set(kwargs))
         if undefined:
             raise AttributeError(
-                f"The class defintion for {cls.__name__} is missing the following inputs: {undefined}"
+                f"The class defintion for {cls.__name__} is missing the following"
+                f" inputs: {undefined}"
             )
         return cls(**kwargs)  # type: ignore
 
@@ -456,7 +460,7 @@ class Maintenance(FromDictMixin):
         )
 
     def assign_id(self, request_id: str) -> None:
-        """Assigns a unique identifier to the request.
+        """Assign a unique identifier to the request.
 
         Parameters
         ----------
@@ -525,7 +529,7 @@ class Failure(FromDictMixin):
     request_id: str = field(init=False)
 
     def __attrs_post_init__(self):
-        """Creates the actual Weibull distribution and converts equipment requirements
+        """Create the actual Weibull distribution and converts equipment requirements
         to a list.
         """
         object.__setattr__(self, "weibull", weibull_min(self.shape, scale=self.scale))
@@ -541,9 +545,9 @@ class Failure(FromDictMixin):
         )
 
     def hours_to_next_failure(self) -> float | None:
-        """Samples the next time to failure in a Weibull distribution. If the ``scale``
-        and ``shape`` parameters are set to 0, then the model will return ``None`` to cause
-        the subassembly to timeout to the end of the simulation.
+        """Sample the next time to failure in a Weibull distribution. If the ``scale``
+        and ``shape`` parameters are set to 0, then the model will return ``None`` to
+        cause the subassembly to timeout to the end of the simulation.
 
         Returns
         -------
@@ -557,7 +561,7 @@ class Failure(FromDictMixin):
         return self.weibull.rvs(size=1)[0] * HOURS_IN_YEAR
 
     def assign_id(self, request_id: str) -> None:
-        """Assigns a unique identifier to the request.
+        """Assign a unique identifier to the request.
 
         Parameters
         ----------
@@ -593,7 +597,9 @@ class SubassemblyData(FromDictMixin):
     system_value: int | float = field(converter=float)
 
     def __attrs_post_init__(self):
-        """Converts the maintenance and failure data to ``Maintenance`` and ``Failure`` objects, respectively."""
+        """Convert the maintenance and failure data to ``Maintenance`` and ``Failure``
+        objects, respectively.
+        """
         for kwargs in self.maintenance:
             assert isinstance(kwargs, dict)
             kwargs.update({"system_value": self.system_value})
@@ -640,9 +646,11 @@ class RepairRequest(FromDictMixin):
     cable : bool
         Indicator that the request is for a cable, by default False.
     upstream_turbines : list[str]
-        The cable's upstream turbines, by default []. No need to use this if ``cable`` == False.
+        The cable's upstream turbines, by default []. No need to use this if
+        ``cable`` == False.
     upstream_cables : list[str]
-        The cable's upstream cables, by default []. No need to use this if ``cable`` == False.
+        The cable's upstream cables, by default []. No need to use this if
+        ``cable`` == False.
     """
 
     system_id: str = field(converter=str)
@@ -659,7 +667,7 @@ class RepairRequest(FromDictMixin):
     request_id: str = field(init=False)
 
     def assign_id(self, request_id: str) -> None:
-        """Assigns a unique identifier to the request.
+        """Assign a unique identifier to the request.
 
         Parameters
         ----------
@@ -672,7 +680,8 @@ class RepairRequest(FromDictMixin):
 
 @define(frozen=True, auto_attribs=True)
 class ServiceCrew(FromDictMixin):
-    """An internal data class for the indivdual crew units that are on the servicing equipment.
+    """An internal data class for the indivdual crew units that are on the servicing
+    equipment.
 
     Parameters
     ----------
@@ -705,7 +714,7 @@ class DateLimitsMixin:
     reduced_speed_end: datetime.datetime = field(converter=parse_date)
 
     def _set_environment_shift(self, start: int, end: int) -> None:
-        """Used to set the ``workday_start`` and ``workday_end`` to the environment's values.
+        """Set the ``workday_start`` and ``workday_end`` to the environment's values.
 
         Parameters
         ----------
@@ -718,7 +727,7 @@ class DateLimitsMixin:
         object.__setattr__(self, "workday_end", end)
 
     def _set_port_distance(self, distance: int | float | None) -> None:
-        """Used to set ``port_distance`` from the environment's or port's variables.
+        """Set ``port_distance`` from the environment's or port's variables.
 
         Parameters
         ----------
@@ -738,7 +747,7 @@ class DateLimitsMixin:
         new_end: datetime.datetime | None,
         which: str,
     ) -> tuple[datetime.datetime | None, datetime.datetime | None]:
-        """Compares the orignal and newly input starting ane ending date for either the
+        """Compare the orignal and newly input starting ane ending date for either the
         non-operational date range or the reduced speed date range.
 
         Parameters
@@ -793,7 +802,7 @@ class DateLimitsMixin:
         end_date: datetime.datetime | None = None,
         end_year: int | None = None,
     ) -> None:
-        """Creates an annualized list of dates where servicing equipment should be
+        """Create an annualized list of dates where servicing equipment should be
         unavailable. Takes a a ``start_year`` and ``end_year`` to determine how many
         years should be covered.
 
@@ -808,7 +817,8 @@ class DateLimitsMixin:
             The ending date for the annual range of non-operational dates, by default
             None.
         end_year : int | None
-            The last year that should have a non-operational date range, by default None.
+            The last year that should have a non-operational date range, by default
+            None.
 
         Raises
         ------
@@ -838,7 +848,8 @@ class DateLimitsMixin:
             raise ValueError(f"Input to `end_year`: {end_year}, must be an integer.")
         if end_year < start_year:
             raise ValueError(
-                f"`start_year`: {start_year}, must less than or equal to the `end_year`: {end_year}"
+                "`start_year`: {start_year}, must less than or equal to the"
+                f" `end_year`: {end_year}"
             )
 
         # Create the date range
@@ -849,8 +860,8 @@ class DateLimitsMixin:
         object.__setattr__(self, "non_operational_dates_set", set(dates))
 
         # Update the operating dates field to ensure there is no overlap
-        if hasattr(self, "operating_dates"):
-            operating = np.setdiff1d(self.operating_dates, self.non_operational_dates)  # type: ignore
+        if hasattr(self, "operating_dates") and hasattr(self, "non_operational_dates"):
+            operating = np.setdiff1d(self.operating_dates, self.non_operational_dates)
             object.__setattr__(self, "operating_dates", operating)
             object.__setattr__(self, "operating_dates_set", set(operating))
 
@@ -862,7 +873,7 @@ class DateLimitsMixin:
         end_year: int | None = None,
         speed: float = 0.0,
     ) -> None:
-        """Creates an annualized list of dates where servicing equipment should be
+        """Create an annualized list of dates where servicing equipment should be
         operating with reduced speeds. The passed ``start_date``, ``end_date``, and
         ``speed`` will override provided values if they are more conservative than the
         current settings, or a value for ``speed`` will only override the existing value
@@ -910,7 +921,8 @@ class DateLimitsMixin:
             raise ValueError(f"Input to `end_year`: {end_year}, must be an integer.")
         if end_year < start_year:
             raise ValueError(
-                f"`start_year`: {start_year}, must less than or equal to the `end_year`: {end_year}"
+                "`start_year`: {start_year}, must less than or equal to the"
+                f" `end_year`: {end_year}"
             )
 
         # Create the date range
@@ -921,14 +933,15 @@ class DateLimitsMixin:
         object.__setattr__(self, "reduced_speed_dates_set", set(dates))
 
         # Update the reduced speed if none was originally provided
-        if speed != 0 and (self.reduced_speed == 0 or speed < self.reduced_speed):  # type: ignore
+        assert hasattr(self, "reduced_speed")  # mypy helper
+        if speed != 0 and (self.reduced_speed == 0 or speed < self.reduced_speed):
             object.__setattr__(self, "reduced_speed", speed)
 
 
 @define(frozen=True, auto_attribs=True)
 class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
-    """The data class specification for servicing equipment that will use a pre-scheduled
-    basis for returning to site.
+    """The data class specification for servicing equipment that will use a
+    pre-scheduled basis for returning to site.
 
     Parameters
     ----------
@@ -996,8 +1009,8 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         The ending hour of a workshift, in 24 hour time.
     crew_transfer_time : float
         The number of hours it takes to transfer the crew from the equipment to the
-        system, e.g. how long does it take to transfer the crew from the CTV to the turbine,
-        default 0.
+        system, e.g. how long does it take to transfer the crew from the CTV to the
+        turbine, default 0.
     onsite : bool
         Indicator for if the rig and crew are based onsite.
 
@@ -1067,13 +1080,13 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         validator=attrs.validators.in_(["turbine", "severity"]),
     )
     start_month: int = field(
-        default=-1, converter=int, validator=attrs.validators.ge(0)  # type: ignore
+        default=-1, converter=int, validator=attrs.validators.ge(0)
     )
-    start_day: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))  # type: ignore
-    start_year: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))  # type: ignore
-    end_month: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))  # type: ignore
-    end_day: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))  # type: ignore
-    end_year: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))  # type: ignore
+    start_day: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
+    start_year: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
+    end_month: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
+    end_day: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
+    end_year: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
     strategy: str = field(
         default="scheduled", validator=attrs.validators.in_(["scheduled"])
     )
@@ -1094,7 +1107,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     reduced_speed_dates: pd.DatetimeIndex = field(factory=set, init=False)
 
     def create_date_range(self) -> np.ndarray:
-        """Creates an ``np.ndarray`` of valid operational dates for the service equipment."""
+        """Create an ``np.ndarray`` of valid operational dates."""
         start_date = datetime.datetime(
             self.start_year, self.start_month, self.start_day
         )
@@ -1117,6 +1130,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         return date_range
 
     def __attrs_post_init__(self) -> None:
+        """Post-initialization."""
         object.__setattr__(self, "operating_dates", self.create_date_range())
         object.__setattr__(self, "operating_dates_set", set(self.operating_dates))
 
@@ -1222,23 +1236,23 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     non_operational_start : str | datetime.datetime | None
         The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
         period of prohibited operations. When defined at the environment level or the
-        port level, if a tugboat, an undefined or later starting date will be overridden,
-        by default None.
+        port level, if a tugboat, an undefined or later starting date will be
+        overridden, by default None.
     non_operational_end : str | datetime.datetime | None
         The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
         period of prohibited operations. When defined at the environment level or the
-        port level, if a tugboat, an undefined or earlier ending date will be overridden,
-        by default None.
+        port level, if a tugboat, an undefined or earlier ending date will be
+        overridden, by default None.
     reduced_speed_start : str | datetime.datetime | None
         The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
         period of reduced speed operations. When defined at the environment level or the
-        port level, if a tugboat, an undefined or later starting date will be overridden,
-        by default None.
+        port level, if a tugboat, an undefined or later starting date will be
+        overridden, by default None.
     reduced_speed_end : str | datetime.datetime | None
         The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
         period of reduced speed operations. When defined at the environment level or the
-        port level, if a tugboat, an undefined or earlier ending date will be overridden,
-        by default None.
+        port level, if a tugboat, an undefined or earlier ending date will be
+        overridden, by default None.
     reduced_speed : float
         The maximum operating speed during the annualized reduced speed operations.
         When defined at the environment level, an undefined or faster value will be
@@ -1303,7 +1317,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         attribute: Attribute,  # pylint: disable=W0613
         value: int | float,
     ) -> None:
-        """Ensures a valid threshold is provided for a given ``strategy``."""
+        """Ensure a valid threshold is provided for a given ``strategy``."""
         if self.strategy == "downtime":
             if value <= 0 or value >= 1:
                 raise ValueError(
@@ -1339,12 +1353,13 @@ class ServiceEquipmentData(FromDictMixin):
     Raises
     ------
     ValueError
-        If ``strategy`` is not one of "scheduled" or "unscheduled" an error will be raised.
+        Raised if ``strategy`` is not one of "scheduled" or "unscheduled".
 
     Examples
     --------
-    The below workflow is how a new data :py:class:`~data_classes.ScheduledServiceEquipmentData`
-    object could be created via a generic/routinized creation method, and is how the
+    The below workflow is how a new data
+    :py:class:`~data_classes.ScheduledServiceEquipmentData` object could be created via
+    a generic/routinized creation method, and is how the
     :py:class:`~service_equipment.ServiceEquipment`'s ``__init__`` method creates the
     settings data.
 
@@ -1389,25 +1404,27 @@ class ServiceEquipmentData(FromDictMixin):
     )
 
     def __attrs_post_init__(self):
+        """Post-initialization."""
         if self.strategy is None:
             object.__setattr__(
                 self, "strategy", clean_string_input(self.data_dict["strategy"])
             )
         if self.strategy not in VALID_STRATEGIES:
             raise ValueError(
-                f"ServiceEquipment strategy should be one of {VALID_STRATEGIES}; input: {self.strategy}."
+                f"ServiceEquipment strategy should be one of {VALID_STRATEGIES};"
+                f" input: {self.strategy}."
             )
 
     def determine_type(
         self,
     ) -> ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData:
-        """Generates the appropriate ServiceEquipmentData variation.
+        """Generate the appropriate ServiceEquipmentData variation.
 
         Returns
         -------
         Union[ScheduledServiceEquipmentData, UnscheduledServiceEquipmentData]
-            The appropriate ``xxServiceEquipmentData`` schema depending on the strategy the
-            ``ServiceEquipment`` will use.
+            The appropriate ``xxServiceEquipmentData`` schema depending on the strategy
+            the ``ServiceEquipment`` will use.
         """
         if self.strategy == "scheduled":
             return ScheduledServiceEquipmentData.from_dict(self.data_dict)
@@ -1447,7 +1464,7 @@ class StrategyMap:
         threshold: int | float,
         equipment: "ServiceEquipment",  # noqa: disable=F821
     ) -> None:
-        """A method to update the strategy mapping between capability types and the
+        """Update the strategy mapping between capability types and the
         available ``ServiceEquipment`` objects.
 
         Parameters
@@ -1578,7 +1595,7 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
 
 @define(frozen=True, auto_attribs=True)
 class FixedCosts(FromDictMixin):
-    """The fixed costs for operating a windfarm. All values are assumed to be in $/kW/yr.
+    """Fixed costs for operating a windfarm. All values are assumed to be in $/kW/yr.
 
     Parameters
     ----------
@@ -1592,8 +1609,8 @@ class FixedCosts(FromDictMixin):
         and equipment to coordinate high voltage equipment, switching, port activities,
         and marine activities.
 
-        .. note:: This should only be used when not breaking down the cost into the following
-            categories: ``project_management_administration``,
+        .. note:: This should only be used when not breaking down the cost into the
+            following categories: ``project_management_administration``,
             ``operation_management_administration``, ``marine_management``, and/or
             ``weather_forecasting``
 
@@ -1617,11 +1634,13 @@ class FixedCosts(FromDictMixin):
         operations.
     insurance : float
         Insurance policies during operational period including All Risk Property,
-        Buisness Interuption, Third Party Liability, and Brokers Fee, and Storm Coverage.
+        Buisness Interuption, Third Party Liability, and Brokers Fee, and Storm
+        Coverage.
 
         .. note:: This should only be used when not breaking down the cost into the
             following categories: ``brokers_fee``, ``operations_all_risk``,
-            ``business_interruption``, ``third_party_liability``, and/or ``storm_coverage``
+            ``business_interruption``, ``third_party_liability``, and/or
+            ``storm_coverage``
 
     brokers_fee : float
         Fees for arranging the insurance package.
@@ -1716,6 +1735,7 @@ class FixedCosts(FromDictMixin):
                 object.__setattr__(self, cost, 0)
 
     def __attrs_post_init__(self):
+        """Post-initialization."""
         grouped_names = {
             "operations_management_administration": [
                 "project_management_administration",
@@ -1817,8 +1837,7 @@ class FixedCosts(FromDictMixin):
 
 @define(auto_attribs=True)
 class SubString:
-    """
-    A list of the upstream connections for a turbine and its downstream connector.
+    """A list of the upstream connections for a turbine and its downstream connector.
 
     Parameters
     ----------
@@ -1834,8 +1853,7 @@ class SubString:
 
 @define(auto_attribs=True)
 class String:
-    """
-    All of the connection information for a complete string in a wind farm.
+    """All of the connection information for a complete string in a wind farm.
 
     Parameters
     ----------
@@ -1851,14 +1869,14 @@ class String:
 
 @define(auto_attribs=True)
 class SubstationMap:
-    """
-    A mapping of every ``String`` connected to a substation, excluding export
+    """A mapping of every ``String`` connected to a substation, excluding export
     connections to other substations.
 
     Parameters
     ----------
     string_starts : list[str]
-        A list of every first turbine's ``System.id`` in a string connected to the substation.
+        A list of every first turbine's ``System.id`` in a string connected to the
+        substation.
     string_map : dict[str, String]
         A dictionary mapping each string starting turbine to its ``String`` data.
     downstream : str
@@ -1874,8 +1892,7 @@ class SubstationMap:
 
 @define(auto_attribs=True)
 class WindFarmMap:
-    """
-    A list of the upstream connections for a turbine and its downstream connector.
+    """A list of the upstream connections for a turbine and its downstream connector.
 
     Parameters
     ----------
@@ -1891,7 +1908,8 @@ class WindFarmMap:
     def get_upstream_connections(
         self, substation: str, string_start: str, node: str, return_cables: bool = True
     ) -> list[str] | tuple[list[str], list[str]]:
-        """Retrieves the upstream turbines (and optionally cables) within the wind farm graph.
+        """Retrieve the upstream turbines (and optionally cables) within the wind farm
+        graph.
 
         Parameters
         ----------
@@ -1931,7 +1949,7 @@ class WindFarmMap:
         | list[list[str]]
         | tuple[list[list[str]], list[list[str]]]
     ):
-        """Retrieves the upstream turbines (and optionally, cables) connected to a
+        """Retrieve the upstream turbines (and optionally, cables) connected to a
         py:attr:`substation` in the wind farm graph.
 
         Parameters
@@ -1943,14 +1961,16 @@ class WindFarmMap:
             by default True
         by_string : bool, optional
             Indicates if the list of turbines (and cables) should be a nested list for
-            each string (py:obj:`True`), or as 1-D list (py:obj:`False`), by default True.
+            each string (py:obj:`True`), or as 1-D list (py:obj:`False`), by default
+            True.
 
         Returns
         -------
         list[str] | tuple[list[str], list[str]]
             A list of ``System.id`` for all of the upstream turbines of ``node`` if
-            ``return_cables=False``, otherwise the upstream turbine and the ``Cable.id`` lists
-            are returned. These are bifurcated in lists of lists for each string if ``by_string=True``
+            ``return_cables=False``, otherwise the upstream turbine and the ``Cable.id``
+            lists are returned. These are bifurcated in lists of lists for each string
+            if ``by_string=True``
         """
         turbines, cables = [], []
         substation_map = self.substation_map[substation]

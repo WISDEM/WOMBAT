@@ -1,7 +1,5 @@
-"""Tests the Windfarm class."""
+"""Tests wombat/core/repair_management.py."""
 
-from re import M
-from copy import deepcopy
 
 import numpy as np
 import pytest
@@ -20,10 +18,11 @@ from wombat.core.service_equipment import ServiceEquipment
 from wombat.windfarm.system.system import System
 from wombat.windfarm.system.subassembly import Subassembly
 
-from tests.conftest import VESTAS_V90, GENERATOR_SUBASSEMBLY, env_setup
+from tests.conftest import VESTAS_V90, GENERATOR_SUBASSEMBLY
 
 
 def test_repair_manager_init(env_setup):
+    """Test the initialization steps."""
     env = env_setup
 
     # Test the capacity input
@@ -100,7 +99,6 @@ def test_repair_manager_init(env_setup):
 
 def test_register_request_and_submit_request_and_get_request(env_setup):
     """Tests the ``RepairManager.submit_request`` method."""
-
     # Set up all the required infrastructure
     env = env_setup
     manager = RepairManager(env)
@@ -165,7 +163,6 @@ def test_register_request_and_submit_request_and_get_request(env_setup):
 
 def test_request_map(env_setup):
     """Tests the ``RepairManager.request_map`` property."""
-
     # Set up all the required infrastructure
     env = env_setup
     manager = RepairManager(env)
@@ -192,7 +189,6 @@ def test_get_requests(env_setup):
     """Tests the ``RepairManager.get_request_by_system`` and
     ``RepairManager.get_next_highest_severity_request`` methods.
     """
-
     # Set up all the required infrastructure
     env = env_setup
     manager = RepairManager(env)

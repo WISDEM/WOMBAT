@@ -13,6 +13,41 @@ addopts = "--strict --pdbcls=tests:Debugger -r sxX --cov=wombat --cov-report=htm
 testpaths = "tests"
 cache_dir = ".cache"
 
+[tool.isort]
+skip = [
+  "wombat/__init__.py",
+  "wombat/core/__init__.py",
+  "wombat/utilities/__init__.py",
+  "wombat/windfarm/__init__.py",
+  "wombat/windfarm/system/__init__.py",
+]
+multi_line_output = 3
+sections = [
+  "FUTURE",
+  "STDLIB",
+  "THIRDPARTY",
+  "FIRSTPARTY",
+  "LOCALFOLDER",
+]
+known_third_party = [
+  "attrs",
+  "numpy",
+  "networkx",
+  "pandas",
+  "pytest",
+  "scipy",
+  "simpy",
+]
+known_first_party = "wombat"
+known_local_folder = "tests"
+combine_as_imports = true
+force_grid_wrap = 0
+include_trailing_comma = true
+use_parentheses = true
+length_sort = true
+lines_after_imports = 2
+line_length = 88
+
 
 [tool.black]
 target-version=["py38", "py39", "py310"]
@@ -37,17 +72,17 @@ exclude = '''
 src = ["wombat", "tests"]
 line-length = 88
 target-version = "py310"
+ignore-init-module-imports = true
 
 # See https://github.com/charliermarsh/ruff#supported-rules
 # for rules included and matching to prefix.
-select = ["F", "E", "W", "D", "C4", "FBT"]
-# I - isort is not fully implemented in ruff so there is not parity. Consider disabling I.
+select = ["F", "E", "W", "C4"]  # TODO: "D", "FBT"
 
-# F401 unused-import: Ignore until all used isort flags are adopted in ruff
-ignore = ["F401"]
+# D205: not using summary lines and descriptions, just descriptions
+ignore = ["D205"]
 
 # Allow autofix for all enabled rules (when `--fix`) is provided.
-fixable = ["F", "E", "W", "D", "C4", "FBT"]
+fixable = ["F", "E", "W", "C4"]
 unfixable = []
 
 # Exclude a variety of commonly ignored directories.
@@ -75,3 +110,47 @@ exclude = [
 
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.per-file-ignores]
+"setup.py" = ["D104"]
+"library/__init__.py" = ["D104"]
+"library/code_comparison/__init__.py" = ["D104"]
+"library/code_comparison/dinwoodie/__init__.py" = ["D104"]
+"library/code_comparison/dinwoodie/cables/__init__.py" = ["D104"]
+"library/code_comparison/dinwoodie/project/__init__.py" = ["D104"]
+"library/code_comparison/dinwoodie/project/config/__init__.py" = ["D104"]
+"library/code_comparison/dinwoodie/project/plant/__init__.py" = ["D104"]
+"library/code_comparison/dinwoodie/project/port/__init__.py" = ["D104"]
+"library/code_comparison/dinwoodie/results/__init__.py" = ["D104"]
+"library/code_comparison/dinwoodie/substations/__init__.py" = ["D104"]
+"library/code_comparison/dinwoodie/turbines/__init__.py" = ["D104"]
+"library/code_comparison/dinwoodie/vessels/__init__.py" = ["D104"]
+"library/code_comparison/dinwoodie/weather/__init__.py" = ["D104"]
+"library/code_comparison/iea26/__init__.py" = ["D104"]
+"library/code_comparison/iea26/cables/__init__.py" = ["D104"]
+"library/code_comparison/iea26/project/__init__.py" = ["D104"]
+"library/code_comparison/iea26/project/config/__init__.py" = ["D104"]
+"library/code_comparison/iea26/project/plant/__init__.py" = ["D104"]
+"library/code_comparison/iea26/project/port/__init__.py" = ["D104"]
+"library/code_comparison/iea26/results/__init__.py" = ["D104"]
+"library/code_comparison/iea26/substations/__init__.py" = ["D104"]
+"library/code_comparison/iea26/turbines/__init__.py" = ["D104"]
+"library/code_comparison/iea26/vessels/__init__.py" = ["D104"]
+"library/code_comparison/iea26/weather/__init__.py" = ["D104"]
+"tests/library/__init__.py" = ["D104"]
+"tests/library/cables/__init__.py" = ["D104"]
+"tests/library/project/__init__.py" = ["D104"]
+"tests/library/project/config/__init__.py" = ["D104"]
+"tests/library/project/plant/__init__.py" = ["D104"]
+"tests/library/substations/__init__.py" = ["D104"]
+"tests/library/turbines/__init__.py" = ["D104"]
+"tests/library/vessels/__init__.py" = ["D104"]
+"tests/library/weather/__init__.py" = ["D104"]
+"wombat/__init__.py" = ["F401"]
+"wombat/core/__init__.py" = ["F401"]
+"wombat/utilities/__init__.py" = ["F401"]
+"wombat/windfarm/__init__.py" = ["F401"]
+"wombat/windfarm/system/__init__.py" = ["F401"]
+
+[tool.ruff.pydocstyle]
+convention="numpy"
