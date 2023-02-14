@@ -1,3 +1,7 @@
+## Unreleased (TBD)
+- Bug fix in the maintenance and failure simulations so that process interruptions occuring prior to starting the process timing will not fail.
+- Replace Flake8 and Pylint in the pre-commit workflow with ruff, and fix/ignore the resulting errors as appropriate
+
 ## v0.6.2 (3 February 2023)
 - Warnings from Pandas `.groupby()` calls have been silenced by shifting the column filtering to before the groupby method call.
 - Fixed the towing to port logging message, and subsequent `Metrics.number_of_tows()` search criteria to correctly calculate the number of tows in each direction.

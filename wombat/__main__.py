@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-"""Package entry point. No CLI implemented at this point"""
+"""Package entry point. No CLI implemented at this point."""
 
 
 def main():
-    """An undefined CLI"""
+    """No existing functionality for the CLI."""
     pass
 
 

@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import logging
 import datetime
-from typing import Optional
 from pathlib import Path
 
 import yaml
@@ -44,14 +43,16 @@ def _library_mapper(file_path: str | Path) -> Path:
 
 @define(frozen=True, auto_attribs=True)
 class Configuration(FromDictMixin):
-    """The ``Simulation`` configuration data class that provides all the necessary definitions.
+    """The ``Simulation`` configuration data class that provides all the necessary
+    definitions.
 
     Parameters
     ----------
     name: str
         Name of the simulation. Used for logging files.
     library : str
-        The data directory. See ``wombat.simulation.WombatEnvironment`` for more details.
+        The data directory. See ``wombat.simulation.WombatEnvironment`` for more
+        details.
     layout : str
         The windfarm layout file. See ``wombat.Windfarm`` for more details.
     service_equipment : str | list[str]
@@ -163,6 +164,7 @@ class Simulation(FromDictMixin):
     port: Port = field(init=False)
 
     def __attrs_post_init__(self) -> None:
+        """Post-initialization hook."""
         self._setup_simulation()
 
     @config.validator  # type: ignore
@@ -170,7 +172,7 @@ class Simulation(FromDictMixin):
         self, attribute: Attribute, value: str | Path | dict | Configuration
     ) -> None:
         """Validates the configuration object and creates the ``Configuration`` object
-        for the simulation.Raises:
+        for the simulation.
 
         Raises
         ------
@@ -178,8 +180,8 @@ class Simulation(FromDictMixin):
             Raised if the value provided is not able to create a valid ``Configuration``
             object
         ValueError
-            Raised if ``name`` and ``config.name`` or ``library_path`` and ``config.library``
-            are not aligned.
+            Raised if ``name`` and ``config.name`` or ``library_path`` and
+            ``config.library`` are not aligned.
 
         Returns
         -------
@@ -192,7 +194,8 @@ class Simulation(FromDictMixin):
             except FileNotFoundError:
                 value = load_yaml(self.library_path / "config", value)  # type: ignore
                 logging.warning(
-                    "DeprecationWarning: In v0.7, all project configurations must be located in: '<library>/project/config/"
+                    "DeprecationWarning: In v0.7, all project configurations must be"
+                    " located in: '<library>/project/config/"
                 )
         if isinstance(value, dict):
             value = Configuration.from_dict(value)
@@ -229,8 +232,7 @@ class Simulation(FromDictMixin):
         Raises
         ------
         TypeError
-            If ``config`` is not one of the three acceptable input types, then an error is
-            raised.
+            Raised if ``config`` is not one of the three acceptable input types.
 
         Returns
         -------
@@ -296,13 +298,13 @@ class Simulation(FromDictMixin):
 
     def run(
         self,
-        until: Optional[int | float | Event] = None,
+        until: int | float | Event | None = None,
         create_metrics: bool = True,
         save_metrics_inputs: bool = True,
     ):
-        """Calls ``WombatEnvironment.run()`` and gathers the results for post-processing.
-        See ``wombat.simulation.WombatEnvironment.run`` or ``simpy.Environment.run`` for more
-        details.
+        """Calls ``WombatEnvironment.run()`` and gathers the results for
+        post-processing. See ``wombat.simulation.WombatEnvironment.run`` or
+        ``simpy.Environment.run`` for more details.
 
         Parameters
         ----------
@@ -310,7 +312,8 @@ class Simulation(FromDictMixin):
             When to stop the simulation, by default None. See documentation on
             ``simpy.Environment.run`` for more details.
         create_metrics : bool, optional
-            If True, the metrics object will be created, and not, if False, by default True.
+            If True, the metrics object will be created, and not, if False, by default
+            True.
         save_metrics_inputs : bool, optional
             If True, the metrics inputs data will be saved to a yaml file, with file
             references to any larger data structures that can be reloaded later. If
@@ -349,7 +352,7 @@ class Simulation(FromDictMixin):
             substation_id=self.windfarm.substation_id.tolist(),
             turbine_id=self.windfarm.turbine_id.tolist(),
             substation_turbine_map=substation_turbine_map,
-            service_equipment_names=[el.settings.name for el in self.service_equipment],  # type: ignore
+            service_equipment_names=[el.settings.name for el in self.service_equipment],
             SAM_settings=self.config.SAM_settings,
         )
 
@@ -361,24 +364,26 @@ class Simulation(FromDictMixin):
             s_id: {k: v.tolist() for k, v in dict.items()}
             for s_id, dict in self.windfarm.substation_turbine_map.items()
         }
-        data = dict(
-            data_dir=str(self.config.library),
-            events=str(self.env.events_log_fname.with_suffix(".csv")),
-            operations=str(self.env.operations_log_fname.with_suffix(".csv")),
-            potential=str(self.env.power_potential_fname),
-            production=str(self.env.power_production_fname),
-            inflation_rate=self.config.inflation_rate,
-            project_capacity=self.config.project_capacity,
-            turbine_capacities=[
+        data = {
+            "data_dir": str(self.config.library),
+            "events": str(self.env.events_log_fname.with_suffix(".csv")),
+            "operations": str(self.env.operations_log_fname.with_suffix(".csv")),
+            "potential": str(self.env.power_potential_fname),
+            "production": str(self.env.power_production_fname),
+            "inflation_rate": self.config.inflation_rate,
+            "project_capacity": self.config.project_capacity,
+            "turbine_capacities": [
                 self.windfarm.system(t_id).capacity for t_id in self.windfarm.turbine_id
             ],
-            fixed_costs=self.config.fixed_costs,
-            substation_id=self.windfarm.substation_id.tolist(),
-            turbine_id=self.windfarm.turbine_id.tolist(),
-            substation_turbine_map=substation_turbine_map,
-            service_equipment_names=[el.settings.name for el in self.service_equipment],  # type: ignore
-            SAM_settings=self.config.SAM_settings,
-        )
+            "fixed_costs": self.config.fixed_costs,
+            "substation_id": self.windfarm.substation_id.tolist(),
+            "turbine_id": self.windfarm.turbine_id.tolist(),
+            "substation_turbine_map": substation_turbine_map,
+            "service_equipment_names": [
+                el.settings.name for el in self.service_equipment
+            ],
+            "SAM_settings": self.config.SAM_settings,
+        }
 
         with open(self.env.metrics_input_fname, "w") as f:
             yaml.dump(data, f, default_flow_style=False, sort_keys=False)

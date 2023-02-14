@@ -1,19 +1,17 @@
 """Test the Cable system and subassembly classes."""
 
-import pytest
 
 from wombat.core import RepairManager
 from wombat.windfarm import Windfarm
 from wombat.windfarm.system import Cable
 
-from tests.conftest import ARRAY_33KV_240MM, ARRAY_33KV_630MM, env_setup
+from tests.conftest import ARRAY_33KV_240MM, ARRAY_33KV_630MM
 
 
 def test_cable_init(env_setup):
     """Tests the initialization of a `Cable` object. Much of this exists in the windfarm
     tests, but is repeated here for the sake of redundnacy and clarity that tests exist.
     """
-
     env = env_setup
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout.csv", manager)
@@ -55,7 +53,7 @@ def test_cable_init(env_setup):
 
 
 def test_cable_failures(env_setup):
-    """Test that failing cable disable upstream turbines"""
+    """Test that failing cable disable upstream turbines."""
     env = env_setup
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout_cable_test.csv", manager)
@@ -71,8 +69,9 @@ def test_cable_failures(env_setup):
     #         print(pname)
     #         pprint(p.__dict__)
 
-    # A failure will occur at 13.85 for the cable connecting the OSS to the first turbine,
-    # so check that all turbines are down, and this should effectively shut down the farm.
+    # A failure will occur at 13.85 for the cable connecting the OSS to the first
+    # turbine, so check that all turbines are down, and this should effectively shut
+    # down the farm.
     catastrophic_timeout = 13.85
     env.run(catastrophic_timeout + 1)
 
@@ -83,7 +82,7 @@ def test_cable_failures(env_setup):
     assert cable.broken
     assert cable.operating_level == 0
 
-    # Assert that all items are timed are non existent or set to the end of the simulation
+    # Assert that all items that are timed are non existent or set to the very end
     # for p in cable.processes.values():
     #     pprint(p._target.__dict__)
     assert getattr(list(cable.processes.values())[0]._target, "_delay", None) is None
@@ -108,11 +107,11 @@ def test_cable_failures(env_setup):
 
         # Check that operating level for subassemblies is unaffected, and 0 turbine
         # operations is controlled by cable failure flag
-        assert all((s.operating_level == 1 for s in turbine.subassemblies))
+        assert all(s.operating_level == 1 for s in turbine.subassemblies)
 
     # Check the appropriate turbines are operating
     for turbine in ("S00T3", "S01T4", "S01T5", "S01T6"):
         turbine = windfarm.system(turbine)
         assert turbine.cable_failure.triggered
         assert turbine.operating_level == 1
-        assert all((s.operating_level == 1 for s in turbine.subassemblies))
+        assert all(s.operating_level == 1 for s in turbine.subassemblies)

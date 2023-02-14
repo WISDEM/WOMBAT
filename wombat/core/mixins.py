@@ -31,7 +31,7 @@ class RepairsMixin:
     """
 
     env: WombatEnvironment
-    settings: PortConfig | ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData
+    settings: PortConfig | ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData  # noqa: disable=E501
 
     def initialize_cost_calculators(self, which: str) -> None:
         """Creates the cost calculators for each of the subclasses that will need to
@@ -108,7 +108,7 @@ class RepairsMixin:
         """Delays the process until the start of the next shift.
 
         Yields
-        -------
+        ------
         Generator[Timeout, None, None]
             Delay until the start of the next shift.
         """
@@ -136,7 +136,7 @@ class RepairsMixin:
 
     def process_repair(
         self, hours: int | float, request_details: Maintenance | Failure, **kwargs
-    ) -> None | Generator[Timeout | Process, None, None]:
+    ) -> Generator[Timeout | Process, None, None]:
         """The logging and timeout process for performing a repair or doing maintenance.
 
         Parameters
@@ -145,10 +145,12 @@ class RepairsMixin:
             The lenght, in hours, of the repair or maintenance task.
         request_details : Maintenance | Failure
             The deatils of the request, this is only being checked for the type.
+        kwargs : dict
+            Additional parameters to be passed to ``WombatEnvironment.log_action``.
 
         Yields
-        -------
-        None | Generator[Timeout | Process, None, None]
+        ------
+        Generator[Timeout | Process, None, None]
             A ``Timeout`` is yielded of length ``hours``.
         """
         action = "repair" if isinstance(request_details, Failure) else "maintenance"
@@ -208,7 +210,7 @@ class RepairsMixin:
 
         # Find the next operational date, and if no available dates, return the time
         # until the end of the forecast period
-        date_diff = set(dates.date).difference(self.settings.non_operational_dates_set)  # type: ignore
+        date_diff = set(dates.date).difference(self.settings.non_operational_dates_set)
         if not date_diff:
             diff = ((max(dates) - current).days + 1) * HOURS_IN_DAY
             return diff

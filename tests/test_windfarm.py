@@ -3,7 +3,6 @@
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 import pytest
 import numpy.testing as npt
 from networkx.classes.digraph import DiGraph
@@ -18,7 +17,6 @@ from tests.conftest import (
     VESTAS_V90,
     ARRAY_33KV_240MM,
     ARRAY_33KV_630MM,
-    env_setup,
 )
 
 
@@ -95,9 +93,9 @@ def test_windfarm_init(env_setup):
     oss1_map = windfarm.substation_turbine_map["OSS1"]
     correct_oss1_map = correct_substation_turbine_map["OSS1"]
 
-    # For the substation map with turbines and their weights, the ordering of the turbines
-    # doesn't matter when comparing because the weights are in the same order as the turbines
-    # and the capacities in this model are all the same
+    # For the substation map with turbines and their weights, the ordering of the
+    # turbines doesn't matter when comparing because the weights are in the same order
+    # as the turbines and the capacities in this model are all the same
     npt.assert_equal(sorted(oss1_map["turbines"]), sorted(correct_oss1_map["turbines"]))
     npt.assert_equal(oss1_map["weights"], correct_oss1_map["weights"])
 

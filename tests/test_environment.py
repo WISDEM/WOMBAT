@@ -1,3 +1,6 @@
+"""Tests wombat/core/environment.py."""
+
+
 from __future__ import annotations
 
 import datetime
@@ -16,13 +19,13 @@ from tests.conftest import TEST_DATA
 
 
 def test_data_dir():
+    """Tests the data_dir creation."""
     relative_library = Path(__file__).resolve().parent / "library"
     assert TEST_DATA == relative_library
 
 
 def test_setup():
     """Tests the setup of the `WombatEnvironment` and logging infrastructure."""
-
     # Test an invalid directory
     with pytest.raises(FileNotFoundError):
         WombatEnvironment(
@@ -180,7 +183,6 @@ def test_timing():
      - ``is_workshift``
 
     """
-
     # Setup a basic environment
     env = WombatEnvironment(
         data_dir=TEST_DATA,
@@ -190,7 +192,7 @@ def test_timing():
         simulation_name="testing_setup",
     )
     manager = RepairManager(env)
-    windfarm = Windfarm(env, "layout.csv", manager)
+    Windfarm(env, "layout.csv", manager)
 
     # Run for 96 hours from the start to this point in the data
     # 1/5/02 0:00,8.238614098,0.37854216
@@ -245,7 +247,7 @@ def test_is_workshift():
         simulation_name="testing_setup",
     )
     manager = RepairManager(env)
-    windfarm = Windfarm(env, "layout.csv", manager)
+    Windfarm(env, "layout.csv", manager)
     # Test for the 24 hours of the day with a basic 8am to 4pm workday
     assert not env.is_workshift()
     for i in range(23):
@@ -284,7 +286,7 @@ def test_hour_in_shift():
         simulation_name="testing_setup",
     )
     manager = RepairManager(env)
-    windfarm = Windfarm(env, "layout.csv", manager)
+    Windfarm(env, "layout.csv", manager)
 
     # Test the boundary conditions at midnight
 
@@ -329,12 +331,12 @@ def test_hours_to_next_shift():
         simulation_name="testing_setup",
     )
     manager = RepairManager(env)
-    windfarm = Windfarm(env, "layout.csv", manager)
+    Windfarm(env, "layout.csv", manager)
 
     # Test that at hour 0, there are 8 hours until 8am
     assert env.hours_to_next_shift() == 8
 
-    # Test that at hour 0, with starting time of 0, there are 24 hours until the next period
+    # Test that at hour 0, with start time 0, there are 24 hours until the next period
     assert env.hours_to_next_shift(workday_start=0)
 
     env.run(until=7)
@@ -367,7 +369,7 @@ def test_weather_forecast():
         simulation_name="testing_setup",
     )
     manager = RepairManager(env)
-    windfarm = Windfarm(env, "layout.csv", manager)
+    Windfarm(env, "layout.csv", manager)
 
     # Test for the next 5 hours, but at the top of the hour
     # Starts with hour 0, and ends with the 5th hour following

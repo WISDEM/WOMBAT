@@ -10,7 +10,7 @@ from setuptools import setup, find_packages
 
 HERE = Path(__file__).parent
 
-with open(HERE / "README.md", "r", newline="") as readme:
+with open(HERE / "README.md", newline="") as readme:
     long_description = readme.read()
     long_description_content_type = "text/markdown"
 
@@ -65,7 +65,8 @@ DEVELOPER = [
     "isort>=5.10",
     "pytest>=7",
     "pytest-cov>=4",
-    "mypy>=0.991",
+    "mypy==0.991",
+    "ruff==0.0.246",
 ]
 DOCUMENTATION = [
     "Sphinx==4.*",

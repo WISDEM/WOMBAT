@@ -1,4 +1,4 @@
-"""Provides the Subassembly class"""
+"""Provides the Subassembly class."""
 
 from __future__ import annotations
 
@@ -25,7 +25,8 @@ class Subassembly:
         s_id: str,
         subassembly_data: dict,
     ) -> None:
-        """Creates a subassembly object that models various maintenance and failure types.
+        """Creates a subassembly object that models various maintenance and failure
+        types.
 
         Parameters
         ----------
@@ -36,9 +37,9 @@ class Subassembly:
         s_id : str
             A unique identifier for the subassembly within the system.
         subassembly_data : dict
-            A dictionary to be passed to ``SubassemblyData`` for creation and validation.
+            A dictionary to be passed to ``SubassemblyData`` for creation and
+            validation.
         """
-
         self.env = env
         self.system = system
         self.id = s_id
@@ -57,7 +58,7 @@ class Subassembly:
         """Creates the processes for each of the failure and maintenance types.
 
         Yields
-        -------
+        ------
         Tuple[Union[str, int], simpy.events.Process]
             Creates a dictionary to keep track of the running processes within the
             subassembly.
@@ -69,8 +70,8 @@ class Subassembly:
             yield f"m{i}", self.env.process(self.run_single_maintenance(maintenance))
 
     def recreate_processes(self) -> None:
-        """If a turbine is being entirely reset after a tow-to-port repair, then all
-        processes are assumed to be reset to 0, and not pick back up where they left off.
+        """If a turbine is being reset after a tow-to-port repair, then all processes
+        are assumed to be reset to 0, and not pick back up where they left off.
         """
         self.processes = dict(self._create_processes())
 
@@ -142,7 +143,8 @@ class Subassembly:
         self.system.repair_manager.submit_request(repair_request)
 
     def run_single_maintenance(self, maintenance: Maintenance) -> Generator:
-        """Runs a process to trigger one type of maintenance request throughout the simulation.
+        """Runs a process to trigger one type of maintenance request throughout the
+        simulation.
 
         Parameters
         ----------
@@ -150,7 +152,7 @@ class Subassembly:
             A maintenance category.
 
         Yields
-        -------
+        ------
         simpy.events. HOURS_IN_DAY
             Time between maintenance requests.
         """
@@ -167,7 +169,9 @@ class Subassembly:
                 start = -1  # Ensure an interruption before processing is caught
                 try:
                     # Wait until these events are triggered and back to operational
-                    yield self.system.servicing & self.system.cable_failure & self.broken
+                    yield (
+                        self.system.servicing & self.system.cable_failure & self.broken
+                    )
 
                     start = self.env.now
                     yield self.env.timeout(hours_to_next)
@@ -184,7 +188,8 @@ class Subassembly:
                         hours_to_next -= 0 if start == -1 else self.env.now - start
 
     def run_single_failure(self, failure: Failure) -> Generator:
-        """Runs a process to trigger one type of failure repair request throughout the simulation.
+        """Runs a process to trigger one type of failure repair request throughout the
+        simulation.
 
         Parameters
         ----------
@@ -192,7 +197,7 @@ class Subassembly:
             A failure classification.
 
         Yields
-        -------
+        ------
         simpy.events. HOURS_IN_DAY
             Time between failure events that need to request a repair.
         """
@@ -208,7 +213,9 @@ class Subassembly:
             while hours_to_next > 0:  # type: ignore
                 start = -1  # Ensure an interruption before processing is caught
                 try:
-                    yield self.system.servicing & self.system.cable_failure & self.broken
+                    yield (
+                        self.system.servicing & self.system.cable_failure & self.broken
+                    )
                     start = self.env.now
                     yield self.env.timeout(hours_to_next)
                     hours_to_next = 0

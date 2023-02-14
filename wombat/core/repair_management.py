@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, Sequence
+from typing import TYPE_CHECKING
 from itertools import chain
 from collections import Counter
 
@@ -16,6 +16,7 @@ from wombat.core import (
     StrategyMap,
     RepairRequest,
     WombatEnvironment,
+    UnscheduledServiceEquipmentData,
 )
 
 
@@ -36,7 +37,8 @@ class RepairManager(FilterStore):
     env : wombat.core.WombatEnvironment
         The simulation environment.
     capacity : float
-        The maximum number of tasks that can be submitted to the manager, by default ``np.inf``.
+        The maximum number of tasks that can be submitted to the manager, by default
+        ``np.inf``.
 
     Attributes
     ----------
@@ -76,13 +78,14 @@ class RepairManager(FilterStore):
             # Shouldn't be possible to get here!
             raise ValueError("Invalid servicing equipment!")
 
-        strategy_threshold = service_equipment.settings.strategy_threshold  # type: ignore
+        assert isinstance(service_equipment.settings, UnscheduledServiceEquipmentData)
+        strategy_threshold = service_equipment.settings.strategy_threshold
         if isinstance(capability, list):
             for c in capability:
                 mapping.update(c, strategy_threshold, service_equipment)
 
     def _register_windfarm(self, windfarm: Windfarm) -> None:
-        """Adds the simulation windfarm to the class attributes"""
+        """Adds the simulation windfarm to the class attributes."""
         self.windfarm = windfarm
 
     def _register_equipment(self, service_equipment: ServiceEquipment) -> None:
@@ -91,8 +94,9 @@ class RepairManager(FilterStore):
         """
         self._update_equipment_map(service_equipment)
 
-    def _register_port(self, port: "Port") -> None:
-        """Registers the port with the repair manager, so that they can communicate as needed.
+    def _register_port(self, port: Port) -> None:
+        """Registers the port with the repair manager, so that they can communicate as
+        needed.
 
         Parameters
         ----------
@@ -118,7 +122,8 @@ class RepairManager(FilterStore):
         Raises
         ------
         ValueError
-            If the ``request.details`` property is not a ``Failure`` or ``Maintenance`` object,
+            If the ``request.details`` property is not a ``Failure`` or ``Maintenance``
+            object,
             then a ValueError will be raised.
         """
         if isinstance(request.details, Failure):
@@ -153,8 +158,8 @@ class RepairManager(FilterStore):
                     try:
                         self.env.process(equipment.equipment.run_unscheduled(request))
                     except ValueError:
-                        # ValueError is raised when a duplicate request is called for any of
-                        # the port-based servicing equipment
+                        # ValueError is raised when a duplicate request is called for
+                        # any of the port-based servicing equipment
                         pass
                 if equipment.equipment.dispatched:
                     continue
@@ -184,8 +189,8 @@ class RepairManager(FilterStore):
                     try:
                         self.env.process(equipment.equipment.run_unscheduled(request))
                     except ValueError:
-                        # ValueError is raised when a duplicate request is called for any of
-                        # the port-based servicing equipment
+                        # ValueError is raised when a duplicate request is called for
+                        # any of the port-based servicing equipment
                         pass
                     break
 
@@ -238,10 +243,11 @@ class RepairManager(FilterStore):
             self._run_equipment_requests(request)
 
     def get_request_by_system(
-        self, equipment_capability: Sequence[str], system_id: Optional[str] = None
-    ) -> Optional[FilterStoreGet]:
+        self, equipment_capability: list[str], system_id: str | None = None
+    ) -> FilterStoreGet | None:
         """Gets all repair requests for a certain turbine with given a sequence of
-        ``equipment_capability`` as long as it isn't registered as unable to be serviced.
+        ``equipment_capability`` as long as it isn't registered as unable to be
+        serviced.
 
         Parameters
         ----------
@@ -274,10 +280,11 @@ class RepairManager(FilterStore):
             return None
 
         # Filter the requests by equipment capability and return the first valid request
+        assert isinstance(equipment_capability, set)
         for request in requests:
-            if equipment_capability.intersection(request.details.service_equipment):  # type: ignore
-                # If this is the first request for the system, make sure no other servicing
-                # equipment can access it
+            if equipment_capability.intersection(request.details.service_equipment):
+                # If this is the first request for the system, make sure no other
+                # servicing equipment can access it
                 if request.system_id not in self.invalid_systems:
                     self.invalid_systems.append(request.system_id)
                 return self.get(lambda x: x == requests[0])
@@ -289,8 +296,8 @@ class RepairManager(FilterStore):
     def get_next_highest_severity_request(
         self,
         equipment_capability: list[str] | set[str],
-        severity_level: Optional[int] = None,
-    ) -> Optional[FilterStoreGet]:
+        severity_level: int | None = None,
+    ) -> FilterStoreGet | None:
         """Gets the next repair request by ``severity_level``.
 
         Parameters
@@ -361,7 +368,7 @@ class RepairManager(FilterStore):
 
     def get_all_requests_for_system(
         self, agent: str, system_id: str
-    ) -> Optional[list[RepairRequest]]:
+    ) -> list[RepairRequest] | None:
         """Gets all repair requests for a specific ``system_id``.
 
         Parameters
@@ -408,9 +415,10 @@ class RepairManager(FilterStore):
 
     def purge_subassembly_requests(
         self, system_id: str, subassembly_id: str, exclude: list[str] = []
-    ) -> Optional[list[RepairRequest]]:
-        """Yields all the requests for a system/subassembly combination. This is intended
-        to be used to remove erroneous requests after a subassembly has been replaced.
+    ) -> list[RepairRequest] | None:
+        """Yields all the requests for a system/subassembly combination. This is
+        intended to be used to remove erroneous requests after a subassembly has been
+        replaced.
 
         Parameters
         ----------
@@ -424,7 +432,7 @@ class RepairManager(FilterStore):
             certain requests from the purge.
 
         Yields
-        -------
+        ------
         Optional[list[RepairRequest]]
             All requests made to the repair manager for the provided system/subassembly
             combination. Returns None if self.items is empty or the loop terminates
@@ -464,11 +472,12 @@ class RepairManager(FilterStore):
     @property
     def request_map(self) -> dict[str, int]:
         """Creates an updated mapping between the servicing equipment capabilities and
-        the number of requests that fall into each capability category (nonzero values only).
+        the number of requests that fall into each capability category (nonzero values
+        only).
         """
         requests = dict(
             Counter(
-                chain.from_iterable((r.details.service_equipment for r in self.items))
+                chain.from_iterable(r.details.service_equipment for r in self.items)
             )
         )
         return requests

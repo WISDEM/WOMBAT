@@ -10,25 +10,22 @@ from wombat.core.library import load_yaml
 from wombat.core.data_classes import (
     VALID_EQUIPMENT,
     Maintenance,
-    StrategyMap,
     EquipmentMap,
     RepairRequest,
 )
 from wombat.core.repair_management import RepairManager
 from wombat.core.service_equipment import ServiceEquipment, consecutive_groups
 
-from tests.conftest import TEST_DATA, env_setup, env_setup_full_profile
-
 
 def get_items_by_description(
     manager: RepairManager, description: str
 ) -> list[RepairRequest]:
-    """Convenience function that gets all items in the repair manager by description."""
+    """Get all items in the repair manager by description."""
     return [el for el in manager.items if el.details.description == description]
 
 
 def test_consecutive_groups():
-    """Tests the ``consecutive_groups`` function in a similar way that this would be used."""
+    """Test the consecutive_groups function in a similar way that this would be used."""
     all_clear = np.array(
         [True, True, False, True, True, True, False, True, True, True, True, False]
     )
@@ -48,6 +45,7 @@ def test_consecutive_groups():
 
 
 def test_service_equipment_init(env_setup):
+    """Test the ServiceEquipment initialization."""
     env = env_setup
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout.csv", manager)
@@ -165,7 +163,7 @@ def test_service_equipment_init(env_setup):
 
 
 def test_port_distance_setup(env_setup):
-    """Tests that the environment port_distance is passed through correctly."""
+    """Test that the environment port_distance is passed through correctly."""
     env = env_setup
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout.csv", manager)
@@ -198,7 +196,7 @@ def test_port_distance_setup(env_setup):
 
 
 def test_calculate_salary_cost(env_setup):
-    """Tests the ``calculate_salary_cost`` method."""
+    """Test the ``calculate_salary_cost`` method."""
     env = env_setup
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout.csv", manager)
@@ -219,7 +217,7 @@ def test_calculate_salary_cost(env_setup):
 
 
 def test_calculate_hourly_cost(env_setup):
-    """Tests the ``calculate_hourly_cost`` method."""
+    """Test the ``calculate_hourly_cost`` method."""
     env = env_setup
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout.csv", manager)
@@ -238,7 +236,7 @@ def test_calculate_hourly_cost(env_setup):
 
 
 def test_calculate_equipment_cost(env_setup):
-    """Tests the ``calculate_equipment_cost`` method."""
+    """Test the ``calculate_equipment_cost`` method."""
     env = env_setup
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout.csv", manager)
@@ -256,7 +254,7 @@ def test_calculate_equipment_cost(env_setup):
 
 
 def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
-    """ "Test the simulation logic of a scheduled CTV."""
+    """Test the simulation logic of a scheduled CTV."""
     env = env_setup_full_profile
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout_simulation.csv", manager)
@@ -354,7 +352,7 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
         is False
     )
 
-    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended early
+    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended
     timeout += 13 / 60
     env.run(timeout)
     assert ctv.transferring_crew is ctv.onsite is ctv.at_system is True
@@ -410,7 +408,7 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     assert ctv.current_system == "S00T2"
     assert ctv.enroute is False
 
-    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended early
+    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended
     timeout += 13 / 60
     env.run(timeout)
     assert ctv.transferring_crew is ctv.onsite is ctv.at_system is True
@@ -466,7 +464,7 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     assert ctv.current_system == "S00T3"
     assert ctv.enroute is False
 
-    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended early
+    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended
     timeout += 13 / 60
     env.run(timeout)
     assert ctv.transferring_crew is ctv.onsite is ctv.at_system is True
@@ -522,7 +520,7 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     assert ctv.current_system == "S01T4"
     assert ctv.enroute is False
 
-    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended early
+    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended
     timeout += 13 / 60
     env.run(timeout)
     assert ctv.transferring_crew is ctv.onsite is ctv.at_system is True
@@ -578,7 +576,7 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     assert ctv.current_system == "S01T5"
     assert ctv.enroute is False
 
-    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended early
+    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended
     timeout += 13 / 60
     env.run(timeout)
     assert ctv.transferring_crew is ctv.onsite is ctv.at_system is True
@@ -634,7 +632,7 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     assert ctv.current_system == "S01T6"
     assert ctv.enroute is False
 
-    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended early
+    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended
     timeout += 13 / 60
     env.run(timeout)
     assert ctv.transferring_crew is ctv.onsite is ctv.at_system is True
@@ -698,7 +696,7 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
 
 @pytest.mark.skip(reason="The timing of the failures needs to be updated")
 def test_scheduled_equipment_logic(env_setup_full_profile):
-    """ "Test the simulation logic of a scheduled HLV."""
+    """Test the simulation logic of a scheduled HLV."""
     env = env_setup_full_profile
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout_simulation.csv", manager)
@@ -711,7 +709,13 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
 
     # Start the simulation to ensure everything is in place as required
     env.run(1)
-    # assert ctv.at_port is ctv.at_system is ctv.transferring_crew is ctv.enroute is (not ctv.onsite) is False
+    # assert (
+    #     ctv.at_port is ctv.at_system
+    #     is ctv.transferring_crew
+    #     is ctv.enroute
+    #     is (not ctv.onsite)
+    #     is False
+    # )
     assert (
         fsv.at_port
         is fsv.at_system
@@ -819,8 +823,8 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
 
     # The next shift has a clear weather window for the first two hours so the repair
-    # should be partially complete at that point, but require an additional 15 minutes for
-    # both crew transfer and completion after a windy hour
+    # should be partially complete at that point, but require an additional 15 minutes
+    # for both crew transfer and completion after a windy hour
     timeout += 16
     env.run(timeout - 0.1)
     assert hlv.at_port
@@ -1069,7 +1073,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     assert hlv.current_system == "S01T5"
     assert len(get_items_by_description(manager, "hlv call")) == 7
 
-    # After the 3 hour repair and prior crew transfer, the crew is being transferred back
+    # After the 3 hour repair and prior crew transfer, crew is being transferred back
     timeout += 3 + 14 / 60
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
@@ -1360,8 +1364,9 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # This is going to only check in on the first day and last day of processes
     # due to the extensive timing checks performed above for the HLV, which cover
     # numerous edge cases for repair timing, and so we mostly care about the continuous
-    # shift timing checks. In addition because the FSV only has a waveheight restriction,
-    # the on ly weather delays should occur on 6/28 when there are waves >= 1.5m.
+    # shift timing checks. In addition because the FSV only has a waveheight
+    # restriction, the only weather delays should occur on 6/28 when there are
+    # waves >= 1.5m.
 
     # The FSV be traveling still
     assert fsv.enroute

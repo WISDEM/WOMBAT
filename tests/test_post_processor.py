@@ -1,7 +1,6 @@
 """Test the post-processing functionality."""
 
-import pytest
-
 
 def test_things():
+    """No test here."""
     pass
