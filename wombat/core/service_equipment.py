@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from copy import deepcopy
 from math import ceil
-from typing import TYPE_CHECKING, Any, Optional, Generator
+from typing import TYPE_CHECKING, Any, Generator
 from pathlib import Path
 from datetime import timedelta
 
@@ -277,7 +277,7 @@ class ServiceEquipment(RepairsMixin):
             self.env.reduced_speed,
         )
 
-    def _register_port(self, port: "Port") -> None:
+    def _register_port(self, port: Port) -> None:
         """Method for a tugboat at attach the port for two-way communications. This also
         sets the vessel to be at the port, and updates the port_distance.
 
@@ -309,7 +309,7 @@ class ServiceEquipment(RepairsMixin):
             port.settings.reduced_speed,
         )
 
-    def _set_location(self, end: str, set_current: Optional[str] = None) -> None:
+    def _set_location(self, end: str, set_current: str | None = None) -> None:
         """Keeps track of the servicing equipment by setting the location at either:
         site, port, or a specific system.
 

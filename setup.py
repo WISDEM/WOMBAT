@@ -10,7 +10,7 @@ from setuptools import setup, find_packages
 
 HERE = Path(__file__).parent
 
-with open(HERE / "README.md", "r", newline="") as readme:
+with open(HERE / "README.md", newline="") as readme:
     long_description = readme.read()
     long_description_content_type = "text/markdown"
 

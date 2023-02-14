@@ -71,18 +71,19 @@ exclude = '''
 [tool.ruff]
 src = ["wombat", "tests"]
 line-length = 88
-target-version = "py310"
+target-version = "py38"
 ignore-init-module-imports = true
 
 # See https://github.com/charliermarsh/ruff#supported-rules
 # for rules included and matching to prefix.
-select = ["F", "E", "W", "C4"]  # TODO: "D", "FBT"
+select = ["F", "E", "W", "C4", "D", "UP"]  # TODO: "FBT"
 
 # D205: not using summary lines and descriptions, just descriptions
-ignore = ["D205"]
+# D401: don't believe enough in imperative mode to make all the changes currently
+ignore = ["D205", "D401"]
 
 # Allow autofix for all enabled rules (when `--fix`) is provided.
-fixable = ["F", "E", "W", "C4"]
+fixable = ["F", "E", "W", "C4", "D", "UP"]
 unfixable = []
 
 # Exclude a variety of commonly ignored directories.

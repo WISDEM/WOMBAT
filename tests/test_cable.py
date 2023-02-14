@@ -107,11 +107,11 @@ def test_cable_failures(env_setup):
 
         # Check that operating level for subassemblies is unaffected, and 0 turbine
         # operations is controlled by cable failure flag
-        assert all((s.operating_level == 1 for s in turbine.subassemblies))
+        assert all(s.operating_level == 1 for s in turbine.subassemblies)
 
     # Check the appropriate turbines are operating
     for turbine in ("S00T3", "S01T4", "S01T5", "S01T6"):
         turbine = windfarm.system(turbine)
         assert turbine.cable_failure.triggered
         assert turbine.operating_level == 1
-        assert all((s.operating_level == 1 for s in turbine.subassemblies))
+        assert all(s.operating_level == 1 for s in turbine.subassemblies)

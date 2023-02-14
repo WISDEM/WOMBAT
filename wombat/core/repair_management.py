@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 from itertools import chain
 from collections import Counter
 
@@ -94,7 +94,7 @@ class RepairManager(FilterStore):
         """
         self._update_equipment_map(service_equipment)
 
-    def _register_port(self, port: "Port") -> None:
+    def _register_port(self, port: Port) -> None:
         """Registers the port with the repair manager, so that they can communicate as
         needed.
 
@@ -243,8 +243,8 @@ class RepairManager(FilterStore):
             self._run_equipment_requests(request)
 
     def get_request_by_system(
-        self, equipment_capability: list[str], system_id: Optional[str] = None
-    ) -> Optional[FilterStoreGet]:
+        self, equipment_capability: list[str], system_id: str | None = None
+    ) -> FilterStoreGet | None:
         """Gets all repair requests for a certain turbine with given a sequence of
         ``equipment_capability`` as long as it isn't registered as unable to be
         serviced.
@@ -296,8 +296,8 @@ class RepairManager(FilterStore):
     def get_next_highest_severity_request(
         self,
         equipment_capability: list[str] | set[str],
-        severity_level: Optional[int] = None,
-    ) -> Optional[FilterStoreGet]:
+        severity_level: int | None = None,
+    ) -> FilterStoreGet | None:
         """Gets the next repair request by ``severity_level``.
 
         Parameters
@@ -368,7 +368,7 @@ class RepairManager(FilterStore):
 
     def get_all_requests_for_system(
         self, agent: str, system_id: str
-    ) -> Optional[list[RepairRequest]]:
+    ) -> list[RepairRequest] | None:
         """Gets all repair requests for a specific ``system_id``.
 
         Parameters
@@ -415,7 +415,7 @@ class RepairManager(FilterStore):
 
     def purge_subassembly_requests(
         self, system_id: str, subassembly_id: str, exclude: list[str] = []
-    ) -> Optional[list[RepairRequest]]:
+    ) -> list[RepairRequest] | None:
         """Yields all the requests for a system/subassembly combination. This is
         intended to be used to remove erroneous requests after a subassembly has been
         replaced.
@@ -477,7 +477,7 @@ class RepairManager(FilterStore):
         """
         requests = dict(
             Counter(
-                chain.from_iterable((r.details.service_equipment for r in self.items))
+                chain.from_iterable(r.details.service_equipment for r in self.items)
             )
         )
         return requests

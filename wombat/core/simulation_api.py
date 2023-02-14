@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import logging
 import datetime
-from typing import Optional
 from pathlib import Path
 
 import yaml
@@ -299,7 +298,7 @@ class Simulation(FromDictMixin):
 
     def run(
         self,
-        until: Optional[int | float | Event] = None,
+        until: int | float | Event | None = None,
         create_metrics: bool = True,
         save_metrics_inputs: bool = True,
     ):

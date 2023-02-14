@@ -6,7 +6,7 @@ import csv
 import math
 import logging
 import datetime as dt
-from typing import TYPE_CHECKING, Tuple, Union, Optional
+from typing import TYPE_CHECKING
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -179,7 +179,7 @@ class WombatEnvironment(simpy.Environment):
         """Adds the simulation windfarm to the class attributes."""
         self.windfarm = windfarm
 
-    def run(self, until: Optional[Union[int, float, Event]] = None):
+    def run(self, until: int | float | Event | None = None):
         """Extends the ``simpy.Environment.run`` method to change the default behavior
         if no argument is passed to ``until``, which will now run a simulation until the
         end of the weather profile is reached.
@@ -392,8 +392,8 @@ class WombatEnvironment(simpy.Environment):
     def _weather_setup(
         self,
         weather_file: str,
-        start_year: Optional[int] = None,
-        end_year: Optional[int] = None,
+        start_year: int | None = None,
+        end_year: int | None = None,
     ) -> pd.DataFrame:
         """Reads the weather data from the "<inputs>/weather" directory, and creates the
         ``start_date`` and ``end_date`` time stamps for the simulation.
@@ -490,7 +490,7 @@ class WombatEnvironment(simpy.Environment):
         return weather
 
     @property
-    def weather_now(self) -> Tuple[float, float, int]:
+    def weather_now(self) -> tuple[float, float, int]:
         """The current weather.
 
         Returns
@@ -503,8 +503,8 @@ class WombatEnvironment(simpy.Environment):
         return self.weather.iloc[now].values
 
     def weather_forecast(
-        self, hours: Union[int, float]
-    ) -> Tuple[DatetimeIndex, np.ndarray, np.ndarray, np.ndarray]:
+        self, hours: int | float
+    ) -> tuple[DatetimeIndex, np.ndarray, np.ndarray, np.ndarray]:
         """Returns the wind and wave data for the next ``hours`` hours, starting from
         the current hour's weather.
 
@@ -545,10 +545,10 @@ class WombatEnvironment(simpy.Environment):
         distance_km: float = 0,
         request_id: str = "na",
         location: str = "na",
-        materials_cost: Union[int, float] = 0,
-        hourly_labor_cost: Union[int, float] = 0,
-        salary_labor_cost: Union[int, float] = 0,
-        equipment_cost: Union[int, float] = 0,
+        materials_cost: int | float = 0,
+        hourly_labor_cost: int | float = 0,
+        salary_labor_cost: int | float = 0,
+        equipment_cost: int | float = 0,
     ) -> None:
         """Formats the logging messages into the expected format for logging.
 
@@ -687,10 +687,10 @@ class WombatEnvironment(simpy.Environment):
 
     def power_production_potential_to_csv(  # type: ignore
         self,
-        windfarm: "wombat.windfarm.Windfarm",  # type: ignore
-        operations: Optional[pd.DataFrame] = None,
+        windfarm: wombat.windfarm.Windfarm,  # type: ignore
+        operations: pd.DataFrame | None = None,
         return_df: bool = True,
-    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    ) -> tuple[pd.DataFrame, pd.DataFrame]:
         """Creates the power production ``DataFrame`` and optionally returns it.
 
         Parameters
@@ -724,7 +724,7 @@ class WombatEnvironment(simpy.Environment):
             + turbines.tolist(),
         )
         potential_df[turbines] = np.vstack(
-            ([windfarm.system(t_id).power(windspeed) for t_id in turbines])
+            [windfarm.system(t_id).power(windspeed) for t_id in turbines]
         ).T
         potential_df = potential_df.assign(
             windspeed=windspeed,

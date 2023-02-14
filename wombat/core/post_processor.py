@@ -599,7 +599,7 @@ class Metrics:
                 return pd.DataFrame([production / potential], columns=["windfarm"])
 
             potential = production.shape[0] * np.array(self.turbine_capacities)
-            return pd.DataFrame((production.sum(axis=0) / potential)).T
+            return pd.DataFrame(production.sum(axis=0) / potential).T
 
         production["year"] = production.index.year.values
         production["month"] = production.index.month.values
