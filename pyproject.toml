@@ -76,7 +76,8 @@ ignore-init-module-imports = true
 
 # See https://github.com/charliermarsh/ruff#supported-rules
 # for rules included and matching to prefix.
-select = ["F", "E", "W", "C4", "D", "UP"]  # TODO: "FBT"
+# TODO: "FBT", "B", "PIE, "T20", "SIM", "PTH", "PD", "I", "PL"
+select = ["F", "E", "W", "C4", "D", "UP"]
 
 # D205: not using summary lines and descriptions, just descriptions
 # D401: don't believe enough in imperative mode to make all the changes currently
@@ -154,4 +155,4 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 "wombat/windfarm/system/__init__.py" = ["F401"]
 
 [tool.ruff.pydocstyle]
-convention="numpy"
+convention = "numpy"
