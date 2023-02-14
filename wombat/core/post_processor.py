@@ -2162,7 +2162,7 @@ class Metrics:
 
     def pysam_all_outputs(self) -> pd.DataFrame:
         """Returns all the possible PySAM outputs that are included in this module as
-        columns in the following order:
+        columns in the following order.
 
         - NPV
         - Nominal LCOE

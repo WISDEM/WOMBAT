@@ -165,6 +165,7 @@ class Simulation(FromDictMixin):
     port: Port = field(init=False)
 
     def __attrs_post_init__(self) -> None:
+        """Post-initialization hook."""
         self._setup_simulation()
 
     @config.validator  # type: ignore
@@ -172,7 +173,7 @@ class Simulation(FromDictMixin):
         self, attribute: Attribute, value: str | Path | dict | Configuration
     ) -> None:
         """Validates the configuration object and creates the ``Configuration`` object
-        for the simulation.Raises:
+        for the simulation.
 
         Raises
         ------

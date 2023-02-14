@@ -459,8 +459,8 @@ class Windfarm:
 
     @property
     def current_availability(self) -> float:
-        """Calculates the product of all system ``operating_level`` variables across the
-        windfarm using the following forumation.
+        r"""Calculates the product of all system ``operating_level`` variables across
+        the windfarm using the following forumation.
 
         .. math::
             \sum{

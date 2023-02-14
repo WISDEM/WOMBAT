@@ -154,7 +154,8 @@ class System:
                 power_curve_file = self.env.data_dir / "windfarm" / power_curve
                 power_curve = pd.read_csv(power_curve_file)
                 logging.warning(
-                    "DeprecationWarning: In v0.7, all power curve files must be located in: '<library>/turbines"
+                    "DeprecationWarning: In v0.7, all power curve files must be located"
+                    " in: '<library>/turbines"
                 )
             power_curve = power_curve.loc[power_curve.power_kw != 0].reset_index(
                 drop=True
@@ -170,7 +171,10 @@ class System:
 
     def interrupt_all_subassembly_processes(self) -> None:
         """Interrupts the running processes in all of the system's subassemblies."""
-        [subassembly.interrupt_processes() for subassembly in self.subassemblies]  # type: ignore
+        [
+            subassembly.interrupt_processes()  # type: ignore
+            for subassembly in self.subassemblies
+        ]
 
     @property
     def operating_level(self) -> float:

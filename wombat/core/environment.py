@@ -752,7 +752,7 @@ class WombatEnvironment(simpy.Environment):
             return potential_df, production_df
 
     def cleanup_log_files(self) -> None:
-        """This is a convenience method to clear the output log files in case a large
+        """Convenience method to clear the output log files in case a large
         batch of simulations is being run and there are space limitations.
 
         ... warning:: This shuts down the loggers, so no more logging will be able
