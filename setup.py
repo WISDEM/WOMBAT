@@ -65,7 +65,8 @@ DEVELOPER = [
     "isort>=5.10",
     "pytest>=7",
     "pytest-cov>=4",
-    "mypy>=0.991",
+    "mypy==0.991",
+    "ruff==0.0.246",
 ]
 DOCUMENTATION = [
     "Sphinx==4.*",
