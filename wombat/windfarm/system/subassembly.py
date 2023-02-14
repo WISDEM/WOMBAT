@@ -164,6 +164,7 @@ class Subassembly:
                     remainder -= self.env.now
 
             while hours_to_next > 0:
+                start = -1  # Ensure an interruption before processing is caught
                 try:
                     # Wait until these events are triggered and back to operational
                     yield self.system.servicing & self.system.cable_failure & self.broken
@@ -179,7 +180,7 @@ class Subassembly:
                         hours_to_next = 0
                     else:
                         # A different subassembly failed, so subtract the elapsed time
-                        hours_to_next -= self.env.now - start  # pylint: disable=E0601
+                        hours_to_next -= 0 if start == -1 else self.env.now - start
 
     def run_single_failure(self, failure: Failure) -> Generator:
         """Runs a process to trigger one type of failure repair request throughout the simulation.
@@ -204,6 +205,7 @@ class Subassembly:
                     remainder -= self.env.now
                 continue
             while hours_to_next > 0:  # type: ignore
+                start = -1  # Ensure an interruption before processing is caught
                 try:
                     yield self.system.servicing & self.system.cable_failure & self.broken
                     start = self.env.now
@@ -217,4 +219,5 @@ class Subassembly:
                         hours_to_next = 0
                     else:
                         # A different subassembly failed, so subtract the elapsed time
-                        hours_to_next -= self.env.now - start  # pylint: disable=E0601
+                        # only if it had started to be processed
+                        hours_to_next -= 0 if start == -1 else self.env.now - start
