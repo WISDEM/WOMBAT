@@ -1077,7 +1077,7 @@ class ServiceEquipment(RepairsMixin):
 
     def crew_transfer(
         self,
-        system: System,
+        system: System | Cable,
         subassembly: Subassembly,
         request: RepairRequest,
         to_system: bool,
@@ -1087,7 +1087,7 @@ class ServiceEquipment(RepairsMixin):
 
         Parameters
         ----------
-        system : System
+        system : System | Cable
             The System where the crew needs to be transferred to.
         subassembly : Subassembly
             The Subassembly that is being worked on.
