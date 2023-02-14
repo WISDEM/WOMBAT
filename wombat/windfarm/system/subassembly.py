@@ -179,7 +179,8 @@ class Subassembly:
                         # The subassembly had to restart the maintenance cycle
                         hours_to_next = 0
                     else:
-                        # A different subassembly failed, so subtract the elapsed time
+                        # A different process failed, so subtract the elapsed time
+                        # only if it had started to be processed
                         hours_to_next -= 0 if start == -1 else self.env.now - start
 
     def run_single_failure(self, failure: Failure) -> Generator:
@@ -218,6 +219,6 @@ class Subassembly:
                         # The subassembly had to be replaced so reset the timing
                         hours_to_next = 0
                     else:
-                        # A different subassembly failed, so subtract the elapsed time
+                        # A different process failed, so subtract the elapsed time
                         # only if it had started to be processed
                         hours_to_next -= 0 if start == -1 else self.env.now - start
