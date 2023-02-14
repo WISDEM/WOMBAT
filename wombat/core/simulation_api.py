@@ -206,7 +206,8 @@ class Simulation(FromDictMixin):
 
         if self.config.library != self.library_path:
             raise ValueError(
-                "``library_path`` and the library in ``config`` do not match!"
+                f"`library_path`: {self.library_path} and the library in `config`:"
+                f" {self.config.library} do not match!"
             )
 
     @classmethod
