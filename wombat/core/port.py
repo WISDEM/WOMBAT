@@ -130,15 +130,22 @@ class Port(RepairsMixin, FilterStore):
         assert isinstance(self.settings, PortConfig)
         self.turbine_manager = simpy.Resource(env, self.settings.max_operations)
         self.crew_manager = simpy.Resource(env, self.settings.n_crews)
-        self.tugboat_manager = simpy.FilterStore(env, len(self.settings.tugboats))
 
         tugboats = []
+        ahv_tugboats = []
         for t in self.settings.tugboats:
             tugboat = ServiceEquipment(self.env, self.windfarm, repair_manager, t)
             tugboat._register_port(self)
-            tugboats.append(tugboat)
+            if "TOW" in tugboat.settings.capability:
+                tugboats.append(tugboat)
+            if "AHV" in tugboat.settings.capability:
+                ahv_tugboats.append(tugboat)
+
+        self.tugboat_manager = simpy.FilterStore(env, len(tugboats))
+        self.ahv_tugboat_manager = simpy.FilterStore(env, len(ahv_tugboats))
 
         self.tugboat_manager.items = tugboats
+        self.ahv_tugboat_manager.items = tugboats
         self.active_repairs: dict[str, dict[str, simpy.events.Event]] = {}
 
         # Create partial functions for the labor and equipment costs for clarity
@@ -431,7 +438,7 @@ class Port(RepairsMixin, FilterStore):
         self.requests_serviced.update([request.request_id])
 
         # Request a tugboat to retrieve the tugboat
-        tugboat = yield self.tugboat_manager.get(lambda x: x.at_port)  # type: ignore
+        tugboat = yield self.ahv_tugboat_manager.get(lambda x: x.at_port)
         assert isinstance(tugboat, ServiceEquipment)  # mypy: helper
         request = yield self.manager.get(lambda x: x == request)
         yield self.env.process(tugboat.in_situ_repair(request))
@@ -454,4 +461,4 @@ class Port(RepairsMixin, FilterStore):
             )
 
         # Make the tugboat available again
-        self.tugboat_manager.put(tugboat)
+        self.ahv_tugboat_manager.put(tugboat)
