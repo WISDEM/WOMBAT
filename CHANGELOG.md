@@ -1,6 +1,8 @@
 ## Unreleased (TBD)
-- Bug fix in the maintenance and failure simulations so that process interruptions occuring prior to starting the process timing will not fail.
 - Replace Flake8 and Pylint in the pre-commit workflow with ruff, and fix/ignore the resulting errors as appropriate
+- Bug fixes:
+  - Maintenance and failure simulation process interruptions were occuring prior to starting the process timing, and causing simulation failures.
+  - `Port` managment of *in situ* and tow-to-port capable tugboats wasn't properly accounting for tugboas of varying capabilities, and assuming all tugboats could do both. The vessel management and repair processing were out of sync causing duplicated turbine servicing/towing.
 
 ## v0.6.2 (3 February 2023)
 - Warnings from Pandas `.groupby()` calls have been silenced by shifting the column filtering to before the groupby method call.

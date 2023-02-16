@@ -943,7 +943,7 @@ class ServiceEquipment(RepairsMixin):
             if distance is None:
                 raise ValueError("`distance` must be provided if `hours` is provided.")
 
-        # MyPy helper
+        # MyPy helpers
         assert isinstance(hours, float)
         assert isinstance(distance, float)
 
@@ -952,7 +952,7 @@ class ServiceEquipment(RepairsMixin):
         future_time = self.env.simulation_time + timedelta(hours=hours)
         is_shift = self._is_workshift(future_time.hour)
         if not is_shift and end != "port" and not self.at_port:
-            kw: dict[str, str] = {
+            kw = {
                 "additional": "insufficient time to complete travel before end of the shift"  # noqa: disabl#501
             }
             kw.update(kwargs)
@@ -978,9 +978,9 @@ class ServiceEquipment(RepairsMixin):
         salary_cost = self.calculate_salary_cost(hours)
         hourly_cost = 0  # contractors not paid for traveling
         equipment_cost = self.calculate_equipment_cost(hours)
+        kwargs.update({"additional": additional})
         self.env.log_action(
             action="traveling",
-            additional=additional,
             duration=hours,
             distance_km=distance,
             salary_labor_cost=salary_cost,
@@ -992,9 +992,10 @@ class ServiceEquipment(RepairsMixin):
         yield self.env.timeout(hours)
 
         self._set_location(end, set_current)
+        where = set_current if set_current is not None else end
+        kwargs.update({"additional": f"arrived at {where}"})
         self.env.log_action(
             action="complete travel",
-            additional=f"arrived at {set_current if set_current is not None else end}",
             location=end,
             **kwargs,
         )
@@ -1157,6 +1158,7 @@ class ServiceEquipment(RepairsMixin):
             yield self.env.process(
                 self.crew_transfer(system, subassembly, request, to_system=to_system)
             )
+            return
 
         yield self.env.process(
             self.weather_delay(
