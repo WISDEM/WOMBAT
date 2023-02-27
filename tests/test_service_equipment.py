@@ -1910,8 +1910,8 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
     # The first HLV call is at 4118.374184568947 hours when S00T1's generator has a
     # catastrophic failure putting the windfarm at 83.3% operations, which is less than
     # the 90% threshold. However, because the timing will be delayed during repairs,
-    # realized timeout will be at 4166.374185 hours
-    timeout = 4163.374185
+    # realized timeout will be at 4138.374185 hours
+    timeout = 4138.374185
     env.run(timeout + 1)
     assert hlv.enroute
     assert hlv.transferring_crew is hlv.at_system is hlv.onsite is hlv.at_port is False
