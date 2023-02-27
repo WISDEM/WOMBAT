@@ -2,6 +2,8 @@
 - Replace Flake8 and Pylint in the pre-commit workflow with ruff, and fix/ignore the resulting errors as appropriate
 - Bug fixes:
   - Maintenance and failure simulation process interruptions were occuring prior to starting the process timing, and causing simulation failures.
+  - Duplicated parameters were being processed in `WombatEnvironment.log_action` stemming from improper handling of varying parameters in some of the more complex control flow logic in *in situ* repairs.
+  - Another edge case of negative delays during crew transfers where there is insufficient time remaining in the shift after account for weather, so the method was called recursively, but not exiting the original loop.
   - `Port` managment of *in situ* and tow-to-port capable tugboats wasn't properly accounting for tugboas of varying capabilities, and assuming all tugboats could do both. The vessel management and repair processing were out of sync causing duplicated turbine servicing/towing.
 
 ## v0.6.2 (3 February 2023)
