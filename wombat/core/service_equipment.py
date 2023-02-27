@@ -736,21 +736,26 @@ class ServiceEquipment(RepairsMixin):
             If the delay is more than 0 hours, then a ``Timeout`` is yielded of length
             ``hours``.
         """
-        if hours > 0:
-            salary_cost = self.calculate_salary_cost(hours)
-            hourly_cost = 0  # contractors not paid for delays
-            equipment_cost = self.calculate_equipment_cost(hours)
-            self.env.log_action(
-                duration=hours,
-                action="delay",
-                additional="weather delay",
-                salary_labor_cost=salary_cost,
-                hourly_labor_cost=hourly_cost,
-                equipment_cost=equipment_cost,
-                **kwargs,
+        if hours < 0:
+            raise ValueError(
+                f"`hours` must be greater than 0 for {self.settings.name} to process"
+                " a weather delay"
             )
-            yield self.env.timeout(hours)
+        if hours == 0:
+            return
 
+        salary_cost = self.calculate_salary_cost(hours)
+        hourly_cost = 0  # contractors not paid for delays
+        equipment_cost = self.calculate_equipment_cost(hours)
+        self.env.log_action(
+            duration=hours,
+            action="delay",
+            additional="weather delay",
+            salary_labor_cost=salary_cost,
+            hourly_labor_cost=hourly_cost,
+            equipment_cost=equipment_cost,
+            **kwargs,
+        )
         yield self.env.timeout(hours)
 
     @cache
@@ -1269,7 +1274,7 @@ class ServiceEquipment(RepairsMixin):
             yield self.env.process(
                 self.mooring_connection(system, request, which=which)  # type: ignore
             )
-            return None
+            return
 
         # If no shift delay, then process any weather delays before dis/connection
         yield self.env.process(
