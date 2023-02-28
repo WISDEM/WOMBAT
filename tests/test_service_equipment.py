@@ -1920,7 +1920,6 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
     # Test that the HLV was successfully mobilized
     timeout += 60 * 24
     env.run(timeout)
-    print(env.now, env.simulation_time)
     assert hlv.transferring_crew is hlv.at_system is hlv.onsite is True
     assert hlv.enroute is hlv.at_port is False
     assert hlv.current_system == "S00T1"
