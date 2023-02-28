@@ -418,6 +418,8 @@ class WombatEnvironment(simpy.Environment):
         pd.DataFrame
             The wind (and  wave) timeseries.
         """
+        REQUIRED = ["windspeed", "waveheight"]
+
         # PyArrow datetime conversion setup
         convert_options = pa.csv.ConvertOptions(
             timestamp_parsers=[
@@ -437,6 +439,13 @@ class WombatEnvironment(simpy.Environment):
         )
         weather = weather.fillna(0.0)
         weather = weather.resample("H").interpolate(limit_direction="both", limit=5)
+
+        missing = set(REQUIRED).difference(weather.columns)
+        if missing:
+            raise KeyError(
+                "The weather data are missing the following required columns:"
+                f" {missing}"
+            )
 
         # Add in the hour of day column for efficient handling within the simulation
         weather = weather.assign(hour=weather.index.hour.astype(float))
@@ -487,7 +496,12 @@ class WombatEnvironment(simpy.Environment):
             self.end_datetime = weather.index[-1].to_pydatetime()
             self.end_year = self.end_datetime.year
 
-        return weather
+        column_order = weather.columns.tolist()
+        column_order.insert(0, column_order.pop(column_order.index("hour")))
+        column_order.insert(0, column_order.pop(column_order.index("waveheight")))
+        column_order.insert(0, column_order.pop(column_order.index("windspeed")))
+
+        return weather.loc[:, column_order]
 
     @property
     def weather_now(self) -> tuple[float, float, int]:
@@ -524,7 +538,7 @@ class WombatEnvironment(simpy.Environment):
         # If it's not on the hour, ensure we're looking ``hours`` hours into the future
         end = start + math.ceil(hours) + math.ceil(self.now % 1)
 
-        wind, wave, hour = self.weather.values[start:end].T
+        wind, wave, hour, *_ = self.weather.values[start:end].T
         ix = self.weather.index[start:end]
         return ix, hour, wind, wave
 
