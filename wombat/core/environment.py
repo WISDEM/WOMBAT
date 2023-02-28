@@ -501,7 +501,7 @@ class WombatEnvironment(simpy.Environment):
         column_order.insert(0, column_order.pop(column_order.index("wind_direction")))
         column_order.insert(0, column_order.pop(column_order.index("windspeed")))
 
-        return weather
+        return weather.loc[:, column_order]
 
     @property
     def weather_now(self) -> tuple[float, float, int]:
