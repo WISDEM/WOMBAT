@@ -1,5 +1,7 @@
 ## Unreleased (TBD)
 - Replace Flake8 and Pylint in the pre-commit workflow with ruff, and fix/ignore the resulting errors as appropriate
+- Features:
+  - Weather data now has the ability to contain more than just the required "windspeed" and "waveheight" columns. This will allow for easier expansion of the weather model in the future, and increase compatibility with other NREL techno economic modeling frameworks.
 - Bug fixes:
   - Maintenance and failure simulation process interruptions were occuring prior to starting the process timing, and causing simulation failures.
   - Duplicated parameters were being processed in `WombatEnvironment.log_action` stemming from improper handling of varying parameters in some of the more complex control flow logic in *in situ* repairs.
