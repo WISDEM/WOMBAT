@@ -496,6 +496,11 @@ class WombatEnvironment(simpy.Environment):
             self.end_datetime = weather.index[-1].to_pydatetime()
             self.end_year = self.end_datetime.year
 
+        column_order = weather.columns.tolist()
+        column_order.insert(0, column_order.pop(column_order.index("hour")))
+        column_order.insert(0, column_order.pop(column_order.index("wind_direction")))
+        column_order.insert(0, column_order.pop(column_order.index("windspeed")))
+
         return weather
 
     @property
