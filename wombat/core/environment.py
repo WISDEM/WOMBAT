@@ -538,7 +538,7 @@ class WombatEnvironment(simpy.Environment):
         # If it's not on the hour, ensure we're looking ``hours`` hours into the future
         end = start + math.ceil(hours) + math.ceil(self.now % 1)
 
-        wind, wave, hour = self.weather.values[start:end].T
+        wind, wave, hour, *_ = self.weather.values[start:end].T
         ix = self.weather.index[start:end]
         return ix, hour, wind, wave
 
