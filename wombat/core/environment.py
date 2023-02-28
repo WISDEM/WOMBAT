@@ -418,7 +418,7 @@ class WombatEnvironment(simpy.Environment):
         pd.DataFrame
             The wind (and  wave) timeseries.
         """
-        REQUIRED = ["windspeed", "wave_height"]
+        REQUIRED = ["windspeed", "waveheight"]
 
         # PyArrow datetime conversion setup
         convert_options = pa.csv.ConvertOptions(
@@ -498,7 +498,7 @@ class WombatEnvironment(simpy.Environment):
 
         column_order = weather.columns.tolist()
         column_order.insert(0, column_order.pop(column_order.index("hour")))
-        column_order.insert(0, column_order.pop(column_order.index("wind_direction")))
+        column_order.insert(0, column_order.pop(column_order.index("waveheight")))
         column_order.insert(0, column_order.pop(column_order.index("windspeed")))
 
         return weather.loc[:, column_order]
