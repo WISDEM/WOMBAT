@@ -315,8 +315,6 @@ class ServiceEquipment(RepairsMixin):
 
         Parameters
         ----------
-        start : str
-            The starting location; one of "site", or "port"
         end : str
             The ending location; one of "site", or "port"
         set_current : str
