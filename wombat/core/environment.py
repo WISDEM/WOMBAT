@@ -418,6 +418,8 @@ class WombatEnvironment(simpy.Environment):
         pd.DataFrame
             The wind (and  wave) timeseries.
         """
+        REQUIRED = ["windspeed", "wave_height"]
+
         # PyArrow datetime conversion setup
         convert_options = pa.csv.ConvertOptions(
             timestamp_parsers=[
@@ -437,6 +439,13 @@ class WombatEnvironment(simpy.Environment):
         )
         weather = weather.fillna(0.0)
         weather = weather.resample("H").interpolate(limit_direction="both", limit=5)
+
+        missing = set(REQUIRED).difference(weather.columns)
+        if missing:
+            raise KeyError(
+                "The weather data are missing the following required columns:"
+                f" {missing}"
+            )
 
         # Add in the hour of day column for efficient handling within the simulation
         weather = weather.assign(hour=weather.index.hour.astype(float))
