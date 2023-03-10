@@ -992,6 +992,11 @@ class ServiceEquipment(RepairsMixin):
             location="enroute",
             **kwargs,
         )
+
+        # Unregister current_system during travel <- partial fix, still need to figure
+        # out where current_system needs to be set to None to allow things to "work"
+        self._set_location("site")
+
         yield self.env.timeout(hours)
 
         self._set_location(end, set_current)
@@ -1189,6 +1194,8 @@ class ServiceEquipment(RepairsMixin):
         # else:
         #     self.current_system = None
         #     self.at_system = False
+        # self._set_location("site", system.id)
+        self.current_system = system.id
         self.env.log_action(
             action="complete transfer",
             additional="complete",
