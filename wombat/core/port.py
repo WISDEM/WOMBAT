@@ -437,8 +437,10 @@ class Port(RepairsMixin, FilterStore):
 
         self.requests_serviced.update([request.request_id])
 
-        # Request a tugboat to retrieve the tugboat
-        tugboat = yield self.ahv_tugboat_manager.get(lambda x: x.at_port)
+        # Request a vessel that isn't solely a towing vessel
+        tugboat = yield self.ahv_tugboat_manager.get(
+            lambda x: x.at_port and x.settings.capability != ["TOW"]
+        )
         assert isinstance(tugboat, ServiceEquipment)  # mypy: helper
         request = yield self.manager.get(lambda x: x == request)
         yield self.env.process(tugboat.in_situ_repair(request))
