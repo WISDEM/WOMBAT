@@ -6,7 +6,10 @@
   - Maintenance and failure simulation process interruptions were occuring prior to starting the process timing, and causing simulation failures.
   - Duplicated parameters were being processed in `WombatEnvironment.log_action` stemming from improper handling of varying parameters in some of the more complex control flow logic in *in situ* repairs.
   - Another edge case of negative delays during crew transfers where there is insufficient time remaining in the shift after account for weather, so the method was called recursively, but not exiting the original loop.
-  - `Port` managment of *in situ* and tow-to-port capable tugboats wasn't properly accounting for tugboas of varying capabilities, and assuming all tugboats could do both. The vessel management and repair processing were out of sync causing duplicated turbine servicing/towing.
+  - `Port` managment of *in situ* and tow-to-port capable tugboats wasn't properly accounting for tugboats of varying capabilities, and assuming all tugboats could do both. The vessel management and repair processing were out of sync causing duplicated turbine servicing/towing.
+  - `RepairManager` has consolidated the dispatching of servicing equipment to be the following categories instead of the previously complex logic:
+    - If a request is a tow-to-port category, have the port initiate the process
+    - If the dispatching thresholds are met, then have the port initiate a repair for port-based servicing equipment, otherwise the repair manager will dispatch the appropriate servicing equipment.
   - `ServiceEquipment.weather_delay()` no longer silently processes a second weather delay.
 
 ## v0.6.2 (3 February 2023)

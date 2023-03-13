@@ -218,6 +218,7 @@ class ServiceEquipment(RepairsMixin):
         self.at_system = False
         self.transferring_crew = False
         self.current_system = None  # type: str | None
+        self.port_based = False  # Changed to False if port is registered
         self.settings: ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData
 
         if isinstance(equipment_data_file, (str, Path)):
@@ -287,6 +288,7 @@ class ServiceEquipment(RepairsMixin):
             The port where the tugboat is based.
         """
         self.port = port
+        self.port_based = True
         self.at_port = True
         self.settings._set_port_distance(port.settings.site_distance)  # type: ignore
 
@@ -949,8 +951,8 @@ class ServiceEquipment(RepairsMixin):
                 raise ValueError("`distance` must be provided if `hours` is provided.")
 
         # MyPy helpers
-        assert isinstance(hours, float)
-        assert isinstance(distance, float)
+        assert isinstance(distance, (int, float))
+        assert isinstance(hours, (float, int))
 
         # If the the equipment will arive after the shift is over, then it must travel
         # back to port (if needed), and wait for the next shift
@@ -1801,9 +1803,11 @@ class ServiceEquipment(RepairsMixin):
         request : RepairRequest
             The request that trigged the repair logic.
         """
-        if "TOW" in request.details.service_equipment:
-            yield self.env.process(self.port.run_tow_to_port(request))
-        elif "AHV" in request.details.service_equipment:
-            yield self.env.process(self.port.run_unscheduled_in_situ(request))
-        else:
-            yield self.env.process(self.run_unscheduled_in_situ())
+        # if "TOW" in request.details.service_equipment:
+        #     yield self.env.process(self.port.run_tow_to_port(request))
+        # if "AHV" in request.details.service_equipment:
+        # yield self.env.process(self.port.run_unscheduled_in_situ(request))
+        # else:
+        #     yield self.env.process(self.run_unscheduled_in_situ())
+
+        yield self.env.process(self.run_unscheduled_in_situ())
