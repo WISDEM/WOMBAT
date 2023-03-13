@@ -170,6 +170,11 @@ class RepairManager(FilterStore):
         capability category where the number of requests is greater than or equal to the
         equipment's threshold.
         """
+        # Port-based servicing equipment should be handled by the port
+        if "TOW" in request.details.service_equipment:
+            self.env.process(self.port.run_tow_to_port(request))
+            return
+
         for capability, n_requests in self.request_map.items():
             if capability not in request.details.service_equipment:
                 continue
@@ -179,26 +184,18 @@ class RepairManager(FilterStore):
                     continue
                 # Run only the first piece of equipment in the mapping list, but ensure
                 # that it moves to the back of the line after being used
-                if capability in ("TOW", "AHV"):
-                    # Don't dispatch a second piece of equipment for tow-to-port
-                    if (
-                        request.system_id in self.invalid_systems
-                        and capability == "TOW"
-                    ):
-                        continue
-                    try:
-                        self.env.process(equipment.equipment.run_unscheduled(request))
-                    except ValueError:
-                        # ValueError is raised when a duplicate request is called for
-                        # any of the port-based servicing equipment
-                        pass
-                    break
-
-                if equipment.equipment.dispatched:
+                equipment_obj = equipment.equipment
+                if equipment_obj.dispatched:
                     equipment_mapping.append(equipment_mapping.pop(i))
                     break
 
-                self.env.process(equipment.equipment.run_unscheduled(request))
+                # Either run the repair logic from the port for port-based servicing
+                # equipment, so that it can self-mangge or dispatch the servicing
+                # equipment directly, when port is an implicitly modeled aspect
+                if equipment_obj.port_based:
+                    self.env.process(self.port.run_unscheduled_in_situ(request))
+                else:
+                    self.env.process(equipment_obj.run_unscheduled(request))
                 equipment_mapping.append(equipment_mapping.pop(i))
                 break
 
