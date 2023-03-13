@@ -949,8 +949,8 @@ class ServiceEquipment(RepairsMixin):
                 raise ValueError("`distance` must be provided if `hours` is provided.")
 
         # MyPy helpers
+        assert isinstance(distance, (int, float))
         assert isinstance(hours, float)
-        assert isinstance(distance, float)
 
         # If the the equipment will arive after the shift is over, then it must travel
         # back to port (if needed), and wait for the next shift
@@ -1801,9 +1801,11 @@ class ServiceEquipment(RepairsMixin):
         request : RepairRequest
             The request that trigged the repair logic.
         """
-        if "TOW" in request.details.service_equipment:
-            yield self.env.process(self.port.run_tow_to_port(request))
-        elif "AHV" in request.details.service_equipment:
-            yield self.env.process(self.port.run_unscheduled_in_situ(request))
-        else:
-            yield self.env.process(self.run_unscheduled_in_situ())
+        # if "TOW" in request.details.service_equipment:
+        #     yield self.env.process(self.port.run_tow_to_port(request))
+        # if "AHV" in request.details.service_equipment:
+        # yield self.env.process(self.port.run_unscheduled_in_situ(request))
+        # else:
+        #     yield self.env.process(self.run_unscheduled_in_situ())
+
+        yield self.env.process(self.run_unscheduled_in_situ())
