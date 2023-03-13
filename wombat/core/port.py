@@ -131,21 +131,14 @@ class Port(RepairsMixin, FilterStore):
         self.turbine_manager = simpy.Resource(env, self.settings.max_operations)
         self.crew_manager = simpy.Resource(env, self.settings.n_crews)
 
-        tugboats = []
-        ahv_tugboats = []
+        service_equipment = []
         for t in self.settings.tugboats:
             tugboat = ServiceEquipment(self.env, self.windfarm, repair_manager, t)
             tugboat._register_port(self)
-            if "TOW" in tugboat.settings.capability:
-                tugboats.append(tugboat)
-            if "AHV" in tugboat.settings.capability:
-                ahv_tugboats.append(tugboat)
+            service_equipment.append(tugboat)
 
-        self.tugboat_manager = simpy.FilterStore(env, len(tugboats))
-        self.ahv_tugboat_manager = simpy.FilterStore(env, len(ahv_tugboats))
-
-        self.tugboat_manager.items = tugboats
-        self.ahv_tugboat_manager.items = tugboats
+        self.service_equipment_manager = simpy.FilterStore(env, len(service_equipment))
+        self.service_equipment_manager.items = service_equipment
         self.active_repairs: dict[str, dict[str, simpy.events.Event]] = {}
 
         # Create partial functions for the labor and equipment costs for clarity
@@ -393,11 +386,13 @@ class Port(RepairsMixin, FilterStore):
         yield turbine_request  # type: ignore
 
         # Request a tugboat to retrieve the turbine
-        tugboat = yield self.tugboat_manager.get(lambda x: x.at_port)  # type: ignore
+        tugboat = yield self.service_equipment_manager.get(
+            lambda x: x.at_port and "TOW" in x.capability
+        )
         yield self.env.process(tugboat.run_tow_to_port(request))  # type: ignore
 
         # Make the tugboat available again
-        self.tugboat_manager.put(tugboat)
+        self.service_equipment_manager.put(tugboat)
 
         # Transfer the repairs to the port queue, which will initiate the repair process
         self.run_repairs(request.system_id)
@@ -406,12 +401,14 @@ class Port(RepairsMixin, FilterStore):
         yield simpy.AllOf(self.env, self.active_repairs[request.system_id].values())
 
         # Request a tugboat to tow the turbine back to site, and open the turbine queue
-        tugboat = yield self.tugboat_manager.get(lambda x: x.at_port)  # type: ignore
+        tugboat = yield self.service_equipment_manager.get(
+            lambda x: x.at_port and "TOW" in x.capability
+        )
         self.turbine_manager.release(turbine_request)
         yield self.env.process(tugboat.run_tow_to_site(request))  # type: ignore
 
         # Make the tugboat available again
-        self.tugboat_manager.put(tugboat)
+        self.service_equipment_manager.put(tugboat)
 
     def run_unscheduled_in_situ(
         self, request: RepairRequest
@@ -438,21 +435,21 @@ class Port(RepairsMixin, FilterStore):
         self.requests_serviced.update([request.request_id])
 
         # Request a vessel that isn't solely a towing vessel
-        tugboat = yield self.ahv_tugboat_manager.get(
+        vessel = yield self.service_equipment_manager.get(
             lambda x: x.at_port and x.settings.capability != ["TOW"]
         )
-        assert isinstance(tugboat, ServiceEquipment)  # mypy: helper
+        assert isinstance(vessel, ServiceEquipment)  # mypy: helper
         request = yield self.manager.get(lambda x: x == request)
-        yield self.env.process(tugboat.in_situ_repair(request))
+        yield self.env.process(vessel.in_situ_repair(request))
 
         # If the tugboat finished mid-shift, the in-situ repair logic will keep it
         # there, so ensure it returns back to port once it's complete
-        if not tugboat.at_port:
+        if not vessel.at_port:
             yield self.env.process(
-                tugboat.travel(
+                vessel.travel(
                     start="site",
                     end="port",
-                    agent=tugboat.settings.name,
+                    agent=vessel.settings.name,
                     reason=f"{request.details.description} complete",
                     system_id=request.system_id,
                     system_name=request.system_name,
@@ -463,4 +460,4 @@ class Port(RepairsMixin, FilterStore):
             )
 
         # Make the tugboat available again
-        self.ahv_tugboat_manager.put(tugboat)
+        self.service_equipment_manager.put(vessel)
