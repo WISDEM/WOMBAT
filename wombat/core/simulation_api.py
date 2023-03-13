@@ -287,7 +287,7 @@ class Simulation(FromDictMixin):
             self.port = Port(
                 self.env, self.windfarm, self.repair_manager, self.config.port
             )
-            self.service_equipment.extend(self.port.tugboat_manager.items)
+            self.service_equipment.extend(self.port.service_equipment_manager.items)
 
         if self.config.project_capacity * 1000 != round(self.windfarm.capacity, 6):
             raise ValueError(

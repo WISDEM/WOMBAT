@@ -71,7 +71,7 @@ class Port(RepairsMixin, FilterStore):
     crew_manager : simpy.Resource
         A SimPy ``Resource`` object that limts the number of repairs that can be
         occurring at any given time, which is controlled by ``settings.n_crews``.
-    tugboat_manager : simpy.FilterStore
+    service_equipment_manager : simpy.FilterStore
         A SimPy ``FilterStore`` object that acts as a coordination system for the
         registered tugboats to tow turbines between port and site. In order to tow
         in either direction they must be filtered by ``ServiceEquipment.at_port``. This
@@ -387,7 +387,7 @@ class Port(RepairsMixin, FilterStore):
 
         # Request a tugboat to retrieve the turbine
         tugboat = yield self.service_equipment_manager.get(
-            lambda x: x.at_port and "TOW" in x.capability
+            lambda x: x.at_port and "TOW" in x.settings.capability
         )
         yield self.env.process(tugboat.run_tow_to_port(request))  # type: ignore
 
@@ -402,7 +402,7 @@ class Port(RepairsMixin, FilterStore):
 
         # Request a tugboat to tow the turbine back to site, and open the turbine queue
         tugboat = yield self.service_equipment_manager.get(
-            lambda x: x.at_port and "TOW" in x.capability
+            lambda x: x.at_port and "TOW" in x.settings.capability
         )
         self.turbine_manager.release(turbine_request)
         yield self.env.process(tugboat.run_tow_to_site(request))  # type: ignore
