@@ -141,36 +141,46 @@ class RepairManager(FilterStore):
     def _run_equipment_downtime(self, request: RepairRequest) -> None:
         """Run any equipment that has a pending request where the current windfarm
         operating capacity is less than or equal to the servicing equipment's threshold.
+
+        TODO: This methodology needs to better resolve dispatching every equipment
+        relating to a request vs just the one(s) that are required. Basically, don't
+        dispatch every available HLV, but just one plus one of every other capability
+        category that has pending requests
         """
+        # Port-based servicing equipment should be handled by the port and does not
+        # have an operating reduction threshold to meet at this time
+        if "TOW" in request.details.service_equipment:
+            self.env.process(self.port.run_tow_to_port(request))
+            return
+
         operating_capacity = self.windfarm.current_availability_wo_servicing
         for capability in self.request_map:
             equipment_mapping = getattr(self.downtime_based_equipment, capability)
             for equipment in equipment_mapping:
                 if operating_capacity > equipment.strategy_threshold:
                     continue
-                if capability in ("TOW", "AHV"):
-                    # Don't dispatch a second piece of equipment for tow-to-port
-                    if (
-                        request.system_id in self.invalid_systems
-                        and capability == "TOW"
-                    ):
-                        continue
-                    try:
-                        self.env.process(equipment.equipment.run_unscheduled(request))
-                    except ValueError:
-                        # ValueError is raised when a duplicate request is called for
-                        # any of the port-based servicing equipment
-                        pass
-                if equipment.equipment.dispatched:
+
+                equipment_obj = equipment.equipment
+                if equipment_obj.dispatched:
                     continue
-                self.env.process(equipment.equipment.run_unscheduled(request))
+                if equipment_obj.port_based:
+                    self.env.process(self.port.run_unscheduled_in_situ(request))
+                else:
+                    self.env.process(equipment_obj.run_unscheduled(request))
 
     def _run_equipment_requests(self, request: RepairRequest) -> None:
         """Run the first piece of equipment (if none are onsite) for each equipment
         capability category where the number of requests is greater than or equal to the
         equipment's threshold.
         """
+        # Port-based servicing equipment should be handled by the port and does not have
+        # a requests-based threshold to meet at this time
+        if "TOW" in request.details.service_equipment:
+            self.env.process(self.port.run_tow_to_port(request))
+            return
+
         for capability, n_requests in self.request_map.items():
+            # For a requests basis, the capability and submitted request must match
             if capability not in request.details.service_equipment:
                 continue
             equipment_mapping = getattr(self.request_based_equipment, capability)
@@ -179,26 +189,18 @@ class RepairManager(FilterStore):
                     continue
                 # Run only the first piece of equipment in the mapping list, but ensure
                 # that it moves to the back of the line after being used
-                if capability in ("TOW", "AHV"):
-                    # Don't dispatch a second piece of equipment for tow-to-port
-                    if (
-                        request.system_id in self.invalid_systems
-                        and capability == "TOW"
-                    ):
-                        continue
-                    try:
-                        self.env.process(equipment.equipment.run_unscheduled(request))
-                    except ValueError:
-                        # ValueError is raised when a duplicate request is called for
-                        # any of the port-based servicing equipment
-                        pass
-                    break
-
-                if equipment.equipment.dispatched:
+                equipment_obj = equipment.equipment
+                if equipment_obj.dispatched:
                     equipment_mapping.append(equipment_mapping.pop(i))
                     break
 
-                self.env.process(equipment.equipment.run_unscheduled(request))
+                # Either run the repair logic from the port for port-based servicing
+                # equipment, so that it can self-mangge or dispatch the servicing
+                # equipment directly, when port is an implicitly modeled aspect
+                if equipment_obj.port_based:
+                    self.env.process(self.port.run_unscheduled_in_situ(request))
+                else:
+                    self.env.process(equipment_obj.run_unscheduled(request))
                 equipment_mapping.append(equipment_mapping.pop(i))
                 break
 
