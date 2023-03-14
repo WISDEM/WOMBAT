@@ -1191,13 +1191,6 @@ class ServiceEquipment(RepairsMixin):
         self.transferring_crew = True
         yield self.env.timeout(hours_to_process)
         self.transferring_crew = False
-        # if to_system:
-        #     self.current_system = system.id
-        # else:
-        #     self.current_system = None
-        #     self.at_system = False
-        # self._set_location("site", system.id)
-        self.current_system = system.id
         self.env.log_action(
             action="complete transfer",
             additional="complete",
