@@ -432,6 +432,11 @@ class Port(RepairsMixin, FilterStore):
         if request.request_id in self.requests_serviced:
             return
 
+        # If the system is already undergoing repairs from other servicing equipment,
+        # then wait until it's done being serviced
+        if request.system_id in self.manager.invalid_systems:
+            yield self.windfarm.system(request.system_id).servicing
+
         self.requests_serviced.update([request.request_id])
 
         # Request a vessel that isn't solely a towing vessel
