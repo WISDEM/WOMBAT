@@ -156,7 +156,7 @@ ENV/
 /library/code_comparison/iea26/outputs
 /library/code_comparison/dinwoodie/results
 /library/code_comparison/iea26/results
-/test/library/results
+/tests/library/results
 
 # Text editors
 .vscode/
