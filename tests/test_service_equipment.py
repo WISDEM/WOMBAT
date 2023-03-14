@@ -1928,5 +1928,6 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
     timeout += 30 * 24 - 1 / 60
     env.run(timeout)
     assert hlv.onsite
-    assert hlv.transferring_crew is hlv.at_system is hlv.at_port is hlv.enroute is False
-    assert hlv.current_system is None
+    assert hlv.transferring_crew is hlv.at_port is hlv.enroute is False
+    assert hlv.at_system
+    assert hlv.current_system == "S01T6"
