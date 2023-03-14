@@ -164,7 +164,7 @@ class RepairsMixin:
             hourly_labor_cost=hourly_cost,
             equipment_cost=equipment_cost,
             additional=action,
-            location="port" if isinstance(self.settings, PortConfig) else "site",
+            location="port" if isinstance(self.settings, PortConfig) else "system",
             **kwargs,
         )
         yield self.env.timeout(hours)

@@ -317,8 +317,6 @@ class ServiceEquipment(RepairsMixin):
 
         Parameters
         ----------
-        start : str
-            The starting location; one of "site", or "port"
         end : str
             The ending location; one of "site", or "port"
         set_current : str
@@ -996,6 +994,11 @@ class ServiceEquipment(RepairsMixin):
             location="enroute",
             **kwargs,
         )
+
+        # Unregister current_system during travel <- partial fix, still need to figure
+        # out where current_system needs to be set to None to allow things to "work"
+        self._set_location("site")
+
         yield self.env.timeout(hours)
 
         self._set_location(end, set_current)
@@ -1168,9 +1171,7 @@ class ServiceEquipment(RepairsMixin):
             return
 
         yield self.env.process(
-            self.weather_delay(
-                delay, location="site" if to_system else "system", **shared_logging
-            )
+            self.weather_delay(delay, location="system", **shared_logging)
         )
 
         if to_system:
@@ -1190,15 +1191,10 @@ class ServiceEquipment(RepairsMixin):
         self.transferring_crew = True
         yield self.env.timeout(hours_to_process)
         self.transferring_crew = False
-        if to_system:
-            self.current_system = system.id
-        else:
-            self.current_system = None
-            self.at_system = False
         self.env.log_action(
             action="complete transfer",
             additional="complete",
-            location="system" if to_system else "site",
+            location="system",
             **shared_logging,
         )
 
@@ -1294,7 +1290,7 @@ class ServiceEquipment(RepairsMixin):
             salary_labor_cost=salary_cost,
             hourly_labor_cost=hourly_cost,
             equipment_cost=equipment_cost,
-            location="site",
+            location="system",
             **shared_logging,  # type: ignore
         )
 
@@ -1537,7 +1533,7 @@ class ServiceEquipment(RepairsMixin):
             materials_cost=request.details.materials,
             additional="complete",
             request_id=request.request_id,
-            location="site",
+            location="system",
         )
 
         # If this is the end of the shift, ensure that we're traveling back to port
