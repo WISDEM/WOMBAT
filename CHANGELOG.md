@@ -11,6 +11,7 @@
     - If a request is a tow-to-port category, have the port initiate the process
     - If the dispatching thresholds are met, then have the port initiate a repair for port-based servicing equipment, otherwise the repair manager will dispatch the appropriate servicing equipment.
   - `ServiceEquipment.weather_delay()` no longer silently processes a second weather delay.
+  - Intra-site travel is now correctly logging the distance and duration of traveling between systems at the site by moving the location setting logic out of `crew_transfer` method and being entirely maintained within, or next to, the `travel` method of `ServiceEquipment`.
 
 ## v0.6.2 (3 February 2023)
 - Warnings from Pandas `.groupby()` calls have been silenced by shifting the column filtering to before the groupby method call.
