@@ -352,8 +352,6 @@ class Port(RepairsMixin, FilterStore):
         # If the system is already undergoing repairs from other servicing equipment,
         # then wait until it's done being serviced, then double check
         yield self.windfarm.system(request.system_id).servicing
-        if request.system_id in self.manager.invalid_systems:
-            yield self.windfarm.system(request.system_id).servicing
 
         # Halt the turbine before going further to avoid issue with requests being
         # being submitted between now and when the tugboat gets to the turbine
@@ -436,8 +434,6 @@ class Port(RepairsMixin, FilterStore):
         # If the system is already undergoing repairs from other servicing equipment,
         # then wait until it's done being serviced, then double check
         yield self.windfarm.system(request.system_id).servicing
-        if request.system_id in self.manager.invalid_systems:
-            yield self.windfarm.system(request.system_id).servicing
 
         self.requests_serviced.update([request.request_id])
 
