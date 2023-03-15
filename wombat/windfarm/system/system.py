@@ -185,10 +185,9 @@ class System:
         float
             Operating level of the turbine.
         """
-        if not self.cable_failure.triggered or not self.servicing.triggered:
-            return 0.0
-        else:
+        if self.cable_failure.triggered and self.servicing.triggered:
             return reduce(mul, [sub.operating_level for sub in self.subassemblies])
+        return 0.0
 
     @property
     def operating_level_wo_servicing(self) -> float:
@@ -200,10 +199,9 @@ class System:
         float
             Operating level of the turbine.
         """
-        if not self.cable_failure.triggered:
-            return 0.0
-        else:
+        if self.cable_failure.triggered:
             return reduce(mul, [sub.operating_level for sub in self.subassemblies])
+        return 0.0
 
     def power(self, windspeed: list[float] | np.ndarray) -> np.ndarray:
         """Generates the power output for an iterable of windspeed values.
