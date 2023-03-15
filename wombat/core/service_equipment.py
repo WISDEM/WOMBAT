@@ -12,6 +12,7 @@ from math import ceil
 from typing import TYPE_CHECKING, Any, Generator
 from pathlib import Path
 from datetime import timedelta
+from itertools import zip_longest
 
 import numpy as np
 import pandas as pd
@@ -416,15 +417,18 @@ class ServiceEquipment(RepairsMixin):
         farm = self.manager.windfarm
         if cable.connection_type == "array":
             # If there is another failure downstream of the repaired cable, do nothing
-            if cable.downstream_failure:
+            if not cable.downstream_failure.triggered:
                 return
 
             # For each upstream turbine and cable, reset their operations
-            for t_id, c_id in zip(cable.upstream_nodes, cable.upstream_cables):
-                cable = farm.cable(c_id)
-                if cable.operating_level == 0:
-                    break
-                cable.downstream_failure.succeed()
+            nodes = cable.upstream_nodes
+            cables = cable.upstream_cables
+            for t_id, c_id in zip_longest(nodes, cables, fillvalue=None):
+                if c_id is not None:
+                    cable = farm.cable(c_id)
+                    if cable.operating_level == 0:
+                        break
+                    cable.downstream_failure.succeed()
                 farm.system(t_id).cable_failure.succeed()
 
         if cable.connection_type == "export":
@@ -435,11 +439,12 @@ class ServiceEquipment(RepairsMixin):
             # cables until another cable failure is encoountered, then move to the next
             # string
             for turbines, cables in zip(cable.upstream_nodes, cable.upstream_cables):
-                for t_id, c_id in zip(turbines, cables):
-                    cable = farm.cable(c_id)
-                    if cable.operating_level == 0:
-                        break
-                    cable.downstream_failure.succeed()
+                for t_id, c_id in zip_longest(turbines, cables, fillvalue=None):
+                    if c_id is not None:
+                        cable = farm.cable(c_id)
+                        if cable.operating_level == 0:
+                            break
+                        cable.downstream_failure.succeed()
                     farm.system(t_id).cable_failure.succeed()
 
     def register_repair_with_subassembly(
@@ -464,13 +469,9 @@ class ServiceEquipment(RepairsMixin):
         """
         operation_reduction = repair.details.operation_reduction
 
-        if repair.cable and repair.details.operation_reduction == 1:
-            assert isinstance(subassembly, Cable)  # mypy helper
-            self.enable_string_operations(subassembly)
-
         # Put the subassembly/component back to good as new condition
         if repair.details.replacement:
-            subassembly.operating_level = 1
+            subassembly.operating_level = 1.0
             _ = self.manager.purge_subassembly_requests(
                 repair.system_id, repair.subassembly_id
             )
@@ -481,6 +482,10 @@ class ServiceEquipment(RepairsMixin):
             subassembly.operating_level = starting_operating_level
         else:
             subassembly.operating_level /= 1 - operation_reduction
+
+        if repair.cable and repair.details.operation_reduction == 1:
+            assert isinstance(subassembly, Cable)  # mypy helper
+            self.enable_string_operations(subassembly)
 
         # Register that the servicing is now over
         system = subassembly if isinstance(subassembly, Cable) else subassembly.system
