@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from typing import Generator
+from itertools import zip_longest
 
 import numpy as np
 import simpy
@@ -211,7 +212,8 @@ class Cable:
                 **shared_logging,  # type: ignore
             )
 
-        for t_id, c_id in zip(upstream_nodes, upstream_cables):
+        for t_id, c_id in zip_longest(upstream_nodes, upstream_cables, fillvalue=None):
+            assert isinstance(t_id, str)
             turbine = self.windfarm.system(t_id)
             turbine.cable_failure = self.env.event()
             turbine.interrupt_all_subassembly_processes()
@@ -222,6 +224,10 @@ class Cable:
                 part_ol=np.nan,
                 **shared_logging,  # type: ignore
             )
+
+            # If at the end of the string, skip any operations on non-existent cables
+            if c_id is None:
+                continue
             cable = self.windfarm.cable(c_id)
             cable.interrupt_processes()
             cable.downstream_failure = self.env.event()
@@ -250,12 +256,12 @@ class Cable:
         # Automatically submit a repair request
         # NOTE: mypy is not caught up with attrs yet :(
         repair_request = RepairRequest(  # type: ignore
-            self.id,
-            self.name,
-            self.id,
-            self.name,
-            action.level,
-            action,
+            system_id=self.id,
+            system_name=self.name,
+            subassembly_id=self.id,
+            subassembly_name=self.name,
+            severity_level=action.level,
+            details=action,
             cable=True,
             upstream_turbines=self.upstream_nodes,
             upstream_cables=self.upstream_cables,
@@ -285,7 +291,6 @@ class Cable:
             _ = self.system.repair_manager.purge_subassembly_requests(
                 self.id, self.id, exclude=[repair_request.request_id]
             )
-
         self.system.repair_manager.submit_request(repair_request)
 
     def run_single_maintenance(self, maintenance: Maintenance) -> Generator:
