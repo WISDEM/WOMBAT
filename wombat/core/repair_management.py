@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Generator
 from itertools import chain
 from collections import Counter
 
@@ -138,7 +138,7 @@ class RepairManager(FilterStore):
         self._current_id += 1
         return request_id
 
-    def _run_equipment_downtime(self, request: RepairRequest) -> None:
+    def _run_equipment_downtime(self, request: RepairRequest) -> None | Generator:
         """Run any equipment that has a pending request where the current windfarm
         operating capacity is less than or equal to the servicing equipment's threshold.
 
@@ -164,11 +164,14 @@ class RepairManager(FilterStore):
                 if equipment_obj.dispatched:
                     continue
                 if equipment_obj.port_based:
+                    # Equipment-based logic does not manage system availability, so
+                    # ensure it's available prior to dispatching
+                    yield self.windfarm.system(request.system_id).servicing
                     self.env.process(self.port.run_unscheduled_in_situ(request))
                 else:
                     self.env.process(equipment_obj.run_unscheduled(request))
 
-    def _run_equipment_requests(self, request: RepairRequest) -> None:
+    def _run_equipment_requests(self, request: RepairRequest) -> None | Generator:
         """Run the first piece of equipment (if none are onsite) for each equipment
         capability category where the number of requests is greater than or equal to the
         equipment's threshold.
@@ -193,11 +196,13 @@ class RepairManager(FilterStore):
                 if equipment_obj.dispatched:
                     equipment_mapping.append(equipment_mapping.pop(i))
                     break
-
                 # Either run the repair logic from the port for port-based servicing
                 # equipment, so that it can self-mangge or dispatch the servicing
                 # equipment directly, when port is an implicitly modeled aspect
                 if equipment_obj.port_based:
+                    # Equipment-based logic does not manage system availability, so
+                    # ensure it's available prior to dispatching
+                    yield self.windfarm.system(request.system_id).servicing
                     self.env.process(self.port.run_unscheduled_in_situ(request))
                 else:
                     self.env.process(equipment_obj.run_unscheduled(request))
