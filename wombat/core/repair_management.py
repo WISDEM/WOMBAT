@@ -245,9 +245,9 @@ class RepairManager(FilterStore):
             used for logging.
         """
         if self.downtime_based_equipment.is_running:
-            self._run_equipment_downtime(request)
+            self.env.process(self._run_equipment_downtime(request))
         if self.request_based_equipment.is_running:
-            self._run_equipment_requests(request)
+            self.env.process(self._run_equipment_requests(request))
 
     def get_request_by_system(
         self, equipment_capability: list[str], system_id: str | None = None
