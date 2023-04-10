@@ -435,6 +435,10 @@ class Port(RepairsMixin, FilterStore):
         # then wait until it's done being serviced, then double check
         yield self.windfarm.system(request.system_id).servicing
 
+        # Halt the turbine before going further to avoid issue with requests being
+        # being submitted between now and when the tugboat gets to the turbine
+        self.manager.halt_requests_for_system(self.windfarm.system(request.system_id))
+
         self.requests_serviced.update([request.request_id])
 
         # Request a vessel that isn't solely a towing vessel
