@@ -400,9 +400,7 @@ class ServiceEquipment(RepairsMixin):
         if self.settings.method == "turbine":
             return self.manager.get_request_by_system(self.settings.capability)
         if self.settings.method == "severity":
-            return self.manager.get_next_highest_severity_request(
-                self.settings.capability
-            )
+            return self.manager.get_request_by_severity(self.settings.capability)
 
     def enable_string_operations(self, cable: Cable) -> None:
         """Traverses the upstream cable and turbine connections and resets the

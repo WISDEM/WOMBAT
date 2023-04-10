@@ -300,7 +300,7 @@ class RepairManager(FilterStore):
         # attempting to retrieve its next request
         return None
 
-    def get_next_highest_severity_request(
+    def get_request_by_severity(
         self,
         equipment_capability: list[str] | set[str],
         severity_level: int | None = None,
@@ -338,6 +338,12 @@ class RepairManager(FilterStore):
         # back
         requests = sorted(requests, key=lambda x: x.severity_level, reverse=True)
         for request in requests:
+            if request.cable:
+                if not self.windfarm.cable(request.system_id).servicing.triggered:
+                    continue
+            else:
+                if not self.windfarm.system(request.system_id).servicing.triggered:
+                    continue
             if request.system_id not in self.invalid_systems:
                 if equipment_capability.intersection(request.details.service_equipment):
                     self.invalid_systems.append(request.system_id)
