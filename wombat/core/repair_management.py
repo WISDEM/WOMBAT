@@ -378,6 +378,11 @@ class RepairManager(FilterStore):
             The ``System.id`` of the turbine that can be operated on again
         """
         _ = self.invalid_systems.pop(self.invalid_systems.index(system_id))
+        if "::" in system_id:
+            system = self.windfarm.cable(system_id)
+        else:
+            system = self.windfarm.system(system_id)
+        system.servicing.succeed()
 
     def get_all_requests_for_system(
         self, agent: str, system_id: str

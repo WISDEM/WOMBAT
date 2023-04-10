@@ -141,7 +141,6 @@ def reset_system_operations(system: System) -> None:
     for subassembly in system.subassemblies:
         subassembly.operating_level = 1.0
         subassembly.recreate_processes()
-    system.servicing.succeed()
 
 
 class ServiceEquipment(RepairsMixin):
@@ -486,8 +485,6 @@ class ServiceEquipment(RepairsMixin):
             self.enable_string_operations(subassembly)
 
         # Register that the servicing is now over
-        system = subassembly if isinstance(subassembly, Cable) else subassembly.system
-        system.servicing.succeed()
         self.manager.enable_requests_for_system(repair.system_id)
 
     def wait_until_next_operational_period(
