@@ -202,8 +202,8 @@ class Cable:
 
             # Turn off the subation
             substation = self.windfarm.system(self.end_node)
-            substation.interrupt_all_subassembly_processes()
             substation.cable_failure = self.env.event()
+            substation.interrupt_all_subassembly_processes()
             self.env.log_action(
                 system_id=self.end_node,
                 system_name=substation.name,
@@ -229,8 +229,8 @@ class Cable:
             if c_id is None:
                 continue
             cable = self.windfarm.cable(c_id)
-            cable.interrupt_processes()
             cable.downstream_failure = self.env.event()
+            cable.interrupt_processes()
             self.env.log_action(
                 system_id=c_id,
                 system_name=cable.name,
