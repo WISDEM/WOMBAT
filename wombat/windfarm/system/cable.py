@@ -165,7 +165,11 @@ class Cable:
             The subassembly that should have all processes interrupted.
         """
         for _, process in self.processes.items():
-            process.interrupt()
+            try:
+                process.interrupt()
+            except RuntimeError:
+                # This error occurs for the process halting all other processes.
+                pass
 
     def interrupt_all_subassembly_processes(self) -> None:
         """Thin wrapper for ``interrupt_processes`` for consistent usage with system."""
@@ -279,7 +283,7 @@ class Cable:
 
         if action.operation_reduction == 1:
             self.broken = self.env.event()
-            self.interrupt_processes()
+            self.interrupt_all_subassembly_processes()
             self.stop_all_upstream_processes(action)
 
         # Remove previously submitted requests as a replacement is required
