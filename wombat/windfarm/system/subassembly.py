@@ -85,11 +85,7 @@ class Subassembly:
             The subassembly that should have all processes interrupted.
         """
         for _, process in self.processes.items():
-            try:
-                process.interrupt()
-            except RuntimeError:
-                # This error occurs for the process halting all other processes.
-                pass
+            process.interrupt()
 
     def interrupt_all_subassembly_processes(self) -> None:
         """Thin wrapper for ``system.interrupt_all_subassembly_processes``."""
