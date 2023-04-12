@@ -150,7 +150,7 @@ class RepairManager(FilterStore):
         # Port-based servicing equipment should be handled by the port and does not
         # have an operating reduction threshold to meet at this time
         if "TOW" in request.details.service_equipment:
-            self.env.process(self.port.run_tow_to_port(request))
+            yield self.env.process(self.port.run_tow_to_port(request))
             return
 
         operating_capacity = self.windfarm.current_availability_wo_servicing
@@ -179,7 +179,7 @@ class RepairManager(FilterStore):
         # Port-based servicing equipment should be handled by the port and does not have
         # a requests-based threshold to meet at this time
         if "TOW" in request.details.service_equipment:
-            self.env.process(self.port.run_tow_to_port(request))
+            yield self.env.process(self.port.run_tow_to_port(request))
             return
 
         for capability, n_requests in self.request_map.items():
@@ -339,10 +339,10 @@ class RepairManager(FilterStore):
         requests = sorted(requests, key=lambda x: x.severity_level, reverse=True)
         for request in requests:
             if request.cable:
-                if not self.windfarm.cable(request.system_id).servicing.triggered:
+                if not self.windfarm.cable(request.system_id).servicing.processed:
                     continue
             else:
-                if not self.windfarm.system(request.system_id).servicing.triggered:
+                if not self.windfarm.system(request.system_id).servicing.processed:
                     continue
             if request.system_id not in self.invalid_systems:
                 if equipment_capability.intersection(request.details.service_equipment):
@@ -366,7 +366,10 @@ class RepairManager(FilterStore):
         """
         if system.id not in self.invalid_systems:
             self.invalid_systems.append(system.id)
-        system.servicing = self.env.event()
+        if system.servicing.processed:
+            system.servicing = self.env.event()
+        else:
+            raise RuntimeError(f"{system.id} already being serviced")
         system.interrupt_all_subassembly_processes()
 
     def enable_requests_for_system(self, system_id: str) -> None:
