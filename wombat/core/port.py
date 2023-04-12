@@ -350,8 +350,20 @@ class Port(RepairsMixin, FilterStore):
             return
 
         # If the system is already undergoing repairs from other servicing equipment,
-        # then wait until it's done being serviced, then double check
-        yield self.windfarm.system(request.system_id).servicing
+        # then wait until it's done being serviced
+        servicing = self.windfarm.system(request.system_id).servicing
+
+        # Wait for a spot to open up in the port queue
+        turbine_request = self.turbine_manager.request()
+
+        # Request a tugboat to retrieve the turbine
+        tugboat = self.service_equipment_manager.get(
+            lambda x: x.at_port
+            and (not x.dispatched)
+            and "TOW" in x.settings.capability
+        )
+
+        yield turbine_request & servicing & tugboat
 
         # Halt the turbine before going further to avoid issue with requests being
         # being submitted between now and when the tugboat gets to the turbine
@@ -379,15 +391,7 @@ class Port(RepairsMixin, FilterStore):
             yield self.env.timeout(hours_to_next)  # type: ignore
 
         self.requests_serviced.update([request.request_id])
-
-        # Wait for a spot to open up in the port queue
-        turbine_request = self.turbine_manager.request()
-        yield turbine_request  # type: ignore
-
-        # Request a tugboat to retrieve the turbine
-        tugboat = yield self.service_equipment_manager.get(
-            lambda x: x.at_port and "TOW" in x.settings.capability
-        )
+        tugboat = yield tugboat
         yield self.env.process(tugboat.run_tow_to_port(request))  # type: ignore
 
         # Make the tugboat available again
@@ -401,7 +405,9 @@ class Port(RepairsMixin, FilterStore):
 
         # Request a tugboat to tow the turbine back to site, and open the turbine queue
         tugboat = yield self.service_equipment_manager.get(
-            lambda x: x.at_port and "TOW" in x.settings.capability
+            lambda x: x.at_port
+            and (not x.dispatched)
+            and "TOW" in x.settings.capability
         )
         self.turbine_manager.release(turbine_request)
         yield self.env.process(tugboat.run_tow_to_site(request))  # type: ignore
@@ -443,7 +449,9 @@ class Port(RepairsMixin, FilterStore):
 
         # Request a vessel that isn't solely a towing vessel
         vessel = yield self.service_equipment_manager.get(
-            lambda x: x.at_port and x.settings.capability != ["TOW"]
+            lambda x: x.at_port
+            and (not x.dispatched)
+            and x.settings.capability != ["TOW"]
         )
         assert isinstance(vessel, ServiceEquipment)  # mypy: helper
         request = yield self.manager.get(lambda x: x == request)
