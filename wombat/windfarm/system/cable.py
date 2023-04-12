@@ -327,7 +327,7 @@ class Cable:
                     hours_to_next = 0
                     self.trigger_request(maintenance)
                 except simpy.Interrupt:
-                    if not self.broken.triggered:
+                    if not self.broken.processed:
                         # The subassembly had to restart the maintenance cycle
                         hours_to_next = 0
                     else:
@@ -369,7 +369,7 @@ class Cable:
                     hours_to_next = 0
                     self.trigger_request(failure)
                 except simpy.Interrupt:
-                    if not self.broken.triggered:
+                    if not self.broken.processed:
                         # Restart after fixing
                         hours_to_next = 0
                     else:
