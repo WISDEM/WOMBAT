@@ -212,6 +212,7 @@ class ServiceEquipment(RepairsMixin):
         self.windfarm = windfarm
         self.manager = repair_manager
         self.onsite = False
+        self.dispatched = True
         self.dispatched = False
         self.enroute = False
         self.at_port = False
@@ -414,7 +415,7 @@ class ServiceEquipment(RepairsMixin):
         farm = self.manager.windfarm
         if cable.connection_type == "array":
             # If there is another failure downstream of the repaired cable, do nothing
-            if not cable.downstream_failure.triggered:
+            if not cable.downstream_failure.processed:
                 return
 
             # For each upstream turbine and cable, reset their operations
@@ -1399,7 +1400,7 @@ class ServiceEquipment(RepairsMixin):
             )
             # First turn off the turbine, then proceed with the servicing so the
             # turbine is not registered as operating when the turbine is being worked on
-            if system.servicing.triggered:
+            if system.servicing.processed:
                 self.manager.halt_requests_for_system(system)
             yield self.env.process(
                 self.crew_transfer(system, subassembly, request, to_system=True)
@@ -1415,7 +1416,7 @@ class ServiceEquipment(RepairsMixin):
             )
             # First turn off the turbine, then proceed with the servicing so the
             # turbine is not registered as operating when the turbine is being worked on
-            if system.servicing.triggered:
+            if system.servicing.processed:
                 self.manager.halt_requests_for_system(system)
             yield self.env.process(
                 self.crew_transfer(system, subassembly, request, to_system=True)
@@ -1711,6 +1712,7 @@ class ServiceEquipment(RepairsMixin):
         ValueError
             Raised if the equipment is not currently at port
         """
+        self.dispatched = True
         system = self.windfarm.system(request.system_id)
 
         shared_logging = {
@@ -1736,6 +1738,7 @@ class ServiceEquipment(RepairsMixin):
         yield self.env.process(
             self.tow("site", "port", reason="towing turbine to port", **shared_logging)
         )
+        self.dispatched = False
 
     def run_tow_to_site(self, request: RepairRequest) -> Generator[Process, None, None]:
         """Runs the tow to site logic for after a turbine has had its repairs completed
@@ -1756,6 +1759,7 @@ class ServiceEquipment(RepairsMixin):
         ValueError
             Raised if the equipment is not currently at port
         """
+        self.dispatched = True
         system = self.windfarm.system(request.system_id)
         shared_logging = {
             "agent": self.settings.name,
@@ -1789,6 +1793,7 @@ class ServiceEquipment(RepairsMixin):
                 **shared_logging,  # type: ignore
             )
         )
+        self.dispatched = False
 
     def run_unscheduled(self, request: RepairRequest):
         """Runs the appropriate repair logic for unscheduled servicing equipment, or
