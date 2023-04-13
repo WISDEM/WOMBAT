@@ -169,10 +169,19 @@ class System:
                 bin_width=bin_width,
             )
 
-    def interrupt_all_subassembly_processes(self) -> None:
-        """Interrupts the running processes in all of the system's subassemblies."""
+    def interrupt_all_subassembly_processes(
+        self, origin: Subassembly | None = None
+    ) -> None:
+        """Interrupts the running processes in all of the system's subassemblies.
+
+        Parameters
+        ----------
+        origin : Subassembly
+            The subassembly that triggered the request, if the method call is coming
+            from a subassembly shutdown event.
+        """
         [
-            subassembly.interrupt_processes()  # type: ignore
+            subassembly.interrupt_processes(origin=origin)  # type: ignore
             for subassembly in self.subassemblies
         ]
 
