@@ -1398,10 +1398,6 @@ class ServiceEquipment(RepairsMixin):
                     start="port", end="site", set_current=system.id, **shared_logging
                 )
             )
-            # First turn off the turbine, then proceed with the servicing so the
-            # turbine is not registered as operating when the turbine is being worked on
-            if system.servicing.processed:
-                self.manager.halt_requests_for_system(system)
             yield self.env.process(
                 self.crew_transfer(system, subassembly, request, to_system=True)
             )
@@ -1414,10 +1410,6 @@ class ServiceEquipment(RepairsMixin):
                     **shared_logging,
                 )
             )
-            # First turn off the turbine, then proceed with the servicing so the
-            # turbine is not registered as operating when the turbine is being worked on
-            if system.servicing.processed:
-                self.manager.halt_requests_for_system(system)
             yield self.env.process(
                 self.crew_transfer(system, subassembly, request, to_system=True)
             )
@@ -1600,11 +1592,25 @@ class ServiceEquipment(RepairsMixin):
                     )
                 )
             else:
-                yield self.env.process(self.in_situ_repair(request.value))
+                request = request.value
+                if request.cable:
+                    system = self.windfarm.cable(request.system_id)
+                else:
+                    system = self.windfarm.system(request.system_id)
+                yield system.servicing
+                self.manager.halt_requests_for_system(system)
+                yield self.env.process(self.in_situ_repair(request))
 
-    def run_unscheduled_in_situ(self) -> Generator[Process, None, None]:
+    def run_unscheduled_in_situ(
+        self, request: RepairRequest
+    ) -> Generator[Process, None, None]:
         """Runs an in situ repair simulation for unscheduled servicing equipment, or
         those that have to be mobilized before performing repairs and maintenance.
+
+        Parameters
+        ----------
+        request : RepairRequest
+            The repair request that triggered the repair process.
 
         Yields
         ------
@@ -1645,8 +1651,19 @@ class ServiceEquipment(RepairsMixin):
                 duration=hours_to_next,
             )
             yield self.env.timeout(hours_to_next)  # type: ignore
-            yield self.env.process(self.run_unscheduled_in_situ())
+            yield self.env.process(self.run_unscheduled_in_situ(request))
             return
+
+        # Ensure the system isn't in service already during the checking stages, then
+        # halt its ongoing processes for the current repair.
+        # NOTE: port-based equipment will have already halted the system's processes.
+        if not hasattr(self, "port"):
+            if "::" in request.system_id:
+                system = self.windfarm.cable(request.system_id)
+            else:
+                system = self.windfarm.system(request.system_id)
+            yield system.servicing
+            self.manager.halt_requests_for_system(system)
 
         while True:
             if self.env.now >= charter_end_env_time:
@@ -1692,7 +1709,14 @@ class ServiceEquipment(RepairsMixin):
                     )
                 )
             else:
-                yield self.env.process(self.in_situ_repair(request.value))
+                request = request.value  # type: ignore
+                if "::" in request.system_id:
+                    system = self.windfarm.cable(request.system_id)
+                else:
+                    system = self.windfarm.system(request.system_id)
+                yield system.servicing
+                self.manager.halt_requests_for_system(system)
+                yield self.env.process(self.in_situ_repair(request))
 
     def run_tow_to_port(self, request: RepairRequest) -> Generator[Process, None, None]:
         """Runs the tow to port logic, so a turbine can be repaired at port.
@@ -1794,21 +1818,3 @@ class ServiceEquipment(RepairsMixin):
             )
         )
         self.dispatched = False
-
-    def run_unscheduled(self, request: RepairRequest):
-        """Runs the appropriate repair logic for unscheduled servicing equipment, or
-        those that can be immediately dispatched.
-
-        Parameters
-        ----------
-        request : RepairRequest
-            The request that trigged the repair logic.
-        """
-        # if "TOW" in request.details.service_equipment:
-        #     yield self.env.process(self.port.run_tow_to_port(request))
-        # if "AHV" in request.details.service_equipment:
-        # yield self.env.process(self.port.run_unscheduled_in_situ(request))
-        # else:
-        #     yield self.env.process(self.run_unscheduled_in_situ())
-
-        yield self.env.process(self.run_unscheduled_in_situ())
