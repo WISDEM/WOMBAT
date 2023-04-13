@@ -13,6 +13,8 @@
   - `ServiceEquipment.weather_delay()` no longer silently processes a second weather delay.
   - Intra-site travel is now correctly logging the distance and duration of traveling between systems at the site by moving the location setting logic out of `crew_transfer` method and being entirely maintained within, or next to, the `travel` method of `ServiceEquipment`.
   - `RepairManager` now properly waits to dispatch servicing equipment until they are no longer under service from another servicing equipment unit.
+  - Servicing equipment are no longer simultaneously dispatched from both the `Port` and `RepairManager` causing simulations to potentially error out when the `System.servicing` or `Cable.servicing` statuses are overridden by the second-in-line servicing equipment. This was resolved by the port waiting for the turbine, a tugboat, and a spot at port to become available, then immediately halting the turbine, and starting the tow-in logic.
+  - Missing `ServiceEquipment.dispatched` status updates have been amended, so no matter the operation, a piece of servicing equipment should be set to `dispatched = True` until the crew is back and repair is completed.
 
 ## v0.6.2 (3 February 2023)
 - Warnings from Pandas `.groupby()` calls have been silenced by shifting the column filtering to before the groupby method call.
