@@ -169,7 +169,7 @@ class RepairManager(FilterStore):
                     yield self.windfarm.system(request.system_id).servicing
                     self.env.process(self.port.run_unscheduled_in_situ(request))
                 else:
-                    self.env.process(equipment_obj.run_unscheduled(request))
+                    self.env.process(equipment_obj.run_unscheduled_in_situ(request))
 
     def _run_equipment_requests(self, request: RepairRequest) -> None | Generator:
         """Run the first piece of equipment (if none are onsite) for each equipment
@@ -205,7 +205,7 @@ class RepairManager(FilterStore):
                     yield self.windfarm.system(request.system_id).servicing
                     self.env.process(self.port.run_unscheduled_in_situ(request))
                 else:
-                    self.env.process(equipment_obj.run_unscheduled(request))
+                    self.env.process(equipment_obj.run_unscheduled_in_situ(request))
                 equipment_mapping.append(equipment_mapping.pop(i))
                 break
 
@@ -369,7 +369,9 @@ class RepairManager(FilterStore):
         if system.servicing.processed:
             system.servicing = self.env.event()
         else:
-            raise RuntimeError(f"{system.id} already being serviced")
+            raise RuntimeError(
+                f"{self.env.simulation_time} {system.id} already being serviced"
+            )
         system.interrupt_all_subassembly_processes()
 
     def enable_requests_for_system(self, system_id: str) -> None:
@@ -385,6 +387,11 @@ class RepairManager(FilterStore):
             system = self.windfarm.cable(system_id)
         else:
             system = self.windfarm.system(system_id)
+        if system.servicing.processed:
+            raise RuntimeError(
+                f"{self.env.simulation_time} Repairs were already completed"
+                f" at {system_id}"
+            )
         system.servicing.succeed()
 
     def get_all_requests_for_system(
