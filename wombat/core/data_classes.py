@@ -1508,6 +1508,79 @@ class StrategyMap:
             )
         self.is_running = True
 
+    def get_mapping(self, capability) -> list[EquipmentMap]:
+        """Gets the attribute matching the desired :py:attr:`capability`.
+
+        Parameters
+        ----------
+        capability : str
+            A string matching one of the ``UnscheduledServiceEquipmentData.capability``
+            (or scheduled) options.
+
+        Returns
+        -------
+        list[EquipmentMap]
+            Returns the matching mapping of available servicing equipment.
+        """
+        if capability == "CTV":
+            return self.CTV
+        if capability == "SCN":
+            return self.SCN
+        if capability == "LCN":
+            return self.LCN
+        if capability == "CAB":
+            return self.CAB
+        if capability == "RMT":
+            return self.RMT
+        if capability == "DRN":
+            return self.DRN
+        if capability == "DSV":
+            return self.DSV
+        if capability == "TOW":
+            return self.TOW
+        if capability == "AHV":
+            return self.AHV
+        # This should not even be able to be reached
+        raise ValueError(
+            f"Invalid servicing equipmen capability '{capability}' has been provided!"
+        )
+
+    def move_equipment_to_end(self, capability: str, ix: int) -> None:
+        """Moves a used equipment to the end of the mapping list to ensure a broader
+        variety of servicing equipment are used throughout a simulation.
+
+        Parameters
+        ----------
+        capability : str
+            A string matching one of ``capability`` options for servicing equipment
+            dataclasses.
+        ix : int
+            The index of the used servicing equipent.
+        """
+        if capability == "CTV":
+            self.CTV.append(self.CTV.pop(ix))
+        elif capability == "SCN":
+            self.SCN.append(self.SCN.pop(ix))
+        elif capability == "LCN":
+            self.LCN.append(self.LCN.pop(ix))
+        elif capability == "CAB":
+            self.CAB.append(self.CAB.pop(ix))
+        elif capability == "RMT":
+            self.RMT.append(self.RMT.pop(ix))
+        elif capability == "DRN":
+            self.DRN.append(self.DRN.pop(ix))
+        elif capability == "DSV":
+            self.DSV.append(self.DSV.pop(ix))
+        elif capability == "TOW":
+            self.TOW.append(self.TOW.pop(ix))
+        elif capability == "AHV":
+            self.AHV.append(self.AHV.pop(ix))
+        else:
+            # This should not even be able to be reached
+            raise ValueError(
+                f"Invalid servicing equipmen capability {capability} has been provided!"
+            )
+
 
 @define(frozen=True, auto_attribs=True)
 class PortConfig(FromDictMixin, DateLimitsMixin):
