@@ -120,9 +120,8 @@ class Cable:
         """
         wf_map = self.windfarm.wind_farm_map
         if self.connection_type == "array":
-            turbines = []
+            turbines = [self.end_node]
             if self.end_node == self.string_start:
-                turbines.append(self.end_node)
                 _turbines, cables = wf_map.get_upstream_connections(
                     self.substation, self.string_start, self.string_start
                 )
@@ -188,7 +187,7 @@ class Cable:
         """
         shared_logging = {
             "agent": self.id,
-            "action": "repair_request",
+            "action": "repair request",
             "reason": failure.description,
             "additional": "downstream cable failure",
             "request_id": failure.request_id,
