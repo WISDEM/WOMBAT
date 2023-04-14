@@ -365,10 +365,10 @@ class RepairManager(FilterStore):
         requests = sorted(requests, key=lambda x: x.severity_level, reverse=True)
         for request in requests:
             if request.cable:
-                if not self.windfarm.cable(request.system_id).servicing.processed:
+                if not self.windfarm.cable(request.system_id).servicing.triggered:
                     continue
             else:
-                if not self.windfarm.system(request.system_id).servicing.processed:
+                if not self.windfarm.system(request.system_id).servicing.triggered:
                     continue
             if request.system_id not in self.invalid_systems:
                 if equipment_capability.intersection(request.details.service_equipment):
@@ -392,7 +392,7 @@ class RepairManager(FilterStore):
         """
         if system.id not in self.invalid_systems:
             self.invalid_systems.append(system.id)
-        if system.servicing.processed:
+        if system.servicing.triggered:
             system.servicing = self.env.event()
         else:
             raise RuntimeError(
@@ -413,7 +413,7 @@ class RepairManager(FilterStore):
             system = self.windfarm.cable(system_id)
         else:
             system = self.windfarm.system(system_id)
-        if system.servicing.processed:
+        if system.servicing.triggered:
             raise RuntimeError(
                 f"{self.env.simulation_time} Repairs were already completed"
                 f" at {system_id}"

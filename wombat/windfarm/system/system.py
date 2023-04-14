@@ -194,7 +194,7 @@ class System:
         float
             Operating level of the turbine.
         """
-        if self.cable_failure.processed and self.servicing.processed:
+        if self.cable_failure.triggered and self.servicing.triggered:
             return reduce(mul, [sub.operating_level for sub in self.subassemblies])
         return 0.0
 
@@ -208,7 +208,7 @@ class System:
         float
             Operating level of the turbine.
         """
-        if self.cable_failure.processed:
+        if self.cable_failure.triggered:
             return reduce(mul, [sub.operating_level for sub in self.subassemblies])
         return 0.0
 

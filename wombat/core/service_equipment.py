@@ -416,7 +416,7 @@ class ServiceEquipment(RepairsMixin):
         farm = self.manager.windfarm
         if cable.connection_type == "array":
             # If there is another failure downstream of the repaired cable, do nothing
-            if not cable.downstream_failure.processed:
+            if not cable.downstream_failure.triggered:
                 return
 
             # For each upstream turbine and cable, reset their operations
@@ -429,7 +429,7 @@ class ServiceEquipment(RepairsMixin):
                 if c_id is not None:
                     cable = farm.cable(c_id)
                     print(f"checking {c_id}")
-                    if not cable.broken.processed:
+                    if not cable.broken.triggered:
                         break
                     print(f"enabling {c_id}")
                     cable.downstream_failure.succeed()
@@ -448,7 +448,7 @@ class ServiceEquipment(RepairsMixin):
                 for t_id, c_id in zip_longest(turbines, cables, fillvalue=None):
                     if c_id is not None:
                         cable = farm.cable(c_id)
-                        if not cable.broken.processed:
+                        if not cable.broken.triggered:
                             break
                         cable.downstream_failure.succeed()
                     farm.system(t_id).cable_failure.succeed()

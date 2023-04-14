@@ -186,7 +186,7 @@ class Subassembly:
                     self.trigger_request(maintenance)
 
                 except simpy.Interrupt:
-                    if not self.broken.processed:
+                    if not self.broken.triggered:
                         # The subassembly had to restart the maintenance cycle
                         hours_to_next = 0
                     else:
@@ -229,7 +229,7 @@ class Subassembly:
                     self.trigger_request(failure)
 
                 except simpy.Interrupt:
-                    if not self.broken.processed:
+                    if not self.broken.triggered:
                         # The subassembly had to be replaced so reset the timing
                         hours_to_next = 0
                     else:
