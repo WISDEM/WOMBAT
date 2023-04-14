@@ -412,6 +412,7 @@ class ServiceEquipment(RepairsMixin):
         subassembly : Cable
             The `Cable` or `System`
         """
+        print(f"{self.env.simulation_time} enabling strings for failure at {cable.id}")
         farm = self.manager.windfarm
         if cable.connection_type == "array":
             # If there is another failure downstream of the repaired cable, do nothing
@@ -419,15 +420,22 @@ class ServiceEquipment(RepairsMixin):
                 return
 
             # For each upstream turbine and cable, reset their operations
-            nodes = cable.upstream_nodes
+            nodes = deepcopy(cable.upstream_nodes)
             cables = cable.upstream_cables
+            t_id = nodes.pop(0)
+            print(f"enabling {t_id}")
+            farm.system(t_id).cable_failure.succeed()
             for t_id, c_id in zip_longest(nodes, cables, fillvalue=None):
                 if c_id is not None:
                     cable = farm.cable(c_id)
-                    if cable.operating_level == 0:
+                    print(f"checking {c_id}")
+                    if not cable.broken.processed:
                         break
+                    print(f"enabling {c_id}")
                     cable.downstream_failure.succeed()
-                farm.system(t_id).cable_failure.succeed()
+                if t_id is not None:  # only None for last cable on string
+                    print(f"enabling {t_id}")
+                    farm.system(t_id).cable_failure.succeed()
 
         if cable.connection_type == "export":
             # Reset the substation's cable failure
@@ -440,7 +448,7 @@ class ServiceEquipment(RepairsMixin):
                 for t_id, c_id in zip_longest(turbines, cables, fillvalue=None):
                     if c_id is not None:
                         cable = farm.cable(c_id)
-                        if cable.operating_level == 0:
+                        if not cable.broken.processed:
                             break
                         cable.downstream_failure.succeed()
                     farm.system(t_id).cable_failure.succeed()
@@ -1617,6 +1625,7 @@ class ServiceEquipment(RepairsMixin):
         Generator[Process, None, None]
             The simulation
         """
+        print(f"{self.env.simulation_time} {self.settings.name} just started")
         self.dispatched = True
         assert isinstance(self.settings, UnscheduledServiceEquipmentData)  # mypy helper
         mobilization_days = self.settings.mobilization_days
@@ -1653,7 +1662,9 @@ class ServiceEquipment(RepairsMixin):
             yield self.env.timeout(hours_to_next)  # type: ignore
             yield self.env.process(self.run_unscheduled_in_situ(request))
             return
-
+        print(
+            f"{self.env.simulation_time} {self.settings.name} finished operational period delay"
+        )
         # Ensure the system isn't in service already during the checking stages, then
         # halt its ongoing processes for the current repair.
         # NOTE: port-based equipment will have already halted the system's processes.
@@ -1664,6 +1675,14 @@ class ServiceEquipment(RepairsMixin):
                 system = self.windfarm.system(request.system_id)
             yield system.servicing
             self.manager.halt_requests_for_system(system)
+            print(
+                f"{self.env.simulation_time} {self.settings.name} halted {system.id} for first repair"
+            )
+
+        yield self.env.process(self.in_situ_repair(request))
+        print(
+            f"{self.env.simulation_time} {self.settings.name} finished with first repair {system.id}"
+        )
 
         while True:
             if self.env.now >= charter_end_env_time:
@@ -1681,6 +1700,7 @@ class ServiceEquipment(RepairsMixin):
 
             if not self.onsite:
                 yield self.env.process(self.mobilize())
+                print(f"{self.env.simulation_time} {self.settings.name} mobilized")
 
             # Wait for next shift to start
             is_workshift = self.env.is_workshift(
@@ -1697,6 +1717,9 @@ class ServiceEquipment(RepairsMixin):
                         }
                     )
                 )
+                print(
+                    f"{self.env.simulation_time} {self.settings.name} now in working hours"
+                )
             request = self.get_next_request()
             if request is None:
                 yield self.env.process(
@@ -1708,6 +1731,9 @@ class ServiceEquipment(RepairsMixin):
                         }
                     )
                 )
+                print(
+                    f"{self.env.simulation_time} {self.settings.name} request returned None"
+                )
             else:
                 request = request.value  # type: ignore
                 if "::" in request.system_id:
@@ -1716,7 +1742,13 @@ class ServiceEquipment(RepairsMixin):
                     system = self.windfarm.system(request.system_id)
                 yield system.servicing
                 self.manager.halt_requests_for_system(system)
+                print(
+                    f"{self.env.simulation_time} {self.settings.name} halted {system.id}"
+                )
                 yield self.env.process(self.in_situ_repair(request))
+                print(
+                    f"{self.env.simulation_time} {self.settings.name} finished with {system.id}"
+                )
 
     def run_tow_to_port(self, request: RepairRequest) -> Generator[Process, None, None]:
         """Runs the tow to port logic, so a turbine can be repaired at port.
