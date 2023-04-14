@@ -155,8 +155,8 @@ class RepairManager(FilterStore):
 
         operating_capacity = self.windfarm.current_availability_wo_servicing
         for capability in self.request_map:
-            equipment_mapping = getattr(self.downtime_based_equipment, capability)
-            for equipment in equipment_mapping:
+            equipment_mapping = self.downtime_based_equipment.get_mapping(capability)
+            for i, equipment in enumerate(equipment_mapping):
                 if operating_capacity > equipment.strategy_threshold:
                     continue
 
@@ -171,6 +171,10 @@ class RepairManager(FilterStore):
                 else:
                     self.env.process(equipment_obj.run_unscheduled_in_situ(request))
 
+                    # Move the dispatched capability to the end of list to ensure proper
+                    # cycling of available servicing equipment
+                    self.downtime_based_equipment.move_equipment_to_end(capability, i)
+
     def _run_equipment_requests(self, request: RepairRequest) -> None | Generator:
         """Run the first piece of equipment (if none are onsite) for each equipment
         capability category where the number of requests is greater than or equal to the
@@ -182,11 +186,12 @@ class RepairManager(FilterStore):
             yield self.env.process(self.port.run_tow_to_port(request))
             return
 
+        dispatched = None
         for capability, n_requests in self.request_map.items():
             # For a requests basis, the capability and submitted request must match
             if capability not in request.details.service_equipment:
                 continue
-            equipment_mapping = getattr(self.request_based_equipment, capability)
+            equipment_mapping = self.request_based_equipment.get_mapping(capability)
             for i, equipment in enumerate(equipment_mapping):
                 if n_requests < equipment.strategy_threshold:
                     continue
@@ -194,7 +199,7 @@ class RepairManager(FilterStore):
                 # that it moves to the back of the line after being used
                 equipment_obj = equipment.equipment
                 if equipment_obj.dispatched:
-                    equipment_mapping.append(equipment_mapping.pop(i))
+                    self.request_based_equipment.move_equipment_to_end(capability, i)
                     break
                 # Either run the repair logic from the port for port-based servicing
                 # equipment, so that it can self-mangge or dispatch the servicing
@@ -206,8 +211,29 @@ class RepairManager(FilterStore):
                     self.env.process(self.port.run_unscheduled_in_situ(request))
                 else:
                     self.env.process(equipment_obj.run_unscheduled_in_situ(request))
-                equipment_mapping.append(equipment_mapping.pop(i))
+
+                    # Move the dispatched capability to the end of list to ensure proper
+                    # cycling of available servicing equipment
+                    self.request_based_equipment.move_equipment_to_end(capability, i)
+                dispatched = capability
                 break
+
+        # Double check the the number of reqeusts is still below the threshold following
+        # the dispatching of a piece of servicing equipment. This mostly pertains to
+        # highly frequent request with long repair times and low thresholds.
+        if dispatched is None:
+            return
+        n_requests = self.request_map[dispatched]
+        threshold_check = [
+            n_requests >= eq.strategy_threshold
+            for eq in self.request_based_equipment.get_mapping(dispatched)
+        ]
+        print(f"threshold checking: {threshold_check}")
+        if any(threshold_check):
+            request = self.get(
+                lambda x: dispatched in x.details.service_equipment
+            ).value
+            self._run_equipment_requests(request)
 
     def register_request(self, request: RepairRequest) -> RepairRequest:
         """The method to submit requests to the repair mananger and adds a unique
