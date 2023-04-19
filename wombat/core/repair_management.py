@@ -64,6 +64,8 @@ class RepairManager(FilterStore):
 
         self.downtime_based_equipment = StrategyMap()
         self.request_based_equipment = StrategyMap()
+        self.completed_requests = FilterStore(self.env)
+        self.in_process_requests = FilterStore(self.env)
 
     def _update_equipment_map(self, service_equipment: ServiceEquipment) -> None:
         """Updates ``equipment_map`` with a provided servicing equipment object."""
@@ -169,6 +171,7 @@ class RepairManager(FilterStore):
                     yield self.windfarm.system(request.system_id).servicing
                     self.env.process(self.port.run_unscheduled_in_situ(request))
                 else:
+                    yield self.in_process_requests.put(request)
                     self.env.process(equipment_obj.run_unscheduled_in_situ(request))
 
                     # Move the dispatched capability to the end of list to ensure proper
@@ -208,8 +211,9 @@ class RepairManager(FilterStore):
                     # Equipment-based logic does not manage system availability, so
                     # ensure it's available prior to dispatching
                     yield self.windfarm.system(request.system_id).servicing
-                    self.env.process(self.port.run_unscheduled_in_situ(request))
+                    yield self.env.process(self.port.run_unscheduled_in_situ(request))
                 else:
+                    yield self.in_process_requests.put(request)
                     self.env.process(equipment_obj.run_unscheduled_in_situ(request))
 
                     # Move the dispatched capability to the end of list to ensure proper
@@ -221,19 +225,24 @@ class RepairManager(FilterStore):
         # Double check the the number of reqeusts is still below the threshold following
         # the dispatching of a piece of servicing equipment. This mostly pertains to
         # highly frequent request with long repair times and low thresholds.
-        if dispatched is None:
+        if dispatched is None or equipment_obj.port_based:
             return
         n_requests = self.request_map[dispatched]
         threshold_check = [
             n_requests >= eq.strategy_threshold
             for eq in self.request_based_equipment.get_mapping(dispatched)
         ]
-        print(f"threshold checking: {threshold_check}")
         if any(threshold_check):
-            request = self.get(
-                lambda x: dispatched in x.details.service_equipment
-            ).value
-            self._run_equipment_requests(request)
+            new_request_check = [
+                x
+                for x in self.items
+                if dispatched in x.details.service_equipment
+                and x not in self.completed_requests.items
+                and x not in self.in_process_requests.items
+            ]
+            if new_request_check:
+                new_request = self.get(lambda x: x == new_request_check[0]).value
+                self.env.process(self._run_equipment_requests(new_request))
 
     def register_request(self, request: RepairRequest) -> RepairRequest:
         """The method to submit requests to the repair mananger and adds a unique
@@ -393,32 +402,37 @@ class RepairManager(FilterStore):
         if system.id not in self.invalid_systems:
             self.invalid_systems.append(system.id)
         if system.servicing.triggered:
+            yield self.env.timeout(0.1)  # buffer to not have turning on/off collide
             system.servicing = self.env.event()
+            system.interrupt_all_subassembly_processes()
         else:
             raise RuntimeError(
                 f"{self.env.simulation_time} {system.id} already being serviced"
             )
-        system.interrupt_all_subassembly_processes()
 
-    def enable_requests_for_system(self, system_id: str) -> None:
+    def register_repair(self, repair: RepairRequest, port: bool = False) -> None:
+        if port:
+            yield self.completed_requests.put(repair)
+        else:
+            request = yield self.in_process_requests.get(lambda x: x == repair)
+            yield self.completed_requests.put(request)
+
+    def enable_requests_for_system(self, system: System | Cable) -> None:
         """Reenables service equipment operations on the provided system.
 
         Parameters
         ----------
-        system_id : str
-            The ``System.id`` of the turbine that can be operated on again
+        system_id : System | Cable
+            The ``System`` or ``Cable`` that can be operated on again.=
         """
-        _ = self.invalid_systems.pop(self.invalid_systems.index(system_id))
-        if "::" in system_id:
-            system = self.windfarm.cable(system_id)
-        else:
-            system = self.windfarm.system(system_id)
         if system.servicing.triggered:
             raise RuntimeError(
                 f"{self.env.simulation_time} Repairs were already completed"
-                f" at {system_id}"
+                f" at {system.id}"
             )
+        _ = self.invalid_systems.pop(self.invalid_systems.index(system.id))
         system.servicing.succeed()
+        system.interrupt_all_subassembly_processes()
 
     def get_all_requests_for_system(
         self, agent: str, system_id: str
