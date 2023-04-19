@@ -264,6 +264,7 @@ class Port(RepairsMixin, FilterStore):
         self.crew_manager.release(crew_request)
 
         self.active_repairs[request.system_id][request.request_id].succeed()
+        self.env.process(self.manager.register_repair(request, port=True))
 
     def transfer_requests_from_manager(
         self, system_id: str
@@ -367,7 +368,11 @@ class Port(RepairsMixin, FilterStore):
 
         # Halt the turbine before going further to avoid issue with requests being
         # being submitted between now and when the tugboat gets to the turbine
-        self.manager.halt_requests_for_system(self.windfarm.system(request.system_id))
+        self.env.process(
+            self.manager.halt_requests_for_system(
+                self.windfarm.system(request.system_id)
+            )
+        )
 
         # Check that there is enough time to complete towing, connection, and repairs
         # before starting the process, otherwise, wait until the next operational period
@@ -395,7 +400,7 @@ class Port(RepairsMixin, FilterStore):
         yield self.env.process(tugboat.run_tow_to_port(request))  # type: ignore
 
         # Make the tugboat available again
-        self.service_equipment_manager.put(tugboat)
+        yield self.service_equipment_manager.put(tugboat)
 
         # Transfer the repairs to the port queue, which will initiate the repair process
         self.run_repairs(request.system_id)
@@ -413,7 +418,7 @@ class Port(RepairsMixin, FilterStore):
         yield self.env.process(tugboat.run_tow_to_site(request))  # type: ignore
 
         # Make the tugboat available again
-        self.service_equipment_manager.put(tugboat)
+        yield self.service_equipment_manager.put(tugboat)
 
     def run_unscheduled_in_situ(
         self, request: RepairRequest
@@ -443,8 +448,11 @@ class Port(RepairsMixin, FilterStore):
 
         # Halt the turbine before going further to avoid issue with requests being
         # being submitted between now and when the tugboat gets to the turbine
-        self.manager.halt_requests_for_system(self.windfarm.system(request.system_id))
-
+        self.env.process(
+            self.manager.halt_requests_for_system(
+                self.windfarm.system(request.system_id)
+            )
+        )
         self.requests_serviced.update([request.request_id])
 
         # Request a vessel that isn't solely a towing vessel
@@ -475,4 +483,4 @@ class Port(RepairsMixin, FilterStore):
             )
 
         # Make the tugboat available again
-        self.service_equipment_manager.put(vessel)
+        yield self.service_equipment_manager.put(vessel)
