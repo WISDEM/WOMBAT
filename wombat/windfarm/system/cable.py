@@ -229,7 +229,7 @@ class Cable:
                 continue
             cable = self.windfarm.cable(c_id)
             cable.downstream_failure = self.env.event()
-            cable.interrupt_processes()
+            cable.interrupt_all_subassembly_processes()
             self.env.log_action(
                 system_id=c_id,
                 system_name=cable.name,
