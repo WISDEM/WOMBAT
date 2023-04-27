@@ -44,6 +44,10 @@ if TYPE_CHECKING:
     from wombat.core import Port
 
 
+# Numpy random generation initialization
+random_generator = np.random.default_rng(seed=42)
+
+
 def consecutive_groups(data: np.ndarray, step_size: int = 1) -> list[np.ndarray]:
     """Generates the subgroups of an array where the difference between two sequential
     elements is equal to the ``step_size``. The intent is to find the length of delays
@@ -421,17 +425,17 @@ class ServiceEquipment(RepairsMixin):
             # For each upstream turbine and cable, reset their operations
             nodes = deepcopy(cable.upstream_nodes)
             cables = cable.upstream_cables
-            t_id = nodes.pop(0)
-            turbine = farm.system(t_id)
+            tid = nodes.pop(0)
+            turbine = farm.system(tid)
             turbine.cable_failure.succeed()
-            for t_id, c_id in zip_longest(nodes, cables, fillvalue=None):
-                if c_id is not None:
-                    cable = farm.cable(c_id)
+            for tid, cid in zip_longest(nodes, cables, fillvalue=None):  # type: ignore
+                if cid is not None:
+                    cable = farm.cable(cid)
                     cable.downstream_failure.succeed()
                     if not cable.broken.triggered:
                         break
-                if t_id is not None:  # only None for last cable on string
-                    turbine = farm.system(t_id)
+                if tid is not None:  # only None for last cable on string
+                    turbine = farm.system(tid)
                     turbine.cable_failure.succeed()
 
         if cable.connection_type == "export":
@@ -441,14 +445,14 @@ class ServiceEquipment(RepairsMixin):
             # For each string connected to the substation reset all the turbines and
             # cables until another cable failure is encoountered, then move to the next
             # string
-            for turbines, cables in zip(cable.upstream_nodes, cable.upstream_cables):
-                for t_id, c_id in zip_longest(turbines, cables, fillvalue=None):
-                    if c_id is not None:
-                        cable = farm.cable(c_id)
+            for t_list, c_list in zip(cable.upstream_nodes, cable.upstream_cables):
+                for t, c in zip_longest(t_list, c_list, fillvalue=None):  # type: ignore
+                    if c is not None:
+                        cable = farm.cable(c)
                         if not cable.broken.triggered:
                             break
                         cable.downstream_failure.succeed()
-                    farm.system(t_id).cable_failure.succeed()
+                    farm.system(t).cable_failure.succeed()
 
     def register_repair_with_subassembly(
         self,
@@ -493,6 +497,8 @@ class ServiceEquipment(RepairsMixin):
             self.manager.enable_requests_for_system(subassembly)
             if operation_reduction == 1:
                 self.enable_string_operations(subassembly)
+        else:
+            raise TypeError("`subassembly` was neither a `Cable` nor `Subassembly`.")
 
         self.env.process(self.manager.register_repair(repair))
 
@@ -1604,9 +1610,9 @@ class ServiceEquipment(RepairsMixin):
                 if request.cable:
                     system = self.windfarm.cable(request.system_id)
                 else:
-                    system = self.windfarm.system(request.system_id)
+                    system = self.windfarm.system(request.system_id)  # type: ignore
                 yield system.servicing
-                self.env.process(self.manager.halt_requests_for_system(system))
+                self.manager.halt_requests_for_system(system)
                 yield self.env.process(self.in_situ_repair(request))
 
     def run_unscheduled_in_situ(
@@ -1669,9 +1675,14 @@ class ServiceEquipment(RepairsMixin):
             if "::" in request.system_id:
                 system = self.windfarm.cable(request.system_id)
             else:
-                system = self.windfarm.system(request.system_id)
+                system = self.windfarm.system(request.system_id)  # type: ignore
             yield system.servicing
-            self.env.process(self.manager.halt_requests_for_system(system))
+            seconds_to_wait, *_ = (
+                random_generator.integers(low=0, high=30, size=1) / 3600.0
+            )
+            yield self.env.timeout(seconds_to_wait)
+            yield system.servicing
+            self.manager.halt_requests_for_system(system)
 
         yield self.env.process(self.in_situ_repair(request))
 
@@ -1724,10 +1735,11 @@ class ServiceEquipment(RepairsMixin):
                 if "::" in request.system_id:
                     system = self.windfarm.cable(request.system_id)
                 else:
-                    system = self.windfarm.system(request.system_id)
+                    system = self.windfarm.system(request.system_id)  # type: ignore
                 yield system.servicing
-                self.env.process(self.manager.halt_requests_for_system(system))
+                self.manager.halt_requests_for_system(system)
                 yield self.env.process(self.in_situ_repair(request))
+                self.dispatched = False
 
     def run_tow_to_port(self, request: RepairRequest) -> Generator[Process, None, None]:
         """Runs the tow to port logic, so a turbine can be repaired at port.

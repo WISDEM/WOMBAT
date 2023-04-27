@@ -26,6 +26,10 @@ if TYPE_CHECKING:
     from wombat.windfarm.system import Cable, System
 
 
+# Numpy random generation initialization
+random_generator = np.random.default_rng(seed=42)
+
+
 class RepairManager(FilterStore):
     """Provides a class to manage repair and maintenance tasks.
 
@@ -149,11 +153,22 @@ class RepairManager(FilterStore):
         dispatch every available HLV, but just one plus one of every other capability
         category that has pending requests
         """
+        # Add an initial check to help avoid simultaneous dispatching
+        seconds_to_wait, *_ = random_generator.integers(low=0, high=10, size=1) / 3600.0
+        yield self.env.timeout(seconds_to_wait)
+
         # Port-based servicing equipment should be handled by the port and does not
         # have an operating reduction threshold to meet at this time
         if "TOW" in request.details.service_equipment:
-            yield self.env.process(self.port.run_tow_to_port(request))
+            if request.system_id not in self.port.invalid_systems:
+                yield self.env.process(self.port.run_tow_to_port(request))
             return
+
+        # Wait for the actual system or cable to be available
+        if request.cable:
+            yield self.windfarm.cable(request.system_id).servicing
+        else:
+            yield self.windfarm.system(request.system_id).servicing
 
         operating_capacity = self.windfarm.current_availability_wo_servicing
         for capability in self.request_map:
@@ -162,12 +177,22 @@ class RepairManager(FilterStore):
                 if operating_capacity > equipment.strategy_threshold:
                     continue
 
+                # Avoid simultaneous dispatches by waiting a random number of seconds
+                seconds_to_wait, *_ = (
+                    random_generator.integers(low=0, high=30, size=1) / 3600.0
+                )
+                yield self.env.timeout(seconds_to_wait)
+
                 equipment_obj = equipment.equipment
                 if equipment_obj.dispatched:
                     continue
+
+                # Equipment-based logic does not manage system availability, so
+                # ensure it's available prior to dispatching, and double check in
+                # case delays causing a timing collision
                 if equipment_obj.port_based:
-                    # Equipment-based logic does not manage system availability, so
-                    # ensure it's available prior to dispatching
+                    if request.system_id in self.port.invalid_systems:
+                        break
                     yield self.windfarm.system(request.system_id).servicing
                     self.env.process(self.port.run_unscheduled_in_situ(request))
                 else:
@@ -183,11 +208,22 @@ class RepairManager(FilterStore):
         capability category where the number of requests is greater than or equal to the
         equipment's threshold.
         """
+        # Add an initial check to help avoid simultaneous dispatching
+        seconds_to_wait, *_ = random_generator.integers(low=0, high=30, size=1) / 3600.0
+        yield self.env.timeout(seconds_to_wait)
+
         # Port-based servicing equipment should be handled by the port and does not have
         # a requests-based threshold to meet at this time
         if "TOW" in request.details.service_equipment:
-            yield self.env.process(self.port.run_tow_to_port(request))
+            if request.system_id not in self.port.invalid_systems:
+                yield self.env.process(self.port.run_tow_to_port(request))
             return
+
+        # Wait for the actual system or cable to be available
+        if request.cable:
+            yield self.windfarm.cable(request.system_id).servicing
+        else:
+            yield self.windfarm.system(request.system_id).servicing
 
         dispatched = None
         for capability, n_requests in self.request_map.items():
@@ -198,23 +234,33 @@ class RepairManager(FilterStore):
             for i, equipment in enumerate(equipment_mapping):
                 if n_requests < equipment.strategy_threshold:
                     continue
+
+                # Avoid simultaneous dispatches by waiting a random number of seconds
+                seconds_to_wait, *_ = (
+                    random_generator.integers(low=0, high=30, size=1) / 3600.0
+                )
+                yield self.env.timeout(seconds_to_wait)
+
                 # Run only the first piece of equipment in the mapping list, but ensure
                 # that it moves to the back of the line after being used
                 equipment_obj = equipment.equipment
                 if equipment_obj.dispatched:
-                    self.request_based_equipment.move_equipment_to_end(capability, i)
                     break
+
                 # Either run the repair logic from the port for port-based servicing
                 # equipment, so that it can self-mangge or dispatch the servicing
                 # equipment directly, when port is an implicitly modeled aspect
                 if equipment_obj.port_based:
                     # Equipment-based logic does not manage system availability, so
                     # ensure it's available prior to dispatching
-                    yield self.windfarm.system(request.system_id).servicing
+                    if request.system_id in self.port.invalid_systems:
+                        break
                     yield self.env.process(self.port.run_unscheduled_in_situ(request))
                 else:
                     yield self.in_process_requests.put(request)
-                    self.env.process(equipment_obj.run_unscheduled_in_situ(request))
+                    yield self.env.process(
+                        equipment_obj.run_unscheduled_in_situ(request)
+                    )
 
                     # Move the dispatched capability to the end of list to ensure proper
                     # cycling of available servicing equipment
@@ -225,7 +271,11 @@ class RepairManager(FilterStore):
         # Double check the the number of reqeusts is still below the threshold following
         # the dispatching of a piece of servicing equipment. This mostly pertains to
         # highly frequent request with long repair times and low thresholds.
-        if dispatched is None or equipment_obj.port_based:
+        if (
+            dispatched is None
+            or equipment_obj.port_based
+            or dispatched not in self.request_map
+        ):
             return
         n_requests = self.request_map[dispatched]
         threshold_check = [
@@ -242,7 +292,7 @@ class RepairManager(FilterStore):
             ]
             if new_request_check:
                 new_request = self.get(lambda x: x == new_request_check[0]).value
-                self.env.process(self._run_equipment_requests(new_request))
+                yield self.env.process(self._run_equipment_requests(new_request))
 
     def register_request(self, request: RepairRequest) -> RepairRequest:
         """The method to submit requests to the repair mananger and adds a unique
@@ -402,7 +452,6 @@ class RepairManager(FilterStore):
         if system.id not in self.invalid_systems:
             self.invalid_systems.append(system.id)
         if system.servicing.triggered:
-            yield self.env.timeout(0.1)  # buffer to not have turning on/off collide
             system.servicing = self.env.event()
             system.interrupt_all_subassembly_processes()
         else:
@@ -410,7 +459,22 @@ class RepairManager(FilterStore):
                 f"{self.env.simulation_time} {system.id} already being serviced"
             )
 
-    def register_repair(self, repair: RepairRequest, port: bool = False) -> None:
+    def register_repair(self, repair: RepairRequest, port: bool = False) -> Generator:
+        """Registers the repair as complete with the repair managiner.
+
+        Parameters
+        ----------
+        repair : RepairRequest
+            The repair that has been completed.
+        port : bool, optional
+            If True, indicates that a port handled the repair, otherwise that a managed
+            servicing equipment handled the repair, by default False.
+
+        Yields
+        ------
+        Generator
+            The ``completed_requests.put()`` that registers completion.
+        """
         if port:
             yield self.completed_requests.put(repair)
         else:

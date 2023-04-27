@@ -29,6 +29,10 @@ from wombat.core.repair_management import RepairManager
 from wombat.core.service_equipment import ServiceEquipment
 
 
+# Numpy random generation initialization
+random_generator = np.random.default_rng(seed=42)
+
+
 class Port(RepairsMixin, FilterStore):
     """The offshore wind base port that operates tugboats and performs tow-to-port
     repairs.
@@ -96,6 +100,7 @@ class Port(RepairsMixin, FilterStore):
         self.windfarm = windfarm
         self.manager = repair_manager
         self.requests_serviced: set[str] = set()
+        self.invalid_systems: list[str] = []
 
         self.manager._register_port(self)
 
@@ -350,6 +355,13 @@ class Port(RepairsMixin, FilterStore):
         if request.request_id in self.requests_serviced:
             return
 
+        # Double check in case a delay causes multiple vessels to be interacting with
+        # the same turbine
+
+        # Add the requested system to the list of systems undergoing or registered to be
+        # undergoing repairs, so this method can't be run again on the same system
+        self.invalid_systems.append(request.system_id)
+
         # If the system is already undergoing repairs from other servicing equipment,
         # then wait until it's done being serviced
         servicing = self.windfarm.system(request.system_id).servicing
@@ -357,21 +369,20 @@ class Port(RepairsMixin, FilterStore):
         # Wait for a spot to open up in the port queue
         turbine_request = self.turbine_manager.request()
 
-        # Request a tugboat to retrieve the turbine
-        tugboat = self.service_equipment_manager.get(
-            lambda x: x.at_port
-            and (not x.dispatched)
-            and "TOW" in x.settings.capability
-        )
-
-        yield turbine_request & servicing & tugboat
+        yield turbine_request & servicing
+        seconds_to_wait, *_ = random_generator.integers(low=0, high=30, size=1) / 3600.0
+        yield self.env.timeout(seconds_to_wait)
+        yield self.windfarm.system(request.system_id).servicing
 
         # Halt the turbine before going further to avoid issue with requests being
         # being submitted between now and when the tugboat gets to the turbine
-        self.env.process(
-            self.manager.halt_requests_for_system(
-                self.windfarm.system(request.system_id)
-            )
+        self.manager.halt_requests_for_system(self.windfarm.system(request.system_id))
+
+        # Request a tugboat to retrieve the turbine
+        tugboat = yield self.service_equipment_manager.get(
+            lambda x: x.at_port
+            and (not x.dispatched)
+            and "TOW" in x.settings.capability
         )
 
         # Check that there is enough time to complete towing, connection, and repairs
@@ -396,7 +407,6 @@ class Port(RepairsMixin, FilterStore):
             yield self.env.timeout(hours_to_next)  # type: ignore
 
         self.requests_serviced.update([request.request_id])
-        tugboat = yield tugboat
         yield self.env.process(tugboat.run_tow_to_port(request))  # type: ignore
 
         # Make the tugboat available again
@@ -416,6 +426,7 @@ class Port(RepairsMixin, FilterStore):
         )
         self.turbine_manager.release(turbine_request)
         yield self.env.process(tugboat.run_tow_to_site(request))  # type: ignore
+        self.invalid_systems.pop(self.invalid_systems.index(request.system_id))
 
         # Make the tugboat available again
         yield self.service_equipment_manager.put(tugboat)
@@ -445,14 +456,13 @@ class Port(RepairsMixin, FilterStore):
         # If the system is already undergoing repairs from other servicing equipment,
         # then wait until it's done being serviced, then double check
         yield self.windfarm.system(request.system_id).servicing
+        seconds_to_wait, *_ = random_generator.integers(low=0, high=30, size=1) / 3600.0
+        yield self.env.timeout(seconds_to_wait)
+        yield self.windfarm.system(request.system_id).servicing
 
         # Halt the turbine before going further to avoid issue with requests being
         # being submitted between now and when the tugboat gets to the turbine
-        self.env.process(
-            self.manager.halt_requests_for_system(
-                self.windfarm.system(request.system_id)
-            )
-        )
+        self.manager.halt_requests_for_system(self.windfarm.system(request.system_id))
         self.requests_serviced.update([request.request_id])
 
         # Request a vessel that isn't solely a towing vessel
