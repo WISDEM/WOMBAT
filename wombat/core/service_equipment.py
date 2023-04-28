@@ -215,11 +215,11 @@ class ServiceEquipment(RepairsMixin):
         self.env = env
         self.windfarm = windfarm
         self.manager = repair_manager
-        self.onsite = False
-        self.dispatched = True
+        self.onsite = False  # True: mobilized to the site, but not necessarily at_site
         self.dispatched = False
         self.enroute = False
         self.at_port = False
+        self.at_site = False
         self.at_system = False
         self.transferring_crew = False
         self.current_system = None  # type: str | None
@@ -329,10 +329,10 @@ class ServiceEquipment(RepairsMixin):
         """
         if end == "port":
             self.at_port = True
-            self.onsite = False
+            self.at_site = False
         else:
             self.at_port = False
-            self.onsite = True
+            self.at_site = True
         self.at_system = True if set_current is not None else False
         self.current_system = set_current
 
@@ -547,6 +547,7 @@ class ServiceEquipment(RepairsMixin):
 
         # Ensures that the statuses are correct
         self.at_port = False
+        self.at_site = False
         self.enroute = False
         self.onsite = False
 
@@ -1562,7 +1563,7 @@ class ServiceEquipment(RepairsMixin):
 
         # If the starting operation date is the same as the simulations, set to onsite
         if self.settings.operating_dates[0] == self.env.simulation_time.date():
-            self.onsite = True
+            yield self.env.process(self.mobilize_scheduled())
 
         while True:
             # Wait for a valid operational period to start
@@ -1688,6 +1689,7 @@ class ServiceEquipment(RepairsMixin):
             if self.env.now >= charter_end_env_time:
                 self.onsite = False
                 self.at_port = False
+                self.at_site = False
                 self.at_system = False
                 self.dispatched = False
                 self.current_system = None
@@ -1731,14 +1733,14 @@ class ServiceEquipment(RepairsMixin):
                 )
             else:
                 request = request.value  # type: ignore
-                if "::" in request.system_id:
+                if request.cable:
                     system = self.windfarm.cable(request.system_id)
                 else:
                     system = self.windfarm.system(request.system_id)  # type: ignore
                 yield system.servicing
                 self.manager.halt_requests_for_system(system)
                 yield self.env.process(self.in_situ_repair(request))
-                self.dispatched = False
+        self.dispatched = False
 
     def run_tow_to_port(self, request: RepairRequest) -> Generator[Process, None, None]:
         """Runs the tow to port logic, so a turbine can be repaired at port.
