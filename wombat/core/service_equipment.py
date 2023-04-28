@@ -1672,7 +1672,7 @@ class ServiceEquipment(RepairsMixin):
         # halt its ongoing processes for the current repair.
         # NOTE: port-based equipment will have already halted the system's processes.
         if not hasattr(self, "port"):
-            if "::" in request.system_id:
+            if request.cable:
                 system = self.windfarm.cable(request.system_id)
             else:
                 system = self.windfarm.system(request.system_id)  # type: ignore
@@ -1683,8 +1683,6 @@ class ServiceEquipment(RepairsMixin):
             yield self.env.timeout(seconds_to_wait)
             yield system.servicing
             self.manager.halt_requests_for_system(system)
-
-        yield self.env.process(self.in_situ_repair(request))
 
         while True:
             if self.env.now >= charter_end_env_time:
@@ -1702,6 +1700,7 @@ class ServiceEquipment(RepairsMixin):
 
             if not self.onsite:
                 yield self.env.process(self.mobilize())
+                yield self.env.process(self.in_situ_repair(request))
 
             # Wait for next shift to start
             is_workshift = self.env.is_workshift(
