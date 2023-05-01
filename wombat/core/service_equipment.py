@@ -1720,6 +1720,8 @@ class ServiceEquipment(RepairsMixin):
                     )
                 )
 
+            # Wait one second to ensure there are no timing collisions
+            yield self.env.timeout(1.0 / 3600)
             request = self.get_next_request()
             if request is None:
                 yield self.env.process(
