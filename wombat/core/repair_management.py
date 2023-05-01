@@ -475,7 +475,9 @@ class RepairManager(FilterStore):
         Generator
             The ``completed_requests.put()`` that registers completion.
         """
-        # Ensure the repair is unable to be called again
+        # Ensure the repair is unable to be called again. This seems to only be needed
+        # for requests that trigger a dispatching because they aren't retrieved via
+        # the .get() method, but through the dispatch logic
         _ = self.get(lambda x: x == repair)
 
         if port:
