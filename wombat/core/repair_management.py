@@ -475,6 +475,9 @@ class RepairManager(FilterStore):
         Generator
             The ``completed_requests.put()`` that registers completion.
         """
+        # Ensure the repair is unable to be called again
+        _ = self.get(lambda x: x == repair)
+
         if port:
             yield self.completed_requests.put(repair)
         else:
