@@ -193,9 +193,16 @@ class RepairManager(FilterStore):
                 if equipment_obj.port_based:
                     if request.system_id in self.port.invalid_systems:
                         break
+
+                    # Dispatch-triggering request must be removed from the queue
+                    _ = self.get(lambda x: x == request)
+
                     yield self.windfarm.system(request.system_id).servicing
                     self.env.process(self.port.run_unscheduled_in_situ(request))
                 else:
+                    # Dispatch-triggering request must be removed from the queue
+                    _ = self.get(lambda x: x == request)
+
                     yield self.in_process_requests.put(request)
                     self.env.process(equipment_obj.run_unscheduled_in_situ(request))
 
@@ -255,8 +262,15 @@ class RepairManager(FilterStore):
                     # ensure it's available prior to dispatching
                     if request.system_id in self.port.invalid_systems:
                         break
+
+                    # Dispatch-triggering request must be removed from the queue
+                    _ = self.get(lambda x: x == request)
+
                     yield self.env.process(self.port.run_unscheduled_in_situ(request))
                 else:
+                    # Dispatch-triggering request must be removed from the queue
+                    _ = self.get(lambda x: x == request)
+
                     yield self.in_process_requests.put(request)
                     yield self.env.process(
                         equipment_obj.run_unscheduled_in_situ(request)
@@ -475,11 +489,6 @@ class RepairManager(FilterStore):
         Generator
             The ``completed_requests.put()`` that registers completion.
         """
-        # Ensure the repair is unable to be called again. This seems to only be needed
-        # for requests that trigger a dispatching because they aren't retrieved via
-        # the .get() method, but through the dispatch logic
-        _ = self.get(lambda x: x == repair)
-
         if port:
             yield self.completed_requests.put(repair)
         else:
