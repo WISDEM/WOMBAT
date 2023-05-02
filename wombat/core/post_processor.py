@@ -1405,7 +1405,6 @@ class Metrics:
             .reset_index()
         )
         costs["display_reason"] = [""] * costs.shape[0]
-        group_filter.append("display_reason")
 
         non_shift_hours = (
             "not in working hours",
@@ -1432,11 +1431,8 @@ class Metrics:
         costs.loc[costs.reason == "no requests", "display_reason"] = "No Requests"
 
         costs.reason = costs.display_reason
-        group_filter.pop(group_filter.index("action"))
-        group_filter.pop(group_filter.index("display_reason"))
-        group_filter.pop(group_filter.index("additional"))
 
-        drop_columns = [self._materials_cost]
+        drop_columns = [self._materials_cost, "display_reason", "additional", "action"]
         if not by_category:
             drop_columns.extend(
                 [
@@ -1446,6 +1442,8 @@ class Metrics:
                     self._equipment_cost,
                 ]
             )
+        group_filter.pop(group_filter.index("additional"))
+        group_filter.pop(group_filter.index("action"))
         costs = costs.drop(columns=drop_columns)
         costs = costs.groupby(group_filter).sum().reset_index()
 
