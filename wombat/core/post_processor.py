@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from copy import deepcopy
 from math import fsum
 from pathlib import Path
@@ -285,7 +286,11 @@ class Metrics:
         pd.DataFrame
             A tidied data frame to be used for all the operations in this class.
         """
-        data = data = data.convert_dtypes()
+        # Ignore odd pandas casting error for pandas>=1.5(?)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            data = data = data.convert_dtypes()
+
         if data.index.name != "datetime":
             try:
                 data.datetime = pd.to_datetime(data.datetime)
