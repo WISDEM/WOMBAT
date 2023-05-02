@@ -63,6 +63,12 @@ rob.hammond@nrel.gov.
 
 Latest Changes?
 ---------------
+
+As of v0.7, a series of bug fixes in the operating reduction and servicing status result
+in downtime and layout impacts that are accurately modeled. Put simply,
+`operation_reduction > 0` can have significant impacts on availability and energy
+production, and should be used carefully.
+
 Please see the CHANGELOG for details!
 
 * On this site: https://wisdem.github.io/WOMBAT/changelog.html
