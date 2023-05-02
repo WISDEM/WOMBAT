@@ -1329,7 +1329,12 @@ class Metrics:
         elif frequency == "month-year":
             group_filter = ["year", "month"]
 
-        costs = self.events.groupby(group_filter).sum()[labor_cols].fillna(value=0)
+        costs = (
+            self.events.loc[:, labor_cols + group_filter]
+            .groupby(group_filter)
+            .sum()
+            .fillna(value=0)
+        )
         if not by_type:
             return pd.DataFrame(costs[self._labor_cost])
         return costs
