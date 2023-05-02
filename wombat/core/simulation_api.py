@@ -194,7 +194,7 @@ class Simulation(FromDictMixin):
             except FileNotFoundError:
                 value = load_yaml(self.library_path / "config", value)  # type: ignore
                 logging.warning(
-                    "DeprecationWarning: In v0.7, all project configurations must be"
+                    "DeprecationWarning: In v0.8, all project configurations must be"
                     " located in: '<library>/project/config/"
                 )
         if isinstance(value, dict):

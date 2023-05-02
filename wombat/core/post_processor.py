@@ -182,7 +182,7 @@ class Metrics:
                 assert isinstance(fixed_costs, str)
                 fixed_costs = load_yaml(self.data_dir / "windfarm", fixed_costs)
                 logging.warning(
-                    "DeprecationWarning: In v0.7, all fixed cost configurations must be"
+                    "DeprecationWarning: In v0.8, all fixed cost configurations must be"
                     " located in: '<library>/project/config/"
                 )
             self.fixed_costs = FixedCosts.from_dict(fixed_costs)  # type: ignore
@@ -235,7 +235,7 @@ class Metrics:
             except FileNotFoundError:
                 self.sam_settings = load_yaml(self.data_dir / "windfarm", SAM_settings)
                 logging.warning(
-                    "DeprecationWarning: In v0.7, all SAM configurations must be"
+                    "DeprecationWarning: In v0.8, all SAM configurations must be"
                     " located in: '<library>/project/config/"
                 )
 

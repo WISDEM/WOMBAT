@@ -232,7 +232,7 @@ class ServiceEquipment(RepairsMixin):
             except FileNotFoundError:
                 data = load_yaml(env.data_dir / "repair/transport", equipment_data_file)
                 logging.warning(
-                    "DeprecationWarning: In v0.7, all servicing equipment"
+                    "DeprecationWarning: In v0.8, all servicing equipment"
                     " configurations must be located in: '<library>/vessels/"
                 )
         else:

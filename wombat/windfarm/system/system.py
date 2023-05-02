@@ -154,7 +154,7 @@ class System:
                 power_curve_file = self.env.data_dir / "windfarm" / power_curve
                 power_curve = pd.read_csv(power_curve_file)
                 logging.warning(
-                    "DeprecationWarning: In v0.7, all power curve files must be located"
+                    "DeprecationWarning: In v0.8, all power curve files must be located"
                     " in: '<library>/turbines"
                 )
             power_curve = power_curve.loc[power_curve.power_kw != 0].reset_index(
