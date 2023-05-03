@@ -1,3 +1,7 @@
+## Unreleased (TBD)
+- Features
+  - `Metrics.process_times()` now includes the time_to_start, representing the time between when a request is submitted, and when the repairs officially start.
+
 ## v0.7.0 (3 May 2023)
 - Replace Flake8 and Pylint in the pre-commit workflow with ruff, and fix/ignore the resulting errors as appropriate
 - Features:
