@@ -1925,7 +1925,7 @@ class Metrics:
             .diff(axis=1)[["env_time_max"]]
             .rename(columns={"env_time_max": "downtime"})
         )
-        timing.N = 1
+        timing["N"] = 1
 
         # Return only the categorically summed data
         return timing.groupby("category").sum().sort_index()
