@@ -1,4 +1,4 @@
-## Unreleased (TBD)
+## v0.7.0 (3 May 2023)
 - Replace Flake8 and Pylint in the pre-commit workflow with ruff, and fix/ignore the resulting errors as appropriate
 - Features:
   - Weather data now has the ability to contain more than just the required "windspeed" and "waveheight" columns. This will allow for easier expansion of the weather model in the future, and increase compatibility with other NREL techno economic modeling frameworks.
@@ -16,6 +16,7 @@
   - Servicing equipment are no longer simultaneously dispatched from both the `Port` and `RepairManager` causing simulations to potentially error out when the `System.servicing` or `Cable.servicing` statuses are overridden by the second-in-line servicing equipment. This was resolved by the port waiting for the turbine, a tugboat, and a spot at port to become available, then immediately halting the turbine, and starting the tow-in logic.
   - Missing `ServiceEquipment.dispatched` status updates have been amended, so no matter the operation, a piece of servicing equipment should be set to `dispatched = True` until the crew is back and repair is completed.
   - To avoid multiple dispatches to a single turbine, cable, or substation, or multiple dispatches of a single vessel/onsite equipment, a random timeout between 0 and 30 seconds (in simulation time) is processed, then a status double-checking occurs.
+  - `Metrics.process_times()` now includes the "N" column to indicate the number of processes that fall into each category.
 
 ## v0.6.2 (3 February 2023)
 - Warnings from Pandas `.groupby()` calls have been silenced by shifting the column filtering to before the groupby method call.
