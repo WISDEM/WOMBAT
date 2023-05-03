@@ -75,25 +75,32 @@ class Subassembly:
         """
         self.processes = dict(self._create_processes())
 
-    def interrupt_processes(self) -> None:
+    def interrupt_processes(self, origin: Subassembly | None = None) -> None:
         """Interrupts all of the running processes within the subassembly except for the
         process associated with failure that triggers the catastrophic failure.
 
         Parameters
         ----------
-        subassembly : Subassembly
-            The subassembly that should have all processes interrupted.
+        origin : Subassembly
+            The subassembly that triggered the request, if the method call is coming
+            from a subassembly shutdown event. If provided, and it is the same as the
+            current subassembly, then a try/except flow is used to ensure the process
+            that initiated the shutdown is not interrupting itself.
         """
+        if origin is not None and id(origin) == id(self):
+            for _, process in self.processes.items():
+                try:
+                    process.interrupt()
+                except RuntimeError:  # Process initiating process can't be interrupted
+                    pass
+            return
+
         for _, process in self.processes.items():
-            try:
-                process.interrupt()
-            except RuntimeError:
-                # This error occurs for the process halting all other processes.
-                pass
+            process.interrupt()
 
     def interrupt_all_subassembly_processes(self) -> None:
         """Thin wrapper for ``system.interrupt_all_subassembly_processes``."""
-        self.system.interrupt_all_subassembly_processes()
+        self.system.interrupt_all_subassembly_processes(origin=self)
 
     def trigger_request(self, action: Maintenance | Failure):
         """Triggers the actual repair or maintenance logic for a failure or maintenance

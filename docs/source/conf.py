@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.abspath("."))
 # -- Project information -----------------------------------------------------
 
 project = "WOMBAT"
-copyright = "2022 Alliance for Sustainable Energy, LLC"
+copyright = "2023 Alliance for Sustainable Energy, LLC"
 author = (
     "Rob Hammond,"
     " Aubryn Cooperman,"
@@ -68,7 +68,7 @@ nb_execution_excludepatterns = ["_build", "Thumbs.db", ".DS_Store"]
 bibtex_bibfiles = ["refs.bib"]
 
 intersphinx_mapping = {
-    "python": ("https://docs.python.org/3.8", None),
+    "python": ("https://docs.python.org/3.10", None),
     "sphinx": ("https://www.sphinx-doc.org/en/3.x", None),
 }
 
@@ -95,7 +95,7 @@ source_suffix = {
 }
 
 # toggle this between auto/off to rerun full documentation build
-nb_execution_mode = "auto"
+nb_execution_mode = "off"
 nb_execution_timeout = -1
 nb_execution_allow_errors = True
 # nb_execution_excludepatterns.append("*_demonstration.md")

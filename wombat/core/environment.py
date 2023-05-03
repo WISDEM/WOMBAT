@@ -661,7 +661,7 @@ class WombatEnvironment(simpy.Environment):
             The formatted logging data from a simulation.
         """
         convert_options = pa.csv.ConvertOptions(
-            timestamp_parsers=["%y-%m-%d %H:%M:%S.%f", "%y-%m-%d %H:%M:%S"]
+            timestamp_parsers=["%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S"]
         )
         parse_options = pa.csv.ParseOptions(delimiter="|")
         log_df = pa.csv.read_csv(
@@ -669,8 +669,14 @@ class WombatEnvironment(simpy.Environment):
             convert_options=convert_options,
             parse_options=parse_options,
         ).to_pandas()
-        log_df.datetime = pd.to_datetime(log_df.datetime)
-        log_df.env_datetime = pd.to_datetime(log_df.env_datetime)
+        if not pd.api.types.is_datetime64_any_dtype(log_df.datetime):
+            log_df.datetime = pd.to_datetime(
+                log_df.datetime, yearfirst=True, format="mixed"
+            )
+        if not pd.api.types.is_datetime64_any_dtype(log_df.env_datetime):
+            log_df.env_datetime = pd.to_datetime(
+                log_df.env_datetime, yearfirst=True, format="mixed"
+            )
         log_df = log_df.set_index("datetime").sort_values("datetime")
 
         return log_df
@@ -685,7 +691,7 @@ class WombatEnvironment(simpy.Environment):
             The formatted logging data from a simulation.
         """
         convert_options = pa.csv.ConvertOptions(
-            timestamp_parsers=["%y-%m-%d %H:%M:%S.%f", "%y-%m-%d %H:%M:%S"]
+            timestamp_parsers=["%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S"]
         )
         parse_options = pa.csv.ParseOptions(delimiter="|")
         log_df = pa.csv.read_csv(
@@ -693,8 +699,14 @@ class WombatEnvironment(simpy.Environment):
             convert_options=convert_options,
             parse_options=parse_options,
         ).to_pandas()
-        log_df.datetime = pd.to_datetime(log_df.datetime)
-        log_df.env_datetime = pd.to_datetime(log_df.env_datetime)
+        if not pd.api.types.is_datetime64_any_dtype(log_df.datetime):
+            log_df.datetime = pd.to_datetime(
+                log_df.datetime, yearfirst=True, format="mixed"
+            )
+        if not pd.api.types.is_datetime64_any_dtype(log_df.env_datetime):
+            log_df.env_datetime = pd.to_datetime(
+                log_df.env_datetime, yearfirst=True, format="mixed"
+            )
         log_df = log_df.set_index("datetime").sort_values("datetime")
 
         return log_df

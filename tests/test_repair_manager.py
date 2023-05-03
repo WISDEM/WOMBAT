@@ -187,18 +187,19 @@ def test_request_map(env_setup):
 
 def test_get_requests(env_setup):
     """Tests the ``RepairManager.get_request_by_system`` and
-    ``RepairManager.get_next_highest_severity_request`` methods.
+    ``RepairManager.get_request_by_severity`` methods.
     """
     # Set up all the required infrastructure
     env = env_setup
     manager = RepairManager(env)
+    windfarm = Windfarm(env, "layout_single_subassembly.csv", manager)
     capability_list = VALID_EQUIPMENT
-    turbine1 = System(env, manager, "WTG001", "Vestas V90 001", VESTAS_V90, "turbine")
-    turbine2 = System(env, manager, "WTG002", "Vestas V90 002", VESTAS_V90, "turbine")
-    turbine3 = System(env, manager, "WTG003", "Vestas V90 003", VESTAS_V90, "turbine")
-    generator1 = Subassembly(turbine1, env, "GEN001", GENERATOR_SUBASSEMBLY)
-    generator2 = Subassembly(turbine2, env, "GEN002", GENERATOR_SUBASSEMBLY)
-    generator3 = Subassembly(turbine3, env, "GEN003", GENERATOR_SUBASSEMBLY)
+    turbine1 = windfarm.system("WTG001")
+    turbine2 = windfarm.system("WTG002")
+    turbine3 = windfarm.system("WTG003")
+    generator1 = [el for el in turbine1.subassemblies if el.name == "generator"][0]
+    generator2 = [el for el in turbine2.subassemblies if el.name == "generator"][0]
+    generator3 = [el for el in turbine3.subassemblies if el.name == "generator"][0]
 
     # Ensure no requests are returned
     for _id in ("WTG001", "WTG002", "WTG003"):
@@ -206,7 +207,7 @@ def test_get_requests(env_setup):
         assert request is None
 
     for severity in range(6):
-        request = manager.get_next_highest_severity_request(capability_list, severity)
+        request = manager.get_request_by_severity(capability_list, severity)
         assert request is None
 
     # Submit a handful of requests with variables indicating what the request is and
@@ -292,45 +293,50 @@ def test_get_requests(env_setup):
 
     # Test that the major replacement is retrieved first when requesting by severity
     # level 5 and that other invalid requests return None
-    request = manager.get_next_highest_severity_request(capability_list, 6)
+    request = manager.get_request_by_severity(capability_list, 6)
     assert request is None
 
-    request = manager.get_next_highest_severity_request(capability_list, 1)
+    request = manager.get_request_by_severity(capability_list, 1)
     assert request is None
 
-    request = manager.get_next_highest_severity_request(capability_list, 5)
+    request = manager.get_request_by_severity(capability_list, 5)
     assert request.value == major_replacement3
 
     # Ensure the next highest severity level request is (major repair 2) is picked
-    request = manager.get_next_highest_severity_request(capability_list)
+    request = manager.get_request_by_severity(capability_list)
     assert request.value == major_repair2
 
     # Test that the Turbine 2 requests are retrieved in order and with respect to
     # capability limitations and anything outside of the submitted capabilties is None
+    manager.halt_requests_for_system(turbine2)
     request = manager.get_request_by_system(
         ["LCN", "CAB", "DSV", "RMT", "DRN"], turbine2.id
     )
     assert request is None
-    manager.enable_requests_for_system(turbine2.id)
+    manager.enable_requests_for_system(turbine2)
 
     request = manager.get_request_by_system(["CTV"], turbine2.id)
+    manager.halt_requests_for_system(turbine2)
     assert request.value == annual_reset2
-    manager.enable_requests_for_system(turbine2.id)
+    manager.enable_requests_for_system(turbine2)
 
     request = manager.get_request_by_system(capability_list, turbine2.id)
+    manager.halt_requests_for_system(turbine2)
     assert request.value == minor_repair2
-    manager.enable_requests_for_system(turbine2.id)
+    manager.enable_requests_for_system(turbine2)
 
     # With 1 requests left, ensure they're produced in the correct order and that
     # specifying incorrect severity levesls returns None
-    request = manager.get_next_highest_severity_request(capability_list, 4)
+    request = manager.get_request_by_severity(capability_list, 4)
     assert request is None
 
-    request = manager.get_next_highest_severity_request(capability_list, 2)
+    request = manager.get_request_by_severity(capability_list, 2)
     assert request is None
 
-    manager.enable_requests_for_system(turbine3.id)
-    request = manager.get_next_highest_severity_request(capability_list, 3)
+    # Activate turbine 3 and check that its medium repair is the next in the list
+    manager.halt_requests_for_system(turbine3)
+    manager.enable_requests_for_system(turbine3)
+    request = manager.get_request_by_severity(capability_list, 3)
     assert request.value == medium_repair3
 
 

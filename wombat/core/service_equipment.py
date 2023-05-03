@@ -12,6 +12,7 @@ from math import ceil
 from typing import TYPE_CHECKING, Any, Generator
 from pathlib import Path
 from datetime import timedelta
+from itertools import zip_longest
 
 import numpy as np
 import pandas as pd
@@ -41,6 +42,10 @@ from wombat.windfarm.system.subassembly import Subassembly
 
 if TYPE_CHECKING:
     from wombat.core import Port
+
+
+# Numpy random generation initialization
+random_generator = np.random.default_rng(seed=42)
 
 
 def consecutive_groups(data: np.ndarray, step_size: int = 1) -> list[np.ndarray]:
@@ -140,7 +145,6 @@ def reset_system_operations(system: System) -> None:
     for subassembly in system.subassemblies:
         subassembly.operating_level = 1.0
         subassembly.recreate_processes()
-    system.servicing.succeed()
 
 
 class ServiceEquipment(RepairsMixin):
@@ -211,10 +215,11 @@ class ServiceEquipment(RepairsMixin):
         self.env = env
         self.windfarm = windfarm
         self.manager = repair_manager
-        self.onsite = False
+        self.onsite = False  # True: mobilized to the site, but not necessarily at_site
         self.dispatched = False
         self.enroute = False
         self.at_port = False
+        self.at_site = False
         self.at_system = False
         self.transferring_crew = False
         self.current_system = None  # type: str | None
@@ -227,7 +232,7 @@ class ServiceEquipment(RepairsMixin):
             except FileNotFoundError:
                 data = load_yaml(env.data_dir / "repair/transport", equipment_data_file)
                 logging.warning(
-                    "DeprecationWarning: In v0.7, all servicing equipment"
+                    "DeprecationWarning: In v0.8, all servicing equipment"
                     " configurations must be located in: '<library>/vessels/"
                 )
         else:
@@ -324,10 +329,10 @@ class ServiceEquipment(RepairsMixin):
         """
         if end == "port":
             self.at_port = True
-            self.onsite = False
+            self.at_site = False
         else:
             self.at_port = False
-            self.onsite = True
+            self.at_site = True
         self.at_system = True if set_current is not None else False
         self.current_system = set_current
 
@@ -399,9 +404,7 @@ class ServiceEquipment(RepairsMixin):
         if self.settings.method == "turbine":
             return self.manager.get_request_by_system(self.settings.capability)
         if self.settings.method == "severity":
-            return self.manager.get_next_highest_severity_request(
-                self.settings.capability
-            )
+            return self.manager.get_request_by_severity(self.settings.capability)
 
     def enable_string_operations(self, cable: Cable) -> None:
         """Traverses the upstream cable and turbine connections and resets the
@@ -416,16 +419,24 @@ class ServiceEquipment(RepairsMixin):
         farm = self.manager.windfarm
         if cable.connection_type == "array":
             # If there is another failure downstream of the repaired cable, do nothing
-            if cable.downstream_failure:
+            if not cable.downstream_failure.triggered:
                 return
 
             # For each upstream turbine and cable, reset their operations
-            for t_id, c_id in zip(cable.upstream_nodes, cable.upstream_cables):
-                cable = farm.cable(c_id)
-                if cable.operating_level == 0:
-                    break
-                cable.downstream_failure.succeed()
-                farm.system(t_id).cable_failure.succeed()
+            nodes = deepcopy(cable.upstream_nodes)
+            cables = cable.upstream_cables
+            tid = nodes.pop(0)
+            turbine = farm.system(tid)
+            turbine.cable_failure.succeed()
+            for tid, cid in zip_longest(nodes, cables, fillvalue=None):  # type: ignore
+                if cid is not None:
+                    cable = farm.cable(cid)
+                    cable.downstream_failure.succeed()
+                    if not cable.broken.triggered:
+                        break
+                if tid is not None:  # only None for last cable on string
+                    turbine = farm.system(tid)
+                    turbine.cable_failure.succeed()
 
         if cable.connection_type == "export":
             # Reset the substation's cable failure
@@ -434,13 +445,14 @@ class ServiceEquipment(RepairsMixin):
             # For each string connected to the substation reset all the turbines and
             # cables until another cable failure is encoountered, then move to the next
             # string
-            for turbines, cables in zip(cable.upstream_nodes, cable.upstream_cables):
-                for t_id, c_id in zip(turbines, cables):
-                    cable = farm.cable(c_id)
-                    if cable.operating_level == 0:
-                        break
-                    cable.downstream_failure.succeed()
-                    farm.system(t_id).cable_failure.succeed()
+            for t_list, c_list in zip(cable.upstream_nodes, cable.upstream_cables):
+                for t, c in zip_longest(t_list, c_list, fillvalue=None):  # type: ignore
+                    if c is not None:
+                        cable = farm.cable(c)
+                        if not cable.broken.triggered:
+                            break
+                        cable.downstream_failure.succeed()
+                    farm.system(t).cable_failure.succeed()
 
     def register_repair_with_subassembly(
         self,
@@ -464,17 +476,13 @@ class ServiceEquipment(RepairsMixin):
         """
         operation_reduction = repair.details.operation_reduction
 
-        if repair.cable and repair.details.operation_reduction == 1:
-            assert isinstance(subassembly, Cable)  # mypy helper
-            self.enable_string_operations(subassembly)
-
         # Put the subassembly/component back to good as new condition
         if repair.details.replacement:
-            subassembly.operating_level = 1
+            subassembly.operating_level = 1.0
             _ = self.manager.purge_subassembly_requests(
                 repair.system_id, repair.subassembly_id
             )
-        elif operation_reduction == 1:
+        if operation_reduction == 1:
             subassembly.operating_level = starting_operating_level
             subassembly.broken.succeed()
         elif operation_reduction == 0:
@@ -482,10 +490,17 @@ class ServiceEquipment(RepairsMixin):
         else:
             subassembly.operating_level /= 1 - operation_reduction
 
-        # Register that the servicing is now over
-        system = subassembly if isinstance(subassembly, Cable) else subassembly.system
-        system.servicing.succeed()
-        self.manager.enable_requests_for_system(repair.system_id)
+        if isinstance(subassembly, Subassembly):
+            self.manager.enable_requests_for_system(subassembly.system)
+        elif isinstance(subassembly, Cable):
+            # If the system is a cable, re-enable the upstream systems and cables
+            self.manager.enable_requests_for_system(subassembly)
+            if operation_reduction == 1:
+                self.enable_string_operations(subassembly)
+        else:
+            raise TypeError("`subassembly` was neither a `Cable` nor `Subassembly`.")
+
+        self.env.process(self.manager.register_repair(repair))
 
     def wait_until_next_operational_period(
         self, *, less_mobilization_hours: int = 0
@@ -532,6 +547,7 @@ class ServiceEquipment(RepairsMixin):
 
         # Ensures that the statuses are correct
         self.at_port = False
+        self.at_site = False
         self.enroute = False
         self.onsite = False
 
@@ -1397,10 +1413,6 @@ class ServiceEquipment(RepairsMixin):
                     start="port", end="site", set_current=system.id, **shared_logging
                 )
             )
-            # First turn off the turbine, then proceed with the servicing so the
-            # turbine is not registered as operating when the turbine is being worked on
-            if system.servicing.triggered:
-                self.manager.halt_requests_for_system(system)
             yield self.env.process(
                 self.crew_transfer(system, subassembly, request, to_system=True)
             )
@@ -1413,10 +1425,6 @@ class ServiceEquipment(RepairsMixin):
                     **shared_logging,
                 )
             )
-            # First turn off the turbine, then proceed with the servicing so the
-            # turbine is not registered as operating when the turbine is being worked on
-            if system.servicing.triggered:
-                self.manager.halt_requests_for_system(system)
             yield self.env.process(
                 self.crew_transfer(system, subassembly, request, to_system=True)
             )
@@ -1555,7 +1563,7 @@ class ServiceEquipment(RepairsMixin):
 
         # If the starting operation date is the same as the simulations, set to onsite
         if self.settings.operating_dates[0] == self.env.simulation_time.date():
-            self.onsite = True
+            yield self.env.process(self.mobilize_scheduled())
 
         while True:
             # Wait for a valid operational period to start
@@ -1599,11 +1607,25 @@ class ServiceEquipment(RepairsMixin):
                     )
                 )
             else:
-                yield self.env.process(self.in_situ_repair(request.value))
+                request = request.value
+                if request.cable:
+                    system = self.windfarm.cable(request.system_id)
+                else:
+                    system = self.windfarm.system(request.system_id)  # type: ignore
+                yield system.servicing
+                self.manager.halt_requests_for_system(system)
+                yield self.env.process(self.in_situ_repair(request))
 
-    def run_unscheduled_in_situ(self) -> Generator[Process, None, None]:
+    def run_unscheduled_in_situ(
+        self, request: RepairRequest
+    ) -> Generator[Process, None, None]:
         """Runs an in situ repair simulation for unscheduled servicing equipment, or
         those that have to be mobilized before performing repairs and maintenance.
+
+        Parameters
+        ----------
+        request : RepairRequest
+            The repair request that triggered the repair process.
 
         Yields
         ------
@@ -1644,13 +1666,30 @@ class ServiceEquipment(RepairsMixin):
                 duration=hours_to_next,
             )
             yield self.env.timeout(hours_to_next)  # type: ignore
-            yield self.env.process(self.run_unscheduled_in_situ())
+            yield self.env.process(self.run_unscheduled_in_situ(request))
             return
+
+        # Ensure the system isn't in service already during the checking stages, then
+        # halt its ongoing processes for the current repair.
+        # NOTE: port-based equipment will have already halted the system's processes.
+        if not hasattr(self, "port"):
+            if request.cable:
+                system = self.windfarm.cable(request.system_id)
+            else:
+                system = self.windfarm.system(request.system_id)  # type: ignore
+            yield system.servicing
+            seconds_to_wait, *_ = (
+                random_generator.integers(low=0, high=30, size=1) / 3600.0
+            )
+            yield self.env.timeout(seconds_to_wait)
+            yield system.servicing
+            self.manager.halt_requests_for_system(system)
 
         while True:
             if self.env.now >= charter_end_env_time:
                 self.onsite = False
                 self.at_port = False
+                self.at_site = False
                 self.at_system = False
                 self.dispatched = False
                 self.current_system = None
@@ -1663,6 +1702,7 @@ class ServiceEquipment(RepairsMixin):
 
             if not self.onsite:
                 yield self.env.process(self.mobilize())
+                yield self.env.process(self.in_situ_repair(request))
 
             # Wait for next shift to start
             is_workshift = self.env.is_workshift(
@@ -1679,6 +1719,9 @@ class ServiceEquipment(RepairsMixin):
                         }
                     )
                 )
+
+            # Wait one second to ensure there are no timing collisions
+            yield self.env.timeout(1.0 / 3600)
             request = self.get_next_request()
             if request is None:
                 yield self.env.process(
@@ -1691,7 +1734,15 @@ class ServiceEquipment(RepairsMixin):
                     )
                 )
             else:
-                yield self.env.process(self.in_situ_repair(request.value))
+                request = request.value  # type: ignore
+                if request.cable:
+                    system = self.windfarm.cable(request.system_id)
+                else:
+                    system = self.windfarm.system(request.system_id)  # type: ignore
+                yield system.servicing
+                self.manager.halt_requests_for_system(system)
+                yield self.env.process(self.in_situ_repair(request))
+        self.dispatched = False
 
     def run_tow_to_port(self, request: RepairRequest) -> Generator[Process, None, None]:
         """Runs the tow to port logic, so a turbine can be repaired at port.
@@ -1711,6 +1762,7 @@ class ServiceEquipment(RepairsMixin):
         ValueError
             Raised if the equipment is not currently at port
         """
+        self.dispatched = True
         system = self.windfarm.system(request.system_id)
 
         shared_logging = {
@@ -1736,6 +1788,7 @@ class ServiceEquipment(RepairsMixin):
         yield self.env.process(
             self.tow("site", "port", reason="towing turbine to port", **shared_logging)
         )
+        self.dispatched = False
 
     def run_tow_to_site(self, request: RepairRequest) -> Generator[Process, None, None]:
         """Runs the tow to site logic for after a turbine has had its repairs completed
@@ -1756,6 +1809,7 @@ class ServiceEquipment(RepairsMixin):
         ValueError
             Raised if the equipment is not currently at port
         """
+        self.dispatched = True
         system = self.windfarm.system(request.system_id)
         shared_logging = {
             "agent": self.settings.name,
@@ -1780,7 +1834,7 @@ class ServiceEquipment(RepairsMixin):
 
         # Reset the turbine back to operating and return to port
         reset_system_operations(system)
-        self.manager.enable_requests_for_system(system.id)
+        self.manager.enable_requests_for_system(system)
         yield self.env.process(
             self.travel(
                 "site",
@@ -1789,21 +1843,4 @@ class ServiceEquipment(RepairsMixin):
                 **shared_logging,  # type: ignore
             )
         )
-
-    def run_unscheduled(self, request: RepairRequest):
-        """Runs the appropriate repair logic for unscheduled servicing equipment, or
-        those that can be immediately dispatched.
-
-        Parameters
-        ----------
-        request : RepairRequest
-            The request that trigged the repair logic.
-        """
-        # if "TOW" in request.details.service_equipment:
-        #     yield self.env.process(self.port.run_tow_to_port(request))
-        # if "AHV" in request.details.service_equipment:
-        # yield self.env.process(self.port.run_unscheduled_in_situ(request))
-        # else:
-        #     yield self.env.process(self.run_unscheduled_in_situ())
-
-        yield self.env.process(self.run_unscheduled_in_situ())
+        self.dispatched = False

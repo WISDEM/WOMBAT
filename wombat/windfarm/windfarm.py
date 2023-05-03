@@ -80,7 +80,7 @@ class Windfarm:
                 .reset_index(drop=True)
             )
             logging.warning(
-                "DeprecationWarning: In v0.7, all wind farm layout files must be"
+                "DeprecationWarning: In v0.8, all wind farm layout files must be"
                 " located in: '<library>/project/plant/"
             )
         layout.subassembly = layout.subassembly.fillna("")

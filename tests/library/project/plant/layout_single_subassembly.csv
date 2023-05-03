@@ -1,0 +1,8 @@
+﻿id,substation_id,name,longitude,latitude,string,order,distance,subassembly,upstream_cable
+OSS1,OSS1,OSS1,0,0,,,,offshore_substation.yaml,export.yaml
+WTG001,OSS1,WTG001,0,0,0,0,0,vestas_v90_single_subassembly.yaml,array_no_fail.yaml
+WTG002,OSS1,WTG002,0,0,0,1,0,vestas_v90_single_subassembly.yaml,array_no_fail.yaml
+WTG003,OSS1,WTG003,0,0,0,2,0,vestas_v90_single_subassembly.yaml,array_no_fail.yaml
+WTG004,OSS1,WTG004,0,0,1,0,0,vestas_v90_single_subassembly.yaml,array_no_fail.yaml
+WTG005,OSS1,WTG005,0,0,1,1,0,vestas_v90_single_subassembly.yaml,array_no_fail.yaml
+WTG006,OSS1,WTG006,0,0,1,2,0,vestas_v90_single_subassembly.yaml,array_no_fail.yaml

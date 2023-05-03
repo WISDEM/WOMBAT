@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from copy import deepcopy
 from math import fsum
 from pathlib import Path
@@ -181,7 +182,7 @@ class Metrics:
                 assert isinstance(fixed_costs, str)
                 fixed_costs = load_yaml(self.data_dir / "windfarm", fixed_costs)
                 logging.warning(
-                    "DeprecationWarning: In v0.7, all fixed cost configurations must be"
+                    "DeprecationWarning: In v0.8, all fixed cost configurations must be"
                     " located in: '<library>/project/config/"
                 )
             self.fixed_costs = FixedCosts.from_dict(fixed_costs)  # type: ignore
@@ -234,7 +235,7 @@ class Metrics:
             except FileNotFoundError:
                 self.sam_settings = load_yaml(self.data_dir / "windfarm", SAM_settings)
                 logging.warning(
-                    "DeprecationWarning: In v0.7, all SAM configurations must be"
+                    "DeprecationWarning: In v0.8, all SAM configurations must be"
                     " located in: '<library>/project/config/"
                 )
 
@@ -285,7 +286,11 @@ class Metrics:
         pd.DataFrame
             A tidied data frame to be used for all the operations in this class.
         """
-        data = data = data.convert_dtypes()
+        # Ignore odd pandas casting error for pandas>=1.5(?)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            data = data = data.convert_dtypes()
+
         if data.index.name != "datetime":
             try:
                 data.datetime = pd.to_datetime(data.datetime)
@@ -1324,7 +1329,12 @@ class Metrics:
         elif frequency == "month-year":
             group_filter = ["year", "month"]
 
-        costs = self.events.groupby(group_filter).sum()[labor_cols].fillna(value=0)
+        costs = (
+            self.events.loc[:, labor_cols + group_filter]
+            .groupby(group_filter)
+            .sum()
+            .fillna(value=0)
+        )
         if not by_type:
             return pd.DataFrame(costs[self._labor_cost])
         return costs
@@ -1400,7 +1410,6 @@ class Metrics:
             .reset_index()
         )
         costs["display_reason"] = [""] * costs.shape[0]
-        group_filter.append("display_reason")
 
         non_shift_hours = (
             "not in working hours",
@@ -1427,11 +1436,8 @@ class Metrics:
         costs.loc[costs.reason == "no requests", "display_reason"] = "No Requests"
 
         costs.reason = costs.display_reason
-        group_filter.pop(group_filter.index("action"))
-        group_filter.pop(group_filter.index("display_reason"))
-        group_filter.pop(group_filter.index("additional"))
 
-        drop_columns = [self._materials_cost]
+        drop_columns = [self._materials_cost, "display_reason", "additional", "action"]
         if not by_category:
             drop_columns.extend(
                 [
@@ -1441,6 +1447,8 @@ class Metrics:
                     self._equipment_cost,
                 ]
             )
+        group_filter.pop(group_filter.index("additional"))
+        group_filter.pop(group_filter.index("action"))
         costs = costs.drop(columns=drop_columns)
         costs = costs.groupby(group_filter).sum().reset_index()
 
