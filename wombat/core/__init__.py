@@ -1,8 +1,5 @@
-"""
-Initializes the simulation modules, classes, and functions.
+"""Initializes the simulation modules, classes, and functions."""
 
-isort:skip_file
-"""
 
 from .data_classes import (
     Maintenance,

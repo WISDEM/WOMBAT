@@ -37,7 +37,8 @@ def parse_date(value: str | None | datetime.datetime) -> datetime.datetime | Non
 
 
 def convert_dt_to_hours(diff: datetime.timedelta) -> float:
-    """Converts a ``datetime.timedelta`` object to number of hours at the seconds resolution.
+    """Convert a ``datetime.timedelta`` object to number of hours at the seconds
+    resolution.
 
     Parameters
     ----------
@@ -55,8 +56,8 @@ def convert_dt_to_hours(diff: datetime.timedelta) -> float:
 
 
 def hours_until_future_hour(dt: datetime.datetime, hour: int) -> float:
-    """Number of hours until a future hour in the same day for ``hour`` <= 24, otherwise,
-    it is the number of hours until a time in the proceeding days.
+    """Number of hours until a future hour in the same day for ``hour`` <= 24,
+    otherwise, it is the number of hours until a time in the proceeding days.
 
     Parameters
     ----------
@@ -105,7 +106,8 @@ def check_working_hours(
     Returns
     -------
     tuple[int, int]
-        The starting and ending hour to be applied back to the port or servicing equipment.
+        The starting and ending hour to be applied back to the port or servicing
+        equipment.
     """
     start_is_invalid = workday_start == -1
     end_is_invalid = workday_end == -1
@@ -119,7 +121,8 @@ def check_working_hours(
 def calculate_cost(
     duration: int | float, rate: float, n_rate: int = 1, daily_rate: bool = False
 ) -> float:
-    """Calculates the equipment cost, or labor cost for either salaried or hourly employees.
+    """Calculates the equipment cost, or labor cost for either salaried or hourly
+    employees.
 
     Parameters
     ----------

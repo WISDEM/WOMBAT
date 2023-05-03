@@ -49,7 +49,6 @@ follwing BibTex information, or in commonly used citation formats
    @techreport{hammond2022wombat,
       title = {Windfarm Operations and Maintenance cost-Benefit Analysis Tool (WOMBAT)},
       author = {Hammond, Rob and Cooperman, Aubryn},
-      abstractNote = {This report provides technical documentation and background on the newly-developed Wind Operations and Maintenance cost-Benefit Analysis Tool (WOMBAT) software. WOMBAT is an open-source model that can be used to obtain cost estimates for operations and maintenance of land-based or offshore wind power plants. The software was designed to be flexible and modular to allow for implementation of new strategies and technological innovations for wind plant maintenance. WOMBAT uses a process-based simulation approach to model day-to-day operations, repairs, and weather conditions. High-level outputs from WOMBAT, including time-based availability and annual operating costs, are found to agree with published results from other models.},
       doi = {10.2172/1894867},
       url = {https://www.osti.gov/biblio/1894867},
       place = {United States},
@@ -63,6 +62,12 @@ rob.hammond@nrel.gov.
 
 Latest Changes?
 ---------------
+
+As of v0.7, a series of bug fixes in the operating reduction and servicing status result
+in downtime and layout impacts that are accurately modeled. Put simply,
+``operation_reduction > 0`` can have significant impacts on availability and energy
+production, and should be used carefully.
+
 Please see the CHANGELOG for details!
 
 * On this site: https://wisdem.github.io/WOMBAT/changelog.html
@@ -72,12 +77,12 @@ Please see the CHANGELOG for details!
 The Model in 30 Seconds Or Less
 -------------------------------
 
-In general, the model has 2 overarching branches: the windfarm itself, and the
-simulation environment. For the wind farm model we can control the varying assets
-(system in the code)--substations, turbines, and cables--as well as the components that
-comprise each asset (subassemblies in the code). This separation allows for each
-turbine, cable, or substation component to have its own unique failure and maintenance
-models.
+In general, the model has 2 overarching branches: the windfarm itself (the technology
+strategy), and the simulation environment (the maintenance strategy). For the wind farm
+model we can control the varying assets (system in the code)--substations, turbines, and
+cables--as well as the components that comprise each asset (subassemblies in the code).
+This separation allows for each turbine, cable, or substation component to have its own
+unique failure and maintenance models.
 
 As for the environment, this is where the discrete event simulation itself happens, in
 addition to logging, repair logic, and other necessary modeling pieces. The image
