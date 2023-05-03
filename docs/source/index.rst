@@ -77,12 +77,12 @@ Please see the CHANGELOG for details!
 The Model in 30 Seconds Or Less
 -------------------------------
 
-In general, the model has 2 overarching branches: the windfarm itself, and the
-simulation environment. For the wind farm model we can control the varying assets
-(system in the code)--substations, turbines, and cables--as well as the components that
-comprise each asset (subassemblies in the code). This separation allows for each
-turbine, cable, or substation component to have its own unique failure and maintenance
-models.
+In general, the model has 2 overarching branches: the windfarm itself (the technology
+strategy), and the simulation environment (the maintenance strategy). For the wind farm
+model we can control the varying assets (system in the code)--substations, turbines, and
+cables--as well as the components that comprise each asset (subassemblies in the code).
+This separation allows for each turbine, cable, or substation component to have its own
+unique failure and maintenance models.
 
 As for the environment, this is where the discrete event simulation itself happens, in
 addition to logging, repair logic, and other necessary modeling pieces. The image
