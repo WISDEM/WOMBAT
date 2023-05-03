@@ -405,23 +405,28 @@ class Maintenance(FromDictMixin):
         Cost of materials required to perform maintenance, in USD.
     frequency : float
         Optimal number of days between performing maintenance, in days.
-    service_equipment: Union[List[str], str]
-        Any combination of the ``Equipment.capability`` options.
-         - RMT: remote (no actual equipment BUT no special implementation)
-         - DRN: drone
-         - CTV: crew transfer vessel/vehicle
-         - SCN: small crane (i.e., field support vessel)
-         - LCN: large crane (i.e., heavy lift vessel)
-         - CAB: cabling vessel/vehicle
-         - DSV: diving support vessel
-         - TOW: tugboat or towing equipment
-         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
+    service_equipment: list[str] | str
+        Any combination of th following ``Equipment.capability`` options.
+
+        - RMT: remote (no actual equipment BUT no special implementation)
+        - DRN: drone
+        - CTV: crew transfer vessel/vehicle
+        - SCN: small crane (i.e., field support vessel)
+        - LCN: large crane (i.e., heavy lift vessel)
+        - CAB: cabling vessel/vehicle
+        - DSV: diving support vessel
+        - TOW: tugboat or towing equipment
+        - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
     system_value : Union[int, float]
         Turbine replacement value. Used if the materials cost is a proportional cost.
     description : str
         A short text description to be used for logging.
     operation_reduction : float
         Performance reduction caused by the failure, between (0, 1]. Defaults to 0.
+
+        .. warning:: As of v0.7, availability is very sensitive to the usage of this
+            parameter, and so it should be used carefully.
+
     level : int, optional
         Severity level of the maintenance. Defaults to 0.
     """
@@ -486,20 +491,25 @@ class Failure(FromDictMixin):
         Cost of the materials required to complete the repair, in $USD.
     operation_reduction : float
         Performance reduction caused by the failure, between (0, 1].
+
+        .. warning:: As of v0.7, availability is very sensitive to the usage of this
+            parameter, and so it should be used carefully.
+
     level : int, optional
         Level of severity, will be generated in the ``ComponentData.create_severities``
         method.
-    service_equipment: Union[List[str], str]
-        Any combination of the ``Equipment.capability`` options.
-         - RMT: remote (no actual equipment BUT no special implementation)
-         - DRN: drone
-         - CTV: crew transfer vessel/vehicle
-         - SCN: small crane (i.e., field support vessel)
-         - LCN: large crane (i.e., heavy lift vessel)
-         - CAB: cabling vessel/vehicle
-         - DSV: diving support vessel
-         - TOW: tugboat or towing equipment
-         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
+    service_equipment: list[str] | str
+        Any combination of the following ``Equipment.capability`` options:
+
+        - RMT: remote (no actual equipment BUT no special implementation)
+        - DRN: drone
+        - CTV: crew transfer vessel/vehicle
+        - SCN: small crane (i.e., field support vessel)
+        - LCN: large crane (i.e., heavy lift vessel)
+        - CAB: cabling vessel/vehicle
+        - DSV: diving support vessel
+        - TOW: tugboat or towing equipment
+        - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
     system_value : Union[int, float]
         Turbine replacement value. Used if the materials cost is a proportional cost.
     replacement : bool
