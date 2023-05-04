@@ -425,8 +425,16 @@ class WombatEnvironment(simpy.Environment):
             timestamp_parsers=[
                 "%m/%d/%y %H:%M",
                 "%m/%d/%y %I:%M",
+                "%m/%d/%y %H:%M:%S",
+                "%m/%d/%y %I:%M:%S",
                 "%m/%d/%Y %H:%M",
                 "%m/%d/%Y %I:%M",
+                "%m/%d/%Y %H:%M:%S",
+                "%m/%d/%Y %I:%M:%S",
+                "%Y-%m-%d %H:%M",
+                "%Y-%m-%d %I:%M",
+                "%Y-%m-%d %H:%M:%S",
+                "%Y-%m-%d %I:%M:%S",
             ]
         )
         weather = (
