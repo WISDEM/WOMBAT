@@ -1905,6 +1905,26 @@ class Metrics:
             .sort_index()
         )
 
+        # Summarize the time to first repair/maintenance activity
+        submitted_df = (
+            events_valid.loc[
+                events_valid.action.isin(("repair request", "maintenance request")),
+                ["request_id", "env_time"],
+            ]
+            .set_index("request_id")
+            .sort_index()
+        )
+        action_df = (
+            events_valid.loc[
+                events_valid.action.isin(("repair", "maintenance")),
+                ["request_id", "env_time"],
+            ]
+            .groupby("request_id")
+            .min()
+            .sort_index()
+        )
+        time_to_repair_df = action_df.subtract(submitted_df, axis="index")
+
         # Create the timing dataframe
         timing = pd.DataFrame([], index=request_df_min.index)
         timing = timing.join(reason_df[["reason"]]).rename(
@@ -1924,6 +1944,9 @@ class Metrics:
             .join(downtime_df_max[["env_time"]], lsuffix="_min", rsuffix="_max")
             .diff(axis=1)[["env_time_max"]]
             .rename(columns={"env_time_max": "downtime"})
+        )
+        timing = timing.join(
+            time_to_repair_df.rename(columns={"env_time": "time_to_start"})
         )
         timing["N"] = 1
 
