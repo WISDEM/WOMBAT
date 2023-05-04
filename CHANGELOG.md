@@ -1,4 +1,4 @@
-## Unreleased (TBD)
+## v0.7.1 (4 May 2023)
 - Features
   - `Metrics.process_times()` now includes the time_to_start, representing the time between when a request is submitted, and when the repairs officially start.
 
