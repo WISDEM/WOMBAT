@@ -1084,7 +1084,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     )
     port_distance: float = field(default=0.0, converter=float)
     onsite: bool = field(default=False, converter=bool)
-    method: str = field(  # type: ignore
+    method: str = field(
         default="severity",
         converter=[str, str.lower],
         validator=attrs.validators.in_(["turbine", "severity"]),
