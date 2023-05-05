@@ -747,7 +747,7 @@ class DateLimitsMixin:
             return
         if distance <= 0:
             return
-        if self.port_distance <= 0:  # type: ignore
+        if self.port_distance <= 0:
             object.__setattr__(self, "port_distance", float(distance))
 
     def _compare_dates(
@@ -1307,7 +1307,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     )
     strategy_threshold: int | float = field(default=-1, converter=float)
     charter_days: int = field(
-        default=-1, converter=int, validator=attrs.validators.gt(0)  # type: ignore
+        default=-1, converter=int, validator=attrs.validators.gt(0)
     )
     tow_speed: float = field(default=1, converter=float, validator=greater_than_zero)
     unmoor_hours: int | float = field(default=0, converter=float)
@@ -2055,7 +2055,8 @@ class WindFarmMap:
             lists are returned. These are bifurcated in lists of lists for each string
             if ``by_string=True``
         """
-        turbines, cables = [], []
+        turbines = []
+        cables = []
         substation_map = self.substation_map[substation]
         start_nodes = substation_map.string_starts
         for start_node in start_nodes:
