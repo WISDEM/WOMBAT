@@ -358,22 +358,23 @@ class Cable:
                 except simpy.Interrupt:
                     remainder -= self.env.now
 
-            if TYPE_CHECKING:
-                assert isinstance(hours_to_next, (int, float))  # mypy helper
-            while hours_to_next > 0:  # type: ignore
-                start = -1  # Ensure an interruption before processing is caught
-                try:
-                    yield self.servicing & self.downstream_failure & self.broken
+            else:
+                if TYPE_CHECKING:
+                    assert isinstance(hours_to_next, (int, float))  # mypy helper
+                while hours_to_next > 0:  # type: ignore
+                    start = -1  # Ensure an interruption before processing is caught
+                    try:
+                        yield self.servicing & self.downstream_failure & self.broken
 
-                    start = self.env.now
-                    yield self.env.timeout(hours_to_next)
-                    hours_to_next = 0
-                    self.trigger_request(failure)
-                except simpy.Interrupt:
-                    if not self.broken.triggered:
-                        # Restart after fixing
+                        start = self.env.now
+                        yield self.env.timeout(hours_to_next)
                         hours_to_next = 0
-                    else:
-                        # A different process failed, so subtract the elapsed time
-                        # only if it had started to be processed
-                        hours_to_next -= 0 if start == -1 else self.env.now - start
+                        self.trigger_request(failure)
+                    except simpy.Interrupt:
+                        if not self.broken.triggered:
+                            # Restart after fixing
+                            hours_to_next = 0
+                        else:
+                            # A different process failed, so subtract the elapsed time
+                            # only if it had started to be processed
+                            hours_to_next -= 0 if start == -1 else self.env.now - start
