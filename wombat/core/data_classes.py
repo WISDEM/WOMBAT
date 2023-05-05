@@ -437,7 +437,7 @@ class Maintenance(FromDictMixin):
     materials: float = field(converter=float)
     frequency: float = field(converter=float)
     service_equipment: list[str] = field(
-        converter=convert_to_list_upper,  # type: ignore
+        converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
             iterable_validator=attrs.validators.instance_of(list),
@@ -455,11 +455,6 @@ class Maintenance(FromDictMixin):
         requirement to a list.
         """
         object.__setattr__(self, "frequency", self.frequency * HOURS_IN_DAY)
-        # object.__setattr__(
-        #     self,
-        #     "service_equipment",
-        #     convert_to_list(self.service_equipment, str.upper),
-        # )
         object.__setattr__(
             self,
             "materials",
@@ -528,7 +523,7 @@ class Failure(FromDictMixin):
     operation_reduction: float = field(converter=float)
     level: int = field(converter=int)
     service_equipment: list[str] | str = field(
-        converter=convert_to_list_upper,  # type: ignore
+        converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
             iterable_validator=attrs.validators.instance_of(list),
@@ -1065,9 +1060,9 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     name: str = field(converter=str)
     equipment_rate: float = field(converter=float)
     n_crews: int = field(converter=int)
-    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
+    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)
     capability: list[str] = field(
-        converter=convert_to_list_upper,  # type: ignore
+        converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
             iterable_validator=attrs.validators.instance_of(list),
@@ -1091,7 +1086,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     onsite: bool = field(default=False, converter=bool)
     method: str = field(  # type: ignore
         default="severity",
-        converter=[str, str.lower],  # type: ignore
+        converter=[str, str.lower],
         validator=attrs.validators.in_(["turbine", "severity"]),
     )
     start_month: int = field(
@@ -1277,9 +1272,9 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     name: str = field(converter=str)
     equipment_rate: float = field(converter=float)
     n_crews: int = field(converter=int)
-    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
+    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)
     capability: list[str] = field(
-        converter=convert_to_list_upper,  # type: ignore
+        converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
             iterable_validator=attrs.validators.instance_of(list),
@@ -1302,7 +1297,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     onsite: bool = field(default=False, converter=bool)
     method: str = field(  # type: ignore
         default="severity",
-        converter=[str, str.lower],  # type: ignore
+        converter=[str, str.lower],
         validator=attrs.validators.in_(["turbine", "severity"]),
     )
     strategy: str | None = field(
@@ -1661,7 +1656,7 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
 
     name: str = field(converter=str)
     tugboats: list[str | Path] = field(converter=convert_to_list)
-    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
+    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)
     n_crews: int = field(default=1, converter=int)
     max_operations: int = field(default=1, converter=int)
     workday_start: int = field(default=-1, converter=int, validator=valid_hour)
