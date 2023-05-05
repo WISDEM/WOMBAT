@@ -369,19 +369,21 @@ class FromDictMixin:
             cls : Any
                 The `attrs`-defined class.
         """
+        if TYPE_CHECKING:
+            assert hasattr(cls, "__attrs_attrs__")
         # Get all parameters from the input dictionary that map to the class init
-        kwargs = {  # type: ignore
-            a.name: data[a.name]  # type: ignore
-            for a in cls.__attrs_attrs__  # type: ignore
-            if a.name in data and a.init  # type: ignore
+        kwargs = {
+            a.name: data[a.name]
+            for a in cls.__attrs_attrs__
+            if a.name in data and a.init
         }
 
         # Map the inputs that must be provided:
         # 1) must be initialized
         # 2) no default value defined
-        required_inputs = [  # type: ignore
-            a.name  # type: ignore
-            for a in cls.__attrs_attrs__  # type: ignore
+        required_inputs = [
+            a.name
+            for a in cls.__attrs_attrs__
             if a.init and isinstance(a.default, attr._make._Nothing)  # type: ignore
         ]
         undefined = sorted(set(required_inputs) - set(kwargs))
@@ -390,7 +392,7 @@ class FromDictMixin:
                 f"The class defintion for {cls.__name__} is missing the following"
                 f" inputs: {undefined}"
             )
-        return cls(**kwargs)  # type: ignore
+        return cls(**kwargs)
 
 
 @define(frozen=True, auto_attribs=True)
