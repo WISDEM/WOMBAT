@@ -84,7 +84,10 @@ class RepairManager(FilterStore):
             # Shouldn't be possible to get here!
             raise ValueError("Invalid servicing equipment!")
 
-        assert isinstance(service_equipment.settings, UnscheduledServiceEquipmentData)
+        if TYPE_CHECKING:
+            assert isinstance(
+                service_equipment.settings, UnscheduledServiceEquipmentData
+            )
         strategy_threshold = service_equipment.settings.strategy_threshold
         if isinstance(capability, list):
             for c in capability:
@@ -386,7 +389,8 @@ class RepairManager(FilterStore):
             return None
 
         # Filter the requests by equipment capability and return the first valid request
-        assert isinstance(equipment_capability, set)
+        if TYPE_CHECKING:
+            assert isinstance(equipment_capability, set)
         for request in requests:
             if equipment_capability.intersection(request.details.service_equipment):
                 # If this is the first request for the system, make sure no other

@@ -10,7 +10,7 @@ operates on a strict shift scheduling basis.
 from __future__ import annotations
 
 import logging
-from typing import Generator
+from typing import TYPE_CHECKING, Generator
 from pathlib import Path
 
 import numpy as np
@@ -113,7 +113,8 @@ class Port(RepairsMixin, FilterStore):
                     "DeprecationWarning: In v0.8, all port configurations must be"
                     " located in: '<library>/project/port/"
                 )
-        assert isinstance(config, dict)
+        if TYPE_CHECKING:
+            assert isinstance(config, dict)
         self.settings = PortConfig.from_dict(config)
 
         self._check_working_hours(which="env")
@@ -132,7 +133,8 @@ class Port(RepairsMixin, FilterStore):
         )
 
         # Instantiate the crews, tugboats, and turbine availability
-        assert isinstance(self.settings, PortConfig)
+        if TYPE_CHECKING:
+            assert isinstance(self.settings, PortConfig)
         self.turbine_manager = simpy.Resource(env, self.settings.max_operations)
         self.crew_manager = simpy.Resource(env, self.settings.n_crews)
 
@@ -155,7 +157,8 @@ class Port(RepairsMixin, FilterStore):
 
     def _log_annual_fee(self):
         """Logs the annual port lease fee on a monthly-basis."""
-        assert isinstance(self.settings, PortConfig)
+        if TYPE_CHECKING:
+            assert isinstance(self.settings, PortConfig)
         monthly_fee = self.settings.annual_fee / 12.0
         ix_month_starts = self.env.weather.index.day == 1  # 1st of the month
         ix_month_starts &= self.env.weather.index.hour == 0  # at midnight
@@ -471,7 +474,8 @@ class Port(RepairsMixin, FilterStore):
             and (not x.dispatched)
             and x.settings.capability != ["TOW"]
         )
-        assert isinstance(vessel, ServiceEquipment)  # mypy: helper
+        if TYPE_CHECKING:
+            assert isinstance(vessel, ServiceEquipment)  # mypy: helper
         request = yield self.manager.get(lambda x: x == request)
         yield self.env.process(vessel.in_situ_repair(request))
 

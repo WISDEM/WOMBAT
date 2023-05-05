@@ -5,6 +5,7 @@ import logging
 import warnings
 from copy import deepcopy
 from math import fsum
+from typing import TYPE_CHECKING
 from pathlib import Path
 from itertools import product
 
@@ -176,10 +177,12 @@ class Metrics:
             self.fixed_costs = FixedCosts.from_dict({"operations": 0})  # type: ignore
         else:
             try:
-                assert isinstance(fixed_costs, str)
+                if TYPE_CHECKING:
+                    assert isinstance(fixed_costs, str)
                 fixed_costs = load_yaml(self.data_dir / "project/config", fixed_costs)
             except FileNotFoundError:
-                assert isinstance(fixed_costs, str)
+                if TYPE_CHECKING:
+                    assert isinstance(fixed_costs, str)
                 fixed_costs = load_yaml(self.data_dir / "windfarm", fixed_costs)
                 logging.warning(
                     "DeprecationWarning: In v0.8, all fixed cost configurations must be"
@@ -388,7 +391,8 @@ class Metrics:
         self.years = sorted(self.production.year.unique())
 
         # Let mypy know that I know what I'm doing
-        assert isinstance(self.financial_model, PySAM.Singleowner.Singleowner)
+        if TYPE_CHECKING:
+            assert isinstance(self.financial_model, PySAM.Singleowner.Singleowner)
 
         # Replace the coded generation with modeled generation
         self.financial_model.FinancialParameters.analysis_period = len(self.years)
@@ -1182,11 +1186,13 @@ class Metrics:
                 tug_sums = pd.DataFrame(tug_sums_by_direction.sum()).T
             else:
                 tug_sums = tug_sums_by_direction.reset_index().groupby(total_cols).sum()
-            assert isinstance(tug_sums, pd.DataFrame)  # mypy checking
+            if TYPE_CHECKING:
+                assert isinstance(tug_sums, pd.DataFrame)  # mypy checking
             tug_sums = tug_sums.rename(
                 columns={t: f"{t}_total_tows" for t in tug_sums.columns}
             )
-            assert isinstance(tug_sums, pd.DataFrame)  # mypy checking
+            if TYPE_CHECKING:
+                assert isinstance(tug_sums, pd.DataFrame)  # mypy checking
             total = pd.DataFrame(
                 tug_sums.sum(axis=1), columns=["total_tows"]
             ).reset_index()

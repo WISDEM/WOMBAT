@@ -611,7 +611,8 @@ class SubassemblyData(FromDictMixin):
         objects, respectively.
         """
         for kwargs in self.maintenance:
-            assert isinstance(kwargs, dict)
+            if TYPE_CHECKING:
+                assert isinstance(kwargs, dict)
             kwargs.update({"system_value": self.system_value})
         object.__setattr__(
             self,
@@ -623,7 +624,8 @@ class SubassemblyData(FromDictMixin):
         )
 
         for kwargs in self.failures.values():  # type: ignore
-            assert isinstance(kwargs, dict)
+            if TYPE_CHECKING:
+                assert isinstance(kwargs, dict)
             kwargs.update({"system_value": self.system_value})
         object.__setattr__(
             self,
@@ -943,7 +945,8 @@ class DateLimitsMixin:
         object.__setattr__(self, "reduced_speed_dates_set", set(dates))
 
         # Update the reduced speed if none was originally provided
-        assert hasattr(self, "reduced_speed")  # mypy helper
+        if TYPE_CHECKING:
+            assert hasattr(self, "reduced_speed")  # mypy helper
         if speed != 0 and (self.reduced_speed == 0 or speed < self.reduced_speed):
             object.__setattr__(self, "reduced_speed", speed)
 

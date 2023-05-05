@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 import datetime
+from typing import TYPE_CHECKING
 from pathlib import Path
 
 import yaml
@@ -241,7 +242,8 @@ class Simulation(FromDictMixin):
         """
         if isinstance(config, (str, Path)):
             config = Path(config).resolve()  # type: ignore
-            assert isinstance(config, Path)  # mypy helper
+            if TYPE_CHECKING:
+                assert isinstance(config, Path)  # mypy helper
             config = load_yaml(config.parent, config.name)
         if isinstance(config, dict):
             config = Configuration.from_dict(config)
@@ -249,7 +251,8 @@ class Simulation(FromDictMixin):
             raise TypeError(
                 "``config`` must be a dictionary or ``Configuration`` object!"
             )
-        assert isinstance(config, Configuration)  # mypy helper
+        if TYPE_CHECKING:
+            assert isinstance(config, Configuration)  # mypy helper
         # NOTE: mypy is not caught up with attrs yet :(
         return cls(config.library, config)  # type: ignore
 

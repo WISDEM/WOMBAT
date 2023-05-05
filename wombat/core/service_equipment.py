@@ -386,7 +386,8 @@ class ServiceEquipment(RepairsMixin):
         float
             The maximum speed the servicing equipment should be traveling/towing at.
         """
-        assert hasattr(self.settings, "reduced_speed_dates_set")
+        if TYPE_CHECKING:
+            assert hasattr(self.settings, "reduced_speed_dates_set")
         speed = self.settings.tow_speed if tow else self.settings.speed  # type: ignore
         if self.env.simulation_time.date() in self.settings.reduced_speed_dates_set:
             if speed > self.settings.reduced_speed:
@@ -522,7 +523,8 @@ class ServiceEquipment(RepairsMixin):
             A Timeout event for the number of hours between when the function is called
             and when the next operational period starts.
         """
-        assert isinstance(self.settings, ScheduledServiceEquipmentData)
+        if TYPE_CHECKING:
+            assert isinstance(self.settings, ScheduledServiceEquipmentData)
         current = self.env.simulation_time.date()
         ix_match = np.where(current < self.settings.operating_dates)[0]
         if ix_match.size > 0:
@@ -965,8 +967,9 @@ class ServiceEquipment(RepairsMixin):
                 raise ValueError("`distance` must be provided if `hours` is provided.")
 
         # MyPy helpers
-        assert isinstance(distance, (int, float))
-        assert isinstance(hours, (float, int))
+        if TYPE_CHECKING:
+            assert isinstance(distance, (int, float))
+            assert isinstance(hours, (float, int))
 
         # If the the equipment will arive after the shift is over, then it must travel
         # back to port (if needed), and wait for the next shift
@@ -1244,7 +1247,8 @@ class ServiceEquipment(RepairsMixin):
             Yields a timeout event for the unmooring/reconnection once an uninterrupted
             weather window can be found.
         """
-        assert isinstance(self.settings, UnscheduledServiceEquipmentData)  # mypy check
+        if TYPE_CHECKING:
+            assert isinstance(self.settings, UnscheduledServiceEquipmentData)
         which = which.lower().strip()
         if which == "unmoor":
             hours_to_process = self.settings.unmoor_hours
@@ -1559,7 +1563,8 @@ class ServiceEquipment(RepairsMixin):
         Generator[Process, None, None]
             The simulation.
         """
-        assert isinstance(self.settings, ScheduledServiceEquipmentData)  # mypy controls
+        if TYPE_CHECKING:
+            assert isinstance(self.settings, ScheduledServiceEquipmentData)
 
         # If the starting operation date is the same as the simulations, set to onsite
         if self.settings.operating_dates[0] == self.env.simulation_time.date():
@@ -1633,7 +1638,8 @@ class ServiceEquipment(RepairsMixin):
             The simulation
         """
         self.dispatched = True
-        assert isinstance(self.settings, UnscheduledServiceEquipmentData)  # mypy helper
+        if TYPE_CHECKING:
+            assert isinstance(self.settings, UnscheduledServiceEquipmentData)
         mobilization_days = self.settings.mobilization_days
         charter_end_env_time = self.settings.charter_days * HOURS_IN_DAY
         charter_end_env_time += mobilization_days * HOURS_IN_DAY
