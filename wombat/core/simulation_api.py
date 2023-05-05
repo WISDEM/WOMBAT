@@ -193,7 +193,9 @@ class Simulation(FromDictMixin):
             try:
                 value = load_yaml(self.library_path / "project/config", value)
             except FileNotFoundError:
-                value = load_yaml(self.library_path / "config", value)  # type: ignore
+                if TYPE_CHECKING:
+                    assert isinstance(value, (str, Path))
+                value = load_yaml(self.library_path / "config", value)
                 logging.warning(
                     "DeprecationWarning: In v0.8, all project configurations must be"
                     " located in: '<library>/project/config/"
@@ -241,7 +243,7 @@ class Simulation(FromDictMixin):
             A ready-to-run ``Simulation`` object.
         """
         if isinstance(config, (str, Path)):
-            config = Path(config).resolve()  # type: ignore
+            config = Path(config).resolve()
             if TYPE_CHECKING:
                 assert isinstance(config, Path)  # mypy helper
             config = load_yaml(config.parent, config.name)
