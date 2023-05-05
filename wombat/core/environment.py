@@ -721,7 +721,7 @@ class WombatEnvironment(simpy.Environment):
 
     def power_production_potential_to_csv(  # type: ignore
         self,
-        windfarm: wombat.windfarm.Windfarm,  # type: ignore
+        windfarm: wombat.windfarm.Windfarm,
         operations: pd.DataFrame | None = None,
         return_df: bool = True,
     ) -> tuple[pd.DataFrame, pd.DataFrame]:
