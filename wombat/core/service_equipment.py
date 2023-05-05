@@ -388,7 +388,8 @@ class ServiceEquipment(RepairsMixin):
         """
         if TYPE_CHECKING:
             assert hasattr(self.settings, "reduced_speed_dates_set")
-        speed = self.settings.tow_speed if tow else self.settings.speed  # type: ignore
+            assert hasattr(self.settings, "tow_speed")
+        speed = self.settings.tow_speed if tow else self.settings.speed
         if self.env.simulation_time.date() in self.settings.reduced_speed_dates_set:
             if speed > self.settings.reduced_speed:
                 speed = self.settings.reduced_speed
@@ -430,7 +431,7 @@ class ServiceEquipment(RepairsMixin):
             turbine = farm.system(tid)
             turbine.cable_failure.succeed()
             for tid, cid in zip_longest(nodes, cables, fillvalue=None):  # type: ignore
-                if cid is not None:
+                if cid is not None:  # type: ignore
                     cable = farm.cable(cid)
                     cable.downstream_failure.succeed()
                     if not cable.broken.triggered:
@@ -447,7 +448,7 @@ class ServiceEquipment(RepairsMixin):
             # cables until another cable failure is encoountered, then move to the next
             # string
             for t_list, c_list in zip(cable.upstream_nodes, cable.upstream_cables):
-                for t, c in zip_longest(t_list, c_list, fillvalue=None):  # type: ignore
+                for t, c in zip_longest(t_list, c_list, fillvalue=None):
                     if c is not None:
                         cable = farm.cable(c)
                         if not cable.broken.triggered:
@@ -577,7 +578,7 @@ class ServiceEquipment(RepairsMixin):
             and when the next operational period starts.
         """
         mobilization_hours = self.settings.mobilization_days * HOURS_IN_DAY
-        yield self.env.process(  # type: ignore
+        yield self.env.process(
             self.wait_until_next_operational_period(
                 less_mobilization_hours=mobilization_hours
             )
@@ -979,7 +980,7 @@ class ServiceEquipment(RepairsMixin):
             kw = {
                 "additional": "insufficient time to complete travel before end of the shift"  # noqa: disabl#501
             }
-            kw.update(kwargs)
+            kw.update(kwargs)  # type: ignore
             yield self.env.process(
                 self.travel(start=start, end="port", **kw)  # type: ignore
             )
@@ -1290,7 +1291,7 @@ class ServiceEquipment(RepairsMixin):
                 )
             )
             yield self.env.process(
-                self.mooring_connection(system, request, which=which)  # type: ignore
+                self.mooring_connection(system, request, which=which)
             )
             return
 
@@ -1485,7 +1486,7 @@ class ServiceEquipment(RepairsMixin):
                 # Ensure this gets the correct float hours to the start of the target
                 # hour, unless the hours to process is between (0, 1]
                 yield self.env.process(
-                    self.process_repair(  # type: ignore
+                    self.process_repair(
                         hours_to_process, request.details, **shared_logging
                     )
                 )
@@ -1643,7 +1644,7 @@ class ServiceEquipment(RepairsMixin):
         mobilization_days = self.settings.mobilization_days
         charter_end_env_time = self.settings.charter_days * HOURS_IN_DAY
         charter_end_env_time += mobilization_days * HOURS_IN_DAY
-        charter_end_env_time += self.env.now  # type: ignore
+        charter_end_env_time += self.env.now
 
         current = self.env.simulation_time
         charter_start = current + pd.Timedelta(mobilization_days, "D")
@@ -1671,7 +1672,7 @@ class ServiceEquipment(RepairsMixin):
                 additional="waiting for next operational period",
                 duration=hours_to_next,
             )
-            yield self.env.timeout(hours_to_next)  # type: ignore
+            yield self.env.timeout(hours_to_next)
             yield self.env.process(self.run_unscheduled_in_situ(request))
             return
 
@@ -1835,7 +1836,7 @@ class ServiceEquipment(RepairsMixin):
             )
         )
         yield self.env.process(
-            self.mooring_connection(system, request, which="reconnect")  # type: ignore
+            self.mooring_connection(system, request, which="reconnect")
         )
 
         # Reset the turbine back to operating and return to port
