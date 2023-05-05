@@ -108,7 +108,9 @@ class Port(RepairsMixin, FilterStore):
             try:
                 config = load_yaml(env.data_dir / "project/port", config)
             except FileNotFoundError:
-                config = load_yaml(env.data_dir / "repair", config)  # type: ignore
+                if TYPE_CHECKING:
+                    assert isinstance(config, (str, Path))
+                config = load_yaml(env.data_dir / "repair", config)
                 logging.warning(
                     "DeprecationWarning: In v0.8, all port configurations must be"
                     " located in: '<library>/project/port/"
@@ -201,7 +203,7 @@ class Port(RepairsMixin, FilterStore):
 
         # Request a service crew
         crew_request = self.crew_manager.request()
-        yield crew_request  # type: ignore
+        yield crew_request
 
         # Once a crew is available, process the acutal repair
         # Get the shift parameters
@@ -407,10 +409,13 @@ class Port(RepairsMixin, FilterStore):
                 additional="waiting for next operational period",
                 duration=hours_to_next,
             )
-            yield self.env.timeout(hours_to_next)  # type: ignore
+            yield self.env.timeout(hours_to_next)
 
         self.requests_serviced.update([request.request_id])
-        yield self.env.process(tugboat.run_tow_to_port(request))  # type: ignore
+
+        if TYPE_CHECKING:
+            assert isinstance(tugboat, ServiceEquipment)
+        yield self.env.process(tugboat.run_tow_to_port(request))
 
         # Make the tugboat available again
         yield self.service_equipment_manager.put(tugboat)
@@ -428,7 +433,7 @@ class Port(RepairsMixin, FilterStore):
             and "TOW" in x.settings.capability
         )
         self.turbine_manager.release(turbine_request)
-        yield self.env.process(tugboat.run_tow_to_site(request))  # type: ignore
+        yield self.env.process(tugboat.run_tow_to_site(request))
         self.invalid_systems.pop(self.invalid_systems.index(request.system_id))
 
         # Make the tugboat available again
