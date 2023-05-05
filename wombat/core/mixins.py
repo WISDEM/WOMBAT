@@ -5,7 +5,7 @@ different types of classes.
 from __future__ import annotations
 
 import datetime
-from typing import Generator
+from typing import TYPE_CHECKING, Generator
 from functools import partial
 
 import numpy as np
@@ -73,8 +73,10 @@ class RepairsMixin:
             start = self.env.workday_start
             end = self.env.workday_end
         elif which == "port":
-            start = self.port.settings.workday_start  # type: ignore
-            end = self.port.settings.workday_end  # type: ignore
+            if TYPE_CHECKING:
+                assert hasattr(self, "port")
+            start = self.port.settings.workday_start
+            end = self.port.settings.workday_end
         else:
             raise ValueError(
                 "Can only set the workday settings from a 'port' or 'env'."
