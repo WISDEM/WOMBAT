@@ -5,6 +5,7 @@ import logging
 import warnings
 from copy import deepcopy
 from math import fsum
+from typing import TYPE_CHECKING
 from pathlib import Path
 from itertools import product
 
@@ -40,15 +41,16 @@ def _check_frequency(frequency: str, which: str = "all") -> str:
     ValueError
         Raised if an invalid value was raised
     """
+    opts: tuple[str, ...]
     if which == "all":
-        opts = ("project", "annual", "monthly", "month-year")  # type: ignore
+        opts = ("project", "annual", "monthly", "month-year")
     elif which == "monthly":
-        opts = ("project", "annual", "monthly")  # type: ignore
-    elif which == "annual":  # type: ignore
-        opts = ("project", "annual")  # type: ignore
-    frequency = frequency.lower().strip()  # type: ignore
+        opts = ("project", "annual", "monthly")
+    elif which == "annual":
+        opts = ("project", "annual")
+    frequency = frequency.lower().strip()
     if frequency not in opts:
-        raise ValueError(f"``frequency`` must be one of {opts}.")  # type: ignore
+        raise ValueError(f"``frequency`` must be one of {opts}.")
     return frequency
 
 
@@ -173,19 +175,23 @@ class Metrics:
 
         if fixed_costs is None:
             # Create a zero-cost FixedCosts object
-            self.fixed_costs = FixedCosts.from_dict({"operations": 0})  # type: ignore
+            self.fixed_costs = FixedCosts.from_dict({"operations": 0})
         else:
             try:
-                assert isinstance(fixed_costs, str)
+                if TYPE_CHECKING:
+                    assert isinstance(fixed_costs, str)
                 fixed_costs = load_yaml(self.data_dir / "project/config", fixed_costs)
             except FileNotFoundError:
-                assert isinstance(fixed_costs, str)
+                if TYPE_CHECKING:
+                    assert isinstance(fixed_costs, str)
                 fixed_costs = load_yaml(self.data_dir / "windfarm", fixed_costs)
                 logging.warning(
                     "DeprecationWarning: In v0.8, all fixed cost configurations must be"
                     " located in: '<library>/project/config/"
                 )
-            self.fixed_costs = FixedCosts.from_dict(fixed_costs)  # type: ignore
+            if TYPE_CHECKING:
+                assert isinstance(fixed_costs, dict)
+            self.fixed_costs = FixedCosts.from_dict(fixed_costs)
 
         if isinstance(substation_id, str):
             substation_id = [substation_id]
@@ -388,7 +394,8 @@ class Metrics:
         self.years = sorted(self.production.year.unique())
 
         # Let mypy know that I know what I'm doing
-        assert isinstance(self.financial_model, PySAM.Singleowner.Singleowner)
+        if TYPE_CHECKING:
+            assert isinstance(self.financial_model, PySAM.Singleowner.Singleowner)
 
         # Replace the coded generation with modeled generation
         self.financial_model.FinancialParameters.analysis_period = len(self.years)
@@ -443,8 +450,11 @@ class Metrics:
             availability = _calculate_time_availability(hourly, by_turbine=by_turbine)
             if not by_turbine:
                 return pd.DataFrame([availability], columns=["windfarm"])
+
+            if TYPE_CHECKING:
+                assert isinstance(availability, np.ndarray)
             availability = pd.DataFrame(
-                availability.reshape(1, -1), columns=self.turbine_id  # type: ignore
+                availability.reshape(1, -1), columns=self.turbine_id
             )
             return availability
         elif frequency == "annual":
@@ -559,9 +569,7 @@ class Metrics:
             columns = [by]
         return pd.DataFrame(production / potential, columns=columns)
 
-    def capacity_factor(  # type: ignore
-        self, which: str, frequency: str, by: str
-    ) -> pd.DataFrame:
+    def capacity_factor(self, which: str, frequency: str, by: str) -> pd.DataFrame:
         """Calculates the capacity factor over a project's lifetime as a single value,
         annual average, or monthly average for the whole windfarm or by turbine.
 
@@ -1182,11 +1190,13 @@ class Metrics:
                 tug_sums = pd.DataFrame(tug_sums_by_direction.sum()).T
             else:
                 tug_sums = tug_sums_by_direction.reset_index().groupby(total_cols).sum()
-            assert isinstance(tug_sums, pd.DataFrame)  # mypy checking
+            if TYPE_CHECKING:
+                assert isinstance(tug_sums, pd.DataFrame)  # mypy checking
             tug_sums = tug_sums.rename(
                 columns={t: f"{t}_total_tows" for t in tug_sums.columns}
             )
-            assert isinstance(tug_sums, pd.DataFrame)  # mypy checking
+            if TYPE_CHECKING:
+                assert isinstance(tug_sums, pd.DataFrame)  # mypy checking
             total = pd.DataFrame(
                 tug_sums.sum(axis=1), columns=["total_tows"]
             ).reset_index()
@@ -2234,5 +2244,5 @@ class Metrics:
         financials = pd.DataFrame(
             financials, index=descriptions, dtype=float, columns=["Value"]
         )
-        financials.index.name = "Metric"  # type: ignore
+        financials.index.name = "Metric"
         return financials

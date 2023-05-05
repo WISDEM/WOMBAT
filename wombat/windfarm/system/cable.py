@@ -1,7 +1,7 @@
 """"Defines the Cable class and cable simulations."""
 from __future__ import annotations
 
-from typing import Generator
+from typing import TYPE_CHECKING, Generator
 from itertools import zip_longest
 
 import numpy as np
@@ -212,7 +212,8 @@ class Cable:
             )
 
         for t_id, c_id in zip_longest(upstream_nodes, upstream_cables, fillvalue=None):
-            assert isinstance(t_id, str)
+            if TYPE_CHECKING:
+                assert isinstance(t_id, str)
             turbine = self.windfarm.system(t_id)
             turbine.cable_failure = self.env.event()
             turbine.interrupt_all_subassembly_processes()
@@ -357,7 +358,8 @@ class Cable:
                 except simpy.Interrupt:
                     remainder -= self.env.now
 
-            assert isinstance(hours_to_next, (int, float))  # mypy helper
+            if TYPE_CHECKING:
+                assert isinstance(hours_to_next, (int, float))  # mypy helper
             while hours_to_next > 0:  # type: ignore
                 start = -1  # Ensure an interruption before processing is caught
                 try:

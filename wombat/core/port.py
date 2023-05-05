@@ -10,7 +10,7 @@ operates on a strict shift scheduling basis.
 from __future__ import annotations
 
 import logging
-from typing import Generator
+from typing import TYPE_CHECKING, Generator
 from pathlib import Path
 
 import numpy as np
@@ -108,12 +108,15 @@ class Port(RepairsMixin, FilterStore):
             try:
                 config = load_yaml(env.data_dir / "project/port", config)
             except FileNotFoundError:
-                config = load_yaml(env.data_dir / "repair", config)  # type: ignore
+                if TYPE_CHECKING:
+                    assert isinstance(config, (str, Path))
+                config = load_yaml(env.data_dir / "repair", config)
                 logging.warning(
                     "DeprecationWarning: In v0.8, all port configurations must be"
                     " located in: '<library>/project/port/"
                 )
-        assert isinstance(config, dict)
+        if TYPE_CHECKING:
+            assert isinstance(config, dict)
         self.settings = PortConfig.from_dict(config)
 
         self._check_working_hours(which="env")
@@ -132,7 +135,8 @@ class Port(RepairsMixin, FilterStore):
         )
 
         # Instantiate the crews, tugboats, and turbine availability
-        assert isinstance(self.settings, PortConfig)
+        if TYPE_CHECKING:
+            assert isinstance(self.settings, PortConfig)
         self.turbine_manager = simpy.Resource(env, self.settings.max_operations)
         self.crew_manager = simpy.Resource(env, self.settings.n_crews)
 
@@ -155,7 +159,8 @@ class Port(RepairsMixin, FilterStore):
 
     def _log_annual_fee(self):
         """Logs the annual port lease fee on a monthly-basis."""
-        assert isinstance(self.settings, PortConfig)
+        if TYPE_CHECKING:
+            assert isinstance(self.settings, PortConfig)
         monthly_fee = self.settings.annual_fee / 12.0
         ix_month_starts = self.env.weather.index.day == 1  # 1st of the month
         ix_month_starts &= self.env.weather.index.hour == 0  # at midnight
@@ -198,7 +203,7 @@ class Port(RepairsMixin, FilterStore):
 
         # Request a service crew
         crew_request = self.crew_manager.request()
-        yield crew_request  # type: ignore
+        yield crew_request
 
         # Once a crew is available, process the acutal repair
         # Get the shift parameters
@@ -404,10 +409,13 @@ class Port(RepairsMixin, FilterStore):
                 additional="waiting for next operational period",
                 duration=hours_to_next,
             )
-            yield self.env.timeout(hours_to_next)  # type: ignore
+            yield self.env.timeout(hours_to_next)
 
         self.requests_serviced.update([request.request_id])
-        yield self.env.process(tugboat.run_tow_to_port(request))  # type: ignore
+
+        if TYPE_CHECKING:
+            assert isinstance(tugboat, ServiceEquipment)
+        yield self.env.process(tugboat.run_tow_to_port(request))
 
         # Make the tugboat available again
         yield self.service_equipment_manager.put(tugboat)
@@ -425,7 +433,7 @@ class Port(RepairsMixin, FilterStore):
             and "TOW" in x.settings.capability
         )
         self.turbine_manager.release(turbine_request)
-        yield self.env.process(tugboat.run_tow_to_site(request))  # type: ignore
+        yield self.env.process(tugboat.run_tow_to_site(request))
         self.invalid_systems.pop(self.invalid_systems.index(request.system_id))
 
         # Make the tugboat available again
@@ -471,7 +479,8 @@ class Port(RepairsMixin, FilterStore):
             and (not x.dispatched)
             and x.settings.capability != ["TOW"]
         )
-        assert isinstance(vessel, ServiceEquipment)  # mypy: helper
+        if TYPE_CHECKING:
+            assert isinstance(vessel, ServiceEquipment)  # mypy: helper
         request = yield self.manager.get(lambda x: x == request)
         yield self.env.process(vessel.in_situ_repair(request))
 

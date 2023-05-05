@@ -369,19 +369,21 @@ class FromDictMixin:
             cls : Any
                 The `attrs`-defined class.
         """
+        if TYPE_CHECKING:
+            assert hasattr(cls, "__attrs_attrs__")
         # Get all parameters from the input dictionary that map to the class init
-        kwargs = {  # type: ignore
-            a.name: data[a.name]  # type: ignore
-            for a in cls.__attrs_attrs__  # type: ignore
-            if a.name in data and a.init  # type: ignore
+        kwargs = {
+            a.name: data[a.name]
+            for a in cls.__attrs_attrs__
+            if a.name in data and a.init
         }
 
         # Map the inputs that must be provided:
         # 1) must be initialized
         # 2) no default value defined
-        required_inputs = [  # type: ignore
-            a.name  # type: ignore
-            for a in cls.__attrs_attrs__  # type: ignore
+        required_inputs = [
+            a.name
+            for a in cls.__attrs_attrs__
             if a.init and isinstance(a.default, attr._make._Nothing)  # type: ignore
         ]
         undefined = sorted(set(required_inputs) - set(kwargs))
@@ -390,7 +392,7 @@ class FromDictMixin:
                 f"The class defintion for {cls.__name__} is missing the following"
                 f" inputs: {undefined}"
             )
-        return cls(**kwargs)  # type: ignore
+        return cls(**kwargs)
 
 
 @define(frozen=True, auto_attribs=True)
@@ -435,7 +437,7 @@ class Maintenance(FromDictMixin):
     materials: float = field(converter=float)
     frequency: float = field(converter=float)
     service_equipment: list[str] = field(
-        converter=convert_to_list_upper,  # type: ignore
+        converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
             iterable_validator=attrs.validators.instance_of(list),
@@ -453,11 +455,6 @@ class Maintenance(FromDictMixin):
         requirement to a list.
         """
         object.__setattr__(self, "frequency", self.frequency * HOURS_IN_DAY)
-        # object.__setattr__(
-        #     self,
-        #     "service_equipment",
-        #     convert_to_list(self.service_equipment, str.upper),
-        # )
         object.__setattr__(
             self,
             "materials",
@@ -526,7 +523,7 @@ class Failure(FromDictMixin):
     operation_reduction: float = field(converter=float)
     level: int = field(converter=int)
     service_equipment: list[str] | str = field(
-        converter=convert_to_list_upper,  # type: ignore
+        converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
             iterable_validator=attrs.validators.instance_of(list),
@@ -611,7 +608,8 @@ class SubassemblyData(FromDictMixin):
         objects, respectively.
         """
         for kwargs in self.maintenance:
-            assert isinstance(kwargs, dict)
+            if TYPE_CHECKING:
+                assert isinstance(kwargs, dict)
             kwargs.update({"system_value": self.system_value})
         object.__setattr__(
             self,
@@ -623,7 +621,8 @@ class SubassemblyData(FromDictMixin):
         )
 
         for kwargs in self.failures.values():  # type: ignore
-            assert isinstance(kwargs, dict)
+            if TYPE_CHECKING:
+                assert isinstance(kwargs, dict)
             kwargs.update({"system_value": self.system_value})
         object.__setattr__(
             self,
@@ -748,7 +747,7 @@ class DateLimitsMixin:
             return
         if distance <= 0:
             return
-        if self.port_distance <= 0:  # type: ignore
+        if self.port_distance <= 0:
             object.__setattr__(self, "port_distance", float(distance))
 
     def _compare_dates(
@@ -943,7 +942,8 @@ class DateLimitsMixin:
         object.__setattr__(self, "reduced_speed_dates_set", set(dates))
 
         # Update the reduced speed if none was originally provided
-        assert hasattr(self, "reduced_speed")  # mypy helper
+        if TYPE_CHECKING:
+            assert hasattr(self, "reduced_speed")  # mypy helper
         if speed != 0 and (self.reduced_speed == 0 or speed < self.reduced_speed):
             object.__setattr__(self, "reduced_speed", speed)
 
@@ -1060,9 +1060,9 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     name: str = field(converter=str)
     equipment_rate: float = field(converter=float)
     n_crews: int = field(converter=int)
-    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
+    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)
     capability: list[str] = field(
-        converter=convert_to_list_upper,  # type: ignore
+        converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
             iterable_validator=attrs.validators.instance_of(list),
@@ -1084,9 +1084,9 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     )
     port_distance: float = field(default=0.0, converter=float)
     onsite: bool = field(default=False, converter=bool)
-    method: str = field(  # type: ignore
+    method: str = field(
         default="severity",
-        converter=[str, str.lower],  # type: ignore
+        converter=[str, str.lower],
         validator=attrs.validators.in_(["turbine", "severity"]),
     )
     start_month: int = field(
@@ -1272,9 +1272,9 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     name: str = field(converter=str)
     equipment_rate: float = field(converter=float)
     n_crews: int = field(converter=int)
-    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
+    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)
     capability: list[str] = field(
-        converter=convert_to_list_upper,  # type: ignore
+        converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
             iterable_validator=attrs.validators.instance_of(list),
@@ -1297,7 +1297,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     onsite: bool = field(default=False, converter=bool)
     method: str = field(  # type: ignore
         default="severity",
-        converter=[str, str.lower],  # type: ignore
+        converter=[str, str.lower],
         validator=attrs.validators.in_(["turbine", "severity"]),
     )
     strategy: str | None = field(
@@ -1307,7 +1307,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     )
     strategy_threshold: int | float = field(default=-1, converter=float)
     charter_days: int = field(
-        default=-1, converter=int, validator=attrs.validators.gt(0)  # type: ignore
+        default=-1, converter=int, validator=attrs.validators.gt(0)
     )
     tow_speed: float = field(default=1, converter=float, validator=greater_than_zero)
     unmoor_hours: int | float = field(default=0, converter=float)
@@ -1656,7 +1656,7 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
 
     name: str = field(converter=str)
     tugboats: list[str | Path] = field(converter=convert_to_list)
-    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
+    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)
     n_crews: int = field(default=1, converter=int)
     max_operations: int = field(default=1, converter=int)
     workday_start: int = field(default=-1, converter=int, validator=valid_hour)
@@ -2055,7 +2055,8 @@ class WindFarmMap:
             lists are returned. These are bifurcated in lists of lists for each string
             if ``by_string=True``
         """
-        turbines, cables = [], []
+        turbines = []
+        cables = []
         substation_map = self.substation_map[substation]
         start_nodes = substation_map.string_starts
         for start_node in start_nodes:

@@ -386,8 +386,10 @@ class ServiceEquipment(RepairsMixin):
         float
             The maximum speed the servicing equipment should be traveling/towing at.
         """
-        assert hasattr(self.settings, "reduced_speed_dates_set")
-        speed = self.settings.tow_speed if tow else self.settings.speed  # type: ignore
+        if TYPE_CHECKING:
+            assert hasattr(self.settings, "reduced_speed_dates_set")
+            assert hasattr(self.settings, "tow_speed")
+        speed = self.settings.tow_speed if tow else self.settings.speed
         if self.env.simulation_time.date() in self.settings.reduced_speed_dates_set:
             if speed > self.settings.reduced_speed:
                 speed = self.settings.reduced_speed
@@ -429,7 +431,7 @@ class ServiceEquipment(RepairsMixin):
             turbine = farm.system(tid)
             turbine.cable_failure.succeed()
             for tid, cid in zip_longest(nodes, cables, fillvalue=None):  # type: ignore
-                if cid is not None:
+                if cid is not None:  # type: ignore
                     cable = farm.cable(cid)
                     cable.downstream_failure.succeed()
                     if not cable.broken.triggered:
@@ -446,7 +448,7 @@ class ServiceEquipment(RepairsMixin):
             # cables until another cable failure is encoountered, then move to the next
             # string
             for t_list, c_list in zip(cable.upstream_nodes, cable.upstream_cables):
-                for t, c in zip_longest(t_list, c_list, fillvalue=None):  # type: ignore
+                for t, c in zip_longest(t_list, c_list, fillvalue=None):
                     if c is not None:
                         cable = farm.cable(c)
                         if not cable.broken.triggered:
@@ -522,7 +524,8 @@ class ServiceEquipment(RepairsMixin):
             A Timeout event for the number of hours between when the function is called
             and when the next operational period starts.
         """
-        assert isinstance(self.settings, ScheduledServiceEquipmentData)
+        if TYPE_CHECKING:
+            assert isinstance(self.settings, ScheduledServiceEquipmentData)
         current = self.env.simulation_time.date()
         ix_match = np.where(current < self.settings.operating_dates)[0]
         if ix_match.size > 0:
@@ -575,7 +578,7 @@ class ServiceEquipment(RepairsMixin):
             and when the next operational period starts.
         """
         mobilization_hours = self.settings.mobilization_days * HOURS_IN_DAY
-        yield self.env.process(  # type: ignore
+        yield self.env.process(
             self.wait_until_next_operational_period(
                 less_mobilization_hours=mobilization_hours
             )
@@ -965,8 +968,9 @@ class ServiceEquipment(RepairsMixin):
                 raise ValueError("`distance` must be provided if `hours` is provided.")
 
         # MyPy helpers
-        assert isinstance(distance, (int, float))
-        assert isinstance(hours, (float, int))
+        if TYPE_CHECKING:
+            assert isinstance(distance, (int, float))
+            assert isinstance(hours, (float, int))
 
         # If the the equipment will arive after the shift is over, then it must travel
         # back to port (if needed), and wait for the next shift
@@ -976,7 +980,7 @@ class ServiceEquipment(RepairsMixin):
             kw = {
                 "additional": "insufficient time to complete travel before end of the shift"  # noqa: disabl#501
             }
-            kw.update(kwargs)
+            kw.update(kwargs)  # type: ignore
             yield self.env.process(
                 self.travel(start=start, end="port", **kw)  # type: ignore
             )
@@ -1244,7 +1248,8 @@ class ServiceEquipment(RepairsMixin):
             Yields a timeout event for the unmooring/reconnection once an uninterrupted
             weather window can be found.
         """
-        assert isinstance(self.settings, UnscheduledServiceEquipmentData)  # mypy check
+        if TYPE_CHECKING:
+            assert isinstance(self.settings, UnscheduledServiceEquipmentData)
         which = which.lower().strip()
         if which == "unmoor":
             hours_to_process = self.settings.unmoor_hours
@@ -1286,7 +1291,7 @@ class ServiceEquipment(RepairsMixin):
                 )
             )
             yield self.env.process(
-                self.mooring_connection(system, request, which=which)  # type: ignore
+                self.mooring_connection(system, request, which=which)
             )
             return
 
@@ -1481,7 +1486,7 @@ class ServiceEquipment(RepairsMixin):
                 # Ensure this gets the correct float hours to the start of the target
                 # hour, unless the hours to process is between (0, 1]
                 yield self.env.process(
-                    self.process_repair(  # type: ignore
+                    self.process_repair(
                         hours_to_process, request.details, **shared_logging
                     )
                 )
@@ -1559,7 +1564,8 @@ class ServiceEquipment(RepairsMixin):
         Generator[Process, None, None]
             The simulation.
         """
-        assert isinstance(self.settings, ScheduledServiceEquipmentData)  # mypy controls
+        if TYPE_CHECKING:
+            assert isinstance(self.settings, ScheduledServiceEquipmentData)
 
         # If the starting operation date is the same as the simulations, set to onsite
         if self.settings.operating_dates[0] == self.env.simulation_time.date():
@@ -1633,11 +1639,12 @@ class ServiceEquipment(RepairsMixin):
             The simulation
         """
         self.dispatched = True
-        assert isinstance(self.settings, UnscheduledServiceEquipmentData)  # mypy helper
+        if TYPE_CHECKING:
+            assert isinstance(self.settings, UnscheduledServiceEquipmentData)
         mobilization_days = self.settings.mobilization_days
         charter_end_env_time = self.settings.charter_days * HOURS_IN_DAY
         charter_end_env_time += mobilization_days * HOURS_IN_DAY
-        charter_end_env_time += self.env.now  # type: ignore
+        charter_end_env_time += self.env.now
 
         current = self.env.simulation_time
         charter_start = current + pd.Timedelta(mobilization_days, "D")
@@ -1665,7 +1672,7 @@ class ServiceEquipment(RepairsMixin):
                 additional="waiting for next operational period",
                 duration=hours_to_next,
             )
-            yield self.env.timeout(hours_to_next)  # type: ignore
+            yield self.env.timeout(hours_to_next)
             yield self.env.process(self.run_unscheduled_in_situ(request))
             return
 
@@ -1829,7 +1836,7 @@ class ServiceEquipment(RepairsMixin):
             )
         )
         yield self.env.process(
-            self.mooring_connection(system, request, which="reconnect")  # type: ignore
+            self.mooring_connection(system, request, which="reconnect")
         )
 
         # Reset the turbine back to operating and return to port

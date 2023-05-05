@@ -1,9 +1,16 @@
+## Unreleased (TBD)
+
+- All `assert` statements are now only called when type checking is performed
+- Most of the `# type: ignore` comments have been removed or the past errors have been resolved
+
 ## v0.7.1 (4 May 2023)
+
 - Features
   - `Metrics.process_times()` now includes the time_to_start, representing the time between when a request is submitted, and when the repairs officially start.
   - Expand the acceptable date formats for the weather profiles to allow for year-first.
 
 ## v0.7.0 (3 May 2023)
+
 - Replace Flake8 and Pylint in the pre-commit workflow with ruff, and fix/ignore the resulting errors as appropriate
 - Features:
   - Weather data now has the ability to contain more than just the required "windspeed" and "waveheight" columns. This will allow for easier expansion of the weather model in the future, and increase compatibility with other NREL techno economic modeling frameworks.
@@ -34,6 +41,7 @@
 
 In v0.6, due to a series of bug fixes, logic improvements, and feature additions (all described below), users can expect mild to significant shifts in their results. These shifts, while startling, move WOMBAT towards more accurate results now that servicing equipment can't be dispatched multiple times in a row, statuses can't be reset without failure. Additionally, in our validation cases this has led to an average speedup of 71%, or 3.5x faster run times.
 ### New and Updated Features
+
 - Environmental and logistics considerations via prohibited operations periods and speed reduction periods.
   - All periods can be set for each servicing equipment, or across the board when set at the environment level
   - For ports, the same logic applies where the environment can set the port variables and the port can set its associated tugboats' variables
@@ -63,6 +71,7 @@ In v0.6, due to a series of bug fixes, logic improvements, and feature additions
 - ``Failure`` now has a boolean flag for ``replacement`` to indicate if a replacement is required, which allows for operational shutdowns without necessitating a full replacement of the subassembly. Additionally, this flag enables a replacement event for non-shutdown failures.
 
 ### General Improvements
+
 - Bump Python versioning requirements to 3.8+
 - Add PyArrow dependency for fasting save/load processes for CSV reading and writing
 - Convert boolean operational statuses for `System`, `Subassembly`, `Cable`, and `ServiceEquipment` to SimPy events for more efficient processing and accurate delays for restarting
@@ -80,6 +89,7 @@ In v0.6, due to a series of bug fixes, logic improvements, and feature additions
 - Remove duplicated logic in the the ``Subassembly`` and ``Cable`` maintenance and failure modeling ensuring that repetitive logic is identical between scenarios.
 
 ## 0.5.1 (22 July 2022)
+
 - Updates to use the most recent pandas API/recommendations, which fixes numerous warnings in the `Metrics` class
 - Fixes inconsistency in returning floats vs `DataFrame`s in the  `Metrics` class
 - Updates the examples to work with the returned `DataFrame` values, and adds warnings about the change in usage
@@ -87,6 +97,7 @@ In v0.6, due to a series of bug fixes, logic improvements, and feature additions
 - Adds a potential fix to an occasional issue where the logging files can't be deleted using `WombatEnvironment.cleanup_log_files()` because the file is still considered to be in use
 
 ## 0.5.0 (30 June 2022)
+
 - Adds capabilities: "TOW" and "AHV" for tugboat/towing equipment and anchor-handling vessels
 - Adds a tow-to-port strategy that is activated for repairs with the "TOW" capability in the servicing
 - Adds a `Port` class to handle the tow-to-port class and tugboat-based service requests
@@ -105,12 +116,14 @@ In v0.6, due to a series of bug fixes, logic improvements, and feature additions
 - Fixes some results formatting inconsistencies in the `Metrics` class
 
 ## 0.4.1 (2022-March-8)
+
 - Adds code diagrams to demonstrate how the various components connect
 - Updates the documentation to be better in line with the current state of the software
 - Fixes a bug that allowed the x_metrics_inputs.yaml file to persist after the cleanup method is called.
 - Updates the provided library content structure to account for future updates
 
 ## 0.4.0 (2022-February-4)
+
 - Testing now included!
 - `pathlib.Path` is used in place of `os` throughout for easier to read file manuevering.
 - `attrs.define` and `attrs.field` have been adopted in place of `attr.s` and `attr.ib`, respectively.
