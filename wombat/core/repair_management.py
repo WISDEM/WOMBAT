@@ -198,13 +198,13 @@ class RepairManager(FilterStore):
                         break
 
                     # Dispatch-triggering request must be removed from the queue
-                    _ = self.get(lambda x: x == request)
+                    _ = self.get(lambda x: x is request)
 
                     yield self.windfarm.system(request.system_id).servicing
                     self.env.process(self.port.run_unscheduled_in_situ(request))
                 else:
                     # Dispatch-triggering request must be removed from the queue
-                    _ = self.get(lambda x: x == request)
+                    _ = self.get(lambda x: x is request)
 
                     yield self.in_process_requests.put(request)
                     self.env.process(equipment_obj.run_unscheduled_in_situ(request))
@@ -267,12 +267,12 @@ class RepairManager(FilterStore):
                         break
 
                     # Dispatch-triggering request must be removed from the queue
-                    _ = self.get(lambda x: x == request)
+                    _ = self.get(lambda x: x is request)
 
                     yield self.env.process(self.port.run_unscheduled_in_situ(request))
                 else:
                     # Dispatch-triggering request must be removed from the queue
-                    _ = self.get(lambda x: x == request)
+                    _ = self.get(lambda x: x is request)
 
                     yield self.in_process_requests.put(request)
                     yield self.env.process(
@@ -397,7 +397,7 @@ class RepairManager(FilterStore):
                 # servicing equipment can access it
                 if request.system_id not in self.invalid_systems:
                     self.invalid_systems.append(request.system_id)
-                return self.get(lambda x: x == requests[0])
+                return self.get(lambda x: x is requests[0])
 
         # There were no matching equipment requirements to match the equipment
         # attempting to retrieve its next request
@@ -450,7 +450,7 @@ class RepairManager(FilterStore):
             if request.system_id not in self.invalid_systems:
                 if equipment_capability.intersection(request.details.service_equipment):
                     self.invalid_systems.append(request.system_id)
-                    return self.get(lambda x: x == request)
+                    return self.get(lambda x: x is request)
 
         # Ensure None is returned if nothing is found in the loop just as a FilterGet
         # would if allowed to oeprate without the above looping to identify multiple
@@ -496,7 +496,7 @@ class RepairManager(FilterStore):
         if port:
             yield self.completed_requests.put(repair)
         else:
-            request = yield self.in_process_requests.get(lambda x: x == repair)
+            request = yield self.in_process_requests.get(lambda x: x is repair)
             yield self.completed_requests.put(request)
 
     def enable_requests_for_system(self, system: System | Cable) -> None:
@@ -559,7 +559,7 @@ class RepairManager(FilterStore):
                 reason="",
                 request_id=request.request_id,
             )
-            _ = self.get(lambda x: x == request)  # pylint: disable=W0640
+            _ = self.get(lambda x: x is request)  # pylint: disable=W0640
 
         return requests
 
@@ -616,7 +616,7 @@ class RepairManager(FilterStore):
                 reason="replacement required",
                 request_id=request.request_id,
             )
-            _ = self.get(lambda x: x == request)  # pylint: disable=W0640
+            _ = self.get(lambda x: x is request)  # pylint: disable=W0640
         return requests
 
     @property
