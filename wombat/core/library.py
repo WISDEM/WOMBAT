@@ -81,7 +81,7 @@ def load_yaml(path: str | Path, fname: str | Path) -> Any:
     Any
         Whatever content is in the YAML file.
     """
-    return yaml.load(open(os.path.join(path, fname), "r"), Loader=custom_loader)
+    return yaml.load(open(os.path.join(path, fname)), Loader=custom_loader)
 
 
 def create_library_structure(

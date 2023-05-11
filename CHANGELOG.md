@@ -1,3 +1,30 @@
+## v0.7.1 (4 May 2023)
+
+- Features
+  - `Metrics.process_times()` now includes the time_to_start, representing the time between when a request is submitted, and when the repairs officially start.
+  - Expand the acceptable date formats for the weather profiles to allow for year-first.
+
+## v0.7.0 (3 May 2023)
+
+- Replace Flake8 and Pylint in the pre-commit workflow with ruff, and fix/ignore the resulting errors as appropriate
+- Features:
+  - Weather data now has the ability to contain more than just the required "windspeed" and "waveheight" columns. This will allow for easier expansion of the weather model in the future, and increase compatibility with other NREL techno economic modeling frameworks.
+- Bug fixes:
+  - Maintenance and failure simulation process interruptions were occuring prior to starting the process timing, and causing simulation failures.
+  - Duplicated parameters were being processed in `WombatEnvironment.log_action` stemming from improper handling of varying parameters in some of the more complex control flow logic in *in situ* repairs.
+  - Another edge case of negative delays during crew transfers where there is insufficient time remaining in the shift after account for weather, so the method was called recursively, but not exiting the original loop.
+  - `Port` managment of *in situ* and tow-to-port capable tugboats wasn't properly accounting for tugboats of varying capabilities, and assuming all tugboats could do both. The vessel management and repair processing were out of sync causing duplicated turbine servicing/towing.
+  - `RepairManager` has consolidated the dispatching of servicing equipment to be the following categories instead of the previously complex logic:
+    - If a request is a tow-to-port category, have the port initiate the process
+    - If the dispatching thresholds are met, then have the port initiate a repair for port-based servicing equipment, otherwise the repair manager will dispatch the appropriate servicing equipment.
+  - `ServiceEquipment.weather_delay()` no longer silently processes a second weather delay.
+  - Intra-site travel is now correctly logging the distance and duration of traveling between systems at the site by moving the location setting logic out of `crew_transfer` method and being entirely maintained within, or next to, the `travel` method of `ServiceEquipment`.
+  - `RepairManager` now properly waits to dispatch servicing equipment until they are no longer under service from another servicing equipment unit.
+  - Servicing equipment are no longer simultaneously dispatched from both the `Port` and `RepairManager` causing simulations to potentially error out when the `System.servicing` or `Cable.servicing` statuses are overridden by the second-in-line servicing equipment. This was resolved by the port waiting for the turbine, a tugboat, and a spot at port to become available, then immediately halting the turbine, and starting the tow-in logic.
+  - Missing `ServiceEquipment.dispatched` status updates have been amended, so no matter the operation, a piece of servicing equipment should be set to `dispatched = True` until the crew is back and repair is completed.
+  - To avoid multiple dispatches to a single turbine, cable, or substation, or multiple dispatches of a single vessel/onsite equipment, a random timeout between 0 and 30 seconds (in simulation time) is processed, then a status double-checking occurs.
+  - `Metrics.process_times()` now includes the "N" column to indicate the number of processes that fall into each category.
+
 ## v0.6.2 (3 February 2023)
 - Warnings from Pandas `.groupby()` calls have been silenced by shifting the column filtering to before the groupby method call.
 - Fixed the towing to port logging message, and subsequent `Metrics.number_of_tows()` search criteria to correctly calculate the number of tows in each direction.

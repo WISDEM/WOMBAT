@@ -1,4 +1,4 @@
-"""Provides unit tests for the `System` class"""
+"""Provides unit tests for the `System` class."""
 import numpy as np
 import pytest
 import numpy.testing as npt
@@ -12,7 +12,6 @@ from tests.conftest import (
     VESTAS_POWER_CURVE,
     VESTAS_V90_1_SUBASSEMBLY,
     VESTAS_V90_NO_SUBASSEMBLY,
-    env_setup,
 )
 
 

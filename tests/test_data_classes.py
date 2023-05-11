@@ -12,7 +12,6 @@ import numpy.testing as npt
 
 from wombat.core.library import load_yaml
 from wombat.core.data_classes import (
-    VALID_EQUIPMENT,
     Failure,
     FixedCosts,
     Maintenance,
@@ -32,7 +31,6 @@ from wombat.core.data_classes import (
     greater_than_zero,
     clean_string_input,
     convert_to_list_lower,
-    convert_to_list_upper,
     convert_ratio_to_absolute,
 )
 
@@ -46,7 +44,6 @@ from tests.conftest import (
 
 def test_convert_to_list():
     """Tests ``convert_to_list``."""
-
     # Tests for int conversion to list[int]
     correct_conversion = [1]
     assert convert_to_list(1) == correct_conversion
@@ -102,7 +99,6 @@ def test_annual_date_range_good_endpoints():
 
 def test_convert_ratio_to_absolute():
     """Tests ``convert_ratio_to_absolute``."""
-
     # Test for <= 1
     ratio = 0.9
     total = 100
@@ -215,7 +211,7 @@ def test_FromDictMixin():
         z: list[str] = attr.ib(default=["empty"], converter=convert_to_list_lower)
 
     # Test for default values
-    inputs = dict(x=2)
+    inputs = {"x": 2}
     cls = DictClass.from_dict(inputs)
     assert cls == DictClass(x=2)
     assert cls.x == 2
@@ -224,7 +220,7 @@ def test_FromDictMixin():
 
     # Test custom inputs and that kwarg overloading is allowed without storing
     # the extra inputs
-    inputs = dict(x=3, y=3.2, z=["one", "two"], arr=[3, 4, 5.5])
+    inputs = {"x": 3, "y": 3.2, "z": ["one", "two"], "arr": [3, 4, 5.5]}
     cls = DictClass.from_dict(inputs)
     assert inputs["x"] == cls.x
     assert inputs["y"] == cls.y
@@ -239,15 +235,15 @@ def test_FromDictMixin():
 def test_Maintenance():
     """Tests the `Maintenance` class."""
     # Test for all inputs being provided and converted
-    inputs_all = dict(
-        description="test",
-        time=14,
-        materials=100,
-        frequency=200,
-        service_equipment="ctv",
-        operation_reduction=0.5,
-        system_value=100000,
-    )
+    inputs_all = {
+        "description": "test",
+        "time": 14,
+        "materials": 100,
+        "frequency": 200,
+        "service_equipment": "ctv",
+        "operation_reduction": 0.5,
+        "system_value": 100000,
+    }
     cls = Maintenance.from_dict(inputs_all)
     assert cls.description == "test"
     assert cls.time == 14.0
@@ -258,13 +254,13 @@ def test_Maintenance():
     assert cls.system_value == 100000.0
 
     # Test for default values being populated
-    inputs_defaults = dict(
-        time=14,
-        materials=100,
-        frequency=200,
-        service_equipment="ctv",
-        system_value=100000,
-    )
+    inputs_defaults = {
+        "time": 14,
+        "materials": 100,
+        "frequency": 200,
+        "service_equipment": "ctv",
+        "system_value": 100000,
+    }
     cls = Maintenance.from_dict(inputs_defaults)
     class_data = attr.fields_dict(Maintenance)
     assert cls.description == class_data["description"].default
@@ -276,15 +272,15 @@ def test_Maintenance():
     assert cls.system_value == 100000.0
 
     # Test for proportional materials cost, relative to system value
-    inputs_system_value = dict(
-        description="test",
-        time=14,
-        materials=0.25,
-        frequency=200,
-        service_equipment=["ctv", "dsv"],
-        operation_reduction=0.5,
-        system_value=100000,
-    )
+    inputs_system_value = {
+        "description": "test",
+        "time": 14,
+        "materials": 0.25,
+        "frequency": 200,
+        "service_equipment": ["ctv", "dsv"],
+        "operation_reduction": 0.5,
+        "system_value": 100000,
+    }
     cls = Maintenance.from_dict(inputs_system_value)
     assert cls.description == "test"
     assert cls.time == 14.0
@@ -307,17 +303,17 @@ def test_Maintenance():
 def test_Failure():
     """Tests the `Failure` class."""
     # Test that all inputs work
-    inputs_all = dict(
-        scale=0.2,
-        shape=1.0,
-        time=45,
-        materials=200,
-        operation_reduction=0.2,
-        level=0,
-        service_equipment="lcn",
-        system_value=100000,
-        description="test",
-    )
+    inputs_all = {
+        "scale": 0.2,
+        "shape": 1.0,
+        "time": 45,
+        "materials": 200,
+        "operation_reduction": 0.2,
+        "level": 0,
+        "service_equipment": "lcn",
+        "system_value": 100000,
+        "description": "test",
+    }
     np.random.seed(0)
     cls = Failure.from_dict(inputs_all)
     assert cls.scale == 0.2
@@ -332,16 +328,16 @@ def test_Failure():
     assert cls.hours_to_next_failure() == 1394.372138301769
 
     # Test that the default values work
-    inputs_all = dict(
-        scale=0.2,
-        shape=1.0,
-        time=45,
-        materials=200,
-        operation_reduction=0.2,
-        level=0,
-        service_equipment="lcn",
-        system_value=100000,
-    )
+    inputs_all = {
+        "scale": 0.2,
+        "shape": 1.0,
+        "time": 45,
+        "materials": 200,
+        "operation_reduction": 0.2,
+        "level": 0,
+        "service_equipment": "lcn",
+        "system_value": 100000,
+    }
     cls = Failure.from_dict(inputs_all)
     class_data = attr.fields_dict(Failure)
     assert cls.scale == 0.2
@@ -355,16 +351,16 @@ def test_Failure():
     assert cls.description == class_data["description"].default
 
     # Test that the proportional materials cost works
-    inputs_all = dict(
-        scale=0.2,
-        shape=1.0,
-        time=45,
-        materials=0.01,
-        operation_reduction=0.2,
-        level=0,
-        service_equipment="lcn",
-        system_value=100000,
-    )
+    inputs_all = {
+        "scale": 0.2,
+        "shape": 1.0,
+        "time": 45,
+        "materials": 0.01,
+        "operation_reduction": 0.2,
+        "level": 0,
+        "service_equipment": "lcn",
+        "system_value": 100000,
+    }
     cls = Failure.from_dict(inputs_all)
     class_data = attr.fields_dict(Failure)
     assert cls.scale == 0.2
@@ -383,30 +379,30 @@ def test_Failure():
     assert cls.request_id == correct_id
 
     # Test for a missing value
-    inputs_missing = dict(
-        shape=1.0,
-        time=45,
-        materials=200,
-        operation_reduction=0.2,
-        level=0,
-        service_equipment="lcn",
-        system_value=100000,
-    )
+    inputs_missing = {
+        "shape": 1.0,
+        "time": 45,
+        "materials": 200,
+        "operation_reduction": 0.2,
+        "level": 0,
+        "service_equipment": "lcn",
+        "system_value": 100000,
+    }
     with pytest.raises(AttributeError):
         Failure.from_dict(inputs_missing)
 
     # Tests that with no weibull parameters, no timeouts will happen
-    inputs_all = dict(
-        scale=0.0,
-        shape=0.0,
-        time=45,
-        materials=200,
-        operation_reduction=0.2,
-        level=0,
-        service_equipment="lcn",
-        system_value=100000,
-        description="test",
-    )
+    inputs_all = {
+        "scale": 0.0,
+        "shape": 0.0,
+        "time": 45,
+        "materials": 200,
+        "operation_reduction": 0.2,
+        "level": 0,
+        "service_equipment": "lcn",
+        "system_value": 100000,
+        "description": "test",
+    }
     cls = Failure.from_dict(inputs_all)
     assert cls.hours_to_next_failure() is None
 
@@ -432,7 +428,7 @@ def test_SubassemblyData():
     assert subassembly.system_value == GENERATOR_SUBASSEMBLY["system_value"]
     assert len(subassembly.maintenance) == N_maintenance
 
-    # Set the request ID for all maintenance tasks to initialize them and avoid an AttributeError
+    # Set the request ID for all maintenance tasks to avoid an AttributeError
     request = "M0000001"
     for m in maintenance_list:
         m.assign_id(request_id=request)
@@ -442,7 +438,7 @@ def test_SubassemblyData():
     assert len(subassembly.failures) == N_failure
     assert [*subassembly.failures] == failure_levels
 
-    # Set the request ID for all failure tasks to initialize them and avoid an AttributeError
+    # Set the request ID for all failure tasks to avoid an AttributeError
     request = "R000000"
     for i, level in enumerate(failure_dict):
         rid = f"{request}{i}"
@@ -452,20 +448,20 @@ def test_SubassemblyData():
 
 
 def test_RepairRequest():
-    """Tests the `RepairRequest` class"""
+    """Tests the `RepairRequest` class."""
     failure = GENERATOR_SUBASSEMBLY["failures"][1]
     maintenance = GENERATOR_SUBASSEMBLY["maintenance"][0]
 
     # Test for a failure repair request
-    request = dict(
-        system_id="WTG-01",
-        system_name="turbine 1",
-        subassembly_id="generator",
-        subassembly_name="generator",
-        severity_level=failure["level"],
-        details=Failure.from_dict(failure),
-        cable=1,
-    )
+    request = {
+        "system_id": "WTG-01",
+        "system_name": "turbine 1",
+        "subassembly_id": "generator",
+        "subassembly_name": "generator",
+        "severity_level": failure["level"],
+        "details": Failure.from_dict(failure),
+        "cable": 1,
+    }
     cls = RepairRequest.from_dict(request)
     assert cls.system_id == request["system_id"]
     assert cls.system_name == request["system_name"]
@@ -482,14 +478,14 @@ def test_RepairRequest():
     assert cls.details == request["details"]
 
     # Test for a maintenance repair request and default cable value
-    request = dict(
-        system_id="WTG-01",
-        system_name="turbine 1",
-        subassembly_id="generator",
-        subassembly_name="generator",
-        severity_level=0,
-        details=Maintenance.from_dict(maintenance),
-    )
+    request = {
+        "system_id": "WTG-01",
+        "system_name": "turbine 1",
+        "subassembly_id": "generator",
+        "subassembly_name": "generator",
+        "severity_level": 0,
+        "details": Maintenance.from_dict(maintenance),
+    }
     cls = RepairRequest.from_dict(request)
     assert cls.system_id == request["system_id"]
     assert cls.system_name == request["system_name"]
@@ -506,21 +502,21 @@ def test_RepairRequest():
     assert cls.details == request["details"]
 
     # Test that details needs to be a Maintenance or Failure class
-    request = dict(
-        system_id="WTG-01",
-        system_name="turbine 1",
-        subassembly_id="generator",
-        subassembly_name="generator",
-        severity_level=0,
-        details="",
-    )
+    request = {
+        "system_id": "WTG-01",
+        "system_name": "turbine 1",
+        "subassembly_id": "generator",
+        "subassembly_name": "generator",
+        "severity_level": 0,
+        "details": "",
+    }
     with pytest.raises(TypeError):
         cls = RepairRequest.from_dict(request)
 
 
 def test_ServiceCrew():
     """Tests the `ServiceCrew` class."""
-    inputs = dict(n_day_rate=4, day_rate=100, n_hourly_rate=10, hourly_rate=6.1)
+    inputs = {"n_day_rate": 4, "day_rate": 100, "n_hourly_rate": 10, "hourly_rate": 6.1}
     crew = ServiceCrew.from_dict(inputs)
     assert crew.n_day_rate == 4
     assert crew.n_hourly_rate == 10
@@ -530,7 +526,6 @@ def test_ServiceCrew():
 
 def test_ServiceEquipmentData_determine_type():
     """Tests the creation of the servicing equipment data classes."""
-
     # Test creation with requests strategy as kwarg
     vessel = ServiceEquipmentData(
         UNSCHEDULED_VESSEL_REQUESTS, strategy="requests"
@@ -582,8 +577,7 @@ def test_ServiceEquipmentData_determine_type():
 
 
 def test_BaseServiceEquipmentData():
-    """Tests the basic setups common to scheduled and unscheduled servicing equipment."""
-
+    """Tests the basic setups common to un/scheduled servicing equipment."""
     # Test that no start/end dates produce empty date sets
     vessel = ScheduledServiceEquipmentData.from_dict(SCHEDULED_VESSEL)
 
@@ -643,8 +637,7 @@ def test_BaseServiceEquipmentData():
 
 
 def test_ScheduledServiceEquipmentData():
-    """Tests the creation of the values of the ScheduledServicingEquipmentData object."""
-
+    """Tests the initialized attributes of ScheduledServicingEquipmentData."""
     # Test that provided values are correctly mapped
     vessel = ScheduledServiceEquipmentData.from_dict(SCHEDULED_VESSEL)
     assert vessel.name == SCHEDULED_VESSEL["name"]
@@ -737,8 +730,7 @@ def test_ScheduledServiceEquipmentData():
 
 
 def test_UnscheduledServiceEquipmentData():
-    """Tests the creation of the values of the UnscheduledServicingEquipmentData object."""
-
+    """Tests the initialized attributes of UnscheduledServicingEquipmentData."""
     # Test that provided values are correctly mapped for the requests-based equipment
     vessel = UnscheduledServiceEquipmentData.from_dict(UNSCHEDULED_VESSEL_REQUESTS)
     assert vessel.name == UNSCHEDULED_VESSEL_REQUESTS["name"]
@@ -852,7 +844,7 @@ def test_UnscheduledServiceEquipmentData():
 
 
 def test_FixedCosts_operations_provided():
-    """Tests high resolution inptus go to 0 when `operations` is provided"""
+    """Tests high resolution inptus go to 0 when `operations` is provided."""
     high_res = FixedCosts(
         operations=100,  # should be 100
         operations_management_administration=100,

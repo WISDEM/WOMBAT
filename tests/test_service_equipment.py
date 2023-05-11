@@ -10,25 +10,22 @@ from wombat.core.library import load_yaml
 from wombat.core.data_classes import (
     VALID_EQUIPMENT,
     Maintenance,
-    StrategyMap,
     EquipmentMap,
     RepairRequest,
 )
 from wombat.core.repair_management import RepairManager
 from wombat.core.service_equipment import ServiceEquipment, consecutive_groups
 
-from tests.conftest import TEST_DATA, env_setup, env_setup_full_profile
-
 
 def get_items_by_description(
     manager: RepairManager, description: str
 ) -> list[RepairRequest]:
-    """Convenience function that gets all items in the repair manager by description."""
+    """Get all items in the repair manager by description."""
     return [el for el in manager.items if el.details.description == description]
 
 
 def test_consecutive_groups():
-    """Tests the ``consecutive_groups`` function in a similar way that this would be used."""
+    """Test the consecutive_groups function in a similar way that this would be used."""
     all_clear = np.array(
         [True, True, False, True, True, True, False, True, True, True, True, False]
     )
@@ -48,6 +45,7 @@ def test_consecutive_groups():
 
 
 def test_service_equipment_init(env_setup):
+    """Test the ServiceEquipment initialization."""
     env = env_setup
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout.csv", manager)
@@ -67,6 +65,7 @@ def test_service_equipment_init(env_setup):
     assert not ctv.enroute
     assert not ctv.at_system
     assert not ctv.at_port
+    assert not ctv.at_site
     assert ctv.current_system is None
 
     # Check that the starting and ending year is the same as the input file
@@ -89,6 +88,7 @@ def test_service_equipment_init(env_setup):
     assert not ctv.onsite
     assert not ctv.enroute
     assert not ctv.at_system
+    assert not ctv.at_site
     assert not ctv.at_port
     assert ctv.current_system is None
 
@@ -113,6 +113,7 @@ def test_service_equipment_init(env_setup):
     assert not hlv.onsite
     assert not hlv.enroute
     assert not hlv.at_system
+    assert not hlv.at_site
     assert not hlv.at_port
     assert hlv.current_system is None
 
@@ -145,6 +146,7 @@ def test_service_equipment_init(env_setup):
     assert not hlv.onsite
     assert not hlv.enroute
     assert not hlv.at_system
+    assert not hlv.at_site
     assert not hlv.at_port
     assert hlv.current_system is None
 
@@ -165,7 +167,7 @@ def test_service_equipment_init(env_setup):
 
 
 def test_port_distance_setup(env_setup):
-    """Tests that the environment port_distance is passed through correctly."""
+    """Test that the environment port_distance is passed through correctly."""
     env = env_setup
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout.csv", manager)
@@ -198,7 +200,7 @@ def test_port_distance_setup(env_setup):
 
 
 def test_calculate_salary_cost(env_setup):
-    """Tests the ``calculate_salary_cost`` method."""
+    """Test the ``calculate_salary_cost`` method."""
     env = env_setup
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout.csv", manager)
@@ -219,7 +221,7 @@ def test_calculate_salary_cost(env_setup):
 
 
 def test_calculate_hourly_cost(env_setup):
-    """Tests the ``calculate_hourly_cost`` method."""
+    """Test the ``calculate_hourly_cost`` method."""
     env = env_setup
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout.csv", manager)
@@ -238,7 +240,7 @@ def test_calculate_hourly_cost(env_setup):
 
 
 def test_calculate_equipment_cost(env_setup):
-    """Tests the ``calculate_equipment_cost`` method."""
+    """Test the ``calculate_equipment_cost`` method."""
     env = env_setup
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout.csv", manager)
@@ -256,7 +258,7 @@ def test_calculate_equipment_cost(env_setup):
 
 
 def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
-    """ "Test the simulation logic of a scheduled CTV."""
+    """Test the simulation logic of a scheduled CTV."""
     env = env_setup_full_profile
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout_simulation.csv", manager)
@@ -272,14 +274,16 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     env.run(1)
     assert (
         ctv.at_port
+        is ctv.at_site
         is ctv.at_system
         is ctv.transferring_crew
         is ctv.enroute
-        is (not ctv.onsite)
+        is ctv.onsite
         is False
     )
     assert (
         fsv.at_port
+        is fsv.at_site
         is fsv.at_system
         is fsv.transferring_crew
         is fsv.enroute
@@ -288,6 +292,7 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     )
     assert (
         hlv.at_port
+        is hlv.at_site
         is hlv.at_system
         is hlv.transferring_crew
         is hlv.enroute
@@ -300,14 +305,16 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     env.run(7)
     assert (
         ctv.at_port
+        is ctv.at_site
         is ctv.at_system
         is ctv.transferring_crew
         is ctv.enroute
-        is (not ctv.onsite)
+        is ctv.onsite
         is False
     )
     assert (
         fsv.at_port
+        is fsv.at_site
         is fsv.at_system
         is fsv.transferring_crew
         is fsv.enroute
@@ -316,6 +323,7 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     )
     assert (
         hlv.at_port
+        is hlv.at_site
         is hlv.at_system
         is hlv.transferring_crew
         is hlv.enroute
@@ -334,11 +342,12 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     # time to check for operations to be running and inspect every step of the task
     timeout += 6 + 1 / 60  # Shift start is 7AM, but it's already 1AM
     env.run(timeout + 0.01)
-    assert ctv.onsite is ctv.at_system is ctv.transferring_crew is True
+    assert ctv.onsite is ctv.at_site is ctv.at_system is ctv.transferring_crew is True
     assert not ctv.enroute
     assert ctv.current_system == "S00T1"
     assert (
         fsv.at_port
+        is fsv.at_site
         is fsv.at_system
         is fsv.onsite
         is fsv.enroute
@@ -347,6 +356,7 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     )
     assert (
         hlv.at_port
+        is hlv.at_site
         is hlv.at_system
         is hlv.onsite
         is hlv.enroute
@@ -354,29 +364,30 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
         is False
     )
 
-    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended early
+    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended
     timeout += 13 / 60
     env.run(timeout)
-    assert ctv.transferring_crew is ctv.onsite is ctv.at_system is True
+    assert ctv.transferring_crew is ctv.at_site is ctv.at_system is True
     assert ctv.current_system == "S00T1"
     assert not ctv.enroute
 
     # Move to the end of the 15 minute to ensure the transfer is complete
     timeout += 2 / 60
     env.run(timeout)
-    assert ctv.onsite is ctv.at_system is True
+    assert ctv.at_site is ctv.at_system is True
     assert ctv.current_system == "S00T1"
-    assert ctv.enroute is ctv.transferring_crew is False
+    assert ctv.enroute is ctv.at_port is ctv.transferring_crew is False
 
     # The weather window is clear on 1/16/2002, so there will not be weather delays, so
     # the CTV should be transferring the crew back onto the vessel
     timeout += 1
     env.run(timeout)
-    assert ctv.onsite is ctv.at_system is ctv.transferring_crew is True
-    assert not ctv.enroute
+    assert ctv.at_site is ctv.at_system is ctv.transferring_crew is True
+    assert ctv.at_port is ctv.enroute is False
     assert ctv.current_system == "S00T1"
     assert (
         fsv.at_port
+        is fsv.at_site
         is fsv.at_system
         is fsv.onsite
         is fsv.enroute
@@ -385,6 +396,7 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     )
     assert (
         hlv.at_port
+        is hlv.at_site
         is hlv.at_system
         is hlv.onsite
         is hlv.enroute
@@ -395,9 +407,9 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     # Check the transfer is still progressing
     timeout += 13 / 60
     env.run(timeout)
-    assert ctv.transferring_crew is ctv.onsite is ctv.at_system is True
+    assert ctv.transferring_crew is ctv.at_site is ctv.at_system is True
     assert ctv.current_system == "S00T1"
-    assert not ctv.enroute
+    assert ctv.enroute is ctv.at_port is False
     assert len(manager.items) == 5
 
     ## TURBINE 2 GENERATOR CTV repair
@@ -406,33 +418,34 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     # no travel time between site objects, so the crew should be transferring again
     timeout += 2 / 60
     env.run(timeout)
-    assert ctv.onsite is ctv.at_system is ctv.transferring_crew is True
+    assert ctv.at_site is ctv.at_system is ctv.transferring_crew is True
     assert ctv.current_system == "S00T2"
-    assert ctv.enroute is False
+    assert ctv.at_port is ctv.enroute is False
 
-    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended early
+    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended
     timeout += 13 / 60
     env.run(timeout)
-    assert ctv.transferring_crew is ctv.onsite is ctv.at_system is True
+    assert ctv.transferring_crew is ctv.at_site is ctv.at_system is True
     assert ctv.current_system == "S00T2"
-    assert not ctv.enroute
+    assert ctv.at_port is ctv.enroute is False
 
     # Move to the end of the 15 minute to ensure the transfer is complete
     timeout += 2 / 60
     env.run(timeout)
-    assert ctv.onsite is ctv.at_system is True
+    assert ctv.at_site is ctv.at_system is True
     assert ctv.current_system == "S00T2"
-    assert ctv.enroute is ctv.transferring_crew is False
+    assert ctv.enroute is ctv.at_port is ctv.transferring_crew is False
 
     # The weather window is clear on 1/16/2002, so there will not be weather delays, so
     # the CTV should be transferring the crew back onto the vessel
     timeout += 1
     env.run(timeout)
-    assert ctv.onsite is ctv.at_system is ctv.transferring_crew is True
-    assert not ctv.enroute
+    assert ctv.at_site is ctv.at_system is ctv.transferring_crew is True
+    assert ctv.enroute is ctv.at_port is False
     assert ctv.current_system == "S00T2"
     assert (
         fsv.at_port
+        is fsv.at_site
         is fsv.at_system
         is fsv.onsite
         is fsv.enroute
@@ -441,6 +454,7 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     )
     assert (
         hlv.at_port
+        is hlv.at_site
         is hlv.at_system
         is hlv.onsite
         is hlv.enroute
@@ -451,9 +465,9 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     # Check the transfer is still progressing
     timeout += 13 / 60
     env.run(timeout)
-    assert ctv.transferring_crew is ctv.onsite is ctv.at_system is True
+    assert ctv.transferring_crew is ctv.at_site is ctv.at_system is True
     assert ctv.current_system == "S00T2"
-    assert not ctv.enroute
+    assert ctv.enroute is ctv.at_port is False
     assert len(manager.items) == 4
 
     ## TURBINE 3 GENERATOR CTV repair
@@ -462,33 +476,34 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     # no travel time between site objects, so the crew should be transferring again
     timeout += 2 / 60
     env.run(timeout)
-    assert ctv.onsite is ctv.at_system is ctv.transferring_crew is True
+    assert ctv.at_site is ctv.at_system is ctv.transferring_crew is True
     assert ctv.current_system == "S00T3"
-    assert ctv.enroute is False
+    assert ctv.enroute is ctv.at_port is False
 
-    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended early
+    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended
     timeout += 13 / 60
     env.run(timeout)
-    assert ctv.transferring_crew is ctv.onsite is ctv.at_system is True
+    assert ctv.transferring_crew is ctv.at_site is ctv.at_system is True
     assert ctv.current_system == "S00T3"
-    assert not ctv.enroute
+    assert ctv.enroute is ctv.at_port is False
 
     # Move to the end of the 15 minute to ensure the transfer is complete
     timeout += 2 / 60
     env.run(timeout)
-    assert ctv.onsite is ctv.at_system is True
+    assert ctv.at_site is ctv.at_system is True
     assert ctv.current_system == "S00T3"
-    assert ctv.enroute is ctv.transferring_crew is False
+    assert ctv.enroute is ctv.at_port is ctv.transferring_crew is False
 
     # The weather window is clear on 1/16/2002, so there will not be weather delays, so
     # the CTV should be transferring the crew back onto the vessel
     timeout += 1
     env.run(timeout)
-    assert ctv.onsite is ctv.at_system is ctv.transferring_crew is True
-    assert not ctv.enroute
+    assert ctv.at_site is ctv.at_system is ctv.transferring_crew is True
+    assert ctv.enroute is ctv.at_port is False
     assert ctv.current_system == "S00T3"
     assert (
         fsv.at_port
+        is fsv.at_site
         is fsv.at_system
         is fsv.onsite
         is fsv.enroute
@@ -497,6 +512,7 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     )
     assert (
         hlv.at_port
+        is hlv.at_site
         is hlv.at_system
         is hlv.onsite
         is hlv.enroute
@@ -507,9 +523,9 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     # Check the transfer is still progressing
     timeout += 13 / 60
     env.run(timeout)
-    assert ctv.transferring_crew is ctv.onsite is ctv.at_system is True
+    assert ctv.transferring_crew is ctv.at_site is ctv.at_system is True
     assert ctv.current_system == "S00T3"
-    assert not ctv.enroute
+    assert ctv.enroute is ctv.at_port is False
     assert len(manager.items) == 3
 
     ## TURBINE 4 GENERATOR CTV repair
@@ -518,16 +534,16 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     # no travel time between site objects, so the crew should be transferring again
     timeout += 2 / 60
     env.run(timeout)
-    assert ctv.onsite is ctv.at_system is ctv.transferring_crew is True
+    assert ctv.at_site is ctv.at_system is ctv.transferring_crew is True
     assert ctv.current_system == "S01T4"
-    assert ctv.enroute is False
+    assert ctv.enroute is ctv.at_port is False
 
-    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended early
+    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended
     timeout += 13 / 60
     env.run(timeout)
-    assert ctv.transferring_crew is ctv.onsite is ctv.at_system is True
+    assert ctv.transferring_crew is ctv.onsite is ctv.at_site is ctv.at_system is True
     assert ctv.current_system == "S01T4"
-    assert not ctv.enroute
+    assert ctv.enroute is ctv.at_port is False
 
     # Move to the end of the 15 minute to ensure the transfer is complete
     timeout += 2 / 60
@@ -540,11 +556,12 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     # the CTV should be transferring the crew back onto the vessel
     timeout += 1
     env.run(timeout)
-    assert ctv.onsite is ctv.at_system is ctv.transferring_crew is True
-    assert not ctv.enroute
+    assert ctv.onsite is ctv.at_site is ctv.at_system is ctv.transferring_crew is True
+    assert ctv.enroute is ctv.at_port is False
     assert ctv.current_system == "S01T4"
     assert (
         fsv.at_port
+        is fsv.at_site
         is fsv.at_system
         is fsv.onsite
         is fsv.enroute
@@ -553,6 +570,7 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     )
     assert (
         hlv.at_port
+        is hlv.at_site
         is hlv.at_system
         is hlv.onsite
         is hlv.enroute
@@ -563,9 +581,9 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     # Check the transfer is still progressing
     timeout += 13 / 60
     env.run(timeout)
-    assert ctv.transferring_crew is ctv.onsite is ctv.at_system is True
+    assert ctv.transferring_crew is ctv.onsite is ctv.at_site is ctv.at_system is True
     assert ctv.current_system == "S01T4"
-    assert not ctv.enroute
+    assert ctv.enroute is ctv.at_port is False
     assert len(manager.items) == 2
 
     ## TURBINE 5 GENERATOR CTV repair
@@ -574,33 +592,34 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     # no travel time between site objects, so the crew should be transferring again
     timeout += 2 / 60
     env.run(timeout)
-    assert ctv.onsite is ctv.at_system is ctv.transferring_crew is True
+    assert ctv.onsite is ctv.at_site is ctv.at_system is ctv.transferring_crew is True
     assert ctv.current_system == "S01T5"
-    assert ctv.enroute is False
+    assert ctv.enroute is ctv.at_port is False
 
-    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended early
+    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended
     timeout += 13 / 60
     env.run(timeout)
-    assert ctv.transferring_crew is ctv.onsite is ctv.at_system is True
+    assert ctv.transferring_crew is ctv.onsite is ctv.at_site is ctv.at_system is True
     assert ctv.current_system == "S01T5"
-    assert not ctv.enroute
+    assert ctv.enroute is ctv.at_port is False
 
     # Move to the end of the 15 minute to ensure the transfer is complete
     timeout += 2 / 60
     env.run(timeout)
-    assert ctv.onsite is ctv.at_system is True
+    assert ctv.onsite is ctv.at_site is ctv.at_system is True
     assert ctv.current_system == "S01T5"
-    assert ctv.enroute is ctv.transferring_crew is False
+    assert ctv.enroute is ctv.at_port is ctv.transferring_crew is False
 
     # The weather window is clear on 1/16/2002, so there will not be weather delays, so
     # the CTV should be transferring the crew back onto the vessel
     timeout += 1
     env.run(timeout)
-    assert ctv.onsite is ctv.at_system is ctv.transferring_crew is True
-    assert not ctv.enroute
+    assert ctv.onsite is ctv.at_site is ctv.at_system is ctv.transferring_crew is True
+    assert ctv.enroute is ctv.at_port is False
     assert ctv.current_system == "S01T5"
     assert (
         fsv.at_port
+        is fsv.at_site
         is fsv.at_system
         is fsv.onsite
         is fsv.enroute
@@ -609,6 +628,7 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     )
     assert (
         hlv.at_port
+        is hlv.at_site
         is hlv.at_system
         is hlv.onsite
         is hlv.enroute
@@ -619,9 +639,9 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     # Check the transfer is still progressing
     timeout += 13 / 60
     env.run(timeout)
-    assert ctv.transferring_crew is ctv.onsite is ctv.at_system is True
+    assert ctv.transferring_crew is ctv.onsite is ctv.at_site is ctv.at_system is True
     assert ctv.current_system == "S01T5"
-    assert not ctv.enroute
+    assert ctv.enroute is ctv.at_port is False
     assert len(manager.items) == 1
 
     ## TURBINE 6 GENERATOR CTV repair
@@ -630,21 +650,21 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     # no travel time between site objects, so the crew should be transferring again
     timeout += 2 / 60
     env.run(timeout)
-    assert ctv.onsite is ctv.at_system is ctv.transferring_crew is True
+    assert ctv.onsite is ctv.at_site is ctv.at_system is ctv.transferring_crew is True
     assert ctv.current_system == "S01T6"
-    assert ctv.enroute is False
+    assert ctv.enroute is ctv.at_port is False
 
-    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended early
+    # Move to just before the 15 minute transfer is complete to ensure it hasn't ended
     timeout += 13 / 60
     env.run(timeout)
-    assert ctv.transferring_crew is ctv.onsite is ctv.at_system is True
+    assert ctv.transferring_crew is ctv.onsite is ctv.at_site is ctv.at_system is True
     assert ctv.current_system == "S01T6"
-    assert not ctv.enroute
+    assert ctv.enroute is ctv.at_port is False
 
     # Move to the end of the 15 minute to ensure the transfer is complete
     timeout += 2 / 60
     env.run(timeout)
-    assert ctv.onsite is ctv.at_system is True
+    assert ctv.at_site is ctv.at_system is True
     assert ctv.current_system == "S01T6"
     assert ctv.enroute is ctv.transferring_crew is False
 
@@ -652,11 +672,12 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     # the CTV should be transferring the crew back onto the vessel
     timeout += 1
     env.run(timeout)
-    assert ctv.onsite is ctv.at_system is ctv.transferring_crew is True
-    assert not ctv.enroute
+    assert ctv.onsite is ctv.at_site is ctv.at_system is ctv.transferring_crew is True
+    assert ctv.enroute is ctv.at_port is False
     assert ctv.current_system == "S01T6"
     assert (
         fsv.at_port
+        is fsv.at_site
         is fsv.at_system
         is fsv.onsite
         is fsv.enroute
@@ -665,6 +686,7 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     )
     assert (
         hlv.at_port
+        is hlv.at_site
         is hlv.at_system
         is hlv.onsite
         is hlv.enroute
@@ -675,18 +697,25 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
     # Check the transfer is still progressing
     timeout += 13 / 60
     env.run(timeout)
-    assert ctv.transferring_crew is ctv.onsite is ctv.at_system is True
+    assert ctv.transferring_crew is ctv.onsite is ctv.at_site is ctv.at_system is True
     assert ctv.current_system == "S01T6"
-    assert not ctv.enroute
+    assert ctv.enroute is ctv.at_port is False
     assert len(manager.items) == 0
 
     # The CTV process will repeat every 15 days (as this is a maintenance task), but no
     # more events will be checked as this process is considered "vetted".
     timeout += 2 / 60
     env.run(timeout)
-    assert ctv.at_port
+    assert ctv.at_port and ctv.onsite
     assert ctv.current_system is None
-    assert ctv.onsite is ctv.transferring_crew is ctv.enroute is ctv.at_system is False
+    assert (
+        ctv.at_site
+        is ctv.transferring_crew
+        is ctv.at_site
+        is ctv.enroute
+        is ctv.at_system
+        is False
+    )
 
     current = env.simulation_time
     assert current.date().day == 16
@@ -698,7 +727,7 @@ def test_onsite_scheduled_equipment_logic(env_setup_full_profile):
 
 @pytest.mark.skip(reason="The timing of the failures needs to be updated")
 def test_scheduled_equipment_logic(env_setup_full_profile):
-    """ "Test the simulation logic of a scheduled HLV."""
+    """Test the simulation logic of a scheduled HLV."""
     env = env_setup_full_profile
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout_simulation.csv", manager)
@@ -711,9 +740,16 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
 
     # Start the simulation to ensure everything is in place as required
     env.run(1)
-    # assert ctv.at_port is ctv.at_system is ctv.transferring_crew is ctv.enroute is (not ctv.onsite) is False
+    # assert (
+    #     ctv.at_port is ctv.at_system
+    #     is ctv.transferring_crew
+    #     is ctv.enroute
+    #     is (not ctv.onsite)
+    #     is False
+    # )
     assert (
         fsv.at_port
+        is fsv.at_site
         is fsv.at_system
         is fsv.transferring_crew
         is fsv.enroute
@@ -722,6 +758,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     )
     assert (
         hlv.at_port
+        is hlv.at_site
         is hlv.at_system
         is hlv.transferring_crew
         is hlv.enroute
@@ -737,6 +774,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     env.run(mobilization_timeout - 1)
     assert (
         hlv.at_port
+        is hlv.at_site
         is hlv.at_system
         is hlv.transferring_crew
         is hlv.enroute
@@ -745,6 +783,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     )
     assert (
         fsv.at_port
+        is fsv.at_site
         is fsv.at_system
         is fsv.transferring_crew
         is fsv.enroute
@@ -754,9 +793,17 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
 
     env.run(mobilization_timeout + 1)
     assert hlv.enroute
-    assert hlv.at_port is hlv.at_system is hlv.transferring_crew is hlv.onsite is False
+    assert (
+        hlv.at_port
+        is hlv.at_site
+        is hlv.at_system
+        is hlv.transferring_crew
+        is hlv.onsite
+        is False
+    )
     assert (
         fsv.at_port
+        is fsv.at_site
         is fsv.at_system
         is fsv.transferring_crew
         is fsv.enroute
@@ -766,9 +813,17 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
 
     env.run(timeout - 1)  # starting hours
     assert hlv.enroute
-    assert hlv.at_port is hlv.at_system is hlv.transferring_crew is hlv.onsite is False
+    assert (
+        hlv.at_port
+        is hlv.at_site
+        is hlv.at_system
+        is hlv.transferring_crew
+        is hlv.onsite
+        is False
+    )
     assert (
         fsv.at_port
+        is fsv.at_site
         is fsv.at_system
         is fsv.transferring_crew
         is fsv.enroute
@@ -803,46 +858,46 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # when the HLV attempts to transfer the crew, it will go back to port.
     # TODO: Have a better logic to pre-empt wasted travel like this
     env.run(timeout + 1)
-    assert hlv.at_port
-    assert hlv.transferring_crew is hlv.enroute is hlv.onsite is hlv.at_system is False
+    assert hlv.at_port is hlv.onsite is True
+    assert hlv.transferring_crew is hlv.enroute is hlv.at_site is hlv.at_system is False
     assert len(get_items_by_description(manager, "hlv call")) == 11
 
     # HLV should be in the same spot at the end of the shift
     timeout += 8
     env.run(timeout - 0.1)
-    assert hlv.at_port
+    assert hlv.at_port is hlv.at_site is True
     assert hlv.transferring_crew is hlv.enroute is hlv.at_system is hlv.onsite is False
     assert len(get_items_by_description(manager, "hlv call")) == 11
 
     env.run(timeout + 0.1)
-    assert hlv.at_port
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.at_port is hlv.onsite is True
+    assert hlv.at_system is hlv.at_site is hlv.transferring_crew is hlv.enroute is False
 
     # The next shift has a clear weather window for the first two hours so the repair
-    # should be partially complete at that point, but require an additional 15 minutes for
-    # both crew transfer and completion after a windy hour
+    # should be partially complete at that point, but require an additional 15 minutes
+    # for both crew transfer and completion after a windy hour
     timeout += 16
     env.run(timeout - 0.1)
-    assert hlv.at_port
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.at_port is hlv.onsite is True
+    assert hlv.at_system is hlv.at_site is hlv.transferring_crew is hlv.enroute is False
     assert len(get_items_by_description(manager, "hlv call")) == 11
 
     env.run(timeout + 0.1)
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is hlv.transferring_crew is True
     assert hlv.at_port is hlv.enroute is False
     assert hlv.current_system == "S00T1"
     assert len(get_items_by_description(manager, "hlv call")) == 11
 
     timeout += 14 / 60
     env.run(timeout)
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is hlv.transferring_crew is True
     assert hlv.at_port is hlv.enroute is False
     assert hlv.current_system == "S00T1"
     assert len(get_items_by_description(manager, "hlv call")) == 11
 
     timeout += 2 / 60
     env.run(timeout)
-    assert hlv.at_system is hlv.onsite is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is True
     assert hlv.at_port is hlv.enroute is hlv.transferring_crew is False
     assert hlv.current_system == "S00T1"
     assert len(get_items_by_description(manager, "hlv call")) == 11
@@ -850,13 +905,13 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Move to just past the end of the repair when the crew transfer is ongoing
     timeout += 5  # 3 hour repair + 1 hour delay
     env.run(timeout)
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is hlv.transferring_crew is True
     assert hlv.at_port is hlv.enroute is False
     assert hlv.current_system == "S00T1"
     assert len(get_items_by_description(manager, "hlv call")) == 11
 
     timeout += 13 / 60
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is hlv.transferring_crew is True
     assert hlv.at_port is hlv.enroute is False
     assert hlv.current_system == "S00T1"
     assert len(get_items_by_description(manager, "hlv call")) == 11
@@ -865,21 +920,21 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
 
     timeout += 2 / 60
     env.run(timeout)
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is hlv.transferring_crew is True
     assert hlv.at_port is hlv.enroute is False
     assert hlv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "hlv call")) == 10
 
     timeout += 13 / 60
     env.run(timeout)
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is hlv.transferring_crew is True
     assert hlv.at_port is hlv.enroute is False
     assert hlv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "hlv call")) == 10
 
     timeout += 2 / 60
     env.run(timeout)
-    assert hlv.at_system is hlv.onsite is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is True
     assert hlv.at_port is hlv.enroute is hlv.transferring_crew is False
     assert hlv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "hlv call")) == 10
@@ -887,7 +942,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Move to just past the end of the repair (no delays) to ensure crew is transferring
     timeout += 2
     env.run(timeout)
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is hlv.transferring_crew is True
     assert hlv.at_port is hlv.enroute is False
     assert hlv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "hlv call")) == 10
@@ -895,8 +950,8 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Move to just after the crew transfer, at which time the HLV will return to port
     timeout += 16 / 60
     env.run(timeout)
-    assert hlv.at_port
-    assert hlv.enroute is hlv.transferring_crew is hlv.at_system is hlv.onsite is False
+    assert hlv.at_port is hlv.onsite is True
+    assert hlv.enroute is hlv.transferring_crew is hlv.at_system is hlv.at_site is False
     assert hlv.current_system is None
     assert len(get_items_by_description(manager, "hlv call")) == 10
 
@@ -905,15 +960,15 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Move to just before the start of the shift to ensure it's starting correctly
     timeout += 16 - 3 / 60
     env.run(timeout)
-    assert hlv.at_port
-    assert hlv.enroute is hlv.transferring_crew is hlv.at_system is hlv.onsite is False
+    assert hlv.at_port is hlv.onsite is True
+    assert hlv.enroute is hlv.transferring_crew is hlv.at_system is hlv.at_site is False
     assert hlv.current_system is None
     assert len(get_items_by_description(manager, "hlv call")) == 10
 
     # Ensure crew is transferring
     timeout += 2 / 60
     env.run(timeout)
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is hlv.transferring_crew is True
     assert hlv.at_port is hlv.enroute is False
     assert hlv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "hlv call")) == 10
@@ -921,7 +976,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Ensure crew is still transferring
     timeout += 13 / 60
     env.run(timeout)
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is hlv.transferring_crew is True
     assert hlv.at_port is hlv.enroute is False
     assert hlv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "hlv call")) == 10
@@ -933,8 +988,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     print(env.now)
     timeout += 3 + 2 + 2 / 60
     env.run(timeout)
-    print(env.now)
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is hlv.transferring_crew is True
     assert hlv.at_port is hlv.enroute is False
     assert hlv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "hlv call")) == 10
@@ -942,7 +996,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Ensure crew is transferring to the vessel
     timeout += 2 / 60
     env.run(timeout)
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is hlv.transferring_crew is True
     assert hlv.at_port is hlv.enroute is False
     assert hlv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "hlv call")) == 10
@@ -950,7 +1004,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Ensure crew is transferring to the next turbine
     timeout += 14 / 60
     env.run(timeout)
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is hlv.transferring_crew is True
     assert hlv.at_port is hlv.enroute is False
     assert hlv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "hlv call")) == 8
@@ -958,7 +1012,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Ensure crew stopped transferring
     timeout += 14 / 60
     env.run(timeout)
-    assert hlv.at_system is hlv.onsite is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is True
     assert hlv.at_port is hlv.enroute is hlv.transferring_crew is False
     assert hlv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "hlv call")) == 8
@@ -966,7 +1020,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Ensure repair is hit with a delay at the end of the shift
     timeout += 2
     env.run(timeout)
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is hlv.transferring_crew is True
     assert hlv.at_port is hlv.enroute is False
     assert hlv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "hlv call")) == 8
@@ -974,30 +1028,30 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Check the crew is transferred
     timeout += 1 / 60
     env.run(timeout)
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is hlv.transferring_crew is True
     assert hlv.at_port is hlv.enroute is False
     assert hlv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "hlv call")) == 8
 
     timeout += 13 / 60
     env.run(timeout)
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is hlv.transferring_crew is True
     assert hlv.at_port is hlv.enroute is False
     assert hlv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "hlv call")) == 8
 
     timeout += 1 / 60
     env.run(timeout)
-    assert hlv.at_port
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.at_port is hlv.onsite
+    assert hlv.at_system is hlv.at_site is hlv.transferring_crew is hlv.enroute is False
     assert hlv.current_system is None
     assert len(get_items_by_description(manager, "hlv call")) == 8
 
     # Wait until the start of the next shift and check for the crew transferring
     timeout += 16
     env.run(timeout)
-    assert hlv.at_port
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.at_port is hlv.onsite
+    assert hlv.at_system is hlv.at_site is hlv.transferring_crew is hlv.enroute is False
     assert hlv.current_system is None
     assert len(get_items_by_description(manager, "hlv call")) == 8
 
@@ -1005,7 +1059,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # TODO: The hlv will travel to site as an edge case in the crew_transfer delay
     timeout += 24
     env.run(timeout)
-    assert hlv.onsite is hlv.at_system is True
+    assert hlv.onsite is hlv.at_site is hlv.at_system is True
     assert hlv.transferring_crew is hlv.enroute is hlv.at_port is False
     assert hlv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "hlv call")) == 8
@@ -1013,7 +1067,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Check we haven't gone anywhere
     timeout += 6 - 1 / 60
     env.run(timeout)
-    assert hlv.at_system is hlv.onsite is True
+    assert hlv.at_system is hlv.at_site is hlv.onsite is True
     assert hlv.at_port is hlv.transferring_crew is hlv.enroute is False
     assert hlv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "hlv call")) == 8
@@ -1022,14 +1076,14 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     timeout += 1 / 60
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.at_site is hlv.onsite is hlv.transferring_crew is True
     assert hlv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "hlv call")) == 8
 
     # Check that the maintenance is now going for the remained 1 hour after the transfer
     timeout += 1 + 13 / 60
     env.run(timeout)
-    assert hlv.at_system is hlv.onsite is True
+    assert hlv.at_system is hlv.at_site is hlv.onsite is True
     assert hlv.at_port is hlv.enroute is hlv.transferring_crew is False
     assert hlv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "hlv call")) == 8
@@ -1038,7 +1092,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     timeout += 2 / 60
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.at_site is hlv.onsite is hlv.transferring_crew is True
     assert hlv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "hlv call")) == 8
 
@@ -1048,16 +1102,16 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Will be waiting overnight at port
     timeout += 15 / 60
     env.run(timeout)
-    assert hlv.at_port
-    assert hlv.enroute is hlv.at_system is hlv.onsite is hlv.transferring_crew is False
+    assert hlv.at_port is hlv.onsite is True
+    assert hlv.enroute is hlv.at_site is hlv.at_system is hlv.transferring_crew is False
     assert hlv.current_system is None
     assert len(get_items_by_description(manager, "hlv call")) == 7
 
     # Delayed until 8am
     timeout += 16 + 29 / 60
     env.run(timeout)
-    assert hlv.at_port
-    assert hlv.enroute is hlv.at_system is hlv.onsite is hlv.transferring_crew is False
+    assert hlv.at_port is hlv.onsite is True
+    assert hlv.enroute is hlv.at_system is hlv.at_site is hlv.transferring_crew is False
     assert hlv.current_system is None
     assert len(get_items_by_description(manager, "hlv call")) == 7
 
@@ -1065,15 +1119,15 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     timeout += 15 / 60
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is hlv.transferring_crew is True
     assert hlv.current_system == "S01T5"
     assert len(get_items_by_description(manager, "hlv call")) == 7
 
-    # After the 3 hour repair and prior crew transfer, the crew is being transferred back
+    # After the 3 hour repair and prior crew transfer, crew is being transferred back
     timeout += 3 + 14 / 60
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is hlv.transferring_crew is True
     assert hlv.current_system == "S01T5"
     assert len(get_items_by_description(manager, "hlv call")) == 7
 
@@ -1083,7 +1137,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     timeout += 15 / 60
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is hlv.transferring_crew is True
     assert hlv.current_system == "S01T6"
     assert len(get_items_by_description(manager, "hlv call")) == 6
 
@@ -1091,7 +1145,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     timeout += 3 + 15 / 60
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.onsite is hlv.at_site is hlv.transferring_crew is True
     assert hlv.current_system == "S01T6"
     assert len(get_items_by_description(manager, "hlv call")) == 6
 
@@ -1101,8 +1155,8 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Crew is transferred, and the HLV is back at port waiting to start on 5/6 8AM
     timeout += 2 / 60
     env.run(timeout)
-    assert hlv.at_port
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.at_port is hlv.onsite
+    assert hlv.at_system is hlv.at_site is hlv.transferring_crew is hlv.enroute is False
     assert hlv.current_system is None
     assert len(get_items_by_description(manager, "hlv call")) == 5
 
@@ -1110,7 +1164,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     timeout += 1 + 16  # 1 hour left in shift + 16 hours overnight
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.at_site is hlv.onsite is hlv.transferring_crew is True
     assert hlv.current_system == "S00T1"
     assert len(get_items_by_description(manager, "hlv call")) == 5
 
@@ -1118,7 +1172,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     timeout += 3 + 15 / 60
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.at_site is hlv.onsite is hlv.transferring_crew is True
     assert hlv.current_system == "S00T1"
     assert len(get_items_by_description(manager, "hlv call")) == 5
 
@@ -1128,7 +1182,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     timeout += 15 / 60
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.at_site is hlv.onsite is hlv.transferring_crew is True
     assert hlv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "hlv call")) == 4
 
@@ -1136,7 +1190,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     timeout += 3 + 15 / 60
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.at_site is hlv.onsite is hlv.transferring_crew is True
     assert hlv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "hlv call")) == 4
 
@@ -1146,16 +1200,16 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Crew is back at port
     timeout += 15 / 60
     env.run(timeout)
-    assert hlv.at_port
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.at_port is hlv.onsite is True
+    assert hlv.at_system is hlv.at_site is hlv.transferring_crew is hlv.enroute is False
     assert hlv.current_system is None
     assert len(get_items_by_description(manager, "hlv call")) == 3
 
     # Crew is still at port just before the start of the shift
     timeout += 1 + 16 - 2 / 60  # 1 hour remainder + overnight: 5/8 at 7:59AM
     env.run(timeout)
-    assert hlv.at_port
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.at_port is hlv.onsite is True
+    assert hlv.at_system is hlv.at_site is hlv.transferring_crew is hlv.enroute is False
     assert hlv.current_system is None
     assert len(get_items_by_description(manager, "hlv call")) == 3
 
@@ -1163,7 +1217,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     timeout += 15 / 60
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.at_site is hlv.onsite is hlv.transferring_crew is True
     assert hlv.current_system == "S00T3"
     assert len(get_items_by_description(manager, "hlv call")) == 3
 
@@ -1171,7 +1225,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     timeout += 3 + 2 / 60
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.at_site is hlv.onsite is hlv.transferring_crew is True
     assert hlv.current_system == "S00T3"
     assert len(get_items_by_description(manager, "hlv call")) == 3
 
@@ -1181,14 +1235,14 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     timeout += 15 / 60
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.at_site is hlv.onsite is hlv.transferring_crew is True
     assert hlv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "hlv call")) == 2
 
     # Crew is still at the turbine
     timeout += 3
     env.run(timeout)
-    assert hlv.at_system is hlv.onsite is True
+    assert hlv.at_system is hlv.at_site is hlv.onsite is True
     assert hlv.at_port is hlv.enroute is hlv.transferring_crew is False
     assert hlv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "hlv call")) == 2
@@ -1197,7 +1251,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     timeout += 15 / 60
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.at_site is hlv.onsite is hlv.transferring_crew is True
     assert hlv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "hlv call")) == 2
 
@@ -1208,23 +1262,23 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # HLV goes back to port due to the safety buffer
     timeout += 15 / 60
     env.run(timeout)
-    assert hlv.at_port
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.at_port is hlv.onsite is True
+    assert hlv.at_system is hlv.at_site is hlv.transferring_crew is hlv.enroute is False
     assert hlv.current_system is None
     assert len(get_items_by_description(manager, "hlv call")) == 1
 
     # HLV is at port after the delay still due to inclimate weather
     timeout += 1 + 16  # 1 hour remainder + 16 hours overnight
     env.run(timeout)
-    assert hlv.at_port
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.at_port is hlv.onsite is True
+    assert hlv.at_system is hlv.at_site is hlv.transferring_crew is hlv.enroute is False
     assert hlv.current_system is None
     assert len(get_items_by_description(manager, "hlv call")) == 1
 
     # HLV travels to site, but is unable to transfer crew just yet
     timeout += 24
     env.run(timeout)
-    assert hlv.at_system is hlv.onsite is True
+    assert hlv.at_system is hlv.at_site is hlv.at_site is hlv.onsite is True
     assert hlv.at_port is hlv.transferring_crew is hlv.enroute is False
     assert hlv.current_system == "S01T5"
     assert len(get_items_by_description(manager, "hlv call")) == 1
@@ -1233,7 +1287,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     timeout += 5
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.at_site is hlv.onsite is hlv.transferring_crew is True
     assert hlv.current_system == "S01T5"
     assert len(get_items_by_description(manager, "hlv call")) == 1
 
@@ -1241,15 +1295,15 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     timeout += 2.75
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.at_site is hlv.onsite is hlv.transferring_crew is True
     assert hlv.current_system == "S01T5"
     assert len(get_items_by_description(manager, "hlv call")) == 1
 
     # The HLV is back at port
     timeout += 15 / 60
     env.run(timeout)
-    assert hlv.at_port
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.at_port is hlv.onsite is True
+    assert hlv.at_system is hlv.at_site is hlv.transferring_crew is hlv.enroute is False
     assert hlv.current_system is None
     assert len(get_items_by_description(manager, "hlv call")) == 1
 
@@ -1258,14 +1312,21 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     timeout += 8
     env.run(timeout)
     assert fsv.enroute
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is fsv.at_port is False
+    assert (
+        fsv.at_system
+        is fsv.at_site
+        is fsv.onsite
+        is fsv.transferring_crew
+        is fsv.at_port
+        is False
+    )
     assert len(get_items_by_description(manager, "fsv call")) == 30
 
     # The HLV is transferring the crew to the turbine
     timeout += 8
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.at_site is hlv.onsite is hlv.transferring_crew is True
     assert hlv.current_system == "S01T5"
     assert len(get_items_by_description(manager, "hlv call")) == 1
 
@@ -1274,7 +1335,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     timeout += (13 + 45) / 60
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.at_site is hlv.onsite is hlv.transferring_crew is True
     assert hlv.current_system == "S01T5"
     assert len(get_items_by_description(manager, "hlv call")) == 1
 
@@ -1284,7 +1345,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     timeout += 15 / 60
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.at_site is hlv.onsite is hlv.transferring_crew is True
     assert hlv.current_system == "S01T6"
     assert len(get_items_by_description(manager, "hlv call")) == 0
 
@@ -1292,7 +1353,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     timeout += 3 + 15 / 60
     env.run(timeout)
     assert hlv.at_port is hlv.enroute is False
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is True
+    assert hlv.at_system is hlv.at_site is hlv.onsite is hlv.transferring_crew is True
     assert hlv.current_system == "S01T6"
     assert len(get_items_by_description(manager, "hlv call")) == 0
 
@@ -1301,8 +1362,8 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # The HLV is back at port because there are no more requests.
     timeout += 2 / 60
     env.run(timeout)
-    assert hlv.at_port
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.at_port is hlv.onsite is True
+    assert hlv.at_system is hlv.at_site is hlv.transferring_crew is hlv.enroute is False
     assert hlv.current_system is None
     assert len(get_items_by_description(manager, "hlv call")) == 0
 
@@ -1312,7 +1373,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Move to 8:01 AM the following day
     timeout += 19 + 30 / 60
     env.run(timeout)
-    assert hlv.at_port
+    assert hlv.at_port is hlv.onsite is True
     assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
     assert hlv.current_system is None
     assert len(get_items_by_description(manager, "hlv call")) == 0
@@ -1320,24 +1381,24 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # The HLV will remain at port
     timeout += 24
     env.run(timeout)
-    assert hlv.at_port
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.at_port is hlv.onsite is True
+    assert hlv.at_system is hlv.at_site is hlv.transferring_crew is hlv.enroute is False
     assert hlv.current_system is None
     assert len(get_items_by_description(manager, "hlv call")) == 0
 
     # The HLV will remain at port
     timeout += 24
     env.run(timeout)
-    assert hlv.at_port
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.at_port is hlv.onsite is True
+    assert hlv.at_system is hlv.at_site is hlv.transferring_crew is hlv.enroute is False
     assert hlv.current_system is None
     assert len(get_items_by_description(manager, "hlv call")) == 0
 
     # The HLV will remain at port
     timeout += 24
     env.run(timeout)
-    assert hlv.at_port
-    assert hlv.at_system is hlv.onsite is hlv.transferring_crew is hlv.enroute is False
+    assert hlv.at_port is hlv.onsite is True
+    assert hlv.at_system is hlv.at_site is hlv.transferring_crew is hlv.enroute is False
     assert hlv.current_system is None
     assert len(get_items_by_description(manager, "hlv call")) == 0
 
@@ -1349,6 +1410,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
         hlv.at_system
         is hlv.onsite
         is hlv.transferring_crew
+        is hlv.at_site
         is hlv.at_port
         is hlv.enroute
         is False
@@ -1360,12 +1422,20 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # This is going to only check in on the first day and last day of processes
     # due to the extensive timing checks performed above for the HLV, which cover
     # numerous edge cases for repair timing, and so we mostly care about the continuous
-    # shift timing checks. In addition because the FSV only has a waveheight restriction,
-    # the on ly weather delays should occur on 6/28 when there are waves >= 1.5m.
+    # shift timing checks. In addition because the FSV only has a waveheight
+    # restriction, the only weather delays should occur on 6/28 when there are
+    # waves >= 1.5m.
 
     # The FSV be traveling still
     assert fsv.enroute
-    assert fsv.at_port is fsv.at_system is fsv.onsite is fsv.transferring_crew is False
+    assert (
+        fsv.at_port
+        is fsv.at_site
+        is fsv.at_system
+        is fsv.onsite
+        is fsv.transferring_crew
+        is False
+    )
     assert fsv.current_system is None
 
     # This is not 30 due to delays in the timing caused by repairs when the maintenance
@@ -1376,7 +1446,14 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     timeout += 16 * 24 - 8 - 2 / 60
     env.run(timeout)
     assert fsv.enroute
-    assert fsv.at_port is fsv.at_system is fsv.onsite is fsv.transferring_crew is False
+    assert (
+        fsv.at_port
+        is fsv.at_site
+        is fsv.at_system
+        is fsv.onsite
+        is fsv.transferring_crew
+        is False
+    )
     assert fsv.current_system is None
     # More of the requests should have been submitted at this stage
     assert len(get_items_by_description(manager, "fsv call")) == 33
@@ -1384,7 +1461,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # The FSV should now be on site for its first request and tranferring the crew
     timeout += 2 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew
+    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is fsv.at_site is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S00T1"
     assert len(get_items_by_description(manager, "fsv call")) == 33
@@ -1392,7 +1469,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # The FSV should be starting the repair after its 30 minute transfer
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is True
     assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
     assert fsv.current_system == "S00T1"
     assert len(get_items_by_description(manager, "fsv call")) == 33
@@ -1400,7 +1477,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Tranferring the crew back to the FSV
     timeout += 2
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S00T1"
     # Normally, this number will be decremented, but another request was submitted
@@ -1409,7 +1486,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Transferring crew to the next turbine
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "fsv call")) == 32
@@ -1417,7 +1494,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Maintenance
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is True
     assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
     assert fsv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "fsv call")) == 32
@@ -1425,7 +1502,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Tranferring the crew back to the FSV
     timeout += 2
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "fsv call")) == 32
@@ -1433,7 +1510,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Transferring crew to the next turbine
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S00T3"
     assert len(get_items_by_description(manager, "fsv call")) == 31
@@ -1441,7 +1518,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Maintenance
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is True
     assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
     assert fsv.current_system == "S00T3"
     assert len(get_items_by_description(manager, "fsv call")) == 31
@@ -1449,7 +1526,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Tranferring the crew back to the FSV
     timeout += 2
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S00T3"
     assert len(get_items_by_description(manager, "fsv call")) == 31
@@ -1457,7 +1534,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Transferring crew to the next turbine
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "fsv call")) == 30
@@ -1465,7 +1542,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Maintenance
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is True
     assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
     assert fsv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "fsv call")) == 30
@@ -1473,7 +1550,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Tranferring the crew back to the FSV
     timeout += 2
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "fsv call")) == 30
@@ -1481,7 +1558,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Transferring crew to the next turbine
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S01T5"
     assert len(get_items_by_description(manager, "fsv call")) == 29
@@ -1489,7 +1566,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Maintenance
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is True
     assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
     assert fsv.current_system == "S01T5"
     assert len(get_items_by_description(manager, "fsv call")) == 29
@@ -1497,7 +1574,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Tranferring the crew back to the FSV
     timeout += 2
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S01T5"
     assert len(get_items_by_description(manager, "fsv call")) == 29
@@ -1505,7 +1582,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Transferring crew to the next turbine
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S01T6"
     assert len(get_items_by_description(manager, "fsv call")) == 28
@@ -1513,7 +1590,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Maintenance
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is True
     assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
     assert fsv.current_system == "S01T6"
     assert len(get_items_by_description(manager, "fsv call")) == 28
@@ -1521,7 +1598,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Tranferring the crew back to the FSV
     timeout += 2
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S01T6"
     assert len(get_items_by_description(manager, "fsv call")) == 28
@@ -1529,7 +1606,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Transferring crew to the next turbine
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S00T1"
     assert len(get_items_by_description(manager, "fsv call")) == 27
@@ -1537,7 +1614,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Maintenance
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is True
     assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
     assert fsv.current_system == "S00T1"
     assert len(get_items_by_description(manager, "fsv call")) == 27
@@ -1545,7 +1622,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Tranferring the crew back to the FSV
     timeout += 2
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S00T1"
     assert len(get_items_by_description(manager, "fsv call")) == 27
@@ -1553,7 +1630,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Transferring crew to the next turbine
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "fsv call")) == 26
@@ -1561,7 +1638,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Maintenance
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is True
     assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
     assert fsv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "fsv call")) == 26
@@ -1569,7 +1646,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Tranferring the crew back to the FSV
     timeout += 2
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "fsv call")) == 26
@@ -1577,7 +1654,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Transferring crew to the next turbine
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S00T3"
     # The final 3 requests will have been submitted, now that they've caught up with
@@ -1587,7 +1664,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Maintenance
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is True
     assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
     assert fsv.current_system == "S00T3"
     assert len(get_items_by_description(manager, "fsv call")) == 27
@@ -1595,7 +1672,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Tranferring the crew back to the FSV
     timeout += 2
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S00T3"
     assert len(get_items_by_description(manager, "fsv call")) == 27
@@ -1603,7 +1680,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Transferring crew to the next turbine
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "fsv call")) == 26
@@ -1611,7 +1688,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Maintenance
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is True
     assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
     assert fsv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "fsv call")) == 26
@@ -1619,7 +1696,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Tranferring the crew back to the FSV
     timeout += 2
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "fsv call")) == 26
@@ -1627,7 +1704,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Transferring crew to the next turbine
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S01T5"
     assert len(get_items_by_description(manager, "fsv call")) == 25
@@ -1635,7 +1712,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Maintenance
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is True
     assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
     assert fsv.current_system == "S01T5"
     assert len(get_items_by_description(manager, "fsv call")) == 25
@@ -1643,7 +1720,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Tranferring the crew back to the FSV
     timeout += 2
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S01T5"
     assert len(get_items_by_description(manager, "fsv call")) == 25
@@ -1651,7 +1728,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Transferring crew to the next turbine
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S01T6"
     assert len(get_items_by_description(manager, "fsv call")) == 24
@@ -1659,7 +1736,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Maintenance
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is True
     assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
     assert fsv.current_system == "S01T6"
     assert len(get_items_by_description(manager, "fsv call")) == 24
@@ -1667,7 +1744,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Tranferring the crew back to the FSV
     timeout += 2
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S01T6"
     assert len(get_items_by_description(manager, "fsv call")) == 24
@@ -1675,7 +1752,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Transferring crew to the next turbine
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S00T1"
     assert len(get_items_by_description(manager, "fsv call")) == 23
@@ -1683,7 +1760,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Maintenance
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is True
     assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
     assert fsv.current_system == "S00T1"
     assert len(get_items_by_description(manager, "fsv call")) == 23
@@ -1691,7 +1768,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Tranferring the crew back to the FSV
     timeout += 2
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S00T1"
     assert len(get_items_by_description(manager, "fsv call")) == 23
@@ -1699,7 +1776,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Transferring crew to the next turbine
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "fsv call")) == 22
@@ -1707,7 +1784,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Maintenance
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is True
     assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
     assert fsv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "fsv call")) == 22
@@ -1715,7 +1792,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Tranferring the crew back to the FSV
     timeout += 2
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S00T2"
     assert len(get_items_by_description(manager, "fsv call")) == 22
@@ -1723,7 +1800,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Transferring crew to the next turbine
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S00T3"
     assert len(get_items_by_description(manager, "fsv call")) == 21
@@ -1731,7 +1808,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Maintenance
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is True
     assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
     assert fsv.current_system == "S00T3"
     assert len(get_items_by_description(manager, "fsv call")) == 21
@@ -1739,7 +1816,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Tranferring the crew back to the FSV
     timeout += 2
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S00T3"
     assert len(get_items_by_description(manager, "fsv call")) == 21
@@ -1747,7 +1824,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Transferring crew to the next turbine
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "fsv call")) == 20
@@ -1755,7 +1832,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Maintenance
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is True
     assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
     assert fsv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "fsv call")) == 20
@@ -1763,7 +1840,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Tranferring the crew back to the FSV
     timeout += 2
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S01T4"
     assert len(get_items_by_description(manager, "fsv call")) == 20
@@ -1771,7 +1848,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Transferring crew to the next turbine
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S01T5"
     assert len(get_items_by_description(manager, "fsv call")) == 19
@@ -1779,7 +1856,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Maintenance
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is True
     assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
     assert fsv.current_system == "S01T5"
     assert len(get_items_by_description(manager, "fsv call")) == 19
@@ -1787,7 +1864,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Tranferring the crew back to the FSV
     timeout += 2
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S01T5"
     assert len(get_items_by_description(manager, "fsv call")) == 19
@@ -1795,7 +1872,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Transferring crew to the next turbine
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is fsv.transferring_crew is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is fsv.transferring_crew is True
     assert fsv.at_port is fsv.enroute is False
     assert fsv.current_system == "S01T6"
     assert len(get_items_by_description(manager, "fsv call")) == 18
@@ -1803,7 +1880,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Maintenance
     timeout += 30 / 60
     env.run(timeout)
-    assert fsv.at_system is fsv.onsite is True
+    assert fsv.at_system is fsv.at_site is fsv.onsite is True
     assert fsv.at_port is fsv.enroute is fsv.transferring_crew is False
     assert fsv.current_system == "S01T6"
     assert len(get_items_by_description(manager, "fsv call")) == 18
@@ -1811,8 +1888,8 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     # Now that the timing continued overnight, let's ensure the last day looks good too
     timeout += 25 * 24 - (3 + 30 / 60)
     env.run(timeout)
-    assert fsv.at_port
-    assert fsv.at_system is fsv.onsite is fsv.enroute is fsv.transferring_crew is False
+    assert fsv.at_port is fsv.onsite is True
+    assert fsv.at_system is fsv.at_site is fsv.enroute is fsv.transferring_crew is False
     assert fsv.current_system is None
     assert len(get_items_by_description(manager, "fsv call")) == 0
 
@@ -1821,6 +1898,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     env.run(timeout)
     assert (
         fsv.at_system
+        is fsv.at_site
         is fsv.at_port
         is fsv.enroute
         is fsv.transferring_crew
@@ -1850,6 +1928,7 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
     env.run(1)
     assert (
         fsv.at_port
+        is fsv.at_site
         is fsv.at_system
         is fsv.transferring_crew
         is fsv.enroute
@@ -1858,6 +1937,7 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
     )
     assert (
         hlv.at_port
+        is hlv.at_site
         is hlv.at_system
         is hlv.transferring_crew
         is hlv.enroute
@@ -1870,23 +1950,30 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
     timeout = 50 * 24 + 1 / 60
     env.run(timeout)
     assert fsv.enroute
-    assert fsv.transferring_crew is fsv.at_system is fsv.onsite is fsv.at_port is False
+    assert (
+        fsv.transferring_crew
+        is fsv.at_system
+        is fsv.at_site
+        is fsv.onsite
+        is fsv.at_port
+        is False
+    )
     assert fsv.current_system is None
 
     # After 21 days the FSV will arrive at site, but have to wait until the start of the
     # work shift before repairs can happen
     timeout += 21 * 24
     env.run(timeout)
-    assert fsv.onsite
-    assert fsv.transferring_crew is fsv.at_system is fsv.at_port is fsv.enroute is False
+    assert fsv.at_port is fsv.onsite is True
+    assert fsv.transferring_crew is fsv.at_system is fsv.at_site is fsv.enroute is False
     assert fsv.current_system is None
 
     # Check that the FSV is working at the start of the work shift
-    timeout += 8
+    timeout += 9  # 1 hour weather delay
     env.run(timeout)
-    assert fsv.onsite is fsv.transferring_crew is fsv.at_system is True
+    assert fsv.onsite is fsv.at_site is fsv.transferring_crew is fsv.at_system is True
     assert fsv.at_port is fsv.enroute is False
-    assert fsv.current_system == "S00T1"
+    assert fsv.current_system == "S00T3"
 
     # The FSV should no longer be on site after 28 days, plus the time to finish the
     # repair that it's started
@@ -1896,6 +1983,7 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
         fsv.transferring_crew
         is fsv.at_system
         is fsv.onsite
+        is fsv.at_site
         is fsv.at_port
         is fsv.enroute
         is False
@@ -1905,24 +1993,31 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
     # The first HLV call is at 4118.374184568947 hours when S00T1's generator has a
     # catastrophic failure putting the windfarm at 83.3% operations, which is less than
     # the 90% threshold. However, because the timing will be delayed during repairs,
-    # realized timeout will be at 4166.374185 hours
-    timeout = 4163.374185
+    # realized timeout will be at 4154.386685 hours
+    timeout = 4154.386685
     env.run(timeout + 1)
     assert hlv.enroute
-    assert hlv.transferring_crew is hlv.at_system is hlv.onsite is hlv.at_port is False
+    assert (
+        hlv.transferring_crew
+        is hlv.at_system
+        is hlv.at_site
+        is hlv.onsite
+        is hlv.at_port
+        is False
+    )
     assert hlv.current_system is None
 
     # Test that the HLV was successfully mobilized
     timeout += 60 * 24
-    env.run(timeout)
-    print(env.now, env.simulation_time)
-    assert hlv.transferring_crew is hlv.at_system is hlv.onsite is True
+    env.run(timeout + 1 / 60)
+    assert hlv.transferring_crew is hlv.at_site is hlv.at_system is hlv.onsite is True
     assert hlv.enroute is hlv.at_port is False
     assert hlv.current_system == "S00T1"
 
     # Ensure it's still here at the end
     timeout += 30 * 24 - 1 / 60
     env.run(timeout)
-    assert hlv.onsite
-    assert hlv.transferring_crew is hlv.at_system is hlv.at_port is hlv.enroute is False
-    assert hlv.current_system is None
+    assert hlv.onsite is hlv.at_site is True
+    assert hlv.transferring_crew is hlv.at_port is hlv.enroute is False
+    assert hlv.at_system
+    assert hlv.current_system == "S01T6"

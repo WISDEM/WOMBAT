@@ -154,7 +154,8 @@ class System:
                 power_curve_file = self.env.data_dir / "windfarm" / power_curve
                 power_curve = pd.read_csv(power_curve_file)
                 logging.warning(
-                    "DeprecationWarning: In v0.7, all power curve files must be located in: '<library>/turbines"
+                    "DeprecationWarning: In v0.8, all power curve files must be located"
+                    " in: '<library>/turbines"
                 )
             power_curve = power_curve.loc[power_curve.power_kw != 0].reset_index(
                 drop=True
@@ -168,9 +169,21 @@ class System:
                 bin_width=bin_width,
             )
 
-    def interrupt_all_subassembly_processes(self) -> None:
-        """Interrupts the running processes in all of the system's subassemblies."""
-        [subassembly.interrupt_processes() for subassembly in self.subassemblies]  # type: ignore
+    def interrupt_all_subassembly_processes(
+        self, origin: Subassembly | None = None
+    ) -> None:
+        """Interrupts the running processes in all of the system's subassemblies.
+
+        Parameters
+        ----------
+        origin : Subassembly
+            The subassembly that triggered the request, if the method call is coming
+            from a subassembly shutdown event.
+        """
+        [
+            subassembly.interrupt_processes(origin=origin)  # type: ignore
+            for subassembly in self.subassemblies
+        ]
 
     @property
     def operating_level(self) -> float:
@@ -181,10 +194,9 @@ class System:
         float
             Operating level of the turbine.
         """
-        if not self.cable_failure.triggered or not self.servicing.triggered:
-            return 0.0
-        else:
+        if self.cable_failure.triggered and self.servicing.triggered:
             return reduce(mul, [sub.operating_level for sub in self.subassemblies])
+        return 0.0
 
     @property
     def operating_level_wo_servicing(self) -> float:
@@ -196,10 +208,9 @@ class System:
         float
             Operating level of the turbine.
         """
-        if not self.cable_failure.triggered:
-            return 0.0
-        else:
+        if self.cable_failure.triggered:
             return reduce(mul, [sub.operating_level for sub in self.subassemblies])
+        return 0.0
 
     def power(self, windspeed: list[float] | np.ndarray) -> np.ndarray:
         """Generates the power output for an iterable of windspeed values.

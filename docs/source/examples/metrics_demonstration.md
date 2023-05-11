@@ -79,7 +79,7 @@ To simplify this process, a feature has been added to save the simulation output
 sim = Simulation("DINWOODIE", "base.yaml")
 
 # Both of these parameters are True by default for convenience
-sim.run(1000, create_metrics=True, save_metrics_inputs=True)
+sim.run(create_metrics=True, save_metrics_inputs=True)
 
 # Load the metrics data
 fpath = sim.env.metrics_input_fname.parent
