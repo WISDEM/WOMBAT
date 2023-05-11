@@ -199,7 +199,7 @@ class Port(RepairsMixin, FilterStore):
             The submitted repair or maintenance request.
         """
         # Retrieve the actual request
-        request = yield self.get(lambda r: r == request)  # type: ignore
+        request = yield self.get(lambda r: r is request)  # type: ignore
 
         # Request a service crew
         crew_request = self.crew_manager.request()
@@ -481,7 +481,7 @@ class Port(RepairsMixin, FilterStore):
         )
         if TYPE_CHECKING:
             assert isinstance(vessel, ServiceEquipment)  # mypy: helper
-        request = yield self.manager.get(lambda x: x == request)
+        request = yield self.manager.get(lambda x: x is request)
         yield self.env.process(vessel.in_situ_repair(request))
 
         # If the tugboat finished mid-shift, the in-situ repair logic will keep it
