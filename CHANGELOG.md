@@ -2,6 +2,7 @@
 
 - All `assert` statements are now only called when type checking is performed
 - Most of the `# type: ignore` comments have been removed or the past errors have been resolved
+- failure and maintenance logic in the `Cable` and `Subassembly` models have been wrapped in `if`/`else` blocks to ensure previously unreachable code still can't be reached under limited conditions
 
 ## v0.7.1 (4 May 2023)
 
