@@ -345,9 +345,34 @@ class Metrics:
         pd.DataFrame
             Dataframe of either the events or operations data.
         """
-        data = pd.read_csv(
-            self.data_dir / "outputs" / "logs" / fname, delimiter="|", engine="pyarrow"
-        )
+        if "events" not in fname:
+            data = pd.read_csv(
+                self.data_dir / "outputs" / "logs" / fname,
+                delimiter="|",
+                engine="pyarrow",
+            )
+        else:
+            data = (
+                pd.read_csv(
+                    self.data_dir / "outputs" / "logs" / fname,
+                    delimiter="|",
+                    engine="pyarrow",
+                    dtype={
+                        "agent": "string",
+                        "action": "string",
+                        "reason": "string",
+                        "additional": "string",
+                        "system_id": "string",
+                        "system_name": "string",
+                        "part_id": "string",
+                        "part_name": "string",
+                        "request_id": "string",
+                        "location": "string",
+                    },
+                )
+                .set_index("datetime")
+                .sort_index()
+            )
         return data
 
     def _apply_inflation_rate(self, events: pd.DataFrame) -> pd.DataFrame:
