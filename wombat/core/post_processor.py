@@ -345,8 +345,34 @@ class Metrics:
         pd.DataFrame
             Dataframe of either the events or operations data.
         """
+        if "events" in fname:
+            data = (
+                pd.read_csv(
+                    self.data_dir / "outputs" / "logs" / fname,
+                    delimiter="|",
+                    engine="pyarrow",
+                    dtype={
+                        "agent": "string",
+                        "action": "string",
+                        "reason": "string",
+                        "additional": "string",
+                        "system_id": "string",
+                        "system_name": "string",
+                        "part_id": "string",
+                        "part_name": "string",
+                        "request_id": "string",
+                        "location": "string",
+                    },
+                )
+                .set_index("datetime")
+                .sort_index()
+            )
+            return data
+
         data = pd.read_csv(
-            self.data_dir / "outputs" / "logs" / fname, delimiter="|", engine="pyarrow"
+            self.data_dir / "outputs" / "logs" / fname,
+            delimiter="|",
+            engine="pyarrow",
         )
         return data
 
