@@ -668,25 +668,47 @@ class WombatEnvironment(simpy.Environment):
         pd.DataFrame
             The formatted logging data from a simulation.
         """
-        convert_options = pa.csv.ConvertOptions(
-            timestamp_parsers=["%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S"]
+        # convert_options = pa.csv.ConvertOptions(
+        #     timestamp_parsers=["%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S"]
+        # )
+        # parse_options = pa.csv.ParseOptions(delimiter="|")
+        # log_df = pa.csv.read_csv(
+        #     self.events_log_fname,
+        #     convert_options=convert_options,
+        #     parse_options=parse_options,
+        # ).to_pandas()
+        # if not pd.api.types.is_datetime64_any_dtype(log_df.datetime):
+        #     log_df.datetime = pd.to_datetime(
+        #         log_df.datetime, yearfirst=True, format="mixed"
+        #     )
+        # if not pd.api.types.is_datetime64_any_dtype(log_df.env_datetime):
+        #     log_df.env_datetime = pd.to_datetime(
+        #         log_df.env_datetime, yearfirst=True, format="mixed"
+        #     )
+        log_df = (
+            pd.read_csv(
+                self.events_log_fname,
+                delimiter="|",
+                parse_dates=["datetime", "env_datetime"],
+                dtype={
+                    "agent": "string",
+                    "action": "string",
+                    "reason": "string",
+                    "additional": "string",
+                    "system_id": "string",
+                    "system_name": "string",
+                    "part_id": "string",
+                    "part_name": "string",
+                    "request_id": "string",
+                    "location": "string",
+                    "system_operating_level": "float",
+                    "part_operating_level": "float",
+                },
+                engine="c",
+            )
+            .set_index("datetime")
+            .sort_index()
         )
-        parse_options = pa.csv.ParseOptions(delimiter="|")
-        log_df = pa.csv.read_csv(
-            self.events_log_fname,
-            convert_options=convert_options,
-            parse_options=parse_options,
-        ).to_pandas()
-        if not pd.api.types.is_datetime64_any_dtype(log_df.datetime):
-            log_df.datetime = pd.to_datetime(
-                log_df.datetime, yearfirst=True, format="mixed"
-            )
-        if not pd.api.types.is_datetime64_any_dtype(log_df.env_datetime):
-            log_df.env_datetime = pd.to_datetime(
-                log_df.env_datetime, yearfirst=True, format="mixed"
-            )
-        log_df = log_df.set_index("datetime").sort_values("datetime")
-
         return log_df
 
     def load_operations_log_dataframe(self) -> pd.DataFrame:
@@ -698,24 +720,33 @@ class WombatEnvironment(simpy.Environment):
         pd.DataFrame
             The formatted logging data from a simulation.
         """
-        convert_options = pa.csv.ConvertOptions(
-            timestamp_parsers=["%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S"]
+        # convert_options = pa.csv.ConvertOptions(
+        #     timestamp_parsers=["%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S"]
+        # )
+        # parse_options = pa.csv.ParseOptions(delimiter="|")
+        # log_df = pa.csv.read_csv(
+        #     self.operations_log_fname,
+        #     convert_options=convert_options,
+        #     parse_options=parse_options,
+        # ).to_pandas()
+        # if not pd.api.types.is_datetime64_any_dtype(log_df.datetime):
+        #     log_df.datetime = pd.to_datetime(
+        #         log_df.datetime, yearfirst=True, format="mixed"
+        #     )
+        # if not pd.api.types.is_datetime64_any_dtype(log_df.env_datetime):
+        #     log_df.env_datetime = pd.to_datetime(
+        #         log_df.env_datetime, yearfirst=True, format="mixed"
+        #     )
+        log_df = (
+            pd.read_csv(
+                self.operations_log_fname,
+                delimiter="|",
+                parse_dates=["datetime", "env_datetime"],
+                engine="c",
+            )
+            .set_index("datetime")
+            .sort_values("datetime")
         )
-        parse_options = pa.csv.ParseOptions(delimiter="|")
-        log_df = pa.csv.read_csv(
-            self.operations_log_fname,
-            convert_options=convert_options,
-            parse_options=parse_options,
-        ).to_pandas()
-        if not pd.api.types.is_datetime64_any_dtype(log_df.datetime):
-            log_df.datetime = pd.to_datetime(
-                log_df.datetime, yearfirst=True, format="mixed"
-            )
-        if not pd.api.types.is_datetime64_any_dtype(log_df.env_datetime):
-            log_df.env_datetime = pd.to_datetime(
-                log_df.env_datetime, yearfirst=True, format="mixed"
-            )
-        log_df = log_df.set_index("datetime").sort_values("datetime")
 
         return log_df
 
