@@ -444,9 +444,10 @@ class WombatEnvironment(simpy.Environment):
             )
             .to_pandas()
             .set_index("datetime")
+            .fillna(0.0)
+            .resample("H")
+            .interpolate(limit_direction="both", limit=5)
         )
-        weather = weather.fillna(0.0)
-        weather = weather.resample("H").interpolate(limit_direction="both", limit=5)
 
         missing = set(REQUIRED).difference(weather.columns)
         if missing:
