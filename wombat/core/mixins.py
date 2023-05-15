@@ -104,7 +104,7 @@ class RepairsMixin:
         """
         if self.settings.non_stop_shift:
             if isinstance(hour_ix, np.ndarray):
-                return np.ones(hour_ix.shape)
+                return np.ones(hour_ix.shape, dtype=bool)
             return True
         is_workshift = self.settings.workday_start <= hour_ix
         is_workshift &= hour_ix <= self.settings.workday_end
