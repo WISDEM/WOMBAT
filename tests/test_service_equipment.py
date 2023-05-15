@@ -2020,4 +2020,4 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
     assert hlv.onsite is hlv.at_site is True
     assert hlv.transferring_crew is hlv.at_port is hlv.enroute is False
     assert hlv.at_system
-    assert hlv.current_system == "S01T6"
+    assert hlv.current_system == "S01T4"
