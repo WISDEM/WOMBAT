@@ -102,6 +102,10 @@ class RepairsMixin:
             A boolean array for which values in working hours (True), and which values
             are outside working hours (False).
         """
+        if self.settings.non_stop_shift:
+            if isinstance(hour_ix, np.ndarray):
+                return np.ones(hour_ix.shape)
+            return True
         is_workshift = self.settings.workday_start <= hour_ix
         is_workshift &= hour_ix <= self.settings.workday_end
         return is_workshift
