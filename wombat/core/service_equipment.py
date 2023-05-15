@@ -1392,7 +1392,11 @@ class ServiceEquipment(RepairsMixin):
         end_shift = self.settings.workday_end
         current = self.env.simulation_time
         hours_required = request.details.time - time_processed
-        hours_available = hours_until_future_hour(current, end_shift)
+        if self.settings.non_stop_shift:
+            # Default the available to a buffered amount for initial processing
+            hours_available = hours_required * 2
+        else:
+            hours_available = hours_until_future_hour(current, end_shift)
 
         if hours_available <= self.settings.crew_transfer_time * 4:
             yield self.env.process(
@@ -1441,7 +1445,7 @@ class ServiceEquipment(RepairsMixin):
         # If the hours required is longer than the shift time, then reset the available
         # number of hours and the appropriate weather forecast, accounting for crew
         # transfer, otherwise get an adequate weather window, allowing for interruptions
-        if not (start_shift == 0 and end_shift == 24):
+        if not self.settings.non_stop_shift:
             hours_available = hours_until_future_hour(current, end_shift)
             hours_available -= self.settings.crew_transfer_time
             *_, weather_forecast = self._weather_forecast(
