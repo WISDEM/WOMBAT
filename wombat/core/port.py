@@ -176,10 +176,13 @@ class Port(RepairsMixin, FilterStore):
             reason="port lease",
             equipment_cost=monthly_fee,
         )
-
         for i, (ix_month,) in enumerate(ix_month_starts.rows()):
             # Get the time to the start of the next month
-            time_to_next = ix_month if i == 0 else ix_month - ix_month_starts[i - 1]
+            time_to_next = (
+                ix_month
+                if i == 0
+                else ix_month - ix_month_starts.slice(i - 1, 1).item()
+            )
 
             # Log the fee at the start of each month at midnight
             yield self.env.timeout(time_to_next)
