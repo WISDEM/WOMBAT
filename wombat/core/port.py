@@ -163,16 +163,11 @@ class Port(RepairsMixin, FilterStore):
         if TYPE_CHECKING:
             assert isinstance(self.settings, PortConfig)
         monthly_fee = self.settings.annual_fee / 12.0
-        ix_month_starts = (
-            self.env.weather.filter(
-                (pl.col("datetime").dt.day() == 1)
-                & (pl.col("datetime").dt.hour() == 0)
-                & (pl.col("row_nr") > 0)
-            )
-            .select(pl.col("row_nr"))
-            .to_numpy()
-            .flatten()
-        )
+        ix_month_starts = self.env.weather.filter(
+            (pl.col("datetime").dt.day() == 1)
+            & (pl.col("datetime").dt.hour() == 0)
+            & (pl.col("row_nr") > 0)
+        ).select(pl.col("row_nr"))
 
         # At time 0 log the first monthly fee
         self.env.log_action(
@@ -182,7 +177,7 @@ class Port(RepairsMixin, FilterStore):
             equipment_cost=monthly_fee,
         )
 
-        for i, ix_month in enumerate(ix_month_starts):
+        for i, (ix_month,) in enumerate(ix_month_starts.rows()):
             # Get the time to the start of the next month
             time_to_next = ix_month if i == 0 else ix_month - ix_month_starts[i - 1]
 

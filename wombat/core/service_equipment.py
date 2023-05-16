@@ -93,7 +93,7 @@ def calculate_delay_from_forecast(
     window_lengths = np.array([window.size for window in safe_operating_windows])
     clear_windows = np.where(window_lengths >= hours_required)[0]
     if clear_windows.size == 0:
-        return False, forecast.size
+        return False, forecast.shape[0]
     return True, safe_operating_windows[clear_windows[0]][0]
 
 
@@ -367,7 +367,7 @@ class ServiceEquipment(RepairsMixin):
             raise ValueError("`which` must be one of `repair` or `transport`.")
         dt, hour, wind, wave = self.env.weather_forecast(hours)
         all_clear = (wind <= max_wind) & (wave <= max_wave)
-        return dt.to_numpy(), hour.to_numpy(), all_clear.to_numpy()
+        return dt, hour, all_clear
 
     def get_speed(self, tow: bool = False) -> float:
         """Determines the appropriate speed that the servicing equipment should be
@@ -879,7 +879,7 @@ class ServiceEquipment(RepairsMixin):
         dt, _, all_clear = self._weather_forecast(max_hours, which="transport")
 
         # calculate the distance able to be traveled in each 1-hour window
-        distance_traveled = speed * all_clear.astype(float)
+        distance_traveled = speed * all_clear.cast(float)
         distance_traveled[distance_traveled == 0] = speed * reduction_factor
 
         # Reduce the first time step by the time lapsed since the start of the hour
@@ -898,17 +898,17 @@ class ServiceEquipment(RepairsMixin):
             # that it's not due to having reached the end of the simulation. If so,
             # return the max amount of time, but if that's not the case re-raise the
             # error.
-            if self.env.weather.index.values[-1] in dt:
+            if self.env.end_datetime in dt:
                 ix_hours = distance_traveled.size - 1
             else:
                 raise e
 
         # Shave off the extra timing to get the exact travel time
         total_hours = ix_hours + 1  # add 1 for 0-indexing
-        traveled = distance_traveled_sum[ix_hours]
+        traveled = distance_traveled_sum.slice(ix_hours, 1).item()
         if traveled > distance:
             difference = traveled - distance
-            speed_at_hour = distance_traveled[ix_hours]
+            speed_at_hour = distance_traveled.slice(ix_hours, 1).item()
             reduction = difference / speed_at_hour
             total_hours -= reduction
 
@@ -1462,15 +1462,15 @@ class ServiceEquipment(RepairsMixin):
 
         hours_processed = 0
         weather_delay_groups = consecutive_groups(np.where(~weather_forecast)[0])
-        while weather_forecast.size > 0 and hours_available > 0:
+        while weather_forecast.shape[0] > 0 and hours_available > 0:
             delays = np.where(~weather_forecast)[0]
             if delays.size > 0:
                 hours_to_process = delays[0]
                 delay = weather_delay_groups.pop(0).size
             else:
-                hours_to_process = weather_forecast.size
+                hours_to_process = weather_forecast.shape[0]
                 delay = 0
-            weather_forecast = weather_forecast[hours_to_process + delay :]
+            weather_forecast = weather_forecast.slice(hours_to_process + delay)
 
             # If the delay is at the start, hours_to_process is 0, and a delay gets
             # processed, otherwise the crew works for the minimum of
