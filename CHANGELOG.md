@@ -4,6 +4,7 @@
 - Most of the `# type: ignore` comments have been removed or the past errors have been resolved
 - Failure and maintenance logic in the `Cable` and `Subassembly` models have been wrapped in `if`/`else` blocks to ensure previously unreachable code still can't be reached under limited conditions
 - Replaces all `.get(lamda x: x == request)` with a 10x faster `.get(lambda x: x is request)` to more efficiently filter out the desired event to be removed from the repair manager and port repair manangement.
+- Adds a `non_stop_shift` attribute to `ServiceEquipmentData`, `UnscheduledServiceEquipmentData`, `ScheduledServiceEquipmentData`, and `PortConfig` that is set in the post-initialization hook or through `DateLimitsMixin._set_environment_shift()` to ensure it is updated appropriately. Additionally, all checks for a 24 hour shift now check for the `non_stop_shift` attribute.
 
 ## v0.7.1 (4 May 2023)
 
