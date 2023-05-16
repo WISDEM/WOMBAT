@@ -13,10 +13,10 @@ from datetime import datetime, timedelta
 import numpy as np
 import simpy
 import pandas as pd
+import polars as pl
 import pyarrow as pa
 import pyarrow.csv  # pylint: disable=W0611
 from simpy.events import Event
-from pandas.core.indexes.datetimes import DatetimeIndex
 
 import wombat  # pylint: disable=W0611
 from wombat.utilities import hours_until_future_hour
@@ -162,6 +162,9 @@ class WombatEnvironment(simpy.Environment):
         self.weather = self._weather_setup(weather_file, start_year, end_year)
         self.weather_dates = self.weather.index.to_pydatetime()
         self.max_run_time = self.weather.shape[0]
+        self.weather = pl.from_pandas(
+            self.weather.reset_index(drop=False)
+        ).with_row_count()
         self.shift_length = self.workday_end - self.workday_start
 
         # Set the environmental consideration parameters
@@ -382,12 +385,10 @@ class WombatEnvironment(simpy.Environment):
         int
             Index of the weather profile corresponds to the first hour of ``date``.
         """
-        ix = self.weather.index.get_loc(date.strftime("%Y-%m-%d"))
-
-        # If the index is consecutive a slice is returned, else a numpy array
-        if isinstance(ix, slice):
-            return ix.start
-        return ix[0]
+        if isinstance(date, dt.datetime):
+            date = date.date()
+        ix, *_ = self.weather.filter(pl.col("datetime") == date)
+        return ix.item()
 
     def _weather_setup(
         self,
@@ -513,23 +514,24 @@ class WombatEnvironment(simpy.Environment):
         return weather.loc[:, column_order]
 
     @property
-    def weather_now(self) -> tuple[float, float, int]:
+    def weather_now(self) -> pl.DataFrame:
         """The current weather.
 
         Returns
         -------
-        Tuple[float, float, int]
-            Wind, wave, and hour data for the current time.
+        pl.DataFrame
+            A length 1 slice from the weather profile at the current ``int()`` rounded
+            hour, in simulation time.
         """
         # Rounds down because we won't arrive at the next weather event until that hour
         now = int(self.now)
-        return self.weather.iloc[now].values
+        return self.weather.slice(now, 1)
 
     def weather_forecast(
         self, hours: int | float
-    ) -> tuple[DatetimeIndex, np.ndarray, np.ndarray, np.ndarray]:
-        """Returns the wind and wave data for the next ``hours`` hours, starting from
-        the current hour's weather.
+    ) -> tuple[pl.Series, pl.Series, pl.Series, pl.Series]:
+        """Returns the datetime, wind, wave, and hour data for the next ``hours`` hours,
+        starting from the current hour's weather.
 
         Parameters
         ----------
@@ -538,17 +540,15 @@ class WombatEnvironment(simpy.Environment):
 
         Returns
         -------
-        Tuple[DatetimeIndex, np.ndarray, np.ndarray, np.ndarray]
-            The pandas DatetimeIndex, windspeed array, and waveheight array for the
-            hours requested, each with shape (``hours`` + 1).
+        tuple[pl.Series, pl.Series, pl.Series, pl.Series]
+            Each of the relevant columns (datetime, wind, wave, hour) from the weather
+            profile.
         """
-        start = math.floor(self.now)
-
         # If it's not on the hour, ensure we're looking ``hours`` hours into the future
-        end = start + math.ceil(hours) + math.ceil(self.now % 1)
-
-        wind, wave, hour, *_ = self.weather.values[start:end].T
-        ix = self.weather.index[start:end]
+        start = math.floor(self.now)
+        _, ix, wind, wave, hour, *_ = self.weather.slice(
+            start, math.ceil(hours) + math.ceil(self.now % 1)
+        )
         return ix, hour, wind, wave
 
     def log_action(
@@ -743,7 +743,7 @@ class WombatEnvironment(simpy.Environment):
             operations = self.load_operations_log_dataframe().sort_values("env_time")
 
         turbines = windfarm.turbine_id
-        windspeed = self.weather.windspeed
+        windspeed = self.weather.to_pandas().set_index("datetime").windspeed
         windspeed = windspeed.loc[operations.env_datetime].values
         potential_df = pd.DataFrame(
             [],

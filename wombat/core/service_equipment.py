@@ -365,10 +365,9 @@ class ServiceEquipment(RepairsMixin):
             max_wave = self.settings.max_waveheight_transport
         else:
             raise ValueError("`which` must be one of `repair` or `transport`.")
-
         dt, hour, wind, wave = self.env.weather_forecast(hours)
         all_clear = (wind <= max_wind) & (wave <= max_wave)
-        return dt, hour, all_clear
+        return dt.to_numpy(), hour.to_numpy(), all_clear.to_numpy()
 
     def get_speed(self, tow: bool = False) -> float:
         """Determines the appropriate speed that the servicing equipment should be

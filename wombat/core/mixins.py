@@ -208,21 +208,24 @@ class RepairsMixin:
             )
 
         # Get the forecast and filter out dates prior to the start of the search
-        all_dates, *_ = self.env.weather_forecast(
+        _, all_dates, *_ = self.env.weather_forecast(
             8760
         )  # get the dates for the next year
-        dates = all_dates[np.where(all_dates > start_search_date)[0]]
-        if dates.size == 0:
-            dates = all_dates[-1:]
+        dates = all_dates.filter(all_dates > start_search_date)
+        if dates.shape[0] == 0:
+            dates = all_dates.slice(-1)
 
         # Find the next operational date, and if no available dates, return the time
         # until the end of the forecast period
-        date_diff = set(dates.date).difference(self.settings.non_operational_dates_set)
+        date_diff = set(dates.dt.date()).difference(
+            self.settings.non_operational_dates_set
+        )
         if not date_diff:
             diff = ((max(dates) - current).days + 1) * HOURS_IN_DAY
             return diff
-        next_available = min(date_diff)
-        next_available = dates[np.where(dates.date == next_available)[0][0]]
+        next_available = (
+            (dates.filter(dates.dt.date() == min(date_diff))).slice(0, 1).item()
+        )
 
         # Compute the difference between the current time and the future date
         diff = next_available - current

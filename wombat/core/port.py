@@ -16,6 +16,7 @@ from pathlib import Path
 import numpy as np
 import simpy
 import pandas as pd
+import polars as pl
 from simpy.events import Process, Timeout
 from simpy.resources.store import FilterStore
 
@@ -162,10 +163,16 @@ class Port(RepairsMixin, FilterStore):
         if TYPE_CHECKING:
             assert isinstance(self.settings, PortConfig)
         monthly_fee = self.settings.annual_fee / 12.0
-        ix_month_starts = self.env.weather.index.day == 1  # 1st of the month
-        ix_month_starts &= self.env.weather.index.hour == 0  # at midnight
-        ix_month_starts = np.where(ix_month_starts)[0]
-        ix_month_starts = ix_month_starts[ix_month_starts > 0]
+        ix_month_starts = (
+            self.env.weather.filter(
+                (pl.col("datetime").dt.day() == 1)
+                & (pl.col("datetime").dt.hour() == 0)
+                & (pl.col("row_nr") > 0)
+            )
+            .select(pl.col("row_nr"))
+            .to_numpy()
+            .flatten()
+        )
 
         # At time 0 log the first monthly fee
         self.env.log_action(
