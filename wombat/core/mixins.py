@@ -208,9 +208,7 @@ class RepairsMixin:
             )
 
         # Get the forecast and filter out dates prior to the start of the search
-        _, all_dates, *_ = self.env.weather_forecast(
-            8760
-        )  # get the dates for the next year
+        _, all_dates, *_ = self.env.weather_forecast(8760)
         dates = all_dates.filter(all_dates > start_search_date)
         if dates.shape[0] == 0:
             dates = all_dates.slice(-1)
