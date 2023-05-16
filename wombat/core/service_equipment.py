@@ -16,6 +16,7 @@ from itertools import zip_longest
 
 import numpy as np
 import pandas as pd
+import polars as pl
 from simpy.events import Event, Process, Timeout
 from pandas.core.indexes.datetimes import DatetimeIndex
 
@@ -338,7 +339,7 @@ class ServiceEquipment(RepairsMixin):
 
     def _weather_forecast(
         self, hours: int | float, which: str
-    ) -> tuple[DatetimeIndex, np.ndarray, np.ndarray]:
+    ) -> tuple[pl.Series, pl.Series, pl.Series]:
         """Retrieves the weather forecast from the simulation environment, and
         translates it to a boolean for satisfactory (True) and unsatisfactory (False)
         weather conditions.
@@ -352,8 +353,8 @@ class ServiceEquipment(RepairsMixin):
 
         Returns
         -------
-        tuple[DatetimeIndex, np.ndarray, np.ndarray]
-            The pandas DatetimeIndex, the hour of day array, and the boolean array of
+        tuple[pl.Series, pl.Series, pl.Series]
+            The datetime Series, the hour of day Series, and the boolean Series of
             where the weather conditions are within safe operating limits for the
             servicing equipment (True) or not (False).
         """
