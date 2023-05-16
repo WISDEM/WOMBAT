@@ -734,6 +734,8 @@ class DateLimitsMixin:
         """
         object.__setattr__(self, "workday_start", start)
         object.__setattr__(self, "workday_end", end)
+        if self.workday_start == 0 and self.workday_end == 24:  # type: ignore
+            object.__setattr__(self, "non_stop_shift", True)
 
     def _set_port_distance(self, distance: int | float | None) -> None:
         """Set ``port_distance`` from the environment's or port's variables.
