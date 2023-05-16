@@ -206,10 +206,7 @@ class Port(RepairsMixin, FilterStore):
         yield crew_request
 
         # Once a crew is available, process the acutal repair
-        # Get the shift parameters
-        start_shift = self.settings.workday_start
         end_shift = self.settings.workday_end
-        continuous_operations = start_shift == 0 and end_shift == 24
 
         # Set the default hours to process and remaining hours for the repair
         hours_to_process = hours_remaining = request.details.time
@@ -233,7 +230,7 @@ class Port(RepairsMixin, FilterStore):
             current = self.env.simulation_time
 
             # Check if the workday is limited by shifts and adjust to stay within shift
-            if not continuous_operations:
+            if not self.settings.non_stop_shift:
                 hours_to_process = hours_until_future_hour(current, end_shift)
 
             # Delay until the next shift if we're at the end

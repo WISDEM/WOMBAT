@@ -734,6 +734,8 @@ class DateLimitsMixin:
         """
         object.__setattr__(self, "workday_start", start)
         object.__setattr__(self, "workday_end", end)
+        if self.workday_start == 0 and self.workday_end == 24:  # type: ignore
+            object.__setattr__(self, "non_stop_shift", True)
 
     def _set_port_distance(self, distance: int | float | None) -> None:
         """Set ``port_distance`` from the environment's or port's variables.
@@ -1115,6 +1117,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     non_operational_dates: pd.DatetimeIndex = field(factory=list, init=False)
     non_operational_dates_set: pd.DatetimeIndex = field(factory=set, init=False)
     reduced_speed_dates: pd.DatetimeIndex = field(factory=set, init=False)
+    non_stop_shift: bool = field(default=False, init=False)
 
     def create_date_range(self) -> np.ndarray:
         """Create an ``np.ndarray`` of valid operational dates."""
@@ -1143,6 +1146,8 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         """Post-initialization."""
         object.__setattr__(self, "operating_dates", self.create_date_range())
         object.__setattr__(self, "operating_dates_set", set(self.operating_dates))
+        if self.workday_start == 0 and self.workday_end == 24:
+            object.__setattr__(self, "non_stop_shift", True)
 
 
 @define(frozen=True, auto_attribs=True)
@@ -1320,6 +1325,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     non_operational_dates: pd.DatetimeIndex = field(factory=list, init=False)
     non_operational_dates_set: pd.DatetimeIndex = field(factory=set, init=False)
     reduced_speed_dates: pd.DatetimeIndex = field(factory=set, init=False)
+    non_stop_shift: bool = field(default=False, init=False)
 
     @strategy_threshold.validator  # type: ignore
     def _validate_threshold(
@@ -1340,6 +1346,11 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
                     "Requests-based strategies must have a ``strategy_threshold``",
                     "greater than 0!",
                 )
+
+    def __attrs_post_init__(self) -> None:
+        """Post-initialization hook."""
+        if self.workday_start == 0 and self.workday_end == 24:
+            object.__setattr__(self, "non_stop_shift", True)
 
 
 @define(frozen=True, auto_attribs=True)
@@ -1674,6 +1685,12 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
     reduced_speed_dates: pd.DatetimeIndex = field(factory=set, init=False)
     non_operational_dates_set: pd.DatetimeIndex = field(factory=set, init=False)
     reduced_speed_dates_set: pd.DatetimeIndex = field(factory=set, init=False)
+    non_stop_shift: bool = field(default=False, init=False)
+
+    def __attrs_post_init__(self) -> None:
+        """Post-initialization hook."""
+        if self.workday_start == 0 and self.workday_end == 24:
+            object.__setattr__(self, "non_stop_shift", True)
 
 
 @define(frozen=True, auto_attribs=True)

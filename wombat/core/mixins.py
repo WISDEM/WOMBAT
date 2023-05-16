@@ -102,9 +102,14 @@ class RepairsMixin:
             A boolean array for which values in working hours (True), and which values
             are outside working hours (False).
         """
-        is_workshift = self.settings.workday_start <= hour_ix
-        is_workshift &= hour_ix <= self.settings.workday_end
-        return is_workshift
+        if not self.settings.non_stop_shift:
+            is_workshift = self.settings.workday_start <= hour_ix
+            is_workshift &= hour_ix <= self.settings.workday_end
+            return is_workshift
+
+        if isinstance(hour_ix, np.ndarray):
+            return np.ones(hour_ix.shape, dtype=bool)
+        return True
 
     def wait_until_next_shift(self, **kwargs) -> Generator[Timeout, None, None]:
         """Delays the process until the start of the next shift.
