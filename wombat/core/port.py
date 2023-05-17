@@ -16,6 +16,7 @@ from pathlib import Path
 import numpy as np
 import simpy
 import pandas as pd
+import polars as pl
 from simpy.events import Process, Timeout
 from simpy.resources.store import FilterStore
 
@@ -162,10 +163,11 @@ class Port(RepairsMixin, FilterStore):
         if TYPE_CHECKING:
             assert isinstance(self.settings, PortConfig)
         monthly_fee = self.settings.annual_fee / 12.0
-        ix_month_starts = self.env.weather.index.day == 1  # 1st of the month
-        ix_month_starts &= self.env.weather.index.hour == 0  # at midnight
-        ix_month_starts = np.where(ix_month_starts)[0]
-        ix_month_starts = ix_month_starts[ix_month_starts > 0]
+        ix_month_starts = self.env.weather.filter(
+            (pl.col("datetime").dt.day() == 1)
+            & (pl.col("datetime").dt.hour() == 0)
+            & (pl.col("row_nr") > 0)
+        ).select(pl.col("row_nr"))
 
         # At time 0 log the first monthly fee
         self.env.log_action(
@@ -174,10 +176,13 @@ class Port(RepairsMixin, FilterStore):
             reason="port lease",
             equipment_cost=monthly_fee,
         )
-
-        for i, ix_month in enumerate(ix_month_starts):
+        for i, (ix_month,) in enumerate(ix_month_starts.rows()):
             # Get the time to the start of the next month
-            time_to_next = ix_month if i == 0 else ix_month - ix_month_starts[i - 1]
+            time_to_next = (
+                ix_month
+                if i == 0
+                else ix_month - ix_month_starts.slice(i - 1, 1).item()
+            )
 
             # Log the fee at the start of each month at midnight
             yield self.env.timeout(time_to_next)

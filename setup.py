@@ -41,6 +41,7 @@ REQUIRED = [
     "numpy>=1.21",
     "scipy>=1.8",
     "pandas>=2",
+    "polars>=0.17",
     "pyarrow>=10",
     "jupyterlab>=3",
     "simpy>=4.0.1",
