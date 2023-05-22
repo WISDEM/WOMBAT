@@ -160,11 +160,10 @@ class WombatEnvironment(simpy.Environment):
 
         self.port_distance = port_distance
         self.weather = self._weather_setup(weather_file, start_year, end_year)
-        self.weather_dates = self.weather.index.to_pydatetime()
+        self.weather_dates = pd.DatetimeIndex(
+            self.weather.get_column("datetime").to_pandas()
+        ).to_pydatetime()
         self.max_run_time = self.weather.shape[0]
-        self.weather = pl.from_pandas(
-            self.weather.reset_index(drop=False)
-        ).with_row_count()
         self.shift_length = self.workday_end - self.workday_start
 
         # Set the environmental consideration parameters
@@ -439,15 +438,21 @@ class WombatEnvironment(simpy.Environment):
             ]
         )
         weather = (
-            pa.csv.read_csv(
-                self.data_dir / "weather" / weather_file,
-                convert_options=convert_options,
+            pl.from_pandas(
+                pa.csv.read_csv(
+                    self.data_dir / "weather" / weather_file,
+                    convert_options=convert_options,
+                )
+                .to_pandas()
+                .fillna(0.0)
+                .set_index("datetime")
+                .sort_index()
+                .resample("H")
+                .interpolate(limit_direction="both", limit=5)
+                .reset_index(drop=False)
             )
-            .to_pandas()
-            .set_index("datetime")
-            .fillna(0.0)
-            .resample("H")
-            .interpolate(limit_direction="both", limit=5)
+            .with_row_count()
+            .with_columns((pl.col("datetime").dt.hour()).alias("hour"))
         )
 
         missing = set(REQUIRED).difference(weather.columns)
@@ -457,12 +462,9 @@ class WombatEnvironment(simpy.Environment):
                 f" {missing}"
             )
 
-        # Add in the hour of day column for efficient handling within the simulation
-        weather = weather.assign(hour=weather.index.hour.astype(float))
-
         # Create the start and end points
-        self.start_datetime = weather.index[0].to_pydatetime()
-        self.end_datetime = weather.index[-1].to_pydatetime()
+        self.start_datetime = weather.get_column("datetime").dt.min()
+        self.end_datetime = weather.get_column("datetime").dt.max()
         self.start_year = self.start_datetime.year
         self.end_year = self.end_datetime.year
 
@@ -478,8 +480,8 @@ class WombatEnvironment(simpy.Environment):
             )
         else:
             # Filter for the provided, validated starting year and update the attribute
-            weather = weather.loc[weather.index.year >= start_year]
-            self.start_datetime = weather.index[0].to_pydatetime()
+            weather = weather.filter(pl.col("datetime").dt.year() >= start_year)
+            self.start_datetime = weather.get_column("datetime").dt.min()
             start_year = self.start_year = self.start_datetime.year
 
         if end_year is None:
@@ -497,21 +499,23 @@ class WombatEnvironment(simpy.Environment):
                 )
             else:
                 # Filter for the provided, validated ending year and update
-                weather = weather.loc[weather.index.year <= end_year]
-                self.end_datetime = weather.index[-1].to_pydatetime()
+                weather = weather.filter(pl.col("datetime").dt.year() <= end_year)
+                self.end_datetime = weather.get_column("datetime").dt.max()
                 self.end_year = self.end_datetime.year
         else:
             # Filter for the provided, validated ending year and update the attribute
-            weather = weather.loc[weather.index.year <= end_year]
-            self.end_datetime = weather.index[-1].to_pydatetime()
+            weather = weather.filter(pl.col("datetime").dt.year() <= end_year)
+            self.end_datetime = weather.get_column("datetime").dt.max()
             self.end_year = self.end_datetime.year
 
-        column_order = weather.columns.tolist()
+        column_order = weather.columns
         column_order.insert(0, column_order.pop(column_order.index("hour")))
         column_order.insert(0, column_order.pop(column_order.index("waveheight")))
         column_order.insert(0, column_order.pop(column_order.index("windspeed")))
+        column_order.insert(0, column_order.pop(column_order.index("datetime")))
+        column_order.insert(0, column_order.pop(column_order.index("row_nr")))
 
-        return weather.loc[:, column_order]
+        return weather.select(column_order)
 
     @property
     def weather_now(self) -> pl.DataFrame:
