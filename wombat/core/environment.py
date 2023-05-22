@@ -448,7 +448,7 @@ class WombatEnvironment(simpy.Environment):
                 .set_index("datetime")
                 .sort_index()
                 .resample("H")
-                .interpolate(limit_direction="both", limit=5)
+                .interpolate(limit_direction="both")  # , limit=5)
                 .reset_index(drop=False)
             )
             .with_row_count()
