@@ -583,15 +583,16 @@ class ServiceEquipment(RepairsMixin):
                 less_mobilization_hours=mobilization_hours
             )
         )
+        self.enroute = True
         self.env.log_action(
             agent=self.settings.name,
             action="mobilization",
             reason=f"{self.settings.name} is being mobilized",
             additional="mobilization",
             location="enroute",
+            duration=mobilization_hours,
         )
 
-        self.enroute = True
         yield self.env.timeout(mobilization_hours)
         self.onsite = True
         self.enroute = False
@@ -601,7 +602,6 @@ class ServiceEquipment(RepairsMixin):
             action="mobilization",
             reason=f"{self.settings.name} has arrived on site",
             additional="mobilization",
-            duration=mobilization_hours,
             equipment_cost=self.settings.mobilization_cost,
             location="site",
         )
@@ -617,16 +617,17 @@ class ServiceEquipment(RepairsMixin):
             A Timeout event for the number of hours the ServiceEquipment requires for
             mobilizing to the windfarm site.
         """
+        self.enroute = True
+        mobilization_hours = self.settings.mobilization_days * HOURS_IN_DAY
         self.env.log_action(
             agent=self.settings.name,
             action="mobilization",
             reason=f"{self.settings.name} is being mobilized",
             additional="mobilization",
+            duration=mobilization_hours,
             location="enroute",
         )
 
-        self.enroute = True
-        mobilization_hours = self.settings.mobilization_days * HOURS_IN_DAY
         yield self.env.timeout(mobilization_hours)
         self.onsite = True
         self.enroute = False
@@ -636,7 +637,6 @@ class ServiceEquipment(RepairsMixin):
             action="mobilization",
             reason=f"{self.settings.name} has arrived on site",
             additional="mobilization",
-            duration=mobilization_hours,
             equipment_cost=self.settings.mobilization_cost,
             location="site",
         )
