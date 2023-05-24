@@ -1604,7 +1604,7 @@ class Metrics:
                 ["agent", "action", "reason", "location", "duration", "distance_km"],
             ]
             .groupby(["agent", "action", "reason", "location"])
-            .sum(numeric_only=True)
+            .sum()
             .reset_index(drop=False)
         )
         equipment_usage = equipment_usage.loc[
@@ -1628,7 +1628,7 @@ class Metrics:
             )
             .drop(["action", "reason", "location"], axis=1)
             .groupby(["agent", "category"])
-            .sum(numeric_only=True)
+            .sum()
             .drop("invalid", level="category")
         )
 

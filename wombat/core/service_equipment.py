@@ -963,9 +963,9 @@ class ServiceEquipment(RepairsMixin):
                 additional = f"traveling from {start} to {end}"
                 distance = self.settings.port_distance
                 hours = self._calculate_interrupted_travel_time(distance)
-        else:
-            if distance is None:
-                raise ValueError("`distance` must be provided if `hours` is provided.")
+
+        if distance is None:
+            raise ValueError("`distance` must be provided if `hours` is provided.")
 
         # MyPy helpers
         if TYPE_CHECKING:
