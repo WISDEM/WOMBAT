@@ -220,6 +220,10 @@ class WombatEnvironment(simpy.Environment):
             self._operations_writer.writerows(self._operations_buffer)
             self._operations_buffer.clear()
             self._operations_csv.close()
+            print(
+                f"Simulation failed at hour {self.now:,.6f},"
+                f" simulation time: {self.simulation_time}"
+            )
             raise e
 
         # Ensure all logged events make it to their target file
