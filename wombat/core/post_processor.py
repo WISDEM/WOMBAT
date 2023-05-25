@@ -1548,14 +1548,14 @@ class Metrics:
         self, emissions_factors: dict, maneuvering_factor: float = 0.1
     ) -> pd.DataFrame:
         """Calculates the emissions, typically in tons, per hour of operations for
-        transiting, maneuvering (calculated as a % of transiting), idling at sea
+        transiting, maneuvering (calculated as a % of transiting), idling at the site
         (repairs, crew transfer, weather delays), and idling at port (weather delays),
         excluding waiting overnight between shifts.
 
         Parameters
         ----------
         emissions_factors : dict
-            Dictionary of emissions per hour for "transit", "maneuver", "idle at sea",
+            Dictionary of emissions per hour for "transit", "maneuver", "idle at site",
             and "idle at port" for each of the servicing equipment in the simulation.
         maneuvering_factor : float, optional
             The proportion of transit time that can be attributed to
@@ -1583,7 +1583,7 @@ class Metrics:
                 f"`emissions_factors` is missing the following keys: {missing}"
             )
 
-        valid_categories = ("transit", "maneuvering", "idle at port", "idle at sea")
+        valid_categories = ("transit", "maneuvering", "idle at port", "idle at site")
         emissions_categories = list(
             chain(*[[*val] for val in emissions_factors.values()])
         )
@@ -1621,7 +1621,7 @@ class Metrics:
             equipment_usage.location.eq("port").astype(bool),
             equipment_usage.location.eq("enroute").astype(bool),
         ]
-        values = ["idle at sea", "idle at sea", "idle at port", "transit"]
+        values = ["idle at site", "idle at site", "idle at port", "transit"]
         equipment_usage = (
             equipment_usage.assign(
                 category=np.select(conditions, values, default="invalid")
