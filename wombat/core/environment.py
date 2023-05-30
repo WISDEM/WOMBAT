@@ -519,7 +519,8 @@ class WombatEnvironment(simpy.Environment):
         column_order.insert(0, column_order.pop(column_order.index("datetime")))
         column_order.insert(0, column_order.pop(column_order.index("row_nr")))
 
-        return weather.select(column_order)
+        # Ensure the columns are ordered correctly and re-compute pandas-compatible ix
+        return weather.select(column_order).drop(columns="row_nr").with_row_count()
 
     @property
     def weather_now(self) -> pl.DataFrame:
