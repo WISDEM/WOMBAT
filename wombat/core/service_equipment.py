@@ -1627,7 +1627,7 @@ class ServiceEquipment(RepairsMixin):
                 yield self.env.process(self.in_situ_repair(request))
 
     def run_unscheduled_in_situ(
-        self, request: RepairRequest
+        self, request: RepairRequest, initial: bool = False
     ) -> Generator[Process, None, None]:
         """Runs an in situ repair simulation for unscheduled servicing equipment, or
         those that have to be mobilized before performing repairs and maintenance.
@@ -1643,6 +1643,8 @@ class ServiceEquipment(RepairsMixin):
             The simulation
         """
         self.dispatched = True
+        if initial:
+            _ = self.manager.get(lambda x: x is request)
         if TYPE_CHECKING:
             assert isinstance(self.settings, UnscheduledServiceEquipmentData)
         mobilization_days = self.settings.mobilization_days
