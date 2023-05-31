@@ -442,7 +442,7 @@ class Port(RepairsMixin, FilterStore):
         yield self.service_equipment_manager.put(tugboat)
 
     def run_unscheduled_in_situ(
-        self, request: RepairRequest
+        self, request: RepairRequest, initial: bool = False
     ) -> Generator[Process, None, None]:
         """Runs the in-situ repair processes for port-based servicing equipment such as
         tugboats that will always return back to port, but are not necessarily a feature
@@ -462,6 +462,9 @@ class Port(RepairsMixin, FilterStore):
         # If the request has already been addressed, return
         if request.request_id in self.requests_serviced:
             return
+
+        if initial:
+            _ = self.manager.get(lambda x: x is request)
 
         # If the system is already undergoing repairs from other servicing equipment,
         # then wait until it's done being serviced, then double check

@@ -7,7 +7,8 @@ from copy import deepcopy
 from math import fsum
 from typing import TYPE_CHECKING
 from pathlib import Path
-from itertools import product
+from itertools import chain, product
+from collections import Counter
 
 import numpy as np
 import PySAM
@@ -1542,6 +1543,149 @@ class Metrics:
         if frequency == "monthly":
             return costs.sort_values(by=["month", "reason"])
         return costs.sort_values(by=["year", "month", "reason"])
+
+    def emissions(
+        self,
+        emissions_factors: dict,
+        maneuvering_factor: float = 0.1,
+        port_engine_on_factor: float = 0.25,
+    ) -> pd.DataFrame:
+        """Calculates the emissions, typically in tons, per hour of operations for
+        transiting, maneuvering (calculated as a % of transiting), idling at the site
+        (repairs, crew transfer, weather delays), and idling at port (weather delays),
+        excluding waiting overnight between shifts.
+
+        Parameters
+        ----------
+        emissions_factors : dict
+            Dictionary of emissions per hour for "transit", "maneuver", "idle at site",
+            and "idle at port" for each of the servicing equipment in the simulation.
+        maneuvering_factor : float, optional
+            The proportion of transit time that can be attributed to
+            maneuvering/positioning, by default 0.1.
+        port_engine_on_factor : float, optional
+            The proportion of idling at port time that can be attributed to having the
+            engine on and producing emissions, by default 0.25.
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame of "duration" (hours), "distance_km", and "emissions" (tons) for
+            each servicing equipment in the simulation for each emissions category.
+
+        Raises
+        ------
+        KeyError
+            Raised if any of the servicing equipment are missing from the
+            ``emissions_factors`` dictionary.
+        KeyError
+            Raised if any of the emissions categories are missing from each servcing
+            equipment definition in ``emissions_factors``.
+        """
+        if missing := set(self.service_equipment_names).difference(
+            [*emissions_factors]
+        ):
+            raise KeyError(
+                f"`emissions_factors` is missing the following keys: {missing}"
+            )
+
+        valid_categories = ("transit", "maneuvering", "idle at port", "idle at site")
+        emissions_categories = list(
+            chain(*[[*val] for val in emissions_factors.values()])
+        )
+        emissions_input = Counter(emissions_categories)
+        if (
+            len(set(valid_categories).difference(emissions_input.keys())) > 0
+            or len(set(emissions_input.values())) > 1
+        ):
+            raise KeyError(
+                "Each servicing equipment's emissions factors must have inputs for:"
+                f"{valid_categories}"
+            )
+
+        # Create the agent/duration subset
+        equipment_usage = (
+            self.events.loc[
+                self.events.agent.isin(self.service_equipment_names),
+                ["agent", "action", "reason", "location", "duration", "distance_km"],
+            ]
+            .groupby(["agent", "action", "reason", "location"])
+            .sum()
+            .reset_index(drop=False)
+        )
+        equipment_usage = equipment_usage.loc[
+            ~(
+                (equipment_usage.action == "delay")
+                & equipment_usage.reason.isin(("no requests", "work is complete"))
+            )
+        ]
+
+        # Map each of the locations to new categories and filter out unnecessary ones
+        conditions = [
+            equipment_usage.location.eq("site").astype(bool),
+            equipment_usage.location.eq("system").astype(bool),
+            equipment_usage.location.eq("port").astype(bool),
+            equipment_usage.location.eq("enroute").astype(bool),
+        ]
+        values = ["idle at site", "idle at site", "idle at port", "transit"]
+        equipment_usage = (
+            equipment_usage.assign(
+                category=np.select(conditions, values, default="invalid")
+            )
+            .drop(["action", "reason", "location"], axis=1)
+            .groupby(["agent", "category"])
+            .sum()
+            .drop("invalid", level="category")
+        )
+
+        # Create a new emissions factor DataFrame and mapping
+        categories = list(set().union(emissions_categories))
+        emissions_summary = pd.DataFrame(
+            [],
+            index=pd.MultiIndex.from_product(
+                [[*emissions_factors], categories], names=["agent", "category"]
+            ),
+        )
+        factors = [
+            [(eq, cat), ef]
+            for eq, d in emissions_factors.items()
+            for cat, ef in d.items()
+        ]
+        emissions_summary.loc[[ix for (ix, _) in factors], "emissions_factors"] = [
+            ef for (_, ef) in factors
+        ]
+
+        # Combine the emissions factors and the calculate the total distribution
+        equipment_usage = equipment_usage.join(emissions_summary, how="outer").fillna(0)
+
+        # Adjust the transiting time to account for maneuvering
+        transiting = equipment_usage.index.get_level_values("category") == "transit"
+        manuevering = (
+            equipment_usage.index.get_level_values("category") == "maneuvering"
+        )
+        equipment_usage.loc[manuevering, "duration"] = (
+            equipment_usage.loc[transiting, "duration"].values * maneuvering_factor
+        )
+        equipment_usage.loc[transiting, "duration"] = equipment_usage.loc[
+            transiting, "duration"
+        ] * (1 - maneuvering_factor)
+
+        # Adjust the idling at port time to only account for when the engine is on
+        port = equipment_usage.index.get_level_values("category" == "idle at port")
+        equipment_usage.loc[port, "duration"] = (
+            equipment_usage.loc[transiting, "duration"].values * port_engine_on_factor
+        )
+
+        equipment_usage = (
+            equipment_usage.fillna(0)
+            .assign(
+                emissions=equipment_usage.duration * equipment_usage.emissions_factors
+            )
+            .drop(columns=["emissions_factors"])
+            .fillna(0)
+        )
+
+        return equipment_usage
 
     def component_costs(
         self, frequency: str, by_category: bool = False, by_action: bool = False

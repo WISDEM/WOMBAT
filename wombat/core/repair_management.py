@@ -197,17 +197,15 @@ class RepairManager(FilterStore):
                     if request.system_id in self.port.invalid_systems:
                         break
 
-                    # Dispatch-triggering request must be removed from the queue
-                    _ = self.get(lambda x: x is request)
-
                     yield self.windfarm.system(request.system_id).servicing
-                    self.env.process(self.port.run_unscheduled_in_situ(request))
+                    self.env.process(
+                        self.port.run_unscheduled_in_situ(request, initial=True)
+                    )
                 else:
-                    # Dispatch-triggering request must be removed from the queue
-                    _ = self.get(lambda x: x is request)
-
                     yield self.in_process_requests.put(request)
-                    self.env.process(equipment_obj.run_unscheduled_in_situ(request))
+                    self.env.process(
+                        equipment_obj.run_unscheduled_in_situ(request, initial=True)
+                    )
 
                     # Move the dispatched capability to the end of list to ensure proper
                     # cycling of available servicing equipment
@@ -266,17 +264,13 @@ class RepairManager(FilterStore):
                     if request.system_id in self.port.invalid_systems:
                         break
 
-                    # Dispatch-triggering request must be removed from the queue
-                    _ = self.get(lambda x: x is request)
-
-                    yield self.env.process(self.port.run_unscheduled_in_situ(request))
+                    yield self.env.process(
+                        self.port.run_unscheduled_in_situ(request, initial=True)
+                    )
                 else:
-                    # Dispatch-triggering request must be removed from the queue
-                    _ = self.get(lambda x: x is request)
-
                     yield self.in_process_requests.put(request)
                     yield self.env.process(
-                        equipment_obj.run_unscheduled_in_situ(request)
+                        equipment_obj.run_unscheduled_in_situ(request, initial=True)
                     )
 
                     # Move the dispatched capability to the end of list to ensure proper

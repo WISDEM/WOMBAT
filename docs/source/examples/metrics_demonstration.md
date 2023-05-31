@@ -57,6 +57,7 @@ is, and how it should be computed.
  - [Number of Tows](#number-of-tows): Number of tows breakdowns
  - [Labor Costs](#labor-costs): Breakdown of labor costs
  - [Equipment and Labor Costs](#equipment-and-labor-costs): Combined servicing equipment and labor cost breakdown
+ - [Emissions](#emissions): Emissions of servicing equipment based on activity
  - [Component Costs](#component-costs): Materials costs
  - [Fixed Cost Impacts](#fixed-cost-impacts): Total fixed costs
  - [OpEx](#opex): Project OpEx
@@ -367,6 +368,54 @@ style(metrics.equipment_labor_cost_breakdowns(frequency="project", by_category=F
 :tags: ["output_scroll"]
 # Project totals by each category
 style(metrics.equipment_labor_cost_breakdowns(frequency="project", by_category=True))
+```
+
+## Emissions
+
+Emissions (tons or other provided units) of all servicing equipment activity, except overnight waiting periods between shifts. For further documentation, see the API docs here: {py:meth}`wombat.core.post_processor.Metrics.emissions`.
+
+**Inputs**:
+
+- `emissions_factors`: Dictionary of servicing equipment names and the emissions per hour of the following activities: `transit`, `maneuvering`, `idle at site`, and `idle at port`, where port is stand-in for wherever the servicing equipment might be based when not at site.
+- `maneuvering_factor`: The proportion of transit time that can generally be associated with positioning servicing, by default 10%.
+- `port_engine_on_factor`: The proportion of the idling at port time where the engine is running and producing emissions, by default 25%.
+
+```{code-cell} ipython3
+# Create the emissions factors, in tons per hour
+emissions_factors = {
+    "Crew Transfer Vessel 1": {
+        "transit": 4,
+        "maneuvering": 3,
+        "idle at site": 0.5,
+        "idle at port": 0.25,
+    },
+    "Crew Transfer Vessel 2": {
+        "transit": 4,
+        "maneuvering": 3,
+        "idle at site": 0.5,
+        "idle at port": 0.25,
+    },
+    "Crew Transfer Vessel 3": {
+        "transit": 4,
+        "maneuvering": 3,
+        "idle at site": 0.5,
+        "idle at port": 0.25,
+    },
+    "Field Support Vessel": {
+        "transit": 6,
+        "maneuvering": 4,
+        "idle at site": 1,
+        "idle at port": 0.5,
+    },
+    "Heavy Lift Vessel": {
+        "transit": 12,
+        "maneuvering": 7,
+        "idle at site": 1,
+        "idle at port": 0.5,
+    },
+}
+
+style(metrics.emissions(emissions_factors=emissions_factors, maneuvering_factor=0.075, port_engine_on_factor=0.20))
 ```
 
 ## Component Costs

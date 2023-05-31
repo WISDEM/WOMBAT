@@ -220,6 +220,10 @@ class WombatEnvironment(simpy.Environment):
             self._operations_writer.writerows(self._operations_buffer)
             self._operations_buffer.clear()
             self._operations_csv.close()
+            print(
+                f"Simulation failed at hour {self.now:,.6f},"
+                f" simulation time: {self.simulation_time}"
+            )
             raise e
 
         # Ensure all logged events make it to their target file
@@ -515,7 +519,8 @@ class WombatEnvironment(simpy.Environment):
         column_order.insert(0, column_order.pop(column_order.index("datetime")))
         column_order.insert(0, column_order.pop(column_order.index("row_nr")))
 
-        return weather.select(column_order)
+        # Ensure the columns are ordered correctly and re-compute pandas-compatible ix
+        return weather.select(column_order).drop(columns="row_nr").with_row_count()
 
     @property
     def weather_now(self) -> pl.DataFrame:

@@ -583,15 +583,16 @@ class ServiceEquipment(RepairsMixin):
                 less_mobilization_hours=mobilization_hours
             )
         )
+        self.enroute = True
         self.env.log_action(
             agent=self.settings.name,
             action="mobilization",
             reason=f"{self.settings.name} is being mobilized",
             additional="mobilization",
             location="enroute",
+            duration=mobilization_hours,
         )
 
-        self.enroute = True
         yield self.env.timeout(mobilization_hours)
         self.onsite = True
         self.enroute = False
@@ -601,7 +602,6 @@ class ServiceEquipment(RepairsMixin):
             action="mobilization",
             reason=f"{self.settings.name} has arrived on site",
             additional="mobilization",
-            duration=mobilization_hours,
             equipment_cost=self.settings.mobilization_cost,
             location="site",
         )
@@ -617,16 +617,17 @@ class ServiceEquipment(RepairsMixin):
             A Timeout event for the number of hours the ServiceEquipment requires for
             mobilizing to the windfarm site.
         """
+        self.enroute = True
+        mobilization_hours = self.settings.mobilization_days * HOURS_IN_DAY
         self.env.log_action(
             agent=self.settings.name,
             action="mobilization",
             reason=f"{self.settings.name} is being mobilized",
             additional="mobilization",
+            duration=mobilization_hours,
             location="enroute",
         )
 
-        self.enroute = True
-        mobilization_hours = self.settings.mobilization_days * HOURS_IN_DAY
         yield self.env.timeout(mobilization_hours)
         self.onsite = True
         self.enroute = False
@@ -636,7 +637,6 @@ class ServiceEquipment(RepairsMixin):
             action="mobilization",
             reason=f"{self.settings.name} has arrived on site",
             additional="mobilization",
-            duration=mobilization_hours,
             equipment_cost=self.settings.mobilization_cost,
             location="site",
         )
@@ -963,9 +963,9 @@ class ServiceEquipment(RepairsMixin):
                 additional = f"traveling from {start} to {end}"
                 distance = self.settings.port_distance
                 hours = self._calculate_interrupted_travel_time(distance)
-        else:
-            if distance is None:
-                raise ValueError("`distance` must be provided if `hours` is provided.")
+
+        if distance is None:
+            raise ValueError("`distance` must be provided if `hours` is provided.")
 
         # MyPy helpers
         if TYPE_CHECKING:
@@ -1627,7 +1627,7 @@ class ServiceEquipment(RepairsMixin):
                 yield self.env.process(self.in_situ_repair(request))
 
     def run_unscheduled_in_situ(
-        self, request: RepairRequest
+        self, request: RepairRequest, initial: bool = False
     ) -> Generator[Process, None, None]:
         """Runs an in situ repair simulation for unscheduled servicing equipment, or
         those that have to be mobilized before performing repairs and maintenance.
@@ -1643,6 +1643,8 @@ class ServiceEquipment(RepairsMixin):
             The simulation
         """
         self.dispatched = True
+        if initial:
+            _ = self.manager.get(lambda x: x is request)
         if TYPE_CHECKING:
             assert isinstance(self.settings, UnscheduledServiceEquipmentData)
         mobilization_days = self.settings.mobilization_days
