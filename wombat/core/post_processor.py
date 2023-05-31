@@ -1545,7 +1545,10 @@ class Metrics:
         return costs.sort_values(by=["year", "month", "reason"])
 
     def emissions(
-        self, emissions_factors: dict, maneuvering_factor: float = 0.1
+        self,
+        emissions_factors: dict,
+        maneuvering_factor: float = 0.1,
+        port_engine_on_factor: float = 0.25,
     ) -> pd.DataFrame:
         """Calculates the emissions, typically in tons, per hour of operations for
         transiting, maneuvering (calculated as a % of transiting), idling at the site
@@ -1560,6 +1563,9 @@ class Metrics:
         maneuvering_factor : float, optional
             The proportion of transit time that can be attributed to
             maneuvering/positioning, by default 0.1.
+        port_engine_on_factor : float, optional
+            The proportion of idling at port time that can be attributed to having the
+            engine on and producing emissions, by default 0.25.
 
         Returns
         -------
@@ -1651,6 +1657,8 @@ class Metrics:
 
         # Combine the emissions factors and the calculate the total distribution
         equipment_usage = equipment_usage.join(emissions_summary, how="outer").fillna(0)
+
+        # Adjust the transiting time to account for maneuvering
         transiting = equipment_usage.index.get_level_values("category") == "transit"
         manuevering = (
             equipment_usage.index.get_level_values("category") == "maneuvering"
@@ -1661,6 +1669,13 @@ class Metrics:
         equipment_usage.loc[transiting, "duration"] = equipment_usage.loc[
             transiting, "duration"
         ] * (1 - maneuvering_factor)
+
+        # Adjust the idling at port time to only account for when the engine is on
+        port = equipment_usage.index.get_level_values("category" == "idle at port")
+        equipment_usage.loc[port, "duration"] = (
+            equipment_usage.loc[transiting, "duration"].values * port_engine_on_factor
+        )
+
         equipment_usage = (
             equipment_usage.fillna(0)
             .assign(
