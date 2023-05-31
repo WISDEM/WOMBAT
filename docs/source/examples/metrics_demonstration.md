@@ -378,6 +378,7 @@ Emissions (tons or other provided units) of all servicing equipment activity, ex
 
 - `emissions_factors`: Dictionary of servicing equipment names and the emissions per hour of the following activities: `transit`, `maneuvering`, `idle at site`, and `idle at port`, where port is stand-in for wherever the servicing equipment might be based when not at site.
 - `maneuvering_factor`: The proportion of transit time that can generally be associated with positioning servicing, by default 10%.
+- `port_engine_on_factor`: The proportion of the idling at port time where the engine is running and producing emissions, by default 25%.
 
 ```{code-cell} ipython3
 # Create the emissions factors, in tons per hour
@@ -414,7 +415,7 @@ emissions_factors = {
     },
 }
 
-style(metrics.emissions(emissions_factors=emissions_factors, maneuvering_factor=0.075))
+style(metrics.emissions(emissions_factors=emissions_factors, maneuvering_factor=0.075, port_engine_on_factor=0.20))
 ```
 
 ## Component Costs
