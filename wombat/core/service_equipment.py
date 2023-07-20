@@ -900,7 +900,7 @@ class ServiceEquipment(RepairsMixin):
             # return the max amount of time, but if that's not the case re-raise the
             # error.
             if self.env.end_datetime in dt:
-                ix_hours = distance_traveled.size - 1
+                ix_hours = distance_traveled.shape[0] - 1
             else:
                 raise e
 
