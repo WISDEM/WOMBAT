@@ -147,6 +147,36 @@ class RepairManager(FilterStore):
         self._current_id += 1
         return request_id
 
+    def _is_request_processing(self, request: RepairRequest) -> bool:
+        """Checks if a repair is being performed, or has already been completed.
+
+        Parameters
+        ----------
+        request : RepairRequest
+            The request that is about to be submitted to servicing equipment, but needs
+            to be double-checked against ongoing processes.
+
+        Returns
+        -------
+        bool
+            True if the request is ongoing or completed, False, if it's ok to processed
+            with the operation.
+        """
+        if self.items == []:
+            return False
+
+        if self.in_process_requests.items == []:
+            processing = []
+        else:
+            processing = [el.request_id for el in self.in_process_requests.items]
+        if self.completed_requests.items == []:
+            completed = []
+        else:
+            completed = [el.request_id for el in self.completed_requests.items]
+        if request.request_id in set(processing).union(completed):
+            return True
+        return False
+
     def _run_equipment_downtime(self, request: RepairRequest) -> None | Generator:
         """Run any equipment that has a pending request where the current windfarm
         operating capacity is less than or equal to the servicing equipment's threshold.
@@ -279,6 +309,8 @@ class RepairManager(FilterStore):
                 dispatched = capability
                 break
 
+        yield self.env.timeout(1 / 60)  # wait one minute for repair to register
+
         # Double check the the number of reqeusts is still below the threshold following
         # the dispatching of a piece of servicing equipment. This mostly pertains to
         # highly frequent request with long repair times and low thresholds.
@@ -298,8 +330,8 @@ class RepairManager(FilterStore):
                 x
                 for x in self.items
                 if dispatched in x.details.service_equipment
-                and x not in self.completed_requests.items
-                and x not in self.in_process_requests.items
+                and not self._is_request_processing(x)
+                and x is not request
             ]
             if new_request_check:
                 new_request = self.get(lambda x: x == new_request_check[0]).value
