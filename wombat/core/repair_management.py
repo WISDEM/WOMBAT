@@ -418,7 +418,7 @@ class RepairManager(FilterStore):
         if TYPE_CHECKING:
             assert isinstance(equipment_capability, set)
         for request in requests:
-            if self.in_process_requests(request):
+            if self._is_request_processing(request):
                 continue
             if equipment_capability.intersection(request.details.service_equipment):
                 # If this is the first request for the system, make sure no other
@@ -469,7 +469,7 @@ class RepairManager(FilterStore):
         # back
         requests = sorted(requests, key=lambda x: x.severity_level, reverse=True)
         for request in requests:
-            if self.in_process_requests(request):
+            if self._is_request_processing(request):
                 continue
             if request.cable:
                 if not self.windfarm.cable(request.system_id).servicing.triggered:
