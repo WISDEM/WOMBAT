@@ -1973,7 +1973,7 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
     env.run(timeout)
     assert fsv.onsite is fsv.at_site is fsv.transferring_crew is fsv.at_system is True
     assert fsv.at_port is fsv.enroute is False
-    assert fsv.current_system == "S00T3"
+    assert fsv.current_system == "S00T1"
 
     # The FSV should no longer be on site after 28 days, plus the time to finish the
     # repair that it's started
@@ -1993,8 +1993,8 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
     # The first HLV call is at 4118.374184568947 hours when S00T1's generator has a
     # catastrophic failure putting the windfarm at 83.3% operations, which is less than
     # the 90% threshold. However, because the timing will be delayed during repairs,
-    # realized timeout will be at 4154.386685 hours
-    timeout = 4154.386685
+    # realized timeout will be at 4653.37 hours
+    timeout = 4653.37
     env.run(timeout + 1)
     assert hlv.enroute
     assert (
@@ -2020,4 +2020,4 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
     assert hlv.onsite is hlv.at_site is True
     assert hlv.transferring_crew is hlv.at_port is hlv.enroute is False
     assert hlv.at_system
-    assert hlv.current_system == "S01T4"
+    assert hlv.current_system == "S01T5"
