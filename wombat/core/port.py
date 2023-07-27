@@ -314,7 +314,11 @@ class Port(RepairsMixin, FilterStore):
                 reason="at-port repair can now proceed",
                 request_id=request.request_id,
             )
+            self.manager.in_process_requests.put(request)
             self.active_repairs[system_id][request.request_id] = self.env.event()
+        request_ids = {el.request_id for el in requests}
+        self.manager.request_status_map["pending"].difference_update(request_ids)
+        self.manager.request_status_map["processing"].update(request_ids)
         return requests
 
     def run_repairs(self, system_id: str) -> None:
@@ -465,6 +469,11 @@ class Port(RepairsMixin, FilterStore):
 
         if initial:
             _ = self.manager.get(lambda x: x is request)
+            self.manager.in_process_requests.put(request)
+            self.manager.request_status_map["pending"].difference_update(
+                [request.request_id]
+            )
+            self.manager.request_status_map["processing"].update([request.request_id])
 
         # If the system is already undergoing repairs from other servicing equipment,
         # then wait until it's done being serviced, then double check
