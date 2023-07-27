@@ -1618,6 +1618,14 @@ class ServiceEquipment(RepairsMixin):
                 )
             else:
                 request = request.value
+                yield self.manager.in_process_requests.put(request)
+                self.manager.request_status_map["pending"].difference_update(
+                    [request.request_id]
+                )
+                self.manager.request_status_map["processing"].update(
+                    [request.request_id]
+                )
+
                 if request.cable:
                     system = self.windfarm.cable(request.system_id)
                 else:
@@ -1626,16 +1634,9 @@ class ServiceEquipment(RepairsMixin):
                 self.manager.halt_requests_for_system(system)
                 yield self.env.process(self.in_situ_repair(request))
 
-    def run_unscheduled_in_situ(
-        self, request: RepairRequest, initial: bool = False
-    ) -> Generator[Process, None, None]:
+    def run_unscheduled_in_situ(self) -> Generator[Process, None, None]:
         """Runs an in situ repair simulation for unscheduled servicing equipment, or
         those that have to be mobilized before performing repairs and maintenance.
-
-        Parameters
-        ----------
-        request : RepairRequest
-            The repair request that triggered the repair process.
 
         Yields
         ------
@@ -1643,8 +1644,7 @@ class ServiceEquipment(RepairsMixin):
             The simulation
         """
         self.dispatched = True
-        if initial:
-            _ = self.manager.get(lambda x: x is request)
+
         if TYPE_CHECKING:
             assert isinstance(self.settings, UnscheduledServiceEquipmentData)
         mobilization_days = self.settings.mobilization_days
@@ -1679,8 +1679,34 @@ class ServiceEquipment(RepairsMixin):
                 duration=hours_to_next,
             )
             yield self.env.timeout(hours_to_next)
-            yield self.env.process(self.run_unscheduled_in_situ(request))
+            yield self.env.process(self.run_unscheduled_in_situ())
             return
+
+        while True and self.env.now < charter_end_env_time:
+            request = self.get_next_request()
+            if request is None:
+                yield self.env.process(
+                    self.wait_until_next_shift(
+                        **{
+                            "agent": self.settings.name,
+                            "reason": "no requests",
+                            "additional": "no work requests submitted by start of shift",  # noqa: disabl#501
+                        }
+                    )
+                )
+            else:
+                break
+
+        if self.env.now >= charter_end_env_time:
+            self.dispatched = False
+            return
+
+        request = request.value
+        yield self.manager.in_process_requests.put(request)
+        self.manager.request_status_map["pending"].difference_update(
+            [request.request_id]
+        )
+        self.manager.request_status_map["processing"].update([request.request_id])
 
         # Ensure the system isn't in service already during the checking stages, then
         # halt its ongoing processes for the current repair.
