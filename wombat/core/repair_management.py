@@ -70,6 +70,11 @@ class RepairManager(FilterStore):
         self.request_based_equipment = StrategyMap()
         self.completed_requests = FilterStore(self.env)
         self.in_process_requests = FilterStore(self.env)
+        self.request_status_map: dict[str, set] = {
+            "pending": set(),
+            "processing": set(),
+            "completed": set(),
+        }
 
     def _update_equipment_map(self, service_equipment: ServiceEquipment) -> None:
         """Updates ``equipment_map`` with a provided servicing equipment object."""
@@ -165,17 +170,10 @@ class RepairManager(FilterStore):
         if self.items == []:
             return False
 
-        if self.in_process_requests.items == []:
-            processing = []
-        else:
-            processing = [el.request_id for el in self.in_process_requests.items]
-        if self.completed_requests.items == []:
-            completed = []
-        else:
-            completed = [el.request_id for el in self.completed_requests.items]
-        if request.request_id in set(processing).union(completed):
-            return True
-        return False
+        rid = request.request_id
+        processing = (lambda: rid in self.request_status_map["processing"])()
+        completed = (lambda: rid in self.request_status_map["completed"])()
+        return processing or completed
 
     def _run_equipment_downtime(self, request: RepairRequest) -> None | Generator:
         """Run any equipment that has a pending request where the current windfarm
@@ -232,10 +230,7 @@ class RepairManager(FilterStore):
                         self.port.run_unscheduled_in_situ(request, initial=True)
                     )
                 else:
-                    yield self.in_process_requests.put(request)
-                    self.env.process(
-                        equipment_obj.run_unscheduled_in_situ(request, initial=True)
-                    )
+                    self.env.process(equipment_obj.run_unscheduled_in_situ())
 
                     # Move the dispatched capability to the end of list to ensure proper
                     # cycling of available servicing equipment
@@ -298,10 +293,7 @@ class RepairManager(FilterStore):
                         self.port.run_unscheduled_in_situ(request, initial=True)
                     )
                 else:
-                    yield self.in_process_requests.put(request)
-                    yield self.env.process(
-                        equipment_obj.run_unscheduled_in_situ(request, initial=True)
-                    )
+                    yield self.env.process(equipment_obj.run_unscheduled_in_situ())
 
                     # Move the dispatched capability to the end of list to ensure proper
                     # cycling of available servicing equipment
@@ -355,6 +347,7 @@ class RepairManager(FilterStore):
         request_id = self._create_request_id(request)
         request.assign_id(request_id)
         self.put(request)
+        self.request_status_map["pending"].update([request.request_id])
         return request
 
     def submit_request(self, request: RepairRequest) -> None:
@@ -425,6 +418,10 @@ class RepairManager(FilterStore):
                 # servicing equipment can access it
                 if request.system_id not in self.invalid_systems:
                     self.invalid_systems.append(request.system_id)
+                self.request_status_map["pending"].difference_update(
+                    [requests[0].request_id]
+                )
+                self.request_status_map["processing"].update([requests[0].request_id])
                 return self.get(lambda x: x is requests[0])
 
         # There were no matching equipment requirements to match the equipment
@@ -480,6 +477,10 @@ class RepairManager(FilterStore):
             if request.system_id not in self.invalid_systems:
                 if equipment_capability.intersection(request.details.service_equipment):
                     self.invalid_systems.append(request.system_id)
+                    self.request_status_map["pending"].difference_update(
+                        [request.request_id]
+                    )
+                    self.request_status_map["processing"].update([request.request_id])
                     return self.get(lambda x: x is request)
 
         # Ensure None is returned if nothing is found in the loop just as a FilterGet
@@ -524,10 +525,14 @@ class RepairManager(FilterStore):
             The ``completed_requests.put()`` that registers completion.
         """
         if port:
+            self.request_status_map["processing"].difference_update([repair.request_id])
+            self.requesrequest_status_mapt_map["completed"].update([repair.request_id])
             yield self.completed_requests.put(repair)
         else:
-            request = yield self.in_process_requests.get(lambda x: x is repair)
-            yield self.completed_requests.put(request)
+            self.request_status_map["processing"].difference_update([repair.request_id])
+            self.request_status_map["completed"].update([repair.request_id])
+            yield self.completed_requests.put(repair)
+            yield self.in_process_requests.get(lambda x: x is repair)
 
     def enable_requests_for_system(self, system: System | Cable) -> None:
         """Reenables service equipment operations on the provided system.
@@ -589,6 +594,8 @@ class RepairManager(FilterStore):
                 reason="",
                 request_id=request.request_id,
             )
+            self.request_status_map["pending"].difference_update([request.request_id])
+            self.request_status_map["processing"].update([request.request_id])
             _ = self.get(lambda x: x is request)  # pylint: disable=W0640
 
         return requests
@@ -646,6 +653,8 @@ class RepairManager(FilterStore):
                 reason="replacement required",
                 request_id=request.request_id,
             )
+            self.request_status_map["pending"].difference_update([request.request_id])
+            self.request_status_map["processing"].update([request.request_id])
             _ = self.get(lambda x: x is request)  # pylint: disable=W0640
         return requests
 
