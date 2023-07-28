@@ -276,11 +276,11 @@ class Port(RepairsMixin, FilterStore):
         self.crew_manager.release(crew_request)
 
         self.active_repairs[request.system_id][request.request_id].succeed()
-        self.env.process(self.manager.register_repair(request, port=True))
+        self.env.process(self.manager.register_repair(request))
 
     def transfer_requests_from_manager(
         self, system_id: str
-    ) -> None | list[RepairRequest]:
+    ) -> None | list[RepairRequest] | Generator:
         """Gets all of a given system's repair requests from the simulation's repair
         manager, removes them from that queue, and puts them in the port's queue.
 
@@ -314,7 +314,7 @@ class Port(RepairsMixin, FilterStore):
                 reason="at-port repair can now proceed",
                 request_id=request.request_id,
             )
-            self.manager.in_process_requests.put(request)
+            _ = yield self.manager.in_process_requests.put(request)
             self.active_repairs[system_id][request.request_id] = self.env.event()
         request_ids = {el.request_id for el in requests}
         self.manager.request_status_map["pending"].difference_update(request_ids)

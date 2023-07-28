@@ -508,7 +508,7 @@ class RepairManager(FilterStore):
                 f"{self.env.simulation_time} {system.id} already being serviced"
             )
 
-    def register_repair(self, repair: RepairRequest, port: bool = False) -> Generator:
+    def register_repair(self, repair: RepairRequest) -> Generator:
         """Registers the repair as complete with the repair managiner.
 
         Parameters
@@ -524,15 +524,10 @@ class RepairManager(FilterStore):
         Generator
             The ``completed_requests.put()`` that registers completion.
         """
-        if port:
-            self.request_status_map["processing"].difference_update([repair.request_id])
-            self.request_status_map["completed"].update([repair.request_id])
-            yield self.completed_requests.put(repair)
-        else:
-            self.request_status_map["processing"].difference_update([repair.request_id])
-            self.request_status_map["completed"].update([repair.request_id])
-            yield self.completed_requests.put(repair)
-            yield self.in_process_requests.get(lambda x: x is repair)
+        self.request_status_map["processing"].difference_update([repair.request_id])
+        self.request_status_map["completed"].update([repair.request_id])
+        yield self.completed_requests.put(repair)
+        yield self.in_process_requests.get(lambda x: x is repair)
 
     def enable_requests_for_system(self, system: System | Cable) -> None:
         """Reenables service equipment operations on the provided system.
@@ -553,7 +548,7 @@ class RepairManager(FilterStore):
 
     def get_all_requests_for_system(
         self, agent: str, system_id: str
-    ) -> list[RepairRequest] | None:
+    ) -> list[RepairRequest] | None | Generator:
         """Gets all repair requests for a specific ``system_id``.
 
         Parameters
@@ -596,7 +591,7 @@ class RepairManager(FilterStore):
             )
             self.request_status_map["pending"].difference_update([request.request_id])
             self.request_status_map["processing"].update([request.request_id])
-            _ = self.get(lambda x: x is request)  # pylint: disable=W0640
+            _ = yield self.get(lambda x: x is request)  # pylint: disable=W0640
 
         return requests
 

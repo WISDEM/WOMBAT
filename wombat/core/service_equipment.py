@@ -1159,7 +1159,7 @@ class ServiceEquipment(RepairsMixin):
 
         delay, shift_delay = self.find_uninterrupted_weather_window(hours_to_process)
         # If there is a shift delay, then travel to port, wait, and travel back, and
-        # finally try again.
+        # try again, until no shift delay is required.
         while shift_delay:
             travel_time = self.env.now
             yield self.env.process(
