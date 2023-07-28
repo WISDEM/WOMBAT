@@ -1,13 +1,23 @@
 ## Unreleased (TBD)
 
-- All `assert` statements are now only called when type checking is performed
+### Bug Fixes
+
 - Most of the `# type: ignore` comments have been removed or the past errors have been resolved
 - Failure and maintenance logic in the `Cable` and `Subassembly` models have been wrapped in `if`/`else` blocks to ensure previously unreachable code still can't be reached under limited conditions
-- Replaces all `.get(lamda x: x == request)` with a 10x faster `.get(lambda x: x is request)` to more efficiently filter out the desired event to be removed from the repair manager and port repair manangement.
-- Adds a `non_stop_shift` attribute to `ServiceEquipmentData`, `UnscheduledServiceEquipmentData`, `ScheduledServiceEquipmentData`, and `PortConfig` that is set in the post-initialization hook or through `DateLimitsMixin._set_environment_shift()` to ensure it is updated appropriately. Additionally, all checks for a 24 hour shift now check for the `non_stop_shift` attribute.
-- `WombatEnvironment.weather` is now a Polars DataFrame to improve efficiency and indexing bottlenecks introduced in Pandas 2.0.
 - Fixes a bug in where the mobilization duration is logged. Previously, the mobilization duration was logged upon completion, but now is logged while during the actual mobilizing, with costs still being logged upon completion.
+- Fixes an uncommon error where repairs are made twice causing the simulation to fail. This was caused by a control mismatch in the unscheduled repair process, and was fixed by better tracking and controlling when a repair moves from "pending" (submitted), to "processing" (handed off to the servicing equipment for repair or to the port for a tow-to-port repair cycle), to "completed" (the repair is registered as complete). Additionally, the servicing equipment no longer relies on receiving the first repair from the repair manager on dispatch, and follows the same `get_next_request()` logic that will occur following the initial dispatch and repair.
+- Fixes an error where a repair has `replacement=True` and `operation_reduction` < 1 both resets the `operating_level` back to 1 and readjusts for the `operation_reduction`, which can cause `operating_level` > 100%
+
+### Features
+
+- Adds a `non_stop_shift` attribute to `ServiceEquipmentData`, `UnscheduledServiceEquipmentData`, `ScheduledServiceEquipmentData`, and `PortConfig` that is set in the post-initialization hook or through `DateLimitsMixin._set_environment_shift()` to ensure it is updated appropriately. Additionally, all checks for a 24 hour shift now check for the `non_stop_shift` attribute.
 - `Metrics.emissions()` has been added to the list of available metrics to calculate the emissions from idling at port or sea, tranisiting, and maneuvering. Co-authored by and inspired by analysis work from @hemezz.
+
+### General
+
+- All `assert` statements are now only called when type checking is performed
+- Replaces all `.get(lamda x: x == request)` with a 10x faster `.get(lambda x: x is request)` to more efficiently filter out the desired event to be removed from the repair manager and port repair manangement.
+- `WombatEnvironment.weather` is now a Polars DataFrame to improve efficiency and indexing bottlenecks introduced in Pandas 2.0.
 
 ## v0.7.1 (4 May 2023)
 
