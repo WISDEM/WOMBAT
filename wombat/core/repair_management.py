@@ -526,7 +526,7 @@ class RepairManager(FilterStore):
         """
         if port:
             self.request_status_map["processing"].difference_update([repair.request_id])
-            self.requesrequest_status_mapt_map["completed"].update([repair.request_id])
+            self.request_status_map["completed"].update([repair.request_id])
             yield self.completed_requests.put(repair)
         else:
             self.request_status_map["processing"].difference_update([repair.request_id])
