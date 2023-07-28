@@ -484,7 +484,7 @@ class ServiceEquipment(RepairsMixin):
             _ = self.manager.purge_subassembly_requests(
                 repair.system_id, repair.subassembly_id
             )
-        if operation_reduction == 1:
+        elif operation_reduction == 1:
             subassembly.operating_level = starting_operating_level
             subassembly.broken.succeed()
         elif operation_reduction == 0:
@@ -1185,6 +1185,7 @@ class ServiceEquipment(RepairsMixin):
                     start="port", end="site", set_current=system.id, **shared_logging
                 )
             )
+            # TODO: SEE IF THE BELOW NEEDS TO BE DROPPED!
             yield self.env.process(
                 self.crew_transfer(system, subassembly, request, to_system=to_system)
             )
