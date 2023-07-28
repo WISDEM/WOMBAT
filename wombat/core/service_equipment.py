@@ -1160,7 +1160,7 @@ class ServiceEquipment(RepairsMixin):
         delay, shift_delay = self.find_uninterrupted_weather_window(hours_to_process)
         # If there is a shift delay, then travel to port, wait, and travel back, and
         # finally try again.
-        if shift_delay:
+        while shift_delay:
             travel_time = self.env.now
             yield self.env.process(
                 self.travel(start="site", end="port", **shared_logging)
@@ -1185,11 +1185,9 @@ class ServiceEquipment(RepairsMixin):
                     start="port", end="site", set_current=system.id, **shared_logging
                 )
             )
-            # TODO: SEE IF THE BELOW NEEDS TO BE DROPPED!
-            yield self.env.process(
-                self.crew_transfer(system, subassembly, request, to_system=to_system)
+            delay, shift_delay = self.find_uninterrupted_weather_window(
+                hours_to_process
             )
-            return
 
         yield self.env.process(
             self.weather_delay(delay, location="system", **shared_logging)

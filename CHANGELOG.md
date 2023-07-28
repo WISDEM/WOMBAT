@@ -7,6 +7,7 @@
 - Fixes a bug in where the mobilization duration is logged. Previously, the mobilization duration was logged upon completion, but now is logged while during the actual mobilizing, with costs still being logged upon completion.
 - Fixes an uncommon error where repairs are made twice causing the simulation to fail. This was caused by a control mismatch in the unscheduled repair process, and was fixed by better tracking and controlling when a repair moves from "pending" (submitted), to "processing" (handed off to the servicing equipment for repair or to the port for a tow-to-port repair cycle), to "completed" (the repair is registered as complete). Additionally, the servicing equipment no longer relies on receiving the first repair from the repair manager on dispatch, and follows the same `get_next_request()` logic that will occur following the initial dispatch and repair.
 - Fixes an error where a repair has `replacement=True` and `operation_reduction` < 1 both resets the `operating_level` back to 1 and readjusts for the `operation_reduction`, which can cause `operating_level` > 100%
+- `ServiceEquipment.crew_transfer()` uses a while loop in place of an `if` with recursion strategy to handle unsafe transfer conditions to continuously wait until the next shift's available window.
 
 ### Features
 
