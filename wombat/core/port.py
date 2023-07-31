@@ -100,6 +100,7 @@ class Port(RepairsMixin, FilterStore):
         self.env = env
         self.windfarm = windfarm
         self.manager = repair_manager
+        self.system_request_map: dict[str, list[RepairRequest]] = {}
         self.requests_serviced: set[str] = set()
         self.invalid_systems: list[str] = []
 
@@ -203,9 +204,6 @@ class Port(RepairsMixin, FilterStore):
         request : RepairRequest
             The submitted repair or maintenance request.
         """
-        # Retrieve the actual request
-        request = yield self.get(lambda r: r is request)  # type: ignore
-
         # Request a service crew
         crew_request = self.crew_manager.request()
         yield crew_request
@@ -276,7 +274,7 @@ class Port(RepairsMixin, FilterStore):
         self.crew_manager.release(crew_request)
 
         self.active_repairs[request.system_id][request.request_id].succeed()
-        self.env.process(self.manager.register_repair(request))
+        yield self.env.process(self.manager.register_repair(request))
 
     def transfer_requests_from_manager(
         self, system_id: str
@@ -299,6 +297,7 @@ class Port(RepairsMixin, FilterStore):
         )
         if requests is None:
             return requests
+        requests = [r.value for r in requests]  # type: ignore
 
         self.items.extend(requests)
         for request in requests:
@@ -319,9 +318,8 @@ class Port(RepairsMixin, FilterStore):
         request_ids = {el.request_id for el in requests}
         self.manager.request_status_map["pending"].difference_update(request_ids)
         self.manager.request_status_map["processing"].update(request_ids)
-        return requests
 
-    def run_repairs(self, system_id: str) -> None:
+    def run_repairs(self, system_id: str) -> Generator | None:
         """Method that transfers the requests from the repair manager and initiates the
         repair sequence.
 
@@ -331,10 +329,14 @@ class Port(RepairsMixin, FilterStore):
             The ``System.id`` that is has been towed to port.
         """
         self.active_repairs[system_id] = {}
-        requests = self.transfer_requests_from_manager(system_id)
-        if requests is not None:
-            self.requests_serviced.update([r.request_id for r in requests])
-            [self.env.process(self.repair_single(request)) for request in requests]
+        yield self.env.process(self.transfer_requests_from_manager(system_id))
+
+        # request_list = self.system_request_map.get(system_id)
+        request = yield self.get(lambda x: x.system_id == system_id)
+        while request is not None:
+            self.requests_serviced.update([request.request_id])
+            yield self.env.process(self.repair_single(request))
+            request = yield self.get(lambda x: x.system_id == system_id)
 
     def run_tow_to_port(self, request: RepairRequest) -> Generator[Process, None, None]:
         """The method to initiate a tow-to-port repair sequence.
@@ -427,7 +429,7 @@ class Port(RepairsMixin, FilterStore):
         yield self.service_equipment_manager.put(tugboat)
 
         # Transfer the repairs to the port queue, which will initiate the repair process
-        self.run_repairs(request.system_id)
+        yield self.env.process(self.run_repairs(request.system_id))
 
         # Wait for the repairs to complete
         yield simpy.AllOf(self.env, self.active_repairs[request.system_id].values())
