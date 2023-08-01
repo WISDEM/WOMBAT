@@ -484,7 +484,7 @@ class ServiceEquipment(RepairsMixin):
             _ = self.manager.purge_subassembly_requests(
                 repair.system_id, repair.subassembly_id
             )
-        if operation_reduction == 1:
+        elif operation_reduction == 1:
             subassembly.operating_level = starting_operating_level
             subassembly.broken.succeed()
         elif operation_reduction == 0:
@@ -900,7 +900,7 @@ class ServiceEquipment(RepairsMixin):
             # return the max amount of time, but if that's not the case re-raise the
             # error.
             if self.env.end_datetime in dt:
-                ix_hours = distance_traveled.size - 1
+                ix_hours = distance_traveled.shape[0] - 1
             else:
                 raise e
 
@@ -1159,8 +1159,8 @@ class ServiceEquipment(RepairsMixin):
 
         delay, shift_delay = self.find_uninterrupted_weather_window(hours_to_process)
         # If there is a shift delay, then travel to port, wait, and travel back, and
-        # finally try again.
-        if shift_delay:
+        # try again, until no shift delay is required.
+        while shift_delay:
             travel_time = self.env.now
             yield self.env.process(
                 self.travel(start="site", end="port", **shared_logging)
@@ -1185,10 +1185,9 @@ class ServiceEquipment(RepairsMixin):
                     start="port", end="site", set_current=system.id, **shared_logging
                 )
             )
-            yield self.env.process(
-                self.crew_transfer(system, subassembly, request, to_system=to_system)
+            delay, shift_delay = self.find_uninterrupted_weather_window(
+                hours_to_process
             )
-            return
 
         yield self.env.process(
             self.weather_delay(delay, location="system", **shared_logging)
@@ -1618,6 +1617,14 @@ class ServiceEquipment(RepairsMixin):
                 )
             else:
                 request = request.value
+                yield self.manager.in_process_requests.put(request)
+                self.manager.request_status_map["pending"].difference_update(
+                    [request.request_id]
+                )
+                self.manager.request_status_map["processing"].update(
+                    [request.request_id]
+                )
+
                 if request.cable:
                     system = self.windfarm.cable(request.system_id)
                 else:
@@ -1626,16 +1633,9 @@ class ServiceEquipment(RepairsMixin):
                 self.manager.halt_requests_for_system(system)
                 yield self.env.process(self.in_situ_repair(request))
 
-    def run_unscheduled_in_situ(
-        self, request: RepairRequest, initial: bool = False
-    ) -> Generator[Process, None, None]:
+    def run_unscheduled_in_situ(self) -> Generator[Process, None, None]:
         """Runs an in situ repair simulation for unscheduled servicing equipment, or
         those that have to be mobilized before performing repairs and maintenance.
-
-        Parameters
-        ----------
-        request : RepairRequest
-            The repair request that triggered the repair process.
 
         Yields
         ------
@@ -1643,8 +1643,7 @@ class ServiceEquipment(RepairsMixin):
             The simulation
         """
         self.dispatched = True
-        if initial:
-            _ = self.manager.get(lambda x: x is request)
+
         if TYPE_CHECKING:
             assert isinstance(self.settings, UnscheduledServiceEquipmentData)
         mobilization_days = self.settings.mobilization_days
@@ -1679,8 +1678,34 @@ class ServiceEquipment(RepairsMixin):
                 duration=hours_to_next,
             )
             yield self.env.timeout(hours_to_next)
-            yield self.env.process(self.run_unscheduled_in_situ(request))
+            yield self.env.process(self.run_unscheduled_in_situ())
             return
+
+        while True and self.env.now < charter_end_env_time:
+            request = self.get_next_request()
+            if request is None:
+                yield self.env.process(
+                    self.wait_until_next_shift(
+                        **{
+                            "agent": self.settings.name,
+                            "reason": "no requests",
+                            "additional": "no work requests submitted by start of shift",  # noqa: disabl#501
+                        }
+                    )
+                )
+            else:
+                break
+
+        if self.env.now >= charter_end_env_time:
+            self.dispatched = False
+            return
+
+        request = request.value
+        yield self.manager.in_process_requests.put(request)
+        self.manager.request_status_map["pending"].difference_update(
+            [request.request_id]
+        )
+        self.manager.request_status_map["processing"].update([request.request_id])
 
         # Ensure the system isn't in service already during the checking stages, then
         # halt its ongoing processes for the current repair.

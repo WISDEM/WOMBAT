@@ -686,6 +686,10 @@ class RepairRequest(FromDictMixin):
         object.__setattr__(self, "request_id", request_id)
         self.details.assign_id(request_id)
 
+    def __eq__(self, other) -> bool:
+        """Redefines the equality method to only check for the ``request_id``."""
+        return self.request_id == other.request_id
+
 
 @define(frozen=True, auto_attribs=True)
 class ServiceCrew(FromDictMixin):

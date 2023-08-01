@@ -18,7 +18,7 @@ import simpy
 import pandas as pd
 import polars as pl
 from simpy.events import Process, Timeout
-from simpy.resources.store import FilterStore
+from simpy.resources.store import FilterStore, FilterStoreGet
 
 from wombat.windfarm import Windfarm
 from wombat.core.mixins import RepairsMixin
@@ -100,6 +100,7 @@ class Port(RepairsMixin, FilterStore):
         self.env = env
         self.windfarm = windfarm
         self.manager = repair_manager
+        self.system_request_map: dict[str, list[RepairRequest]] = {}
         self.requests_serviced: set[str] = set()
         self.invalid_systems: list[str] = []
 
@@ -203,9 +204,6 @@ class Port(RepairsMixin, FilterStore):
         request : RepairRequest
             The submitted repair or maintenance request.
         """
-        # Retrieve the actual request
-        request = yield self.get(lambda r: r is request)  # type: ignore
-
         # Request a service crew
         crew_request = self.crew_manager.request()
         yield crew_request
@@ -274,13 +272,12 @@ class Port(RepairsMixin, FilterStore):
 
         # Make the crew available again
         self.crew_manager.release(crew_request)
-
         self.active_repairs[request.system_id][request.request_id].succeed()
-        self.env.process(self.manager.register_repair(request, port=True))
+        yield self.env.process(self.manager.register_repair(request))
 
     def transfer_requests_from_manager(
         self, system_id: str
-    ) -> None | list[RepairRequest]:
+    ) -> None | list[RepairRequest] | Generator:
         """Gets all of a given system's repair requests from the simulation's repair
         manager, removes them from that queue, and puts them in the port's queue.
 
@@ -299,6 +296,7 @@ class Port(RepairsMixin, FilterStore):
         )
         if requests is None:
             return requests
+        requests = [r.value for r in requests]  # type: ignore
 
         self.items.extend(requests)
         for request in requests:
@@ -314,10 +312,13 @@ class Port(RepairsMixin, FilterStore):
                 reason="at-port repair can now proceed",
                 request_id=request.request_id,
             )
+            _ = yield self.manager.in_process_requests.put(request)
             self.active_repairs[system_id][request.request_id] = self.env.event()
-        return requests
+        request_ids = {el.request_id for el in requests}
+        self.manager.request_status_map["pending"].difference_update(request_ids)
+        self.manager.request_status_map["processing"].update(request_ids)
 
-    def run_repairs(self, system_id: str) -> None:
+    def run_repairs(self, system_id: str) -> Generator | None:
         """Method that transfers the requests from the repair manager and initiates the
         repair sequence.
 
@@ -327,10 +328,51 @@ class Port(RepairsMixin, FilterStore):
             The ``System.id`` that is has been towed to port.
         """
         self.active_repairs[system_id] = {}
-        requests = self.transfer_requests_from_manager(system_id)
-        if requests is not None:
-            self.requests_serviced.update([r.request_id for r in requests])
-            [self.env.process(self.repair_single(request)) for request in requests]
+        yield self.env.process(self.transfer_requests_from_manager(system_id))
+
+        # Get all the requests and run them.
+        # NOTE: this will all fail if there are somehow no requests, which also means
+        # something else is completely wrong with the simulation
+        request_list = self.get_all_requests_for_system(system_id)
+        for request in request_list:  # type: ignore
+            if TYPE_CHECKING:
+                assert isinstance(request, FilterStoreGet)
+            request = request.value
+            self.requests_serviced.update([request.request_id])
+            yield self.env.process(self.repair_single(request))
+
+    def get_all_requests_for_system(
+        self, system_id: str
+    ) -> None | Generator[FilterStoreGet, None, None]:
+        """Gets all repair requests for a specific ``system_id``.
+
+        Parameters
+        ----------
+        system_id : Optional[str], optional
+            ID of the turbine or OSS; should correspond to ``System.id``.
+            the first repair requested.
+
+        Returns
+        -------
+        Optional[Generator[FilterStoreGet]]
+            All repair requests for a given system. If no matching requests are found,
+            or there aren't any items in the queue yet, then None is returned.
+        """
+        if not self.items:
+            return None
+
+        # Filter the requests by system
+        requests = self.items
+        if system_id is not None:
+            requests = [el for el in self.items if el.system_id == system_id]
+        if requests == []:
+            return None
+
+        # Loop the requests and pop them from the queue
+        for request in requests:
+            _ = yield self.get(lambda x: x is request)  # pylint: disable=W0640
+
+        return requests
 
     def run_tow_to_port(self, request: RepairRequest) -> Generator[Process, None, None]:
         """The method to initiate a tow-to-port repair sequence.
@@ -423,7 +465,7 @@ class Port(RepairsMixin, FilterStore):
         yield self.service_equipment_manager.put(tugboat)
 
         # Transfer the repairs to the port queue, which will initiate the repair process
-        self.run_repairs(request.system_id)
+        yield self.env.process(self.run_repairs(request.system_id))
 
         # Wait for the repairs to complete
         yield simpy.AllOf(self.env, self.active_repairs[request.system_id].values())
@@ -465,6 +507,11 @@ class Port(RepairsMixin, FilterStore):
 
         if initial:
             _ = self.manager.get(lambda x: x is request)
+            self.manager.in_process_requests.put(request)
+            self.manager.request_status_map["pending"].difference_update(
+                [request.request_id]
+            )
+            self.manager.request_status_map["processing"].update([request.request_id])
 
         # If the system is already undergoing repairs from other servicing equipment,
         # then wait until it's done being serviced, then double check
