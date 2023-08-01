@@ -18,7 +18,7 @@ import simpy
 import pandas as pd
 import polars as pl
 from simpy.events import Process, Timeout
-from simpy.resources.store import FilterStore
+from simpy.resources.store import FilterStore, FilterStoreGet
 
 from wombat.windfarm import Windfarm
 from wombat.core.mixins import RepairsMixin
@@ -272,7 +272,6 @@ class Port(RepairsMixin, FilterStore):
 
         # Make the crew available again
         self.crew_manager.release(crew_request)
-
         self.active_repairs[request.system_id][request.request_id].succeed()
         yield self.env.process(self.manager.register_repair(request))
 
@@ -331,12 +330,49 @@ class Port(RepairsMixin, FilterStore):
         self.active_repairs[system_id] = {}
         yield self.env.process(self.transfer_requests_from_manager(system_id))
 
-        # request_list = self.system_request_map.get(system_id)
-        request = yield self.get(lambda x: x.system_id == system_id)
-        while request is not None:
+        # Get all the requests and run them.
+        # NOTE: this will all fail if there are somehow no requests, which also means
+        # something else is completely wrong with the simulation
+        request_list = self.get_all_requests_for_system(system_id)
+        for request in request_list:  # type: ignore
+            if TYPE_CHECKING:
+                assert isinstance(request, FilterStoreGet)
+            request = request.value
             self.requests_serviced.update([request.request_id])
             yield self.env.process(self.repair_single(request))
-            request = yield self.get(lambda x: x.system_id == system_id)
+
+    def get_all_requests_for_system(
+        self, system_id: str
+    ) -> None | Generator[FilterStoreGet, None, None]:
+        """Gets all repair requests for a specific ``system_id``.
+
+        Parameters
+        ----------
+        system_id : Optional[str], optional
+            ID of the turbine or OSS; should correspond to ``System.id``.
+            the first repair requested.
+
+        Returns
+        -------
+        Optional[Generator[FilterStoreGet]]
+            All repair requests for a given system. If no matching requests are found,
+            or there aren't any items in the queue yet, then None is returned.
+        """
+        if not self.items:
+            return None
+
+        # Filter the requests by system
+        requests = self.items
+        if system_id is not None:
+            requests = [el for el in self.items if el.system_id == system_id]
+        if requests == []:
+            return None
+
+        # Loop the requests and pop them from the queue
+        for request in requests:
+            _ = yield self.get(lambda x: x is request)  # pylint: disable=W0640
+
+        return requests
 
     def run_tow_to_port(self, request: RepairRequest) -> Generator[Process, None, None]:
         """The method to initiate a tow-to-port repair sequence.
