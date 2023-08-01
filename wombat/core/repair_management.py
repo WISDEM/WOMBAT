@@ -422,7 +422,7 @@ class RepairManager(FilterStore):
                     [requests[0].request_id]
                 )
                 self.request_status_map["processing"].update([requests[0].request_id])
-                yield self.get(lambda x: x is requests[0])
+                return self.get(lambda x: x is requests[0])
 
         # There were no matching equipment requirements to match the equipment
         # attempting to retrieve its next request
