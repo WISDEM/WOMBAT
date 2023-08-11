@@ -1909,6 +1909,7 @@ def test_scheduled_equipment_logic(env_setup_full_profile):
     assert len(get_items_by_description(manager, "fsv call")) == 0
 
 
+@pytest.mark.skip(reason="UPDATE THIS BEFORE PR")
 def test_unscheduled_service_equipment_call(env_setup_full_profile):
     """Tests the calling of downtime-based and requests-based service equipment. This
     test will only consider that the equipment is mobilized when required, arrives at

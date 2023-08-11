@@ -74,6 +74,8 @@ VESTAS_POWER_CURVE = IEC_power_curve(
 )
 del power_curve
 
+RNG = np.random.default_rng(seed=34)
+
 
 GENERATOR_SUBASSEMBLY = {
     "name": "generator",
@@ -145,6 +147,7 @@ GENERATOR_SUBASSEMBLY = {
             "system_value": 39000000,
         },
     },
+    "rng": RNG,
 }
 
 UNSCHEDULED_VESSEL_REQUESTS = {
