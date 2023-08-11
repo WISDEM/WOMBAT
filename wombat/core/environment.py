@@ -118,6 +118,9 @@ class WombatEnvironment(simpy.Environment):
         The maximum operating speed during the annualized reduced speed operations.
         When defined at the environment level, an undefined or faster value will be
         overridden for all servicing equipment and any modeled port, by default 0.0.
+    random_seed : float | None
+        The random seed to be passed to a universal NumPy ``default_rng`` object to
+        generate Weibull random generators.
 
     Raises
     ------
@@ -140,6 +143,7 @@ class WombatEnvironment(simpy.Environment):
         reduced_speed_start: str | dt.datetime | None = None,
         reduced_speed_end: str | dt.datetime | None = None,
         reduced_speed: float = 0.0,
+        random_seed: float | None = None,
     ) -> None:
         """Initialization."""
         super().__init__()
