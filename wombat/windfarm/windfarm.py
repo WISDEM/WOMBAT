@@ -35,6 +35,7 @@ class Windfarm:
         self.repair_manager = repair_manager
 
         # Set up the layout and instantiate all windfarm objects
+        self.configs: dict[str, dict] = {"turbine": {}, "substation": {}, "cable": {}}
         self._create_graph_layout(windfarm_layout)
         self._create_turbines_and_substations()
         self._create_cables()
@@ -157,32 +158,35 @@ class Windfarm:
         """
         bad_data_location_messages = []
         for system_id, data in self.graph.nodes(data=True):
-            if data["subassembly"] == "":
+            name = data["subassembly"]
+            node_type = data["type"]
+            if name == "":
                 raise ValueError(
                     "A 'subassembly' file must be specified for all nodes in the"
                     " windfarm layout!"
                 )
 
-            try:
-                subassembly_dict = load_yaml(
-                    self.env.data_dir / f"{data['type']}s", data["subassembly"]
-                )
-            except FileNotFoundError:
-                subassembly_dict = load_yaml(
-                    self.env.data_dir / "windfarm", data["subassembly"]
-                )
-                message = (
-                    f"In v0.7, all {data['type']} configurations must be located in:"
-                    f" '<library>/{data['type']}s"
-                )
-                bad_data_location_messages.append(message)
+            if (subassembly_dict := self.configs[node_type].get(name)) is None:
+                try:
+                    subassembly_dict = load_yaml(
+                        self.env.data_dir / f"{node_type}s", name
+                    )
+                except FileNotFoundError:
+                    subassembly_dict = load_yaml(self.env.data_dir / "windfarm", name)
+                    message = (
+                        f"In v0.7, all {node_type} configurations must be located in:"
+                        f" '<library>/{node_type}s"
+                    )
+                    bad_data_location_messages.append(message)
+                self.configs[node_type][name] = subassembly_dict
+
             self.graph.nodes[system_id]["system"] = System(
                 self.env,
                 self.repair_manager,
                 system_id,
                 data["name"],
                 subassembly_dict,
-                data["type"],
+                node_type,
             )
 
         # Raise the warning for soon-to-be deprecated library structure
@@ -203,20 +207,26 @@ class Windfarm:
         get_name = "upstream_cable_name" in self.layout_df
         bad_data_location_messages = []
         for start_node, end_node, data in self.graph.edges(data=True):
+            name = data["cable"]
+
             # Check that the cable data is provided
-            if data["cable"] == "":
+            if name == "":
                 raise ValueError(
-                    "A 'cable' file must be specified for all nodes in the"
+                    "An 'upstream_cable' file must be specified for all nodes in the"
                     " windfarm layout!"
                 )
-            try:
-                cable_dict = load_yaml(self.env.data_dir / "cables", data["cable"])
-            except FileNotFoundError:
-                cable_dict = load_yaml(self.env.data_dir / "windfarm", data["cable"])
-                bad_data_location_messages.append(
-                    "In v0.7, all cable configurations must be located in:"
-                    " '<library>/cables/"
-                )
+            if (cable_dict := self.configs["cable"].get(name)) is None:
+                try:
+                    cable_dict = load_yaml(self.env.data_dir / "cables", data["cable"])
+                except FileNotFoundError:
+                    cable_dict = load_yaml(
+                        self.env.data_dir / "windfarm", data["cable"]
+                    )
+                    bad_data_location_messages.append(
+                        "In v0.7, all cable configurations must be located in:"
+                        " '<library>/cables/"
+                    )
+                self.configs["cable"][name] = cable_dict
 
             start_coordinates = (
                 self.graph.nodes[start_node]["latitude"],
