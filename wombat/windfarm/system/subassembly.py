@@ -44,7 +44,11 @@ class Subassembly:
         self.system = system
         self.id = s_id
 
-        subassembly_data = {**subassembly_data, "system_value": self.system.value}
+        subassembly_data = {
+            **subassembly_data,
+            "system_value": self.system.value,
+            "rng": self.env.random_generator,
+        }
         self.data = SubassemblyData.from_dict(subassembly_data)
         self.name = self.data.name
 
@@ -63,11 +67,14 @@ class Subassembly:
             Creates a dictionary to keep track of the running processes within the
             subassembly.
         """
-        for level, failure in self.data.failures.items():
-            yield level, self.env.process(self.run_single_failure(failure))
+        for failure in self.data.failures:
+            level = failure.level
+            desc = failure.description
+            yield (level, desc), self.env.process(self.run_single_failure(failure))
 
-        for i, maintenance in enumerate(self.data.maintenance):
-            yield f"m{i}", self.env.process(self.run_single_maintenance(maintenance))
+        for maintenance in self.data.maintenance:
+            desc = maintenance.description
+            yield desc, self.env.process(self.run_single_maintenance(maintenance))
 
     def recreate_processes(self) -> None:
         """If a turbine is being reset after a tow-to-port repair, then all processes

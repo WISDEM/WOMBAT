@@ -513,6 +513,13 @@ class Failure(FromDictMixin):
         only a repair is necessary. Defaults to False
     description : str
         A short text description to be used for logging.
+    rng : np.random.Generator
+
+        .. note:: Do not provide this, it comes from
+            :py:class:`wombat.core.environment.WombatEnvironment`
+
+        The shared random generator used for the Weibull sampling. This is fed through
+        the simulation environment to ensure consistent seeding between simulations.
     """
 
     scale: float = field(converter=float)
@@ -529,16 +536,17 @@ class Failure(FromDictMixin):
         ),
     )
     system_value: int | float = field(converter=float)
+    rng: np.random.Generator = field(
+        eq=False, validator=attrs.validators.instance_of(np.random.Generator)
+    )
     replacement: bool = field(default=False, converter=bool)
     description: str = field(default="failure", converter=str)
-    rng: np.random.Generator = field(init=False, eq=False)
     request_id: str = field(init=False)
 
     def __attrs_post_init__(self):
         """Create the actual Weibull distribution and converts equipment requirements
         to a list.
         """
-        object.__setattr__(self, "rng", np.random.default_rng())
         object.__setattr__(
             self,
             "service_equipment",
@@ -599,8 +607,13 @@ class SubassemblyData(FromDictMixin):
 
     name: str = field(converter=str)
     maintenance: list[Maintenance | dict[str, float | str]]
-    failures: dict[int, Failure | dict[str, float | str]]
+    failures: list[Failure | dict[str, float | str]] | dict[
+        int, Failure | dict[str, float | str]
+    ]
     system_value: int | float = field(converter=float)
+    rng: np.random.Generator = field(
+        validator=attrs.validators.instance_of(np.random.Generator)
+    )
 
     def __attrs_post_init__(self):
         """Convert the maintenance and failure data to ``Maintenance`` and ``Failure``
@@ -623,14 +636,17 @@ class SubassemblyData(FromDictMixin):
             if TYPE_CHECKING:
                 assert isinstance(kwargs, dict)
             kwargs.update({"system_value": self.system_value})
-        object.__setattr__(
-            self,
-            "failures",
-            {
-                level: Failure.from_dict(kw) if isinstance(kw, dict) else kw
-                for level, kw in self.failures.items()
-            },
-        )
+
+        failures_list = []
+        rng_dict = {"rng": self.rng}
+        if TYPE_CHECKING:
+            assert isinstance(self.failures, dict)
+        for config in self.failures.values():
+            if TYPE_CHECKING:
+                assert isinstance(config, dict)
+            config.update(rng_dict)
+            failures_list.append(Failure.from_dict(config))
+        object.__setattr__(self, "failures", failures_list)
 
 
 @define(frozen=True, auto_attribs=True)

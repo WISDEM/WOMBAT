@@ -118,9 +118,13 @@ class WombatEnvironment(simpy.Environment):
         The maximum operating speed during the annualized reduced speed operations.
         When defined at the environment level, an undefined or faster value will be
         overridden for all servicing equipment and any modeled port, by default 0.0.
-    random_seed : float | None
+    random_seed : int | None
         The random seed to be passed to a universal NumPy ``default_rng`` object to
         generate Weibull random generators.
+    random_generator: np.random.Generator | None
+        An optional numpy random generator that can be provided to seed a simulation
+        with the same generator each time, in place of the random seed. If a
+        :py:attr:`random_seed` is also provided, this will override the random seed.
 
     Raises
     ------
@@ -143,7 +147,8 @@ class WombatEnvironment(simpy.Environment):
         reduced_speed_start: str | dt.datetime | None = None,
         reduced_speed_end: str | dt.datetime | None = None,
         reduced_speed: float = 0.0,
-        random_seed: float | None = None,
+        random_seed: int | None = None,
+        random_generator: np.random.Generator | None = None,
     ) -> None:
         """Initialization."""
         super().__init__()
@@ -176,6 +181,16 @@ class WombatEnvironment(simpy.Environment):
         self.reduced_speed_start = parse_date(reduced_speed_start)
         self.reduced_speed_end = parse_date(reduced_speed_end)
         self.reduced_speed = reduced_speed
+
+        if random_generator is not None:
+            self.random_generator = random_generator
+            self.random_seed = None
+        elif random_seed is not None:
+            self.random_seed = random_seed
+            self.random_generator = np.random.default_rng(seed=random_seed)
+        else:
+            self.random_seed = None
+            self.random_generator = np.random.default_rng()
 
         self.simulation_name = simulation_name
         self._logging_setup()
