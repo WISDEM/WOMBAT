@@ -19,6 +19,7 @@
 - All `assert` statements are now only called when type checking is performed
 - Replaces all `.get(lamda x: x == request)` with a 10x faster `.get(lambda x: x is request)` to more efficiently filter out the desired event to be removed from the repair manager and port repair manangement.
 - `WombatEnvironment.weather` is now a Polars DataFrame to improve efficiency and indexing bottlenecks introduced in Pandas 2.0.
+- All subassembly cable files are read in once, and stored in a dictionary to provide a modest speed up for the simulation initialization.
 
 ## v0.7.1 (4 May 2023)
 
