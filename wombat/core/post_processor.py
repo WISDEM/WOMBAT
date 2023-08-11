@@ -921,14 +921,14 @@ class Metrics:
                     index=[year],
                     columns=operating_df.columns,
                 )
-                operating_df = operating_df.append(missing).sort_index()
+                operating_df = pd.concat([operating_df, missing], axis=0).sort_index()
             if year not in total_df.index:
                 missing = pd.DataFrame(
                     np.ones((1, total_df.shape[1])),
                     index=[year],
                     columns=operating_df.columns,
                 )
-                total_df = total_df.append(missing).sort_index()
+                total_df = pd.concat([total_df, missing], axis=0).sort_index()
 
         if frequency == "project":
             operating_df = operating_df.reset_index().sum()[
