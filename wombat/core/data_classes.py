@@ -14,7 +14,6 @@ import attrs
 import numpy as np
 import pandas as pd
 from attrs import Factory, Attribute, field, define
-from scipy.stats import weibull_min
 
 from wombat.utilities.time import HOURS_IN_DAY, HOURS_IN_YEAR, parse_date
 
@@ -532,14 +531,14 @@ class Failure(FromDictMixin):
     system_value: int | float = field(converter=float)
     replacement: bool = field(default=False, converter=bool)
     description: str = field(default="failure", converter=str)
-    weibull: weibull_min = field(init=False, eq=False)
+    rng: np.random.Generator = field(init=False, eq=False)
     request_id: str = field(init=False)
 
     def __attrs_post_init__(self):
         """Create the actual Weibull distribution and converts equipment requirements
         to a list.
         """
-        object.__setattr__(self, "weibull", weibull_min(self.shape, scale=self.scale))
+        object.__setattr__(self, "rng", np.random.default_rng())
         object.__setattr__(
             self,
             "service_equipment",
@@ -565,7 +564,7 @@ class Failure(FromDictMixin):
         if self.scale == self.shape == 0:
             return None
 
-        return self.weibull.rvs(size=1)[0] * HOURS_IN_YEAR
+        return self.rng.weibull(self.shape, size=1)[0] * self.scale * HOURS_IN_YEAR
 
     def assign_id(self, request_id: str) -> None:
         """Assign a unique identifier to the request.
