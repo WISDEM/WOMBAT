@@ -893,7 +893,7 @@ class ServiceEquipment(RepairsMixin):
         # Get the index for the end of the hour where the distance requred to be
         # traveled is reached.
         try:
-            ix_hours = np.where(distance_traveled_sum >= distance)[0][0]
+            ix_hours = int(np.where(distance_traveled_sum >= distance)[0][0])
         except IndexError as e:
             # If an error occurs because an index maxes out the weather window, check
             # that it's not due to having reached the end of the simulation. If so,
@@ -906,10 +906,10 @@ class ServiceEquipment(RepairsMixin):
 
         # Shave off the extra timing to get the exact travel time
         total_hours = ix_hours + 1  # add 1 for 0-indexing
-        traveled = distance_traveled_sum.slice(ix_hours, 1).item()
+        traveled = distance_traveled_sum.take(ix_hours).item()
         if traveled > distance:
             difference = traveled - distance
-            speed_at_hour = distance_traveled.slice(ix_hours, 1).item()
+            speed_at_hour = distance_traveled.take(ix_hours).item()
             reduction = difference / speed_at_hour
             total_hours -= reduction
 
