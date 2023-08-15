@@ -52,7 +52,6 @@ def test_cable_init(env_setup):
         assert cable.processes.keys() == correct_cable.processes.keys()
 
 
-# @pytest.mark.skip(reason="UPDATE THIS BEFORE PR")
 def test_cable_failures(env_setup):
     """Test that failing cable disable upstream turbines."""
     env = env_setup
