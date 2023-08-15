@@ -45,10 +45,6 @@ if TYPE_CHECKING:
     from wombat.core import Port
 
 
-# Numpy random generation initialization
-random_generator = np.random.default_rng(seed=42)
-
-
 def consecutive_groups(data: np.ndarray, step_size: int = 1) -> list[np.ndarray]:
     """Generates the subgroups of an array where the difference between two sequential
     elements is equal to the ``step_size``. The intent is to find the length of delays
@@ -1717,7 +1713,7 @@ class ServiceEquipment(RepairsMixin):
                 system = self.windfarm.system(request.system_id)  # type: ignore
             yield system.servicing
             seconds_to_wait, *_ = (
-                random_generator.integers(low=0, high=30, size=1) / 3600.0
+                self.env.random_generator.integers(low=0, high=30, size=1) / 3600.0
             )
             yield self.env.timeout(seconds_to_wait)
             yield system.servicing

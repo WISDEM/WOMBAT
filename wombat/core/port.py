@@ -30,10 +30,6 @@ from wombat.core.repair_management import RepairManager
 from wombat.core.service_equipment import ServiceEquipment
 
 
-# Numpy random generation initialization
-random_generator = np.random.default_rng(seed=42)
-
-
 class Port(RepairsMixin, FilterStore):
     """The offshore wind base port that operates tugboats and performs tow-to-port
     repairs.
@@ -419,7 +415,9 @@ class Port(RepairsMixin, FilterStore):
         turbine_request = self.turbine_manager.request()
 
         yield turbine_request & servicing
-        seconds_to_wait, *_ = random_generator.integers(low=0, high=30, size=1) / 3600.0
+        seconds_to_wait, *_ = (
+            self.env.random_generator.integers(low=0, high=30, size=1) / 3600.0
+        )
         yield self.env.timeout(seconds_to_wait)
         yield self.windfarm.system(request.system_id).servicing
 
@@ -516,7 +514,9 @@ class Port(RepairsMixin, FilterStore):
         # If the system is already undergoing repairs from other servicing equipment,
         # then wait until it's done being serviced, then double check
         yield self.windfarm.system(request.system_id).servicing
-        seconds_to_wait, *_ = random_generator.integers(low=0, high=30, size=1) / 3600.0
+        seconds_to_wait, *_ = (
+            self.env.random_generator.integers(low=0, high=30, size=1) / 3600.0
+        )
         yield self.env.timeout(seconds_to_wait)
         yield self.windfarm.system(request.system_id).servicing
 
