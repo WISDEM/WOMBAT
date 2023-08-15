@@ -19,13 +19,13 @@ def env_setup():
     """Ensure the proper setup and teardown of an environment so no logging
     files can accumulate.
     """
-    np.random.seed(2022)
     env = WombatEnvironment(
         data_dir=TEST_DATA,
         weather_file="test_weather_quick_load.csv",
         workday_start=8,
         workday_end=16,
         simulation_name="testing_setup",
+        random_seed=2022,
     )
     yield env
     env.cleanup_log_files()
@@ -34,13 +34,13 @@ def env_setup():
 @pytest.fixture
 def env_setup_full_profile():
     """Create a full weather profile environment with proper teardown."""
-    np.random.seed(2022)
     env = WombatEnvironment(
         data_dir=TEST_DATA,
         weather_file="test_weather.csv",
         workday_start=8,
         workday_end=16,
         simulation_name="testing_setup",
+        random_seed=2022,
     )
     yield env
     env.cleanup_log_files()

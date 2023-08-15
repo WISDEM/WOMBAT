@@ -34,6 +34,7 @@ def test_setup():
             weather_file="test_weather_quick_load.csv",
             workday_start=8,
             workday_end=18,
+            random_seed=2022,
         )
 
     # Test invalid starting hour - too low
@@ -43,6 +44,7 @@ def test_setup():
             weather_file="test_weather_quick_load.csv",
             workday_start=-1,
             workday_end=18,
+            random_seed=2022,
         )
 
     # Test invalid starting hour - too high
@@ -52,6 +54,7 @@ def test_setup():
             weather_file="test_weather_quick_load.csv",
             workday_start=24,
             workday_end=18,
+            random_seed=2022,
         )
 
     # Test invalid ending hour - too low
@@ -61,6 +64,7 @@ def test_setup():
             weather_file="test_weather_quick_load.csv",
             workday_start=8,
             workday_end=-1,
+            random_seed=2022,
         )
 
     # Test invalid ending hour - before start
@@ -70,6 +74,7 @@ def test_setup():
             weather_file="test_weather_quick_load.csv",
             workday_start=8,
             workday_end=3,
+            random_seed=2022,
         )
 
     # Test invalid ending hour - at the same time as start
@@ -79,6 +84,7 @@ def test_setup():
             weather_file="test_weather_quick_load.csv",
             workday_start=8,
             workday_end=8,
+            random_seed=2022,
         )
 
     # Test invalid start_year - later than file limits (2002 through 2003)
@@ -91,6 +97,7 @@ def test_setup():
             simulation_name="testing_setup",
             start_year=2004,
             end_year=2003,
+            random_seed=2022,
         )
 
     # Test invalid end_year - start year is after end year
@@ -103,6 +110,7 @@ def test_setup():
             simulation_name="testing_setup",
             start_year=2003,
             end_year=2002,
+            random_seed=2022,
         )
 
     # Test the data are read correctly with default starting and ending year
@@ -113,6 +121,7 @@ def test_setup():
         workday_start=8,
         workday_end=16,
         simulation_name="testing_setup",
+        random_seed=2022,
     )
     assert env.workday_start == 8
     assert env.workday_end == 16
@@ -138,6 +147,7 @@ def test_setup():
         workday_end=16,
         simulation_name="testing_setup",
         start_year=2003,
+        random_seed=2022,
     )
     assert env.start_datetime == datetime.datetime(2003, 1, 1, 0, 0)
     assert env.end_datetime == datetime.datetime(2003, 12, 31, 23, 0)
@@ -151,6 +161,7 @@ def test_setup():
         workday_end=16,
         simulation_name="testing_setup",
         end_year=2002,
+        random_seed=2022,
     )
     assert env.start_datetime == datetime.datetime(2002, 1, 1, 0, 0)
     assert env.end_datetime == datetime.datetime(2002, 12, 31, 23, 0)
@@ -165,6 +176,7 @@ def test_setup():
         simulation_name="testing_setup",
         start_year=2003,
         end_year=2003,
+        random_seed=2022,
     )
     assert env.start_datetime == datetime.datetime(2003, 1, 1, 0, 0)
     assert env.end_datetime == datetime.datetime(2003, 12, 31, 23, 0)
@@ -191,6 +203,7 @@ def test_timing():
         workday_start=8,
         workday_end=16,
         simulation_name="testing_setup",
+        random_seed=2022,
     )
     manager = RepairManager(env)
     Windfarm(env, "layout.csv", manager)
@@ -248,6 +261,7 @@ def test_is_workshift():
         workday_start=8,
         workday_end=16,
         simulation_name="testing_setup",
+        random_seed=2022,
     )
     manager = RepairManager(env)
     Windfarm(env, "layout.csv", manager)
@@ -287,6 +301,7 @@ def test_hour_in_shift():
         workday_start=8,
         workday_end=16,
         simulation_name="testing_setup",
+        random_seed=2022,
     )
     manager = RepairManager(env)
     Windfarm(env, "layout.csv", manager)
@@ -332,6 +347,7 @@ def test_hours_to_next_shift():
         workday_start=8,
         workday_end=16,
         simulation_name="testing_setup",
+        random_seed=2022,
     )
     manager = RepairManager(env)
     Windfarm(env, "layout.csv", manager)
@@ -370,6 +386,7 @@ def test_weather_forecast():
         workday_start=8,
         workday_end=16,
         simulation_name="testing_setup",
+        random_seed=2022,
     )
     manager = RepairManager(env)
     Windfarm(env, "layout.csv", manager)
