@@ -1,6 +1,5 @@
 """Test the Cable system and subassembly classes."""
 
-import pytest
 
 from wombat.core import RepairManager
 from wombat.windfarm import Windfarm
@@ -53,15 +52,17 @@ def test_cable_init(env_setup):
         assert cable.processes.keys() == correct_cable.processes.keys()
 
 
-@pytest.mark.skip(reason="UPDATE THIS BEFORE PR")
+# @pytest.mark.skip(reason="UPDATE THIS BEFORE PR")
 def test_cable_failures(env_setup):
     """Test that failing cable disable upstream turbines."""
     env = env_setup
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout_cable_test.csv", manager)
 
+    # NOTE: If timing changes, this is the process to inpsect timeouts
     # env.run(1)
     # from pprint import pprint
+
     # for name, cable in windfarm.graph.edges.items():
     #     if name != ("OSS1", "S00T1"):
     #         continue
@@ -71,10 +72,10 @@ def test_cable_failures(env_setup):
     #         print(pname)
     #         pprint(p.__dict__)
 
-    # A failure will occur at 13.85 for the cable connecting the OSS to the first
+    # A failure will occur at 10.79 for the cable connecting the OSS to the first
     # turbine, so check that all turbines are down, and this should effectively shut
     # down the farm.
-    catastrophic_timeout = 13.85
+    catastrophic_timeout = 10.793391659337129
     env.run(catastrophic_timeout + 1)
     assert windfarm.current_availability == 0.5  # 50% of the farm is off
 
@@ -87,9 +88,8 @@ def test_cable_failures(env_setup):
     # for p in cable.processes.values():
     #     pprint(p._target.__dict__)
     assert getattr(list(cable.processes.values())[0]._target, "_delay", None) is None
-    assert (
-        getattr(list(cable.processes.values())[1]._target, "_delay", None)
-        == 1402.148783264902
+    assert getattr(list(cable.processes.values())[1]._target, "_delay", None) == (
+        1416 - catastrophic_timeout
     )
 
     # Check the failure was submitted and no other items exist for this cable
