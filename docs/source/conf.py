@@ -40,7 +40,7 @@ release = wombat.__version__
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
-# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
+# extensions coming with Sphinx (named "sphinx.ext.*") or your custom
 # ones.
 extensions = [
     "myst_nb",
@@ -95,7 +95,7 @@ source_suffix = {
 }
 
 # toggle this between auto/off to rerun full documentation build
-nb_execution_mode = "off"
+nb_execution_mode = "force"
 nb_execution_timeout = -1
 nb_execution_allow_errors = True
 # nb_execution_excludepatterns.append("*_demonstration.md")
@@ -116,9 +116,10 @@ html_theme_options = {
     "use_repository_button": True,
     "use_issues_button": True,
     "path_to_docs": "docs/",
-    "show_navbar_depth": 2,
+    "navigation_depth": 2,
     "home_page_in_toc": True,
     "show_toc_level": 2,
+    # "show_nav_level": 2,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

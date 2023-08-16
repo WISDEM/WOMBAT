@@ -1682,7 +1682,7 @@ class Metrics:
                 emissions=equipment_usage.duration * equipment_usage.emissions_factors
             )
             .drop(columns=["emissions_factors"])
-            .fillna(0)
+            .fillna(0, axis=1)
         )
 
         return equipment_usage
