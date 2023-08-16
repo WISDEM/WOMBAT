@@ -1927,14 +1927,14 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
     # Start the simulation to ensure everything is in place as required
     env.run(1)
 
-    for system in windfarm.system_list:
-        system = windfarm.system(system)
-        for pname, p in system.subassemblies[0].processes.items():
-            if not isinstance(pname, tuple):
-                continue
-            if pname[1] != "catastrophic failure":
-                continue
-            print(system.id, pname, f"{p._target._delay:,.10f}")
+    # for system in windfarm.system_list:
+    #     system = windfarm.system(system)
+    #     for pname, p in system.subassemblies[0].processes.items():
+    #         if not isinstance(pname, tuple):
+    #             continue
+    #         if pname[1] != "catastrophic failure":
+    #             continue
+    #         print(system.id, pname, f"{p._target._delay:,.10f}")
 
     assert (
         fsv.at_port
