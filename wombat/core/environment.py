@@ -121,7 +121,7 @@ class WombatEnvironment(simpy.Environment):
     random_seed : int | None
         The random seed to be passed to a universal NumPy ``default_rng`` object to
         generate Weibull random generators, by default None.
-    random_generator: np.random.Generator | None
+    random_generator: np.random._generator.Generator | None
         An optional numpy random generator that can be provided to seed a simulation
         with the same generator each time, in place of the random seed. If a
         :py:attr:`random_seed` is also provided, this will override the random seed,
@@ -149,7 +149,7 @@ class WombatEnvironment(simpy.Environment):
         reduced_speed_end: str | dt.datetime | None = None,
         reduced_speed: float = 0.0,
         random_seed: int | None = None,
-        random_generator: np.random.Generator | None = None,
+        random_generator: np.random._generator.Generator | None = None,
     ) -> None:
         """Initialization."""
         super().__init__()

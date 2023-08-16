@@ -118,7 +118,7 @@ class Configuration(FromDictMixin):
     random_seed : int | None
         The random seed to be passed to a universal NumPy ``default_rng`` object to
         generate Weibull random generators, by default None.
-    random_generator: np.random.Generator | None
+    random_generator: np.random._generator.Generator | None
         An optional numpy random generator that can be provided to seed a simulation
         with the same generator each time, in place of the random seed. If a
         :py:attr:`random_seed` is also provided, this will override the random seed,
@@ -146,7 +146,7 @@ class Configuration(FromDictMixin):
     reduced_speed_end: str | datetime.datetime | None = field(default=None)
     reduced_speed: float = field(default=0.0)
     random_seed: int | None = field(default=None)
-    random_generator: np.random.Generator | None = field(default=None)
+    random_generator: np.random._generator.Generator | None = field(default=None)
 
 
 @define(auto_attribs=True)
@@ -166,7 +166,7 @@ class Simulation(FromDictMixin):
     random_seed : int | None
         The random seed to be passed to a universal NumPy ``default_rng`` object to
         generate Weibull random generators, by default None.
-    random_generator: np.random.Generator | None
+    random_generator: np.random._generator.Generator | None
         An optional numpy random generator that can be provided to seed a simulation
         with the same generator each time, in place of the random seed. If a
         :py:attr:`random_seed` is also provided, this will override the random seed,
@@ -176,7 +176,7 @@ class Simulation(FromDictMixin):
     library_path: Path = field(converter=_library_mapper)
     config: Configuration = field()
     random_seed: int | None = field(default=None)
-    random_generator: np.random.Generator | None = field(default=None)
+    random_generator: np.random._generator.Generator | None = field(default=None)
 
     metrics: Metrics = field(init=False)
     windfarm: Windfarm = field(init=False)

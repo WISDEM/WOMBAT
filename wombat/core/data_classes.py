@@ -513,7 +513,7 @@ class Failure(FromDictMixin):
         only a repair is necessary. Defaults to False
     description : str
         A short text description to be used for logging.
-    rng : np.random.Generator
+    rng : np.random._generator.Generator
 
         .. note:: Do not provide this, it comes from
             :py:class:`wombat.core.environment.WombatEnvironment`
@@ -536,8 +536,9 @@ class Failure(FromDictMixin):
         ),
     )
     system_value: int | float = field(converter=float)
-    rng: np.random.Generator = field(
-        eq=False, validator=attrs.validators.instance_of(np.random.Generator)
+    rng: np.random._generator.Generator = field(
+        eq=False,
+        validator=attrs.validators.instance_of(np.random._generator.Generator),
     )
     replacement: bool = field(default=False, converter=bool)
     description: str = field(default="failure", converter=str)
@@ -611,8 +612,8 @@ class SubassemblyData(FromDictMixin):
         int, Failure | dict[str, float | str]
     ]
     system_value: int | float = field(converter=float)
-    rng: np.random.Generator = field(
-        validator=attrs.validators.instance_of(np.random.Generator)
+    rng: np.random._generator.Generator = field(
+        validator=attrs.validators.instance_of(np.random._generator.Generator)
     )
 
     def __attrs_post_init__(self):
