@@ -63,10 +63,12 @@ rob.hammond@nrel.gov.
 Latest Changes?
 ---------------
 
-As of v0.7, a series of bug fixes in the operating reduction and servicing status result
-in downtime and layout impacts that are accurately modeled. Put simply,
-``operation_reduction > 0`` can have significant impacts on availability and energy
-production, and should be used carefully.
+As of v0.8, a series of bug fixes in the cable, subassembly, repair management, and
+servicing equipment models that ensure repairs can't happen twice under limited
+circumstances or that more than one repair can occur simutaneously. New features include
+an emissions metric and random seeding of simulations, with significant simulation
+speedups across the board due to using Polars for managing the weather and datetime
+functionality.
 
 Please see the CHANGELOG for details!
 
