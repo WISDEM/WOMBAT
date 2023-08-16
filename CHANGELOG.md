@@ -1,4 +1,4 @@
-## Unreleased (TBD)
+## v0.8.0 (16 August 2023)
 
 ### Bug Fixes
 
