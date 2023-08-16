@@ -70,11 +70,10 @@ DEVELOPER = [
     "ruff==0.0.246",
 ]
 DOCUMENTATION = [
-    "Sphinx==4.*",
+    "Sphinx",
     "myst-nb>=0.16",
     "myst-parser>=0.17",
-    "sphinx-panels>=0.6",
-    "sphinx-book-theme>=0.3.3,<1",
+    "sphinx-book-theme>=1",
     "sphinxcontrib-spelling>=7",
     "linkify-it-py>=2",
     "sphinxcontrib-bibtex>=2.4",
@@ -120,7 +119,7 @@ setup(
     include_package_data=True,
     package_data={"": ["*.yaml", "*.csv"]},
     install_requires=REQUIRED,
-    python_requires=">=3.8, <3.11",
+    python_requires=">=3.9, <3.11",
     extras_require=extra_package_requirements,
     test_suite="pytest",
     tests_require=["pytest", "pytest-cov"],
