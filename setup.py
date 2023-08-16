@@ -73,7 +73,7 @@ DOCUMENTATION = [
     "Sphinx",
     "myst-nb>=0.16",
     "myst-parser>=0.17",
-    "sphinx-book-theme>=1",
+    "sphinx-book-theme<1",
     "sphinxcontrib-spelling>=7",
     "linkify-it-py>=2",
     "sphinxcontrib-bibtex>=2.4",
