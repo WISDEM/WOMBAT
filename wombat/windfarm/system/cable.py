@@ -1,7 +1,7 @@
 """"Defines the Cable class and cable simulations."""
 from __future__ import annotations
 
-from typing import Generator
+from typing import TYPE_CHECKING, Generator
 from itertools import zip_longest
 
 import numpy as np
@@ -82,7 +82,11 @@ class Cable:
                 " or 'export'."
             )
 
-        cable_data = {**cable_data, "system_value": self.system.value}
+        cable_data = {
+            **cable_data,
+            "system_value": self.system.value,
+            "rng": self.env.random_generator,
+        }
         self.data = SubassemblyData.from_dict(cable_data)
         self.name = self.data.name if name is None else name
 
@@ -148,11 +152,13 @@ class Cable:
             Creates a dictionary to keep track of the running processes within the
             subassembly.
         """
-        for level, failure in self.data.failures.items():
-            yield level, self.env.process(self.run_single_failure(failure))
+        for failure in self.data.failures:
+            desc = failure.description
+            yield desc, self.env.process(self.run_single_failure(failure))
 
         for i, maintenance in enumerate(self.data.maintenance):
-            yield f"m{i}", self.env.process(self.run_single_maintenance(maintenance))
+            desc = maintenance.description
+            yield desc, self.env.process(self.run_single_maintenance(maintenance))
 
     def interrupt_processes(self) -> None:
         """Interrupts all of the running processes within the subassembly except for the
@@ -212,7 +218,8 @@ class Cable:
             )
 
         for t_id, c_id in zip_longest(upstream_nodes, upstream_cables, fillvalue=None):
-            assert isinstance(t_id, str)
+            if TYPE_CHECKING:
+                assert isinstance(t_id, str)
             turbine = self.windfarm.system(t_id)
             turbine.cable_failure = self.env.event()
             turbine.interrupt_all_subassembly_processes()
@@ -314,25 +321,25 @@ class Cable:
                     yield self.env.timeout(remainder)
                 except simpy.Interrupt:
                     remainder -= self.env.now
+            else:
+                while hours_to_next > 0:
+                    start = -1  # Ensure an interruption before processing is caught
+                    try:
+                        # If the replacement has not been completed, then wait
+                        yield self.servicing & self.downstream_failure & self.broken
 
-            while hours_to_next > 0:
-                start = -1  # Ensure an interruption before processing is caught
-                try:
-                    # If the replacement has not been completed, then wait
-                    yield self.servicing & self.downstream_failure & self.broken
-
-                    start = self.env.now
-                    yield self.env.timeout(hours_to_next)
-                    hours_to_next = 0
-                    self.trigger_request(maintenance)
-                except simpy.Interrupt:
-                    if not self.broken.triggered:
-                        # The subassembly had to restart the maintenance cycle
+                        start = self.env.now
+                        yield self.env.timeout(hours_to_next)
                         hours_to_next = 0
-                    else:
-                        # A different process failed, so subtract the elapsed time
-                        # only if it had started to be processed
-                        hours_to_next -= 0 if start == -1 else self.env.now - start
+                        self.trigger_request(maintenance)
+                    except simpy.Interrupt:
+                        if not self.broken.triggered:
+                            # The subassembly had to restart the maintenance cycle
+                            hours_to_next = 0
+                        else:
+                            # A different process failed, so subtract the elapsed time
+                            # only if it had started to be processed
+                            hours_to_next -= 0 if start == -1 else self.env.now - start
 
     def run_single_failure(self, failure: Failure) -> Generator:
         """Runs a process to trigger one type of failure repair request throughout the
@@ -357,21 +364,23 @@ class Cable:
                 except simpy.Interrupt:
                     remainder -= self.env.now
 
-            assert isinstance(hours_to_next, (int, float))  # mypy helper
-            while hours_to_next > 0:  # type: ignore
-                start = -1  # Ensure an interruption before processing is caught
-                try:
-                    yield self.servicing & self.downstream_failure & self.broken
+            else:
+                if TYPE_CHECKING:
+                    assert isinstance(hours_to_next, (int, float))  # mypy helper
+                while hours_to_next > 0:  # type: ignore
+                    start = -1  # Ensure an interruption before processing is caught
+                    try:
+                        yield self.servicing & self.downstream_failure & self.broken
 
-                    start = self.env.now
-                    yield self.env.timeout(hours_to_next)
-                    hours_to_next = 0
-                    self.trigger_request(failure)
-                except simpy.Interrupt:
-                    if not self.broken.triggered:
-                        # Restart after fixing
+                        start = self.env.now
+                        yield self.env.timeout(hours_to_next)
                         hours_to_next = 0
-                    else:
-                        # A different process failed, so subtract the elapsed time
-                        # only if it had started to be processed
-                        hours_to_next -= 0 if start == -1 else self.env.now - start
+                        self.trigger_request(failure)
+                    except simpy.Interrupt:
+                        if not self.broken.triggered:
+                            # Restart after fixing
+                            hours_to_next = 0
+                        else:
+                            # A different process failed, so subtract the elapsed time
+                            # only if it had started to be processed
+                            hours_to_next -= 0 if start == -1 else self.env.now - start

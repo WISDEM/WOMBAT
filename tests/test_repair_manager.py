@@ -106,7 +106,7 @@ def test_register_request_and_submit_request_and_get_request(env_setup):
     generator = Subassembly(turbine, env, "GEN001", GENERATOR_SUBASSEMBLY)
 
     # Test that a submitted failure is registered correctly
-    manual_reset = generator.data.failures[1]
+    manual_reset = generator.data.failures[0]
     repair_request_failure = RepairRequest(
         turbine.id,
         turbine.name,
@@ -175,7 +175,7 @@ def test_request_map(env_setup):
     # Test that all the failures and maintenance tasks are registered correctly
     correct_request_map = {"CTV": 4, "SCN": 1, "LCN": 1}
     # Submit a request for all of the maintenance and failure objects in the generator
-    for repair in generator.data.maintenance + [*generator.data.failures.values()]:
+    for repair in generator.data.maintenance + generator.data.failures:
         repair_request = RepairRequest(
             turbine.id, turbine.name, generator.id, generator.name, repair.level, repair
         )
@@ -212,7 +212,7 @@ def test_get_requests(env_setup):
 
     # Submit a handful of requests with variables indicating what the request is and
     # which turbine it is originating from
-    medium_repair1 = generator1.data.failures[3]
+    medium_repair1 = generator1.data.failures[2]
     medium_repair1 = RepairRequest(
         turbine1.id,
         turbine1.name,
@@ -236,7 +236,7 @@ def test_get_requests(env_setup):
     annual_reset2 = turbine2.repair_manager.register_request(annual_reset2)
     turbine2.repair_manager.submit_request(annual_reset2)
 
-    minor_repair2 = generator2.data.failures[2]
+    minor_repair2 = generator2.data.failures[1]
     minor_repair2 = RepairRequest(
         turbine2.id,
         turbine2.name,
@@ -248,7 +248,7 @@ def test_get_requests(env_setup):
     minor_repair2 = turbine2.repair_manager.register_request(minor_repair2)
     turbine2.repair_manager.submit_request(minor_repair2)
 
-    major_replacement3 = generator3.data.failures[5]
+    major_replacement3 = generator3.data.failures[4]
     major_replacement3 = RepairRequest(
         turbine3.id,
         turbine3.name,
@@ -260,7 +260,7 @@ def test_get_requests(env_setup):
     major_replacement3 = turbine3.repair_manager.register_request(major_replacement3)
     turbine3.repair_manager.submit_request(major_replacement3)
 
-    medium_repair3 = generator3.data.failures[3]
+    medium_repair3 = generator3.data.failures[2]
     medium_repair3 = RepairRequest(
         turbine3.id,
         turbine3.name,
@@ -272,7 +272,7 @@ def test_get_requests(env_setup):
     medium_repair3 = turbine3.repair_manager.register_request(medium_repair3)
     turbine3.repair_manager.submit_request(medium_repair3)
 
-    major_repair2 = generator2.data.failures[4]
+    major_repair2 = generator2.data.failures[3]
     major_repair2 = RepairRequest(
         turbine2.id,
         turbine2.name,
@@ -364,7 +364,7 @@ def test_purge_subassembly_requests(env_setup):
 
     # Submit a handful of requests with variables indicating what the request is and
     # which turbine it is originating from
-    gen_medium_repair1 = generator1.data.failures[3]
+    gen_medium_repair1 = generator1.data.failures[2]
     gen_medium_repair1 = RepairRequest(
         turbine1.id,
         turbine1.name,
@@ -376,7 +376,7 @@ def test_purge_subassembly_requests(env_setup):
     gen_medium_repair1 = turbine1.repair_manager.register_request(gen_medium_repair1)
     turbine1.repair_manager.submit_request(gen_medium_repair1)
 
-    gen_major_repair1 = generator1.data.failures[4]
+    gen_major_repair1 = generator1.data.failures[3]
     gen_major_repair1 = RepairRequest(
         turbine1.id,
         turbine1.name,
@@ -388,7 +388,7 @@ def test_purge_subassembly_requests(env_setup):
     gen_major_repair1 = turbine1.repair_manager.register_request(gen_major_repair1)
     turbine1.repair_manager.submit_request(gen_major_repair1)
 
-    gbx_medium_repair1 = gearbox1.data.failures[3]
+    gbx_medium_repair1 = gearbox1.data.failures[2]
     gbx_medium_repair1 = RepairRequest(
         turbine1.id,
         turbine1.name,
@@ -400,7 +400,7 @@ def test_purge_subassembly_requests(env_setup):
     gbx_medium_repair1 = turbine1.repair_manager.register_request(gbx_medium_repair1)
     turbine1.repair_manager.submit_request(gbx_medium_repair1)
 
-    gen_medium_repair2 = generator2.data.failures[3]
+    gen_medium_repair2 = generator2.data.failures[2]
     gen_medium_repair2 = RepairRequest(
         turbine2.id,
         turbine2.name,
@@ -412,7 +412,7 @@ def test_purge_subassembly_requests(env_setup):
     gen_medium_repair2 = turbine2.repair_manager.register_request(gen_medium_repair2)
     turbine2.repair_manager.submit_request(gen_medium_repair2)
 
-    gen_major_repair2 = generator2.data.failures[4]
+    gen_major_repair2 = generator2.data.failures[3]
     gen_major_repair2 = RepairRequest(
         turbine2.id,
         turbine2.name,
@@ -424,7 +424,7 @@ def test_purge_subassembly_requests(env_setup):
     gen_major_repair2 = turbine2.repair_manager.register_request(gen_major_repair2)
     turbine2.repair_manager.submit_request(gen_major_repair2)
 
-    gbx_medium_repair2 = gearbox2.data.failures[3]
+    gbx_medium_repair2 = gearbox2.data.failures[2]
     gbx_medium_repair2 = RepairRequest(
         turbine2.id,
         turbine2.name,
@@ -436,7 +436,7 @@ def test_purge_subassembly_requests(env_setup):
     gbx_medium_repair2 = turbine2.repair_manager.register_request(gbx_medium_repair2)
     turbine2.repair_manager.submit_request(gbx_medium_repair2)
 
-    gen_medium_repair3 = generator3.data.failures[3]
+    gen_medium_repair3 = generator3.data.failures[2]
     gen_medium_repair3 = RepairRequest(
         turbine3.id,
         turbine3.name,
@@ -448,7 +448,7 @@ def test_purge_subassembly_requests(env_setup):
     gen_medium_repair3 = turbine3.repair_manager.register_request(gen_medium_repair3)
     turbine3.repair_manager.submit_request(gen_medium_repair3)
 
-    gen_major_repair3 = generator3.data.failures[4]
+    gen_major_repair3 = generator3.data.failures[3]
     gen_major_repair3 = RepairRequest(
         turbine3.id,
         turbine3.name,
@@ -460,7 +460,7 @@ def test_purge_subassembly_requests(env_setup):
     gen_major_repair3 = turbine3.repair_manager.register_request(gen_major_repair3)
     turbine3.repair_manager.submit_request(gen_major_repair3)
 
-    gbx_medium_repair3 = gearbox3.data.failures[3]
+    gbx_medium_repair3 = gearbox3.data.failures[2]
     gbx_medium_repair3 = RepairRequest(
         turbine3.id,
         turbine3.name,

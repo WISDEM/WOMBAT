@@ -13,10 +13,10 @@ from datetime import datetime, timedelta
 import numpy as np
 import simpy
 import pandas as pd
+import polars as pl
 import pyarrow as pa
 import pyarrow.csv  # pylint: disable=W0611
 from simpy.events import Event
-from pandas.core.indexes.datetimes import DatetimeIndex
 
 import wombat  # pylint: disable=W0611
 from wombat.utilities import hours_until_future_hour
@@ -118,6 +118,14 @@ class WombatEnvironment(simpy.Environment):
         The maximum operating speed during the annualized reduced speed operations.
         When defined at the environment level, an undefined or faster value will be
         overridden for all servicing equipment and any modeled port, by default 0.0.
+    random_seed : int | None
+        The random seed to be passed to a universal NumPy ``default_rng`` object to
+        generate Weibull random generators, by default None.
+    random_generator: np.random._generator.Generator | None
+        An optional numpy random generator that can be provided to seed a simulation
+        with the same generator each time, in place of the random seed. If a
+        :py:attr:`random_seed` is also provided, this will override the random seed,
+        by default None.
 
     Raises
     ------
@@ -140,6 +148,8 @@ class WombatEnvironment(simpy.Environment):
         reduced_speed_start: str | dt.datetime | None = None,
         reduced_speed_end: str | dt.datetime | None = None,
         reduced_speed: float = 0.0,
+        random_seed: int | None = None,
+        random_generator: np.random._generator.Generator | None = None,
     ) -> None:
         """Initialization."""
         super().__init__()
@@ -160,7 +170,9 @@ class WombatEnvironment(simpy.Environment):
 
         self.port_distance = port_distance
         self.weather = self._weather_setup(weather_file, start_year, end_year)
-        self.weather_dates = self.weather.index.to_pydatetime()
+        self.weather_dates = pd.DatetimeIndex(
+            self.weather.get_column("datetime").to_pandas()
+        ).to_pydatetime()
         self.max_run_time = self.weather.shape[0]
         self.shift_length = self.workday_end - self.workday_start
 
@@ -170,6 +182,16 @@ class WombatEnvironment(simpy.Environment):
         self.reduced_speed_start = parse_date(reduced_speed_start)
         self.reduced_speed_end = parse_date(reduced_speed_end)
         self.reduced_speed = reduced_speed
+
+        if random_generator is not None:
+            self.random_generator = random_generator
+            self.random_seed = None
+        elif random_seed is not None:
+            self.random_seed = random_seed
+            self.random_generator = np.random.default_rng(seed=random_seed)
+        else:
+            self.random_seed = None
+            self.random_generator = np.random.default_rng()
 
         self.simulation_name = simulation_name
         self._logging_setup()
@@ -218,6 +240,10 @@ class WombatEnvironment(simpy.Environment):
             self._operations_writer.writerows(self._operations_buffer)
             self._operations_buffer.clear()
             self._operations_csv.close()
+            print(
+                f"Simulation failed at hour {self.now:,.6f},"
+                f" simulation time: {self.simulation_time}"
+            )
             raise e
 
         # Ensure all logged events make it to their target file
@@ -382,12 +408,10 @@ class WombatEnvironment(simpy.Environment):
         int
             Index of the weather profile corresponds to the first hour of ``date``.
         """
-        ix = self.weather.index.get_loc(date.strftime("%Y-%m-%d"))
-
-        # If the index is consecutive a slice is returned, else a numpy array
-        if isinstance(ix, slice):
-            return ix.start
-        return ix[0]
+        if isinstance(date, dt.datetime):
+            date = date.date()
+        ix, *_ = self.weather.filter(pl.col("datetime") == date)
+        return ix.item()
 
     def _weather_setup(
         self,
@@ -438,15 +462,22 @@ class WombatEnvironment(simpy.Environment):
             ]
         )
         weather = (
-            pa.csv.read_csv(
-                self.data_dir / "weather" / weather_file,
-                convert_options=convert_options,
+            pl.from_pandas(
+                pa.csv.read_csv(
+                    self.data_dir / "weather" / weather_file,
+                    convert_options=convert_options,
+                )
+                .to_pandas()
+                .fillna(0.0)
+                .set_index("datetime")
+                .sort_index()
+                .resample("H")
+                .interpolate(limit_direction="both")  # , limit=5)
+                .reset_index(drop=False)
             )
-            .to_pandas()
-            .set_index("datetime")
+            .with_row_count()
+            .with_columns((pl.col("datetime").dt.hour()).alias("hour"))
         )
-        weather = weather.fillna(0.0)
-        weather = weather.resample("H").interpolate(limit_direction="both", limit=5)
 
         missing = set(REQUIRED).difference(weather.columns)
         if missing:
@@ -455,12 +486,9 @@ class WombatEnvironment(simpy.Environment):
                 f" {missing}"
             )
 
-        # Add in the hour of day column for efficient handling within the simulation
-        weather = weather.assign(hour=weather.index.hour.astype(float))
-
         # Create the start and end points
-        self.start_datetime = weather.index[0].to_pydatetime()
-        self.end_datetime = weather.index[-1].to_pydatetime()
+        self.start_datetime = weather.get_column("datetime").dt.min()
+        self.end_datetime = weather.get_column("datetime").dt.max()
         self.start_year = self.start_datetime.year
         self.end_year = self.end_datetime.year
 
@@ -476,8 +504,8 @@ class WombatEnvironment(simpy.Environment):
             )
         else:
             # Filter for the provided, validated starting year and update the attribute
-            weather = weather.loc[weather.index.year >= start_year]
-            self.start_datetime = weather.index[0].to_pydatetime()
+            weather = weather.filter(pl.col("datetime").dt.year() >= start_year)
+            self.start_datetime = weather.get_column("datetime").dt.min()
             start_year = self.start_year = self.start_datetime.year
 
         if end_year is None:
@@ -495,40 +523,44 @@ class WombatEnvironment(simpy.Environment):
                 )
             else:
                 # Filter for the provided, validated ending year and update
-                weather = weather.loc[weather.index.year <= end_year]
-                self.end_datetime = weather.index[-1].to_pydatetime()
+                weather = weather.filter(pl.col("datetime").dt.year() <= end_year)
+                self.end_datetime = weather.get_column("datetime").dt.max()
                 self.end_year = self.end_datetime.year
         else:
             # Filter for the provided, validated ending year and update the attribute
-            weather = weather.loc[weather.index.year <= end_year]
-            self.end_datetime = weather.index[-1].to_pydatetime()
+            weather = weather.filter(pl.col("datetime").dt.year() <= end_year)
+            self.end_datetime = weather.get_column("datetime").dt.max()
             self.end_year = self.end_datetime.year
 
-        column_order = weather.columns.tolist()
+        column_order = weather.columns
         column_order.insert(0, column_order.pop(column_order.index("hour")))
         column_order.insert(0, column_order.pop(column_order.index("waveheight")))
         column_order.insert(0, column_order.pop(column_order.index("windspeed")))
+        column_order.insert(0, column_order.pop(column_order.index("datetime")))
+        column_order.insert(0, column_order.pop(column_order.index("row_nr")))
 
-        return weather.loc[:, column_order]
+        # Ensure the columns are ordered correctly and re-compute pandas-compatible ix
+        return weather.select(column_order).drop(columns="row_nr").with_row_count()
 
     @property
-    def weather_now(self) -> tuple[float, float, int]:
+    def weather_now(self) -> pl.DataFrame:
         """The current weather.
 
         Returns
         -------
-        Tuple[float, float, int]
-            Wind, wave, and hour data for the current time.
+        pl.DataFrame
+            A length 1 slice from the weather profile at the current ``int()`` rounded
+            hour, in simulation time.
         """
         # Rounds down because we won't arrive at the next weather event until that hour
         now = int(self.now)
-        return self.weather.iloc[now].values
+        return self.weather.slice(now, 1)
 
     def weather_forecast(
         self, hours: int | float
-    ) -> tuple[DatetimeIndex, np.ndarray, np.ndarray, np.ndarray]:
-        """Returns the wind and wave data for the next ``hours`` hours, starting from
-        the current hour's weather.
+    ) -> tuple[pl.Series, pl.Series, pl.Series, pl.Series]:
+        """Returns the datetime, wind, wave, and hour data for the next ``hours`` hours,
+        starting from the current hour's weather.
 
         Parameters
         ----------
@@ -537,17 +569,15 @@ class WombatEnvironment(simpy.Environment):
 
         Returns
         -------
-        Tuple[DatetimeIndex, np.ndarray, np.ndarray, np.ndarray]
-            The pandas DatetimeIndex, windspeed array, and waveheight array for the
-            hours requested, each with shape (``hours`` + 1).
+        tuple[pl.Series, pl.Series, pl.Series, pl.Series]
+            Each of the relevant columns (datetime, wind, wave, hour) from the weather
+            profile.
         """
-        start = math.floor(self.now)
-
         # If it's not on the hour, ensure we're looking ``hours`` hours into the future
-        end = start + math.ceil(hours) + math.ceil(self.now % 1)
-
-        wind, wave, hour, *_ = self.weather.values[start:end].T
-        ix = self.weather.index[start:end]
+        start = math.floor(self.now)
+        _, ix, wind, wave, hour, *_ = self.weather.slice(
+            start, math.ceil(hours) + math.ceil(self.now % 1)
+        )
         return ix, hour, wind, wave
 
     def log_action(
@@ -668,25 +698,27 @@ class WombatEnvironment(simpy.Environment):
         pd.DataFrame
             The formatted logging data from a simulation.
         """
-        convert_options = pa.csv.ConvertOptions(
-            timestamp_parsers=["%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S"]
+        log_df = (
+            pd.read_csv(
+                self.events_log_fname,
+                delimiter="|",
+                engine="pyarrow",
+                dtype={
+                    "agent": "string",
+                    "action": "string",
+                    "reason": "string",
+                    "additional": "string",
+                    "system_id": "string",
+                    "system_name": "string",
+                    "part_id": "string",
+                    "part_name": "string",
+                    "request_id": "string",
+                    "location": "string",
+                },
+            )
+            .set_index("datetime")
+            .sort_index()
         )
-        parse_options = pa.csv.ParseOptions(delimiter="|")
-        log_df = pa.csv.read_csv(
-            self.events_log_fname,
-            convert_options=convert_options,
-            parse_options=parse_options,
-        ).to_pandas()
-        if not pd.api.types.is_datetime64_any_dtype(log_df.datetime):
-            log_df.datetime = pd.to_datetime(
-                log_df.datetime, yearfirst=True, format="mixed"
-            )
-        if not pd.api.types.is_datetime64_any_dtype(log_df.env_datetime):
-            log_df.env_datetime = pd.to_datetime(
-                log_df.env_datetime, yearfirst=True, format="mixed"
-            )
-        log_df = log_df.set_index("datetime").sort_values("datetime")
-
         return log_df
 
     def load_operations_log_dataframe(self) -> pd.DataFrame:
@@ -698,30 +730,21 @@ class WombatEnvironment(simpy.Environment):
         pd.DataFrame
             The formatted logging data from a simulation.
         """
-        convert_options = pa.csv.ConvertOptions(
-            timestamp_parsers=["%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S"]
+        log_df = (
+            pd.read_csv(
+                self.operations_log_fname,
+                delimiter="|",
+                engine="pyarrow",
+            )
+            .set_index("datetime")
+            .sort_values("datetime")
         )
-        parse_options = pa.csv.ParseOptions(delimiter="|")
-        log_df = pa.csv.read_csv(
-            self.operations_log_fname,
-            convert_options=convert_options,
-            parse_options=parse_options,
-        ).to_pandas()
-        if not pd.api.types.is_datetime64_any_dtype(log_df.datetime):
-            log_df.datetime = pd.to_datetime(
-                log_df.datetime, yearfirst=True, format="mixed"
-            )
-        if not pd.api.types.is_datetime64_any_dtype(log_df.env_datetime):
-            log_df.env_datetime = pd.to_datetime(
-                log_df.env_datetime, yearfirst=True, format="mixed"
-            )
-        log_df = log_df.set_index("datetime").sort_values("datetime")
 
         return log_df
 
     def power_production_potential_to_csv(  # type: ignore
         self,
-        windfarm: wombat.windfarm.Windfarm,  # type: ignore
+        windfarm: wombat.windfarm.Windfarm,
         operations: pd.DataFrame | None = None,
         return_df: bool = True,
     ) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -749,7 +772,7 @@ class WombatEnvironment(simpy.Environment):
             operations = self.load_operations_log_dataframe().sort_values("env_time")
 
         turbines = windfarm.turbine_id
-        windspeed = self.weather.windspeed
+        windspeed = self.weather.to_pandas().set_index("datetime").windspeed
         windspeed = windspeed.loc[operations.env_datetime].values
         potential_df = pd.DataFrame(
             [],

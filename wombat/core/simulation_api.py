@@ -3,9 +3,11 @@ from __future__ import annotations
 
 import logging
 import datetime
+from typing import TYPE_CHECKING
 from pathlib import Path
 
 import yaml
+import numpy as np
 import pandas as pd
 from attrs import Attribute, field, define
 from simpy.events import Event
@@ -113,6 +115,14 @@ class Configuration(FromDictMixin):
         The maximum operating speed during the annualized reduced speed operations.
         When defined at the environment level, an undefined or faster value will be
         overridden for all servicing equipment and any modeled port, by default 0.0.
+    random_seed : int | None
+        The random seed to be passed to a universal NumPy ``default_rng`` object to
+        generate Weibull random generators, by default None.
+    random_generator: np.random._generator.Generator | None
+        An optional numpy random generator that can be provided to seed a simulation
+        with the same generator each time, in place of the random seed. If a
+        :py:attr:`random_seed` is also provided, this will override the random seed,
+        by default None.
     """
 
     name: str
@@ -135,6 +145,8 @@ class Configuration(FromDictMixin):
     reduced_speed_start: str | datetime.datetime | None = field(default=None)
     reduced_speed_end: str | datetime.datetime | None = field(default=None)
     reduced_speed: float = field(default=0.0)
+    random_seed: int | None = field(default=None)
+    random_generator: np.random._generator.Generator | None = field(default=None)
 
 
 @define(auto_attribs=True)
@@ -151,10 +163,20 @@ class Simulation(FromDictMixin):
          - A dictionary ready to be converted to a ``Configuration`` object
          - The name of the configuration file to be loaded, that will be located at:
            ``library_path`` / config / ``config``
+    random_seed : int | None
+        The random seed to be passed to a universal NumPy ``default_rng`` object to
+        generate Weibull random generators, by default None.
+    random_generator: np.random._generator.Generator | None
+        An optional numpy random generator that can be provided to seed a simulation
+        with the same generator each time, in place of the random seed. If a
+        :py:attr:`random_seed` is also provided, this will override the random seed,
+        by default None.
     """
 
     library_path: Path = field(converter=_library_mapper)
     config: Configuration = field()
+    random_seed: int | None = field(default=None)
+    random_generator: np.random._generator.Generator | None = field(default=None)
 
     metrics: Metrics = field(init=False)
     windfarm: Windfarm = field(init=False)
@@ -192,7 +214,9 @@ class Simulation(FromDictMixin):
             try:
                 value = load_yaml(self.library_path / "project/config", value)
             except FileNotFoundError:
-                value = load_yaml(self.library_path / "config", value)  # type: ignore
+                if TYPE_CHECKING:
+                    assert isinstance(value, (str, Path))
+                value = load_yaml(self.library_path / "config", value)
                 logging.warning(
                     "DeprecationWarning: In v0.8, all project configurations must be"
                     " located in: '<library>/project/config/"
@@ -240,8 +264,9 @@ class Simulation(FromDictMixin):
             A ready-to-run ``Simulation`` object.
         """
         if isinstance(config, (str, Path)):
-            config = Path(config).resolve()  # type: ignore
-            assert isinstance(config, Path)  # mypy helper
+            config = Path(config).resolve()
+            if TYPE_CHECKING:
+                assert isinstance(config, Path)  # mypy helper
             config = load_yaml(config.parent, config.name)
         if isinstance(config, dict):
             config = Configuration.from_dict(config)
@@ -249,9 +274,14 @@ class Simulation(FromDictMixin):
             raise TypeError(
                 "``config`` must be a dictionary or ``Configuration`` object!"
             )
-        assert isinstance(config, Configuration)  # mypy helper
-        # NOTE: mypy is not caught up with attrs yet :(
-        return cls(config.library, config)  # type: ignore
+        if TYPE_CHECKING:
+            assert isinstance(config, Configuration)  # mypy helper
+        return cls(  # type: ignore
+            library_path=config.library,
+            config=config,
+            random_seed=cls.random_seed,
+            random_generator=cls.random_generator,
+        )
 
     def _setup_simulation(self):
         """Initializes the simulation objects."""
@@ -269,6 +299,8 @@ class Simulation(FromDictMixin):
             reduced_speed_start=self.config.reduced_speed_start,
             reduced_speed_end=self.config.reduced_speed_end,
             reduced_speed=self.config.reduced_speed,
+            random_seed=self.random_seed,
+            random_generator=self.random_generator,
         )
         self.repair_manager = RepairManager(self.env)
         self.windfarm = Windfarm(self.env, self.config.layout, self.repair_manager)

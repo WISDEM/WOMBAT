@@ -14,7 +14,6 @@ import attrs
 import numpy as np
 import pandas as pd
 from attrs import Factory, Attribute, field, define
-from scipy.stats import weibull_min
 
 from wombat.utilities.time import HOURS_IN_DAY, HOURS_IN_YEAR, parse_date
 
@@ -369,19 +368,21 @@ class FromDictMixin:
             cls : Any
                 The `attrs`-defined class.
         """
+        if TYPE_CHECKING:
+            assert hasattr(cls, "__attrs_attrs__")
         # Get all parameters from the input dictionary that map to the class init
-        kwargs = {  # type: ignore
-            a.name: data[a.name]  # type: ignore
-            for a in cls.__attrs_attrs__  # type: ignore
-            if a.name in data and a.init  # type: ignore
+        kwargs = {
+            a.name: data[a.name]
+            for a in cls.__attrs_attrs__
+            if a.name in data and a.init
         }
 
         # Map the inputs that must be provided:
         # 1) must be initialized
         # 2) no default value defined
-        required_inputs = [  # type: ignore
-            a.name  # type: ignore
-            for a in cls.__attrs_attrs__  # type: ignore
+        required_inputs = [
+            a.name
+            for a in cls.__attrs_attrs__
             if a.init and isinstance(a.default, attr._make._Nothing)  # type: ignore
         ]
         undefined = sorted(set(required_inputs) - set(kwargs))
@@ -390,7 +391,7 @@ class FromDictMixin:
                 f"The class defintion for {cls.__name__} is missing the following"
                 f" inputs: {undefined}"
             )
-        return cls(**kwargs)  # type: ignore
+        return cls(**kwargs)
 
 
 @define(frozen=True, auto_attribs=True)
@@ -435,7 +436,7 @@ class Maintenance(FromDictMixin):
     materials: float = field(converter=float)
     frequency: float = field(converter=float)
     service_equipment: list[str] = field(
-        converter=convert_to_list_upper,  # type: ignore
+        converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
             iterable_validator=attrs.validators.instance_of(list),
@@ -453,11 +454,6 @@ class Maintenance(FromDictMixin):
         requirement to a list.
         """
         object.__setattr__(self, "frequency", self.frequency * HOURS_IN_DAY)
-        # object.__setattr__(
-        #     self,
-        #     "service_equipment",
-        #     convert_to_list(self.service_equipment, str.upper),
-        # )
         object.__setattr__(
             self,
             "materials",
@@ -517,6 +513,13 @@ class Failure(FromDictMixin):
         only a repair is necessary. Defaults to False
     description : str
         A short text description to be used for logging.
+    rng : np.random._generator.Generator
+
+        .. note:: Do not provide this, it comes from
+            :py:class:`wombat.core.environment.WombatEnvironment`
+
+        The shared random generator used for the Weibull sampling. This is fed through
+        the simulation environment to ensure consistent seeding between simulations.
     """
 
     scale: float = field(converter=float)
@@ -526,23 +529,25 @@ class Failure(FromDictMixin):
     operation_reduction: float = field(converter=float)
     level: int = field(converter=int)
     service_equipment: list[str] | str = field(
-        converter=convert_to_list_upper,  # type: ignore
+        converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
             iterable_validator=attrs.validators.instance_of(list),
         ),
     )
     system_value: int | float = field(converter=float)
+    rng: np.random._generator.Generator = field(
+        eq=False,
+        validator=attrs.validators.instance_of(np.random._generator.Generator),
+    )
     replacement: bool = field(default=False, converter=bool)
     description: str = field(default="failure", converter=str)
-    weibull: weibull_min = field(init=False, eq=False)
     request_id: str = field(init=False)
 
     def __attrs_post_init__(self):
         """Create the actual Weibull distribution and converts equipment requirements
         to a list.
         """
-        object.__setattr__(self, "weibull", weibull_min(self.shape, scale=self.scale))
         object.__setattr__(
             self,
             "service_equipment",
@@ -568,7 +573,7 @@ class Failure(FromDictMixin):
         if self.scale == self.shape == 0:
             return None
 
-        return self.weibull.rvs(size=1)[0] * HOURS_IN_YEAR
+        return self.rng.weibull(self.shape, size=1)[0] * self.scale * HOURS_IN_YEAR
 
     def assign_id(self, request_id: str) -> None:
         """Assign a unique identifier to the request.
@@ -603,15 +608,21 @@ class SubassemblyData(FromDictMixin):
 
     name: str = field(converter=str)
     maintenance: list[Maintenance | dict[str, float | str]]
-    failures: dict[int, Failure | dict[str, float | str]]
+    failures: list[Failure | dict[str, float | str]] | dict[
+        int, Failure | dict[str, float | str]
+    ]
     system_value: int | float = field(converter=float)
+    rng: np.random._generator.Generator = field(
+        validator=attrs.validators.instance_of(np.random._generator.Generator)
+    )
 
     def __attrs_post_init__(self):
         """Convert the maintenance and failure data to ``Maintenance`` and ``Failure``
         objects, respectively.
         """
         for kwargs in self.maintenance:
-            assert isinstance(kwargs, dict)
+            if TYPE_CHECKING:
+                assert isinstance(kwargs, dict)
             kwargs.update({"system_value": self.system_value})
         object.__setattr__(
             self,
@@ -623,16 +634,20 @@ class SubassemblyData(FromDictMixin):
         )
 
         for kwargs in self.failures.values():  # type: ignore
-            assert isinstance(kwargs, dict)
+            if TYPE_CHECKING:
+                assert isinstance(kwargs, dict)
             kwargs.update({"system_value": self.system_value})
-        object.__setattr__(
-            self,
-            "failures",
-            {
-                level: Failure.from_dict(kw) if isinstance(kw, dict) else kw
-                for level, kw in self.failures.items()
-            },
-        )
+
+        failures_list = []
+        rng_dict = {"rng": self.rng}
+        if TYPE_CHECKING:
+            assert isinstance(self.failures, dict)
+        for config in self.failures.values():
+            if TYPE_CHECKING:
+                assert isinstance(config, dict)
+            config.update(rng_dict)
+            failures_list.append(Failure.from_dict(config))
+        object.__setattr__(self, "failures", failures_list)
 
 
 @define(frozen=True, auto_attribs=True)
@@ -687,6 +702,10 @@ class RepairRequest(FromDictMixin):
         object.__setattr__(self, "request_id", request_id)
         self.details.assign_id(request_id)
 
+    def __eq__(self, other) -> bool:
+        """Redefines the equality method to only check for the ``request_id``."""
+        return self.request_id == other.request_id
+
 
 @define(frozen=True, auto_attribs=True)
 class ServiceCrew(FromDictMixin):
@@ -735,6 +754,8 @@ class DateLimitsMixin:
         """
         object.__setattr__(self, "workday_start", start)
         object.__setattr__(self, "workday_end", end)
+        if self.workday_start == 0 and self.workday_end == 24:  # type: ignore
+            object.__setattr__(self, "non_stop_shift", True)
 
     def _set_port_distance(self, distance: int | float | None) -> None:
         """Set ``port_distance`` from the environment's or port's variables.
@@ -748,7 +769,7 @@ class DateLimitsMixin:
             return
         if distance <= 0:
             return
-        if self.port_distance <= 0:  # type: ignore
+        if self.port_distance <= 0:
             object.__setattr__(self, "port_distance", float(distance))
 
     def _compare_dates(
@@ -943,7 +964,8 @@ class DateLimitsMixin:
         object.__setattr__(self, "reduced_speed_dates_set", set(dates))
 
         # Update the reduced speed if none was originally provided
-        assert hasattr(self, "reduced_speed")  # mypy helper
+        if TYPE_CHECKING:
+            assert hasattr(self, "reduced_speed")  # mypy helper
         if speed != 0 and (self.reduced_speed == 0 or speed < self.reduced_speed):
             object.__setattr__(self, "reduced_speed", speed)
 
@@ -1060,9 +1082,9 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     name: str = field(converter=str)
     equipment_rate: float = field(converter=float)
     n_crews: int = field(converter=int)
-    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
+    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)
     capability: list[str] = field(
-        converter=convert_to_list_upper,  # type: ignore
+        converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
             iterable_validator=attrs.validators.instance_of(list),
@@ -1084,9 +1106,9 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     )
     port_distance: float = field(default=0.0, converter=float)
     onsite: bool = field(default=False, converter=bool)
-    method: str = field(  # type: ignore
+    method: str = field(
         default="severity",
-        converter=[str, str.lower],  # type: ignore
+        converter=[str, str.lower],
         validator=attrs.validators.in_(["turbine", "severity"]),
     )
     start_month: int = field(
@@ -1115,6 +1137,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     non_operational_dates: pd.DatetimeIndex = field(factory=list, init=False)
     non_operational_dates_set: pd.DatetimeIndex = field(factory=set, init=False)
     reduced_speed_dates: pd.DatetimeIndex = field(factory=set, init=False)
+    non_stop_shift: bool = field(default=False, init=False)
 
     def create_date_range(self) -> np.ndarray:
         """Create an ``np.ndarray`` of valid operational dates."""
@@ -1143,6 +1166,8 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         """Post-initialization."""
         object.__setattr__(self, "operating_dates", self.create_date_range())
         object.__setattr__(self, "operating_dates_set", set(self.operating_dates))
+        if self.workday_start == 0 and self.workday_end == 24:
+            object.__setattr__(self, "non_stop_shift", True)
 
 
 @define(frozen=True, auto_attribs=True)
@@ -1272,9 +1297,9 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     name: str = field(converter=str)
     equipment_rate: float = field(converter=float)
     n_crews: int = field(converter=int)
-    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
+    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)
     capability: list[str] = field(
-        converter=convert_to_list_upper,  # type: ignore
+        converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
             iterable_validator=attrs.validators.instance_of(list),
@@ -1297,7 +1322,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     onsite: bool = field(default=False, converter=bool)
     method: str = field(  # type: ignore
         default="severity",
-        converter=[str, str.lower],  # type: ignore
+        converter=[str, str.lower],
         validator=attrs.validators.in_(["turbine", "severity"]),
     )
     strategy: str | None = field(
@@ -1307,7 +1332,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     )
     strategy_threshold: int | float = field(default=-1, converter=float)
     charter_days: int = field(
-        default=-1, converter=int, validator=attrs.validators.gt(0)  # type: ignore
+        default=-1, converter=int, validator=attrs.validators.gt(0)
     )
     tow_speed: float = field(default=1, converter=float, validator=greater_than_zero)
     unmoor_hours: int | float = field(default=0, converter=float)
@@ -1320,6 +1345,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     non_operational_dates: pd.DatetimeIndex = field(factory=list, init=False)
     non_operational_dates_set: pd.DatetimeIndex = field(factory=set, init=False)
     reduced_speed_dates: pd.DatetimeIndex = field(factory=set, init=False)
+    non_stop_shift: bool = field(default=False, init=False)
 
     @strategy_threshold.validator  # type: ignore
     def _validate_threshold(
@@ -1340,6 +1366,11 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
                     "Requests-based strategies must have a ``strategy_threshold``",
                     "greater than 0!",
                 )
+
+    def __attrs_post_init__(self) -> None:
+        """Post-initialization hook."""
+        if self.workday_start == 0 and self.workday_end == 24:
+            object.__setattr__(self, "non_stop_shift", True)
 
 
 @define(frozen=True, auto_attribs=True)
@@ -1656,7 +1687,7 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
 
     name: str = field(converter=str)
     tugboats: list[str | Path] = field(converter=convert_to_list)
-    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
+    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)
     n_crews: int = field(default=1, converter=int)
     max_operations: int = field(default=1, converter=int)
     workday_start: int = field(default=-1, converter=int, validator=valid_hour)
@@ -1674,6 +1705,12 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
     reduced_speed_dates: pd.DatetimeIndex = field(factory=set, init=False)
     non_operational_dates_set: pd.DatetimeIndex = field(factory=set, init=False)
     reduced_speed_dates_set: pd.DatetimeIndex = field(factory=set, init=False)
+    non_stop_shift: bool = field(default=False, init=False)
+
+    def __attrs_post_init__(self) -> None:
+        """Post-initialization hook."""
+        if self.workday_start == 0 and self.workday_end == 24:
+            object.__setattr__(self, "non_stop_shift", True)
 
 
 @define(frozen=True, auto_attribs=True)
@@ -2055,7 +2092,8 @@ class WindFarmMap:
             lists are returned. These are bifurcated in lists of lists for each string
             if ``by_string=True``
         """
-        turbines, cables = [], []
+        turbines = []
+        cables = []
         substation_map = self.substation_map[substation]
         start_nodes = substation_map.string_starts
         for start_node in start_nodes:

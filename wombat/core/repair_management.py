@@ -26,10 +26,6 @@ if TYPE_CHECKING:
     from wombat.windfarm.system import Cable, System
 
 
-# Numpy random generation initialization
-random_generator = np.random.default_rng(seed=42)
-
-
 class RepairManager(FilterStore):
     """Provides a class to manage repair and maintenance tasks.
 
@@ -70,6 +66,11 @@ class RepairManager(FilterStore):
         self.request_based_equipment = StrategyMap()
         self.completed_requests = FilterStore(self.env)
         self.in_process_requests = FilterStore(self.env)
+        self.request_status_map: dict[str, set] = {
+            "pending": set(),
+            "processing": set(),
+            "completed": set(),
+        }
 
     def _update_equipment_map(self, service_equipment: ServiceEquipment) -> None:
         """Updates ``equipment_map`` with a provided servicing equipment object."""
@@ -84,7 +85,10 @@ class RepairManager(FilterStore):
             # Shouldn't be possible to get here!
             raise ValueError("Invalid servicing equipment!")
 
-        assert isinstance(service_equipment.settings, UnscheduledServiceEquipmentData)
+        if TYPE_CHECKING:
+            assert isinstance(
+                service_equipment.settings, UnscheduledServiceEquipmentData
+            )
         strategy_threshold = service_equipment.settings.strategy_threshold
         if isinstance(capability, list):
             for c in capability:
@@ -144,6 +148,29 @@ class RepairManager(FilterStore):
         self._current_id += 1
         return request_id
 
+    def _is_request_processing(self, request: RepairRequest) -> bool:
+        """Checks if a repair is being performed, or has already been completed.
+
+        Parameters
+        ----------
+        request : RepairRequest
+            The request that is about to be submitted to servicing equipment, but needs
+            to be double-checked against ongoing processes.
+
+        Returns
+        -------
+        bool
+            True if the request is ongoing or completed, False, if it's ok to processed
+            with the operation.
+        """
+        if self.items == []:
+            return False
+
+        rid = request.request_id
+        processing = (lambda: rid in self.request_status_map["processing"])()
+        completed = (lambda: rid in self.request_status_map["completed"])()
+        return processing or completed
+
     def _run_equipment_downtime(self, request: RepairRequest) -> None | Generator:
         """Run any equipment that has a pending request where the current windfarm
         operating capacity is less than or equal to the servicing equipment's threshold.
@@ -154,7 +181,9 @@ class RepairManager(FilterStore):
         category that has pending requests
         """
         # Add an initial check to help avoid simultaneous dispatching
-        seconds_to_wait, *_ = random_generator.integers(low=0, high=10, size=1) / 3600.0
+        seconds_to_wait, *_ = (
+            self.env.random_generator.integers(low=0, high=10, size=1) / 3600.0
+        )
         yield self.env.timeout(seconds_to_wait)
 
         # Port-based servicing equipment should be handled by the port and does not
@@ -179,7 +208,7 @@ class RepairManager(FilterStore):
 
                 # Avoid simultaneous dispatches by waiting a random number of seconds
                 seconds_to_wait, *_ = (
-                    random_generator.integers(low=0, high=30, size=1) / 3600.0
+                    self.env.random_generator.integers(low=0, high=30, size=1) / 3600.0
                 )
                 yield self.env.timeout(seconds_to_wait)
 
@@ -194,17 +223,12 @@ class RepairManager(FilterStore):
                     if request.system_id in self.port.invalid_systems:
                         break
 
-                    # Dispatch-triggering request must be removed from the queue
-                    _ = self.get(lambda x: x == request)
-
                     yield self.windfarm.system(request.system_id).servicing
-                    self.env.process(self.port.run_unscheduled_in_situ(request))
+                    self.env.process(
+                        self.port.run_unscheduled_in_situ(request, initial=True)
+                    )
                 else:
-                    # Dispatch-triggering request must be removed from the queue
-                    _ = self.get(lambda x: x == request)
-
-                    yield self.in_process_requests.put(request)
-                    self.env.process(equipment_obj.run_unscheduled_in_situ(request))
+                    self.env.process(equipment_obj.run_unscheduled_in_situ())
 
                     # Move the dispatched capability to the end of list to ensure proper
                     # cycling of available servicing equipment
@@ -216,7 +240,9 @@ class RepairManager(FilterStore):
         equipment's threshold.
         """
         # Add an initial check to help avoid simultaneous dispatching
-        seconds_to_wait, *_ = random_generator.integers(low=0, high=30, size=1) / 3600.0
+        seconds_to_wait, *_ = (
+            self.env.random_generator.integers(low=0, high=30, size=1) / 3600.0
+        )
         yield self.env.timeout(seconds_to_wait)
 
         # Port-based servicing equipment should be handled by the port and does not have
@@ -244,7 +270,7 @@ class RepairManager(FilterStore):
 
                 # Avoid simultaneous dispatches by waiting a random number of seconds
                 seconds_to_wait, *_ = (
-                    random_generator.integers(low=0, high=30, size=1) / 3600.0
+                    self.env.random_generator.integers(low=0, high=30, size=1) / 3600.0
                 )
                 yield self.env.timeout(seconds_to_wait)
 
@@ -263,24 +289,19 @@ class RepairManager(FilterStore):
                     if request.system_id in self.port.invalid_systems:
                         break
 
-                    # Dispatch-triggering request must be removed from the queue
-                    _ = self.get(lambda x: x == request)
-
-                    yield self.env.process(self.port.run_unscheduled_in_situ(request))
-                else:
-                    # Dispatch-triggering request must be removed from the queue
-                    _ = self.get(lambda x: x == request)
-
-                    yield self.in_process_requests.put(request)
                     yield self.env.process(
-                        equipment_obj.run_unscheduled_in_situ(request)
+                        self.port.run_unscheduled_in_situ(request, initial=True)
                     )
+                else:
+                    yield self.env.process(equipment_obj.run_unscheduled_in_situ())
 
                     # Move the dispatched capability to the end of list to ensure proper
                     # cycling of available servicing equipment
                     self.request_based_equipment.move_equipment_to_end(capability, i)
                 dispatched = capability
                 break
+
+        yield self.env.timeout(1 / 60)  # wait one minute for repair to register
 
         # Double check the the number of reqeusts is still below the threshold following
         # the dispatching of a piece of servicing equipment. This mostly pertains to
@@ -301,8 +322,8 @@ class RepairManager(FilterStore):
                 x
                 for x in self.items
                 if dispatched in x.details.service_equipment
-                and x not in self.completed_requests.items
-                and x not in self.in_process_requests.items
+                and not self._is_request_processing(x)
+                and x is not request
             ]
             if new_request_check:
                 new_request = self.get(lambda x: x == new_request_check[0]).value
@@ -326,6 +347,7 @@ class RepairManager(FilterStore):
         request_id = self._create_request_id(request)
         request.assign_id(request_id)
         self.put(request)
+        self.request_status_map["pending"].update([request.request_id])
         return request
 
     def submit_request(self, request: RepairRequest) -> None:
@@ -386,14 +408,21 @@ class RepairManager(FilterStore):
             return None
 
         # Filter the requests by equipment capability and return the first valid request
-        assert isinstance(equipment_capability, set)
+        if TYPE_CHECKING:
+            assert isinstance(equipment_capability, set)
         for request in requests:
+            if self._is_request_processing(request):
+                continue
             if equipment_capability.intersection(request.details.service_equipment):
                 # If this is the first request for the system, make sure no other
                 # servicing equipment can access it
                 if request.system_id not in self.invalid_systems:
                     self.invalid_systems.append(request.system_id)
-                return self.get(lambda x: x == requests[0])
+                self.request_status_map["pending"].difference_update(
+                    [requests[0].request_id]
+                )
+                self.request_status_map["processing"].update([requests[0].request_id])
+                return self.get(lambda x: x is requests[0])
 
         # There were no matching equipment requirements to match the equipment
         # attempting to retrieve its next request
@@ -437,6 +466,8 @@ class RepairManager(FilterStore):
         # back
         requests = sorted(requests, key=lambda x: x.severity_level, reverse=True)
         for request in requests:
+            if self._is_request_processing(request):
+                continue
             if request.cable:
                 if not self.windfarm.cable(request.system_id).servicing.triggered:
                     continue
@@ -446,7 +477,11 @@ class RepairManager(FilterStore):
             if request.system_id not in self.invalid_systems:
                 if equipment_capability.intersection(request.details.service_equipment):
                     self.invalid_systems.append(request.system_id)
-                    return self.get(lambda x: x == request)
+                    self.request_status_map["pending"].difference_update(
+                        [request.request_id]
+                    )
+                    self.request_status_map["processing"].update([request.request_id])
+                    return self.get(lambda x: x is request)
 
         # Ensure None is returned if nothing is found in the loop just as a FilterGet
         # would if allowed to oeprate without the above looping to identify multiple
@@ -473,7 +508,7 @@ class RepairManager(FilterStore):
                 f"{self.env.simulation_time} {system.id} already being serviced"
             )
 
-    def register_repair(self, repair: RepairRequest, port: bool = False) -> Generator:
+    def register_repair(self, repair: RepairRequest) -> Generator:
         """Registers the repair as complete with the repair managiner.
 
         Parameters
@@ -489,11 +524,10 @@ class RepairManager(FilterStore):
         Generator
             The ``completed_requests.put()`` that registers completion.
         """
-        if port:
-            yield self.completed_requests.put(repair)
-        else:
-            request = yield self.in_process_requests.get(lambda x: x == repair)
-            yield self.completed_requests.put(request)
+        self.request_status_map["processing"].difference_update([repair.request_id])
+        self.request_status_map["completed"].update([repair.request_id])
+        yield self.completed_requests.put(repair)
+        yield self.in_process_requests.get(lambda x: x is repair)
 
     def enable_requests_for_system(self, system: System | Cable) -> None:
         """Reenables service equipment operations on the provided system.
@@ -514,7 +548,7 @@ class RepairManager(FilterStore):
 
     def get_all_requests_for_system(
         self, agent: str, system_id: str
-    ) -> list[RepairRequest] | None:
+    ) -> list[RepairRequest] | None | Generator:
         """Gets all repair requests for a specific ``system_id``.
 
         Parameters
@@ -555,7 +589,9 @@ class RepairManager(FilterStore):
                 reason="",
                 request_id=request.request_id,
             )
-            _ = self.get(lambda x: x == request)  # pylint: disable=W0640
+            self.request_status_map["pending"].difference_update([request.request_id])
+            self.request_status_map["processing"].update([request.request_id])
+            _ = yield self.get(lambda x: x is request)  # pylint: disable=W0640
 
         return requests
 
@@ -612,7 +648,9 @@ class RepairManager(FilterStore):
                 reason="replacement required",
                 request_id=request.request_id,
             )
-            _ = self.get(lambda x: x == request)  # pylint: disable=W0640
+            self.request_status_map["pending"].difference_update([request.request_id])
+            self.request_status_map["processing"].update([request.request_id])
+            _ = self.get(lambda x: x is request)  # pylint: disable=W0640
         return requests
 
     @property
