@@ -1926,6 +1926,16 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
 
     # Start the simulation to ensure everything is in place as required
     env.run(1)
+
+    # for system in windfarm.system_list:
+    #     system = windfarm.system(system)
+    #     for pname, p in system.subassemblies[0].processes.items():
+    #         if not isinstance(pname, tuple):
+    #             continue
+    #         if pname[1] != "catastrophic failure":
+    #             continue
+    #         print(system.id, pname, f"{p._target._delay:,.10f}")
+
     assert (
         fsv.at_port
         is fsv.at_site
@@ -1969,7 +1979,7 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
     assert fsv.current_system is None
 
     # Check that the FSV is working at the start of the work shift
-    timeout += 9  # 1 hour weather delay
+    timeout += 9
     env.run(timeout)
     assert fsv.onsite is fsv.at_site is fsv.transferring_crew is fsv.at_system is True
     assert fsv.at_port is fsv.enroute is False
@@ -1990,11 +2000,11 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
     )
     assert fsv.current_system is None
 
-    # The first HLV call is at 4118.374184568947 hours when S00T1's generator has a
+    # The first HLV call is at 14012.2435309168 hours when S00T2's generator has a
     # catastrophic failure putting the windfarm at 83.3% operations, which is less than
     # the 90% threshold. However, because the timing will be delayed during repairs,
-    # realized timeout will be at 4653.37 hours
-    timeout = 4653.37
+    # realized timeout will be at 14739.73 hours
+    timeout = 14739.73
     env.run(timeout + 1)
     assert hlv.enroute
     assert (
@@ -2009,10 +2019,12 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
 
     # Test that the HLV was successfully mobilized
     timeout += 60 * 24
+    timeout += 3.27  # weather delay
     env.run(timeout + 1 / 60)
+    print(env.now)
     assert hlv.transferring_crew is hlv.at_site is hlv.at_system is hlv.onsite is True
     assert hlv.enroute is hlv.at_port is False
-    assert hlv.current_system == "S00T1"
+    assert hlv.current_system == "S00T2"
 
     # Ensure it's still here at the end
     timeout += 30 * 24 - 1 / 60
@@ -2020,4 +2032,4 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
     assert hlv.onsite is hlv.at_site is True
     assert hlv.transferring_crew is hlv.at_port is hlv.enroute is False
     assert hlv.at_system
-    assert hlv.current_system == "S01T5"
+    assert hlv.current_system == "S00T1"

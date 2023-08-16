@@ -82,7 +82,11 @@ class Cable:
                 " or 'export'."
             )
 
-        cable_data = {**cable_data, "system_value": self.system.value}
+        cable_data = {
+            **cable_data,
+            "system_value": self.system.value,
+            "rng": self.env.random_generator,
+        }
         self.data = SubassemblyData.from_dict(cable_data)
         self.name = self.data.name if name is None else name
 
@@ -148,11 +152,13 @@ class Cable:
             Creates a dictionary to keep track of the running processes within the
             subassembly.
         """
-        for level, failure in self.data.failures.items():
-            yield level, self.env.process(self.run_single_failure(failure))
+        for failure in self.data.failures:
+            desc = failure.description
+            yield desc, self.env.process(self.run_single_failure(failure))
 
         for i, maintenance in enumerate(self.data.maintenance):
-            yield f"m{i}", self.env.process(self.run_single_maintenance(maintenance))
+            desc = maintenance.description
+            yield desc, self.env.process(self.run_single_maintenance(maintenance))
 
     def interrupt_processes(self) -> None:
         """Interrupts all of the running processes within the subassembly except for the

@@ -20,7 +20,7 @@ generator:
     frequency: 50
   failures:
     10:
-      scale: 50  # don't want to hit this
+      scale: 25  # don't want to hit this
       shape: 1
       time: 1
       materials: 14

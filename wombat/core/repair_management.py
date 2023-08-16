@@ -26,10 +26,6 @@ if TYPE_CHECKING:
     from wombat.windfarm.system import Cable, System
 
 
-# Numpy random generation initialization
-random_generator = np.random.default_rng(seed=42)
-
-
 class RepairManager(FilterStore):
     """Provides a class to manage repair and maintenance tasks.
 
@@ -185,7 +181,9 @@ class RepairManager(FilterStore):
         category that has pending requests
         """
         # Add an initial check to help avoid simultaneous dispatching
-        seconds_to_wait, *_ = random_generator.integers(low=0, high=10, size=1) / 3600.0
+        seconds_to_wait, *_ = (
+            self.env.random_generator.integers(low=0, high=10, size=1) / 3600.0
+        )
         yield self.env.timeout(seconds_to_wait)
 
         # Port-based servicing equipment should be handled by the port and does not
@@ -210,7 +208,7 @@ class RepairManager(FilterStore):
 
                 # Avoid simultaneous dispatches by waiting a random number of seconds
                 seconds_to_wait, *_ = (
-                    random_generator.integers(low=0, high=30, size=1) / 3600.0
+                    self.env.random_generator.integers(low=0, high=30, size=1) / 3600.0
                 )
                 yield self.env.timeout(seconds_to_wait)
 
@@ -242,7 +240,9 @@ class RepairManager(FilterStore):
         equipment's threshold.
         """
         # Add an initial check to help avoid simultaneous dispatching
-        seconds_to_wait, *_ = random_generator.integers(low=0, high=30, size=1) / 3600.0
+        seconds_to_wait, *_ = (
+            self.env.random_generator.integers(low=0, high=30, size=1) / 3600.0
+        )
         yield self.env.timeout(seconds_to_wait)
 
         # Port-based servicing equipment should be handled by the port and does not have
@@ -270,7 +270,7 @@ class RepairManager(FilterStore):
 
                 # Avoid simultaneous dispatches by waiting a random number of seconds
                 seconds_to_wait, *_ = (
-                    random_generator.integers(low=0, high=30, size=1) / 3600.0
+                    self.env.random_generator.integers(low=0, high=30, size=1) / 3600.0
                 )
                 yield self.env.timeout(seconds_to_wait)
 

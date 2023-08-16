@@ -13,12 +13,14 @@
 
 - Adds a `non_stop_shift` attribute to `ServiceEquipmentData`, `UnscheduledServiceEquipmentData`, `ScheduledServiceEquipmentData`, and `PortConfig` that is set in the post-initialization hook or through `DateLimitsMixin._set_environment_shift()` to ensure it is updated appropriately. Additionally, all checks for a 24 hour shift now check for the `non_stop_shift` attribute.
 - `Metrics.emissions()` has been added to the list of available metrics to calculate the emissions from idling at port or sea, tranisiting, and maneuvering. Co-authored by and inspired by analysis work from @hemezz.
+- `Simulation` now accepts a `random_seed` or `random_generator` variable to seed the random number generators for Weibull failure timeouts and wait timing between event completions. Setting the `random_seed` to the same value from one simulation to the next will net the same results between different simulations, whereas the `random_generator` can be used to use the same generator for a batch of simulations.
 
 ### General
 
 - All `assert` statements are now only called when type checking is performed
 - Replaces all `.get(lamda x: x == request)` with a 10x faster `.get(lambda x: x is request)` to more efficiently filter out the desired event to be removed from the repair manager and port repair manangement.
 - `WombatEnvironment.weather` is now a Polars DataFrame to improve efficiency and indexing bottlenecks introduced in Pandas 2.0.
+- All subassembly cable files are read in once, and stored in a dictionary to provide a modest speed up for the simulation initialization.
 
 ## v0.7.1 (4 May 2023)
 

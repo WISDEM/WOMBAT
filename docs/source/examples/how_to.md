@@ -53,8 +53,8 @@ As of v0.6, the following structure will be adopted to mirror the format of the
 [ORBIT library structure](https://github.com/WISDEM/ORBIT/blob/master/ORBIT/core/library.py#L7-L24)
 to increase compatibility between similar libraries.
 
-WOMBAT will still support the original structure until either v0.7 or v0.8, depending
-on the release timeframe, to allow users to update in their own time.
+WOMBAT will still support the original structure until v0.9, depending to allow users to
+update in their own time.
 ```
 
 To help users convert to the new structure, the following method is provided to create
@@ -181,6 +181,7 @@ The weather profile will broadly define the simulation range with its start and 
 points, though a narrower one can be used when defining the simulation (more later).
 
 The following columns should exist in the data set with the provided guidelines.
+
 datetime (required)
 : A date and time stamp, any format.
 
@@ -247,6 +248,8 @@ meaningful inputs.
 ```{warning}
 This does not currently work due to updates in PySAM that need to be remapped in the
 post-processing module.
+
+Update: This functionality will be entirely deprecated in v0.9.
 ```
 
 
@@ -365,7 +368,7 @@ generator:
       materials: 0
       service_equipment: CTV
       operation_reduction: 0.0
-      replacement: False  # daefault value
+      replacement: False  # default value
       level: 1  # Note that the "level" value matches the key "1"
       description: manual reset
 ```
@@ -456,10 +459,6 @@ turbine power curves, please visit the
 
 #### Cables
 
-```{note}
-New, in v0.6: export cables can be modeled and used to connect substations!
-```
-
 The array cable is the simplest format in that you only define a descriptive name,
 and the maintenance and failure events as below. It should be noted that the scheme
 is a combination of both the system and subassembly configuration.
@@ -541,7 +540,7 @@ weather: alpha_ventus_weather_2002_2014.csv  # located in: dinwoodie / weather
 service_equipment:
 # YAML-encoded list, but could also be created in standard Python list notation with
 # square brackets: [ctv1.yaml, ctv2.yaml, ..., hlv_requests.yaml]
-# All below equipment configurations are located in: dinwoodie / repair / transport
+# All below equipment configurations are located in: dinwoodie / vessels
   - ctv1.yaml
   - ctv2.yaml
   - ctv3.yaml
@@ -549,17 +548,17 @@ service_equipment:
   - hlv_requests.yaml
 layout: layout.csv  # located in: dinwoodie / windfarm
 inflation_rate: 0
-fixed_costs: fixed_costs.yaml  # located in: dinwoodie / windfarm
+fixed_costs: fixed_costs.yaml  # located in: dinwoodie / project / config
 workday_start: 7
 workday_end: 19
 start_year: 2003
 end_year: 2012
 project_capacity: 240
 # port: base_port.yaml  <- When running a tow-to-port simulation the port configuration
-#                          pointer is provided here and located in: dinwoodie / repair
+#                          pointer is provided here and located in: dinwoodie / project / port
 ```
 
-## Instantiate the simulation
+## Create a simulation
 
 There are two ways that this could be done, the first is to use the classmethod
 `Simulation.from_config()`, which allows for the full path string, a dictionary, or
@@ -597,6 +596,29 @@ setup steps will fail in the simulation.
 sim = Simulation(
     library_path="DINWOODIE",  # automatically directs to the provided library
     config="base.yaml"
+)
+sim.env.cleanup_log_files()
+```
+
+### Seeding the simulation random variable
+
+Using `random_seed` a simulation can be seeded to produce the same results every single
+time, or a `random_generator` can be provided to use the same generator for a batch of
+identical simulations to better understand the variations in results.
+
+```{code-cell} ipython3
+sim = Simulation(
+    library_path="DINWOODIE",  # automatically directs to the provided library
+    config="base.yaml",
+    random_seed=2023,  # integer value indicating how to seed the internally-created generator
+)
+sim.env.cleanup_log_files()
+
+rng = np.random.default_rng(seed=2023)  # create the generator
+sim = Simulation(
+    library_path="DINWOODIE",  # automatically directs to the provided library
+    config="base.yaml",
+    random_generator=rng,  # generator that can be shared among all processes
 )
 ```
 

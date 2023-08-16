@@ -45,10 +45,6 @@ if TYPE_CHECKING:
     from wombat.core import Port
 
 
-# Numpy random generation initialization
-random_generator = np.random.default_rng(seed=42)
-
-
 def consecutive_groups(data: np.ndarray, step_size: int = 1) -> list[np.ndarray]:
     """Generates the subgroups of an array where the difference between two sequential
     elements is equal to the ``step_size``. The intent is to find the length of delays
@@ -893,7 +889,7 @@ class ServiceEquipment(RepairsMixin):
         # Get the index for the end of the hour where the distance requred to be
         # traveled is reached.
         try:
-            ix_hours = np.where(distance_traveled_sum >= distance)[0][0]
+            ix_hours = int(np.where(distance_traveled_sum >= distance)[0][0])
         except IndexError as e:
             # If an error occurs because an index maxes out the weather window, check
             # that it's not due to having reached the end of the simulation. If so,
@@ -906,10 +902,10 @@ class ServiceEquipment(RepairsMixin):
 
         # Shave off the extra timing to get the exact travel time
         total_hours = ix_hours + 1  # add 1 for 0-indexing
-        traveled = distance_traveled_sum.slice(ix_hours, 1).item()
+        traveled = distance_traveled_sum.take(ix_hours).item()
         if traveled > distance:
             difference = traveled - distance
-            speed_at_hour = distance_traveled.slice(ix_hours, 1).item()
+            speed_at_hour = distance_traveled.take(ix_hours).item()
             reduction = difference / speed_at_hour
             total_hours -= reduction
 
@@ -1717,7 +1713,7 @@ class ServiceEquipment(RepairsMixin):
                 system = self.windfarm.system(request.system_id)  # type: ignore
             yield system.servicing
             seconds_to_wait, *_ = (
-                random_generator.integers(low=0, high=30, size=1) / 3600.0
+                self.env.random_generator.integers(low=0, high=30, size=1) / 3600.0
             )
             yield self.env.timeout(seconds_to_wait)
             yield system.servicing

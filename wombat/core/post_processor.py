@@ -1671,7 +1671,7 @@ class Metrics:
         ] * (1 - maneuvering_factor)
 
         # Adjust the idling at port time to only account for when the engine is on
-        port = equipment_usage.index.get_level_values("category" == "idle at port")
+        port = equipment_usage.index.get_level_values("category") == "idle at port"
         equipment_usage.loc[port, "duration"] = (
             equipment_usage.loc[transiting, "duration"].values * port_engine_on_factor
         )
@@ -1682,7 +1682,7 @@ class Metrics:
                 emissions=equipment_usage.duration * equipment_usage.emissions_factors
             )
             .drop(columns=["emissions_factors"])
-            .fillna(0)
+            .fillna(0, axis=1)
         )
 
         return equipment_usage

@@ -10,6 +10,7 @@ from wombat.core.data_classes import Failure, Maintenance
 from wombat.core.repair_management import RepairManager
 
 from tests.conftest import (
+    RNG,
     SUBSTATION,
     VESTAS_V90,
     GENERATOR_SUBASSEMBLY,
@@ -35,6 +36,13 @@ def test_subassembly_initialization(env_setup):
     generator = Subassembly(TURBINE, ENV, subassembly_id, data_dict)
     correct_N_maintenance = len(GENERATOR_SUBASSEMBLY["maintenance"])
     correct_N_failures = len(GENERATOR_SUBASSEMBLY["failures"])
+    correct_descriptions = [
+        (el["level"], el["description"])
+        for el in GENERATOR_SUBASSEMBLY["failures"].values()
+    ]
+    correct_descriptions.extend(
+        [el["description"] for el in GENERATOR_SUBASSEMBLY["maintenance"]]
+    )
 
     assert generator.env == ENV
     assert generator.system == TURBINE
@@ -44,13 +52,16 @@ def test_subassembly_initialization(env_setup):
     assert generator.broken.triggered
     assert generator.operating_level == 1.0
     assert len(generator.processes) == correct_N_maintenance + correct_N_failures
-    # Maintenance keys are m{i} and failure keys are integer severity
-    N_failures = len([el for el in generator.processes if isinstance(el, int)])
+    # Maintenance keys are descriptions
+    # Failure keys are tuples of severity and description
+    N_failures = len([el for el in generator.processes if isinstance(el, tuple)])
     assert N_failures == correct_N_failures
+    assert [*generator.processes] == correct_descriptions
 
     # Run the same tests for a substation and transformer
     subassembly_id = "TRNS1"
     data_dict = TRANSFORMER
+    data_dict.update({"rng": RNG})
     correct_N_maintenance = len(TRANSFORMER["maintenance"])
     correct_N_failures = len(TRANSFORMER["failures"])
     transformer = Subassembly(OSS, ENV, subassembly_id, data_dict)
@@ -63,8 +74,10 @@ def test_subassembly_initialization(env_setup):
     assert transformer.broken.triggered
     assert transformer.operating_level == 1.0
     assert len(transformer.processes) == correct_N_maintenance + correct_N_failures
-    # Maintenance keys are m{i} and failure keys are integer severity
-    N_failures = len([el for el in transformer.processes if isinstance(el, int)])
+
+    # Maintenance keys are descriptions
+    # Failure keys are tuples of severity and description
+    N_failures = len([el for el in transformer.processes if isinstance(el, tuple)])
     assert N_failures == correct_N_failures
 
 
