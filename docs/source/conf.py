@@ -95,7 +95,7 @@ source_suffix = {
 }
 
 # toggle this between auto/off to rerun full documentation build
-nb_execution_mode = "force"
+nb_execution_mode = "off"
 nb_execution_timeout = -1
 nb_execution_allow_errors = True
 # nb_execution_excludepatterns.append("*_demonstration.md")
@@ -125,7 +125,7 @@ html_theme_options = {
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
+# html_static_path = ["_static"]
 
 # Napoleon options
 napoleon_google_docstring = False
