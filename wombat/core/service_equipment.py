@@ -1662,10 +1662,15 @@ class ServiceEquipment(RepairsMixin):
             self.settings.non_operational_dates_set
         )
         if intersection:
-            hours_to_next = self.hours_to_next_operational_date(
-                start_search_date=max(intersection),
-                exclusion_days=mobilization_days,
-            )
+            intersection_end = max(intersection)
+            sim_end = self.env.end_datetime.date()
+            if intersection_end != sim_end:
+                hours_to_next = self.hours_to_next_operational_date(
+                    start_search_date=intersection_end,
+                    exclusion_days=mobilization_days,
+                )
+            else:
+                hours_to_next = self.env.max_run_time - self.env.now
             self.env.log_action(
                 agent=self.settings.name,
                 action="delay",
