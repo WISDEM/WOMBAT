@@ -418,7 +418,7 @@ class WombatEnvironment(simpy.Environment):
         weather_file: str,
         start_year: int | None = None,
         end_year: int | None = None,
-    ) -> pd.DataFrame:
+    ) -> pl.DataFrame:
         """Reads the weather data from the "<inputs>/weather" directory, and creates the
         ``start_date`` and ``end_date`` time stamps for the simulation.
 
@@ -476,7 +476,12 @@ class WombatEnvironment(simpy.Environment):
                 .reset_index(drop=False)
             )
             .with_row_count()
-            .with_columns((pl.col("datetime").dt.hour()).alias("hour"))
+            .with_columns(
+                [
+                    pl.col("datetime").cast(pl.Datetime).dt.cast_time_unit("ns"),
+                    (pl.col("datetime").dt.hour()).alias("hour"),
+                ]
+            )
         )
 
         missing = set(REQUIRED).difference(weather.columns)
