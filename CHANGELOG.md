@@ -1,3 +1,7 @@
+## v0.8.1 (28 August 2023)
+
+- Fixes a bug where servicing equipment waiting for the next operational period at the end of a simulation get stuck in an infinite loop because the timeout is set for just prior to the end of the simulation, and not just after the end of the simulation's maximum run time.
+
 ## v0.8.0 (16 August 2023)
 
 ### Bug Fixes
