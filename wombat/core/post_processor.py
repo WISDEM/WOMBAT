@@ -1377,11 +1377,15 @@ class Metrics:
         return costs
 
     def equipment_labor_cost_breakdowns(
-        self, frequency: str, by_category: bool = False
+        self,
+        frequency: str,
+        by_category: bool = False,
+        by_equipment: bool = False,
     ) -> pd.DataFrame:
-        """Calculates the producitivty cost breakdowns for the simulation at a project,
-        annual, or monthly level that can be broken out to include the equipment and
-        labor components.
+        """Calculates the producitivty cost and time breakdowns for the simulation at a
+        project, annual, or monthly level that can be broken out to include the
+        equipment and labor components, as well as be broken down by servicing
+        equipment.
 
         .. note:: Doesn't produce a value if there's no cost associated with a "reason".
 
@@ -1392,6 +1396,9 @@ class Metrics:
         by_category : bool, optional
             Indicates whether to include the equipment and labor categories (True) or
             not (False), by default False.
+        by_equipment : bool, optional
+            Indicates whether the values are with resepect to the equipment utilized
+            (True) or not (False), by default False.
 
         Returns
         -------
@@ -1405,6 +1412,7 @@ class Metrics:
                 - total_labor_cost (if by_category == ``True``)
                 - equipment_cost (if by_category == ``True``)
                 - total_cost (if broken out)
+                - total_hours
 
         Raises
         ------
@@ -1416,9 +1424,13 @@ class Metrics:
         """
         frequency = _check_frequency(frequency, which="all")
         if not isinstance(by_category, bool):
+            raise ValueError("``by_category`` must be one of ``True`` or ``False``")
+        if not isinstance(by_equipment, bool):
             raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
 
         group_filter = ["action", "reason", "additional"]
+        if by_equipment:
+            group_filter.insert(0, "agent")
         if frequency in ("annual", "month-year"):
             group_filter.insert(0, "year")
         elif frequency == "monthly":
@@ -1433,6 +1445,7 @@ class Metrics:
             "mobilization",
             "transferring crew",
             "traveling",
+            "towing",
         ]
         equipment = self.events[self.events[self._equipment_cost] > 0].agent.unique()
         costs = (
@@ -1440,11 +1453,12 @@ class Metrics:
                 self.events.agent.isin(equipment)
                 & self.events.action.isin(action_list)
                 & ~self.events.additional.isin(["work is complete"]),
-                group_filter + self._cost_columns,
+                group_filter + self._cost_columns + ["duration"],
             ]
             .groupby(group_filter)
             .sum()
             .reset_index()
+            .rename(columns={"duration": "total_hours"})
         )
         costs["display_reason"] = [""] * costs.shape[0]
 
@@ -1454,8 +1468,15 @@ class Metrics:
             "no more return visits will be made",
             "will return next year",
             "waiting for next operational period",
+            "end of shift; will resume work in the next shift",
         )
-        weather_hours = ("weather delay", "weather unsuitable to transfer crew")
+        weather_hours = (
+            "weather delay",
+            "weather unsuitable to transfer crew",
+            "insufficient time to complete travel before end of the shift",
+            "weather unsuitable for mooring reconnection",
+            "weather unsuitable for unmooring",
+        )
         costs.loc[
             (costs.action == "delay") & (costs.additional.isin(non_shift_hours)),
             "display_reason",
@@ -1466,6 +1487,7 @@ class Metrics:
             costs.action == "transferring crew", "display_reason"
         ] = "Crew Transfer"
         costs.loc[costs.action == "traveling", "display_reason"] = "Site Travel"
+        costs.loc[costs.action == "towing", "display_reason"] = "Towing"
         costs.loc[costs.action == "mobilization", "display_reason"] = "Mobilization"
         costs.loc[
             costs.additional.isin(weather_hours), "display_reason"
@@ -1529,6 +1551,7 @@ class Metrics:
             "Repair",
             "Crew Transfer",
             "Site Travel",
+            "Towing",
             "Mobilization",
             "Weather Delay",
             "No Requests",
@@ -1536,13 +1559,21 @@ class Metrics:
         ]
         costs.reason = pd.Categorical(costs.reason, new_sort)
         costs = costs.set_index(group_filter)
+        sort_order = ["reason"]
+        if by_equipment:
+            costs = costs.loc[costs.index.get_level_values("agent").isin(equipment)]
+            costs.index = costs.index.set_names({"agent": "equipment_name"})
+            sort_order = ["equipment_name", "reason"]
         if frequency == "project":
-            return costs.sort_values(by="reason")
+            return costs.sort_values(by=sort_order)
         if frequency == "annual":
-            return costs.sort_values(by=["year", "reason"])
+            sort_order = ["year"] + sort_order
+            return costs.sort_values(by=sort_order)
         if frequency == "monthly":
-            return costs.sort_values(by=["month", "reason"])
-        return costs.sort_values(by=["year", "month", "reason"])
+            sort_order = ["month"] + sort_order
+            return costs.sort_values(by=sort_order)
+        sort_order = ["year", "month"] + sort_order
+        return costs.sort_values(by=sort_order)
 
     def emissions(
         self,
