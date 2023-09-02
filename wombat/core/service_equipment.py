@@ -474,12 +474,13 @@ class ServiceEquipment(RepairsMixin):
         """
         operation_reduction = repair.details.operation_reduction
 
-        # Put the subassembly/component back to good as new condition
+        # Put the subassembly/component back to good as new condition and restart
         if repair.details.replacement:
             subassembly.operating_level = 1.0
             _ = self.manager.purge_subassembly_requests(
                 repair.system_id, repair.subassembly_id
             )
+            subassembly.recreate_processes()
         elif operation_reduction == 1:
             subassembly.operating_level = starting_operating_level
             subassembly.broken.succeed()
