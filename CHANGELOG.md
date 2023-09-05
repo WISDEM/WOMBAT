@@ -1,3 +1,8 @@
+## Unreleased
+
+- `Metrics.equipment_labor_cost_breakdowns` now has a `by_equipment` boolean flag, so that the labor and equipment costs can be broken down by category and equipment. Additionally, `total_hours` has been added to the results, resulting in fewer computed metrics across the same set of breakdowns.
+- Subassemblies and cables are now able to resample their next times to failure for all maintenance and failure activities, so that replacement events reset the timing for failures across the board.
+
 ## v0.8.1 (28 August 2023)
 
 - Fixes a bug where servicing equipment waiting for the next operational period at the end of a simulation get stuck in an infinite loop because the timeout is set for just prior to the end of the simulation, and not just after the end of the simulation's maximum run time.
