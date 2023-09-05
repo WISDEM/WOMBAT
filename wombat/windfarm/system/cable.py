@@ -160,6 +160,12 @@ class Cable:
             desc = maintenance.description
             yield desc, self.env.process(self.run_single_maintenance(maintenance))
 
+    def recreate_processes(self) -> None:
+        """If a cable is being reset after a replacement, then all processes are
+        assumed to be reset to 0, and not pick back up where they left off.
+        """
+        self.processes = dict(self._create_processes())
+
     def interrupt_processes(self) -> None:
         """Interrupts all of the running processes within the subassembly except for the
         process associated with failure that triggers the catastrophic failure.
