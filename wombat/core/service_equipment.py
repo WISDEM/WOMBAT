@@ -127,7 +127,7 @@ def validate_end_points(start: str, end: str, no_intrasite: bool = False) -> Non
         raise ValueError("No travel within the site is allowed for this process")
 
 
-def reset_system_operations(system: System) -> None:
+def reset_system_operations(system: System, subassembly_resets: list[str]) -> None:
     """Completely resets the failure and maintenance events for a given system
     and its subassemblies, and puts each ``Subassembly.operating_level`` back to 100%.
 
@@ -138,10 +138,14 @@ def reset_system_operations(system: System) -> None:
     ----------
     system : System
         The turbine to be reset.
+    subassembly_resets : list[str]
+        The `subassembly_id`s to reset to good as new, if not assuming all
+        subassemblies.
     """
     for subassembly in system.subassemblies:
-        subassembly.operating_level = 1.0
-        subassembly.recreate_processes()
+        if subassembly.name in subassembly_resets:
+            subassembly.operating_level = 1.0
+            subassembly.recreate_processes()
 
 
 class ServiceEquipment(RepairsMixin):
@@ -1830,7 +1834,9 @@ class ServiceEquipment(RepairsMixin):
         )
         self.dispatched = False
 
-    def run_tow_to_site(self, request: RepairRequest) -> Generator[Process, None, None]:
+    def run_tow_to_site(
+        self, request: RepairRequest, subassembly_resets: list[str] = []
+    ) -> Generator[Process, None, None]:
         """Runs the tow to site logic for after a turbine has had its repairs completed
         at port.
 
@@ -1838,6 +1844,8 @@ class ServiceEquipment(RepairsMixin):
         ----------
         request : RepairRequest
             The request the triggered the tow-to-port strategy.
+        subassembly_resets : list[str]
+            The `subassembly_id`s to reset to good as new. Defaults to [].
 
         Yields
         ------
@@ -1873,7 +1881,7 @@ class ServiceEquipment(RepairsMixin):
         )
 
         # Reset the turbine back to operating and return to port
-        reset_system_operations(system)
+        reset_system_operations(system, subassembly_resets)
         self.manager.enable_requests_for_system(system)
         yield self.env.process(
             self.travel(

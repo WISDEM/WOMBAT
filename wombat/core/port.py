@@ -147,6 +147,7 @@ class Port(RepairsMixin, FilterStore):
         self.service_equipment_manager = simpy.FilterStore(env, len(service_equipment))
         self.service_equipment_manager.items = service_equipment
         self.active_repairs: dict[str, dict[str, simpy.events.Event]] = {}
+        self.subassembly_resets: dict[str, list[str]] = {}
 
         # Create partial functions for the labor and equipment costs for clarity
         self.initialize_cost_calculators(which="port")
@@ -324,6 +325,7 @@ class Port(RepairsMixin, FilterStore):
             The ``System.id`` that is has been towed to port.
         """
         self.active_repairs[system_id] = {}
+        self.subassembly_resets[system_id] = []
         yield self.env.process(self.transfer_requests_from_manager(system_id))
 
         # Get all the requests and run them.
@@ -335,6 +337,7 @@ class Port(RepairsMixin, FilterStore):
                 assert isinstance(request, FilterStoreGet)
             request = request.value
             self.requests_serviced.update([request.request_id])
+            self.subassembly_resets[system_id].append(request.subassembly_id)
             yield self.env.process(self.repair_single(request))
 
     def get_all_requests_for_system(
@@ -400,16 +403,19 @@ class Port(RepairsMixin, FilterStore):
         if request.request_id in self.requests_serviced:
             return
 
+        system_id = request.system_id
+        request_id = request.request_id
+
         # Double check in case a delay causes multiple vessels to be interacting with
         # the same turbine
 
         # Add the requested system to the list of systems undergoing or registered to be
         # undergoing repairs, so this method can't be run again on the same system
-        self.invalid_systems.append(request.system_id)
+        self.invalid_systems.append(system_id)
 
         # If the system is already undergoing repairs from other servicing equipment,
         # then wait until it's done being serviced
-        servicing = self.windfarm.system(request.system_id).servicing
+        servicing = self.windfarm.system(system_id).servicing
 
         # Wait for a spot to open up in the port queue
         turbine_request = self.turbine_manager.request()
@@ -419,11 +425,11 @@ class Port(RepairsMixin, FilterStore):
             self.env.random_generator.integers(low=0, high=30, size=1) / 3600.0
         )
         yield self.env.timeout(seconds_to_wait)
-        yield self.windfarm.system(request.system_id).servicing
+        yield self.windfarm.system(system_id).servicing
 
         # Halt the turbine before going further to avoid issue with requests being
         # being submitted between now and when the tugboat gets to the turbine
-        self.manager.halt_requests_for_system(self.windfarm.system(request.system_id))
+        self.manager.halt_requests_for_system(self.windfarm.system(system_id))
 
         # Request a tugboat to retrieve the turbine
         tugboat = yield self.service_equipment_manager.get(
@@ -453,7 +459,7 @@ class Port(RepairsMixin, FilterStore):
             )
             yield self.env.timeout(hours_to_next)
 
-        self.requests_serviced.update([request.request_id])
+        self.requests_serviced.update([request_id])
 
         if TYPE_CHECKING:
             assert isinstance(tugboat, ServiceEquipment)
@@ -463,10 +469,10 @@ class Port(RepairsMixin, FilterStore):
         yield self.service_equipment_manager.put(tugboat)
 
         # Transfer the repairs to the port queue, which will initiate the repair process
-        yield self.env.process(self.run_repairs(request.system_id))
+        yield self.env.process(self.run_repairs(system_id))
 
         # Wait for the repairs to complete
-        yield simpy.AllOf(self.env, self.active_repairs[request.system_id].values())
+        yield simpy.AllOf(self.env, self.active_repairs[system_id].values())
 
         # Request a tugboat to tow the turbine back to site, and open the turbine queue
         tugboat = yield self.service_equipment_manager.get(
@@ -475,8 +481,13 @@ class Port(RepairsMixin, FilterStore):
             and "TOW" in x.settings.capability
         )
         self.turbine_manager.release(turbine_request)
-        yield self.env.process(tugboat.run_tow_to_site(request))
-        self.invalid_systems.pop(self.invalid_systems.index(request.system_id))
+        self.subassembly_resets[system_id] = list(
+            set(self.subassembly_resets[system_id])
+        )
+        yield self.env.process(
+            tugboat.run_tow_to_site(request, self.subassembly_resets[system_id])
+        )
+        self.invalid_systems.pop(self.invalid_systems.index(system_id))
 
         # Make the tugboat available again
         yield self.service_equipment_manager.put(tugboat)
