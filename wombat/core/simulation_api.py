@@ -279,8 +279,8 @@ class Simulation(FromDictMixin):
         return cls(  # type: ignore
             library_path=config.library,
             config=config,
-            random_seed=cls.random_seed,
-            random_generator=cls.random_generator,
+            random_seed=config.random_seed,
+            random_generator=config.random_generator,
         )
 
     def _setup_simulation(self):
