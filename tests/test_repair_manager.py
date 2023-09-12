@@ -152,13 +152,11 @@ def test_register_request_and_submit_request_and_get_request(env_setup):
     retrieved_request = manager.get_request_by_system(["CTV"], system_id=turbine.id)
     assert retrieved_request.value == repair_request_failure
 
-    # Ensure that the turbine has been labeled invalid so that another servicing
-    # equipment can't access it
-    assert manager.invalid_systems == [turbine.id]
     retrieved_request = manager.get_request_by_system(["CTV"], system_id=turbine.id)
-    assert retrieved_request is None
+    print(retrieved_request.value)
+    assert retrieved_request.value is repair_request_maintenance
 
-    assert manager.items == [repair_request_maintenance]
+    assert manager.items == []
 
 
 def test_request_map(env_setup):
@@ -308,7 +306,8 @@ def test_get_requests(env_setup):
 
     # Test that the Turbine 2 requests are retrieved in order and with respect to
     # capability limitations and anything outside of the submitted capabilties is None
-    manager.halt_requests_for_system(turbine2)
+    manager.invalidate_system(turbine2)
+    manager.interrupt_system(turbine2)
     request = manager.get_request_by_system(
         ["LCN", "CAB", "DSV", "RMT", "DRN"], turbine2.id
     )
@@ -316,12 +315,14 @@ def test_get_requests(env_setup):
     manager.enable_requests_for_system(turbine2)
 
     request = manager.get_request_by_system(["CTV"], turbine2.id)
-    manager.halt_requests_for_system(turbine2)
+    manager.invalidate_system(turbine2)
+    manager.interrupt_system(turbine2)
     assert request.value == annual_reset2
     manager.enable_requests_for_system(turbine2)
 
     request = manager.get_request_by_system(capability_list, turbine2.id)
-    manager.halt_requests_for_system(turbine2)
+    manager.invalidate_system(turbine2)
+    manager.interrupt_system(turbine2)
     assert request.value == minor_repair2
     manager.enable_requests_for_system(turbine2)
 
@@ -334,7 +335,8 @@ def test_get_requests(env_setup):
     assert request is None
 
     # Activate turbine 3 and check that its medium repair is the next in the list
-    manager.halt_requests_for_system(turbine3)
+    manager.invalidate_system(turbine3)
+    manager.interrupt_system(turbine3)
     manager.enable_requests_for_system(turbine3)
     request = manager.get_request_by_severity(capability_list, 3)
     assert request.value == medium_repair3
