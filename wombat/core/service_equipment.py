@@ -1537,7 +1537,7 @@ class ServiceEquipment(RepairsMixin):
         yield self.env.process(
             self.crew_transfer(system, subassembly, request, to_system=False)
         )
-        if shift_delay:
+        if shift_delay or hours_required > 0:
             shared_logging.update(
                 system_ol=system.operating_level, part_ol=subassembly.operating_level
             )
