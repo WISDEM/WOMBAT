@@ -2025,11 +2025,10 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
     assert hlv.current_system == "S00T2"
 
     # Ensure it's still here at the end, accounting for completing its last request
-    timeout += 30 * 24 + 10.5
+    timeout += 30 * 24 + 10 + 15 / 60
     env.run(timeout)
-    assert hlv.onsite is hlv.at_site is hlv.transferring_crew is True
-    assert hlv.at_port is hlv.enroute is False
-    assert hlv.at_system
+    assert hlv.onsite is hlv.at_site is hlv.at_system is True
+    assert hlv.transferring_crew is hlv.at_port is hlv.enroute is False
     assert hlv.current_system == "S00T3"
 
     # Check that it's gone
