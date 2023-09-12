@@ -984,7 +984,7 @@ class ServiceEquipment(RepairsMixin):
         future_time = self.env.simulation_time + timedelta(hours=hours)
         is_shift = self._is_workshift(future_time.hour)
         if (
-            (not is_shift or hours_to_shift_end > hours)
+            (not is_shift or hours > hours_to_shift_end)
             and end != "port"
             and not self.at_port
         ):
@@ -1426,7 +1426,9 @@ class ServiceEquipment(RepairsMixin):
 
             yield self.env.process(
                 self.in_situ_repair(
-                    request, prior_operation_level=starting_operational_level
+                    request,
+                    prior_operation_level=starting_operational_level,
+                    initial=initial,
                 )
             )
             return
