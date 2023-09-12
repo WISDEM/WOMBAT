@@ -1,3 +1,9 @@
+[wombat.urls]
+source = "https://github.com/WISDEM/WOMBAT"
+documentation = "https://wisdem.github.io/WOMBAT/"
+issues = "https://github.com/WISDEM/WOMBAT/issues"
+changelog = "https://github.com/WISDEM/WOMBAT/blob/main/CHANGELOG.md"
+
 [coverage.run]
 # Coverage.py configuration file
 # https://coverage.readthedocs.io/en/latest/config.html
