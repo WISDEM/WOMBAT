@@ -975,9 +975,19 @@ class ServiceEquipment(RepairsMixin):
 
         # If the the equipment will arive after the shift is over, then it must travel
         # back to port (if needed), and wait for the next shift
+        if self.settings.non_stop_shift:
+            hours_to_shift_end = hours
+        else:
+            hours_to_shift_end = hours_until_future_hour(
+                self.env.simulation_time, self.settings.workday_end
+            )
         future_time = self.env.simulation_time + timedelta(hours=hours)
         is_shift = self._is_workshift(future_time.hour)
-        if not is_shift and end != "port" and not self.at_port:
+        if (
+            (not is_shift or hours_to_shift_end > hours)
+            and end != "port"
+            and not self.at_port
+        ):
             kw = {
                 "additional": "insufficient time to complete travel before end of the shift"  # noqa: disabl#501
             }
