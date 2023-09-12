@@ -1550,6 +1550,16 @@ class ServiceEquipment(RepairsMixin):
             self.crew_transfer(system, subassembly, request, to_system=False)
         )
         if shift_delay or hours_required > 0:
+            # For 24-hour shifts, we just need to start back at the top
+            if self.settings.non_stop_shift:
+                yield self.env.process(
+                    self.in_situ_repair(
+                        request,
+                        time_processed=hours_processed + time_processed,
+                        prior_operation_level=starting_operational_level,
+                    )
+                )
+                return
             shared_logging.update(
                 system_ol=system.operating_level, part_ol=subassembly.operating_level
             )
