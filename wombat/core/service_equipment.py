@@ -1384,8 +1384,6 @@ class ServiceEquipment(RepairsMixin):
             "system_name": system.name,
             "part_id": subassembly.id,
             "part_name": subassembly.name,
-            "system_ol": system.operating_level,
-            "part_ol": subassembly.operating_level,
             "agent": self.settings.name,
             "reason": request.details.description,
             "request_id": request.request_id,
@@ -1404,6 +1402,9 @@ class ServiceEquipment(RepairsMixin):
             hours_available = hours_until_future_hour(current, end_shift)
 
         if hours_available <= self.settings.crew_transfer_time * 4:
+            shared_logging.update(
+                system_ol=system.operating_level, part_ol=subassembly.operating_level
+            )
             yield self.env.process(
                 self.travel(
                     start="site",
@@ -1422,12 +1423,18 @@ class ServiceEquipment(RepairsMixin):
 
         # Travel to site or the next system on site
         if not self.at_system and self.at_port:
+            shared_logging.update(
+                system_ol=system.operating_level, part_ol=subassembly.operating_level
+            )
             yield self.env.process(
                 self.travel(
                     start="port", end="site", set_current=system.id, **shared_logging
                 )
             )
         elif self.at_system is not None and not self.at_port:
+            shared_logging.update(
+                system_ol=system.operating_level, part_ol=subassembly.operating_level
+            )
             yield self.env.process(
                 self.travel(
                     start="system",
@@ -1494,6 +1501,10 @@ class ServiceEquipment(RepairsMixin):
                     hours_to_process = hours_required
                 # Ensure this gets the correct float hours to the start of the target
                 # hour, unless the hours to process is between (0, 1]
+                shared_logging.update(
+                    system_ol=system.operating_level,
+                    part_ol=subassembly.operating_level,
+                )
                 yield self.env.process(
                     self.process_repair(
                         hours_to_process, request.details, **shared_logging
@@ -1510,6 +1521,10 @@ class ServiceEquipment(RepairsMixin):
                 hours_to_process = hours_until_future_hour(
                     current, current.hour + delay
                 )
+                shared_logging.update(
+                    system_ol=system.operating_level,
+                    part_ol=subassembly.operating_level,
+                )
                 yield self.env.process(
                     self.weather_delay(
                         hours_to_process, location="system", **shared_logging
@@ -1523,8 +1538,14 @@ class ServiceEquipment(RepairsMixin):
             self.crew_transfer(system, subassembly, request, to_system=False)
         )
         if shift_delay:
+            shared_logging.update(
+                system_ol=system.operating_level, part_ol=subassembly.operating_level
+            )
             yield self.env.process(
                 self.travel(start="site", end="port", **shared_logging)
+            )
+            shared_logging.update(
+                system_ol=system.operating_level, part_ol=subassembly.operating_level
             )
             yield self.env.process(self.wait_until_next_shift(**shared_logging))
 
@@ -1560,6 +1581,9 @@ class ServiceEquipment(RepairsMixin):
 
         # If this is the end of the shift, ensure that we're traveling back to port
         if not self.env.is_workshift(start_shift, end_shift):
+            shared_logging.update(
+                system_ol=system.operating_level, part_ol=subassembly.operating_level
+            )
             yield self.env.process(
                 self.travel(start="site", end="port", **shared_logging)
             )
