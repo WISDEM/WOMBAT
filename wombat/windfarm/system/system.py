@@ -62,10 +62,12 @@ class System:
         self.capacity = subassemblies["capacity_kw"]
         self.subassemblies: list[Subassembly] = []
         self.servicing = self.env.event()
+        self.servicing_queue = self.env.event()
         self.cable_failure = self.env.event()
 
         # Ensure servicing statuses starts as processed and inactive
         self.servicing.succeed()
+        self.servicing_queue.succeed()
         self.cable_failure.succeed()
 
         system = system.lower().strip()

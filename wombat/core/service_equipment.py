@@ -1331,6 +1331,7 @@ class ServiceEquipment(RepairsMixin):
         request: RepairRequest,
         time_processed: int | float = 0,
         prior_operation_level: float = -1.0,
+        initial: bool = False,
     ) -> Generator[Timeout | Process, None, None]:
         """Processes the repair including any weather and shift delays.
 
@@ -1343,6 +1344,10 @@ class ServiceEquipment(RepairsMixin):
         prior_operation_level : float, optional
             The operating level of the ``System`` just before the repair has begun, by
             default -1.0.
+        initial : bool, optional
+            True for first step in a potentially-recursive logic, otherwise False. When
+            True, the repair manager will turn off the system being worked on, but if
+            done multiple times, the simulation will error out.
 
         Yields
         ------
@@ -1422,9 +1427,6 @@ class ServiceEquipment(RepairsMixin):
                     start="port", end="site", set_current=system.id, **shared_logging
                 )
             )
-            yield self.env.process(
-                self.crew_transfer(system, subassembly, request, to_system=True)
-            )
         elif self.at_system is not None and not self.at_port:
             yield self.env.process(
                 self.travel(
@@ -1434,11 +1436,14 @@ class ServiceEquipment(RepairsMixin):
                     **shared_logging,
                 )
             )
-            yield self.env.process(
-                self.crew_transfer(system, subassembly, request, to_system=True)
-            )
         else:
             raise RuntimeError(f"{self.settings.name} is lost!")
+
+        if initial:
+            self.manager.interrupt_system(system)
+        yield self.env.process(
+            self.crew_transfer(system, subassembly, request, to_system=True)
+        )
 
         current = self.env.simulation_time
 
@@ -1630,9 +1635,9 @@ class ServiceEquipment(RepairsMixin):
                     system = self.windfarm.cable(request.system_id)
                 else:
                     system = self.windfarm.system(request.system_id)  # type: ignore
-                yield system.servicing
-                self.manager.halt_requests_for_system(system)
-                yield self.env.process(self.in_situ_repair(request))
+                yield system.servicing & system.servicing_queue
+                self.manager.invalidate_system(system)
+                yield self.env.process(self.in_situ_repair(request, initial=True))
 
     def run_unscheduled_in_situ(self) -> Generator[Process, None, None]:
         """Runs an in situ repair simulation for unscheduled servicing equipment, or
@@ -1727,7 +1732,6 @@ class ServiceEquipment(RepairsMixin):
             )
             yield self.env.timeout(seconds_to_wait)
             yield system.servicing
-            self.manager.halt_requests_for_system(system)
 
         while True:
             if self.env.now >= charter_end_env_time:
@@ -1745,8 +1749,17 @@ class ServiceEquipment(RepairsMixin):
                 break
 
             if not self.onsite:
+                # Mobilize and immediately run the repair logic for the inital request
                 yield self.env.process(self.mobilize())
-                yield self.env.process(self.in_situ_repair(request))
+
+                if request.cable:
+                    system = self.windfarm.cable(request.system_id)
+                else:
+                    system = self.windfarm.system(request.system_id)  # type: ignore
+
+                yield system.servicing & system.servicing_queue
+                self.manager.invalidate_system(system)
+                yield self.env.process(self.in_situ_repair(request, initial=True))
 
             # Wait for next shift to start
             is_workshift = self.env.is_workshift(
@@ -1783,9 +1796,9 @@ class ServiceEquipment(RepairsMixin):
                     system = self.windfarm.cable(request.system_id)
                 else:
                     system = self.windfarm.system(request.system_id)  # type: ignore
-                yield system.servicing
-                self.manager.halt_requests_for_system(system)
-                yield self.env.process(self.in_situ_repair(request))
+                yield system.servicing & system.servicing_queue
+                self.manager.invalidate_system(system)
+                yield self.env.process(self.in_situ_repair(request, initial=True))
         self.dispatched = False
 
     def run_tow_to_port(self, request: RepairRequest) -> Generator[Process, None, None]:
@@ -1826,6 +1839,9 @@ class ServiceEquipment(RepairsMixin):
                 **shared_logging,  # type: ignore
             )
         )
+
+        # Turn off the turbine
+        self.manager.interrupt_system(system)
 
         # Unmoor the turbine and tow it back to port
         yield self.env.process(self.mooring_connection(system, request, which="unmoor"))

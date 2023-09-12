@@ -411,7 +411,9 @@ class Port(RepairsMixin, FilterStore):
 
         # Add the requested system to the list of systems undergoing or registered to be
         # undergoing repairs, so this method can't be run again on the same system
-        self.invalid_systems.append(system_id)
+        system = self.windfarm.system(system_id)
+        yield system.servicing_queue
+        self.manager.invalidate_system(system)
 
         # If the system is already undergoing repairs from other servicing equipment,
         # then wait until it's done being serviced
@@ -426,10 +428,6 @@ class Port(RepairsMixin, FilterStore):
         )
         yield self.env.timeout(seconds_to_wait)
         yield self.windfarm.system(system_id).servicing
-
-        # Halt the turbine before going further to avoid issue with requests being
-        # being submitted between now and when the tugboat gets to the turbine
-        self.manager.halt_requests_for_system(self.windfarm.system(system_id))
 
         # Request a tugboat to retrieve the turbine
         tugboat = yield self.service_equipment_manager.get(
@@ -514,6 +512,8 @@ class Port(RepairsMixin, FilterStore):
         if request.request_id in self.requests_serviced:
             return
 
+        system = self.windfarm.system(request.system_id)
+
         if initial:
             _ = self.manager.get(lambda x: x is request)
             self.manager.in_process_requests.put(request)
@@ -524,16 +524,15 @@ class Port(RepairsMixin, FilterStore):
 
         # If the system is already undergoing repairs from other servicing equipment,
         # then wait until it's done being serviced, then double check
-        yield self.windfarm.system(request.system_id).servicing
+        yield system.servicing
         seconds_to_wait, *_ = (
             self.env.random_generator.integers(low=0, high=30, size=1) / 3600.0
         )
         yield self.env.timeout(seconds_to_wait)
-        yield self.windfarm.system(request.system_id).servicing
+        yield system.servicing
 
         # Halt the turbine before going further to avoid issue with requests being
         # being submitted between now and when the tugboat gets to the turbine
-        self.manager.halt_requests_for_system(self.windfarm.system(request.system_id))
         self.requests_serviced.update([request.request_id])
 
         # Request a vessel that isn't solely a towing vessel
@@ -543,9 +542,9 @@ class Port(RepairsMixin, FilterStore):
             and x.settings.capability != ["TOW"]
         )
         if TYPE_CHECKING:
-            assert isinstance(vessel, ServiceEquipment)  # mypy: helper
+            assert isinstance(vessel, ServiceEquipment)
         request = yield self.manager.get(lambda x: x is request)
-        yield self.env.process(vessel.in_situ_repair(request))
+        yield self.env.process(vessel.in_situ_repair(request, initial=True))
 
         # If the tugboat finished mid-shift, the in-situ repair logic will keep it
         # there, so ensure it returns back to port once it's complete

@@ -415,9 +415,7 @@ class RepairManager(FilterStore):
                 continue
             if equipment_capability.intersection(request.details.service_equipment):
                 # If this is the first request for the system, make sure no other
-                # servicing equipment can access it
-                if request.system_id not in self.invalid_systems:
-                    self.invalid_systems.append(request.system_id)
+                # servicing equipment can access i
                 self.request_status_map["pending"].difference_update(
                     [requests[0].request_id]
                 )
@@ -476,7 +474,6 @@ class RepairManager(FilterStore):
                     continue
             if request.system_id not in self.invalid_systems:
                 if equipment_capability.intersection(request.details.service_equipment):
-                    self.invalid_systems.append(request.system_id)
                     self.request_status_map["pending"].difference_update(
                         [request.request_id]
                     )
@@ -488,7 +485,7 @@ class RepairManager(FilterStore):
         # criteria and acting on the request before it's processed
         return None
 
-    def halt_requests_for_system(self, system: System | Cable) -> None:
+    def invalidate_system(self, system: System | Cable) -> None:
         """Disables the ability for servicing equipment to service a specific system,
         sets the turbine status to be in servicing, and interrupts all the processes
         to turn off operations.
@@ -498,9 +495,24 @@ class RepairManager(FilterStore):
         system_id : str
             The system to disable repairs.
         """
-        if system.id not in self.invalid_systems:
+        if system.id not in self.invalid_systems and system.servicing.triggered:
+            system.servicing_queue = self.env.event()
             self.invalid_systems.append(system.id)
-        if system.servicing.triggered:
+        else:
+            raise RuntimeError(
+                f"{self.env.simulation_time} {system.id} already being serviced"
+            )
+
+    def interrupt_system(self, system: System | Cable) -> None:
+        """Sets the turbine status to be in servicing, and interrupts all the processes
+        to turn off operations.
+
+        Parameters
+        ----------
+        system_id : str
+            The system to disable repairs.
+        """
+        if system.servicing.triggered and system.id in self.invalid_systems:
             system.servicing = self.env.event()
             system.interrupt_all_subassembly_processes()
         else:
@@ -544,6 +556,7 @@ class RepairManager(FilterStore):
             )
         _ = self.invalid_systems.pop(self.invalid_systems.index(system.id))
         system.servicing.succeed()
+        system.servicing_queue.succeed()
         system.interrupt_all_subassembly_processes()
 
     def get_all_requests_for_system(
