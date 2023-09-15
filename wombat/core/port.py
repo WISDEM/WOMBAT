@@ -414,6 +414,7 @@ class Port(RepairsMixin, FilterStore):
         system = self.windfarm.system(system_id)
         yield system.servicing_queue
         self.manager.invalidate_system(system)
+        self.invalid_systems.append(system_id)
 
         # If the system is already undergoing repairs from other servicing equipment,
         # then wait until it's done being serviced
