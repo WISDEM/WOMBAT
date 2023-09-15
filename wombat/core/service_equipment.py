@@ -403,6 +403,12 @@ class ServiceEquipment(RepairsMixin):
         simpy.resources.store.FilterStoreGet
             The next ``RepairRequest`` to be processed.
         """
+        # Avoid requests for the same system and therefore a timing collision
+        seconds_to_wait, *_ = (
+            self.env.random_generator.integers(low=0, high=10, size=1) / 3600.0
+        )
+        yield self.env.timeout(seconds_to_wait)
+
         if self.settings.method == "turbine":
             return self.manager.get_request_by_system(self.settings.capability)
         if self.settings.method == "severity":
@@ -1647,12 +1653,6 @@ class ServiceEquipment(RepairsMixin):
                     )
                 )
 
-            # Avoid requests for the same system and therefore a timing collision
-            seconds_to_wait, *_ = (
-                self.env.random_generator.integers(low=0, high=10, size=1) / 3600.0
-            )
-            yield self.env.timeout(seconds_to_wait)
-
             request = self.get_next_request()
             if request is None:
                 if not self.at_port:
@@ -1745,12 +1745,6 @@ class ServiceEquipment(RepairsMixin):
             return
 
         while True and self.env.now < charter_end_env_time:
-            # Avoid requests for the same system and therefore a timing collision
-            seconds_to_wait, *_ = (
-                self.env.random_generator.integers(low=0, high=10, size=1) / 3600.0
-            )
-            yield self.env.timeout(seconds_to_wait)
-
             request = self.get_next_request()
             if request is None:
                 yield self.env.process(
@@ -1834,12 +1828,6 @@ class ServiceEquipment(RepairsMixin):
                         }
                     )
                 )
-
-            # Avoid requests for the same system and therefore a timing collision
-            seconds_to_wait, *_ = (
-                self.env.random_generator.integers(low=0, high=10, size=1) / 3600.0
-            )
-            yield self.env.timeout(seconds_to_wait)
 
             request = self.get_next_request()
             if request is None:
