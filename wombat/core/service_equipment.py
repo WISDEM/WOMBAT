@@ -1647,6 +1647,12 @@ class ServiceEquipment(RepairsMixin):
                     )
                 )
 
+            # Avoid requests for the same system and therefore a timing collision
+            seconds_to_wait, *_ = (
+                self.env.random_generator.integers(low=0, high=10, size=1) / 3600.0
+            )
+            yield self.env.timeout(seconds_to_wait)
+
             request = self.get_next_request()
             if request is None:
                 if not self.at_port:
@@ -1739,6 +1745,12 @@ class ServiceEquipment(RepairsMixin):
             return
 
         while True and self.env.now < charter_end_env_time:
+            # Avoid requests for the same system and therefore a timing collision
+            seconds_to_wait, *_ = (
+                self.env.random_generator.integers(low=0, high=10, size=1) / 3600.0
+            )
+            yield self.env.timeout(seconds_to_wait)
+
             request = self.get_next_request()
             if request is None:
                 yield self.env.process(
@@ -1823,8 +1835,12 @@ class ServiceEquipment(RepairsMixin):
                     )
                 )
 
-            # Wait one second to ensure there are no timing collisions
-            yield self.env.timeout(1.0 / 3600)
+            # Avoid requests for the same system and therefore a timing collision
+            seconds_to_wait, *_ = (
+                self.env.random_generator.integers(low=0, high=10, size=1) / 3600.0
+            )
+            yield self.env.timeout(seconds_to_wait)
+
             request = self.get_next_request()
             if request is None:
                 yield self.env.process(
