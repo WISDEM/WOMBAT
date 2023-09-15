@@ -153,7 +153,6 @@ def test_register_request_and_submit_request_and_get_request(env_setup):
     assert retrieved_request.value == repair_request_failure
 
     retrieved_request = manager.get_request_by_system(["CTV"], system_id=turbine.id)
-    print(retrieved_request.value)
     assert retrieved_request.value is repair_request_maintenance
 
     assert manager.items == []
