@@ -370,7 +370,7 @@ class ServiceEquipment(RepairsMixin):
         all_clear = (wind <= max_wind) & (wave <= max_wave)
         return dt, hour, all_clear
 
-    def _avoid_collisions(self) -> Generator:
+    def _avoid_timing_collisions(self) -> Generator:
         """Wait a random number of seconds, between 0 and 10, to avoid requests for the
         same system and therefore a timing collision.
         """
@@ -412,12 +412,24 @@ class ServiceEquipment(RepairsMixin):
         simpy.resources.store.FilterStoreGet
             The next ``RepairRequest`` to be processed.
         """
-        self.env.process(self._avoid_collisions())
+        yield self.env.process(self._avoid_timing_collisions())
 
         if self.settings.method == "turbine":
-            return self.manager.get_request_by_system(self.settings.capability)
+            request = self.manager.get_request_by_system(self.settings.capability)
         if self.settings.method == "severity":
-            return self.manager.get_request_by_severity(self.settings.capability)
+            request = self.manager.get_request_by_severity(self.settings.capability)
+
+        if request is None:
+            yield request
+        else:
+            request = request.value
+            sid = request.system_id
+            is_cable = request.cable
+            system = self.windfarm.cable(sid) if is_cable else self.windfarm.system(sid)
+            if TYPE_CHECKING:
+                assert isinstance(system, (System, Cable))
+            self.manager.invalidate_system(system)
+            yield request
 
     def enable_string_operations(self, cable: Cable) -> None:
         """Traverses the upstream cable and turbine connections and resets the
@@ -1658,7 +1670,7 @@ class ServiceEquipment(RepairsMixin):
                     )
                 )
 
-            request = self.get_next_request()
+            _, request = self.get_next_request()
             if request is None:
                 if not self.at_port:
                     yield self.env.process(
@@ -1679,7 +1691,6 @@ class ServiceEquipment(RepairsMixin):
                     )
                 )
             else:
-                request = request.value
                 yield self.manager.in_process_requests.put(request)
                 self.manager.request_status_map["pending"].difference_update(
                     [request.request_id]
@@ -1692,8 +1703,7 @@ class ServiceEquipment(RepairsMixin):
                     system = self.windfarm.cable(request.system_id)
                 else:
                     system = self.windfarm.system(request.system_id)  # type: ignore
-                yield system.servicing & system.servicing_queue
-                self.manager.invalidate_system(system)
+                yield system.servicing
                 yield self.env.process(self.in_situ_repair(request, initial=True))
 
     def run_unscheduled_in_situ(self) -> Generator[Process, None, None]:
@@ -1750,7 +1760,7 @@ class ServiceEquipment(RepairsMixin):
             return
 
         while True and self.env.now < charter_end_env_time:
-            request = self.get_next_request()
+            _, request = self.get_next_request()
             if request is None:
                 yield self.env.process(
                     self.wait_until_next_shift(
@@ -1768,7 +1778,6 @@ class ServiceEquipment(RepairsMixin):
             self.dispatched = False
             return
 
-        request = request.value
         yield self.manager.in_process_requests.put(request)
         self.manager.request_status_map["pending"].difference_update(
             [request.request_id]
@@ -1814,8 +1823,7 @@ class ServiceEquipment(RepairsMixin):
                 else:
                     system = self.windfarm.system(request.system_id)  # type: ignore
 
-                yield system.servicing & system.servicing_queue
-                self.manager.invalidate_system(system)
+                yield system.servicing
                 yield self.env.process(self.in_situ_repair(request, initial=True))
 
             # Wait for next shift to start
@@ -1834,7 +1842,7 @@ class ServiceEquipment(RepairsMixin):
                     )
                 )
 
-            request = self.get_next_request()
+            _, request = self.get_next_request()
             if request is None:
                 yield self.env.process(
                     self.wait_until_next_shift(
@@ -1846,13 +1854,11 @@ class ServiceEquipment(RepairsMixin):
                     )
                 )
             else:
-                request = request.value  # type: ignore
                 if request.cable:
                     system = self.windfarm.cable(request.system_id)
                 else:
                     system = self.windfarm.system(request.system_id)  # type: ignore
-                yield system.servicing & system.servicing_queue
-                self.manager.invalidate_system(system)
+                yield system.servicing
                 yield self.env.process(self.in_situ_repair(request, initial=True))
         self.dispatched = False
 
