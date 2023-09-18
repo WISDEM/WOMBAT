@@ -411,9 +411,6 @@ class Port(RepairsMixin, FilterStore):
 
         # Add the requested system to the list of systems undergoing or registered to be
         # undergoing repairs, so this method can't be run again on the same system
-        system = self.windfarm.system(system_id)
-        yield system.servicing_queue
-        self.manager.invalidate_system(system)
         self.invalid_systems.append(system_id)
 
         # If the system is already undergoing repairs from other servicing equipment,
@@ -424,10 +421,7 @@ class Port(RepairsMixin, FilterStore):
         turbine_request = self.turbine_manager.request()
 
         yield turbine_request & servicing
-        seconds_to_wait, *_ = (
-            self.env.random_generator.integers(low=0, high=30, size=1) / 3600.0
-        )
-        yield self.env.timeout(seconds_to_wait)
+        yield self.env.timeout(self.env.get_random_seconds())
         yield self.windfarm.system(system_id).servicing
 
         # Request a tugboat to retrieve the turbine

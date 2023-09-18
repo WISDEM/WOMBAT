@@ -403,8 +403,8 @@ class ServiceEquipment(RepairsMixin):
         simpy.resources.store.FilterStoreGet
             The next ``RepairRequest`` to be processed.
         """
-        # Wait between 1 and 10 seconds to ensure a tow-to-port repair is always first
-        yield self.env.timeout(self.env.get_random_seconds(low=1))
+        # Wait between 2 and 10 seconds to ensure a tow-to-port repair is always first
+        yield self.env.timeout(self.env.get_random_seconds(low=2))
 
         if self.settings.method == "turbine":
             request = self.manager.get_request_by_system(self.settings.capability)
@@ -1657,6 +1657,7 @@ class ServiceEquipment(RepairsMixin):
                     )
                 )
 
+            yield self.env.timeout(self.env.get_random_seconds(low=2))
             _, request = self.get_next_request()
             if request is None:
                 if not self.at_port:
@@ -1780,7 +1781,7 @@ class ServiceEquipment(RepairsMixin):
             else:
                 system = self.windfarm.system(request.system_id)  # type: ignore
             yield system.servicing
-            yield self.env.timeout(self.env.get_random_seconds(low=1))
+            yield self.env.timeout(self.env.get_random_seconds(low=2))
             yield system.servicing
 
         while True:

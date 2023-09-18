@@ -190,6 +190,9 @@ class RepairManager(FilterStore):
         # have an operating reduction threshold to meet at this time
         if "TOW" in request.details.service_equipment:
             if request.system_id not in self.port.invalid_systems:
+                system = self.windfarm.system(request.system_id)
+                yield system.servicing_queue & system.servicing
+                self.manager.invalidate_system(request.system_id)
                 yield self.env.process(self.port.run_tow_to_port(request))
             return
 
@@ -249,6 +252,9 @@ class RepairManager(FilterStore):
         # a requests-based threshold to meet at this time
         if "TOW" in request.details.service_equipment:
             if request.system_id not in self.port.invalid_systems:
+                system = self.windfarm.system(request.system_id)
+                yield system.servicing_queue & system.servicing
+                self.invalidate_system(system)
                 yield self.env.process(self.port.run_tow_to_port(request))
             return
 
