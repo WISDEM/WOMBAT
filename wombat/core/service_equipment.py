@@ -1944,7 +1944,7 @@ class ServiceEquipment(RepairsMixin):
 
         # Reset the turbine back to operating and return to port
         reset_system_operations(system, subassembly_resets)
-        self.manager.enable_requests_for_system(system)
+        self.manager.enable_requests_for_system(system, tow=True)
         yield self.env.process(
             self.travel(
                 "site",

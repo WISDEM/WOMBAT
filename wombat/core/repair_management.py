@@ -61,6 +61,7 @@ class RepairManager(FilterStore):
         self.env = env
         self._current_id = 0
         self.invalid_systems: list[str] = []
+        self.systems_in_tow: list[str] = []
 
         self.downtime_based_equipment = StrategyMap()
         self.request_based_equipment = StrategyMap()
@@ -192,7 +193,10 @@ class RepairManager(FilterStore):
             if request.system_id not in self.port.invalid_systems:
                 system = self.windfarm.system(request.system_id)
                 yield system.servicing_queue & system.servicing
-                self.manager.invalidate_system(request.system_id)
+                yield self.env.timeout(self.env.get_random_seconds(high=1))
+                if request.system_id in self.systems_in_tow:
+                    return
+                self.invalidate_system(system, tow=True)
                 yield self.env.process(self.port.run_tow_to_port(request))
             return
 
@@ -243,10 +247,7 @@ class RepairManager(FilterStore):
         equipment's threshold.
         """
         # Add an initial check to help avoid simultaneous dispatching
-        seconds_to_wait, *_ = (
-            self.env.random_generator.integers(low=0, high=30, size=1) / 3600.0
-        )
-        yield self.env.timeout(seconds_to_wait)
+        yield self.env.timeout(self.env.get_random_seconds(high=30))
 
         # Port-based servicing equipment should be handled by the port and does not have
         # a requests-based threshold to meet at this time
@@ -254,7 +255,10 @@ class RepairManager(FilterStore):
             if request.system_id not in self.port.invalid_systems:
                 system = self.windfarm.system(request.system_id)
                 yield system.servicing_queue & system.servicing
-                self.invalidate_system(system)
+                yield self.env.timeout(self.env.get_random_seconds(high=1))
+                if request.system_id in self.systems_in_tow:
+                    return
+                self.invalidate_system(system, tow=True)
                 yield self.env.process(self.port.run_tow_to_port(request))
             return
 
@@ -275,10 +279,7 @@ class RepairManager(FilterStore):
                     continue
 
                 # Avoid simultaneous dispatches by waiting a random number of seconds
-                seconds_to_wait, *_ = (
-                    self.env.random_generator.integers(low=0, high=30, size=1) / 3600.0
-                )
-                yield self.env.timeout(seconds_to_wait)
+                yield self.env.timeout(self.env.get_random_seconds(high=30))
 
                 # Run only the first piece of equipment in the mapping list, but ensure
                 # that it moves to the back of the line after being used
@@ -491,15 +492,19 @@ class RepairManager(FilterStore):
         # criteria and acting on the request before it's processed
         return None
 
-    def invalidate_system(self, system: System | Cable | str) -> None:
+    def invalidate_system(
+        self, system: System | Cable | str, tow: bool = False
+    ) -> None:
         """Disables the ability for servicing equipment to service a specific system,
         sets the turbine status to be in servicing, and interrupts all the processes
         to turn off operations.
 
         Parameters
         ----------
-        system : Syste | Cable | str
+        system : System | Cable | str
             The system, cable, or ``str`` id of one to disable repairs.
+        tow : bool, optional
+            Set to True if this is for a tow-to-port request.
         """
         if isinstance(system, str):
             if "::" in system:
@@ -514,6 +519,8 @@ class RepairManager(FilterStore):
             raise RuntimeError(
                 f"{self.env.simulation_time} {system.id} already being serviced"
             )
+        if tow:
+            self.systems_in_tow.append(system.id)
 
     def interrupt_system(self, system: System | Cable) -> None:
         """Sets the turbine status to be in servicing, and interrupts all the processes
@@ -553,13 +560,17 @@ class RepairManager(FilterStore):
         yield self.completed_requests.put(repair)
         yield self.in_process_requests.get(lambda x: x is repair)
 
-    def enable_requests_for_system(self, system: System | Cable) -> None:
+    def enable_requests_for_system(
+        self, system: System | Cable, tow: bool = False
+    ) -> None:
         """Reenables service equipment operations on the provided system.
 
         Parameters
         ----------
         system_id : System | Cable
-            The ``System`` or ``Cable`` that can be operated on again.=
+            The ``System`` or ``Cable`` that can be operated on again.
+        tow : bool, optional
+            Set to True if this is for a tow-to-port request.
         """
         if system.servicing.triggered:
             raise RuntimeError(
@@ -567,6 +578,8 @@ class RepairManager(FilterStore):
                 f" at {system.id}"
             )
         _ = self.invalid_systems.pop(self.invalid_systems.index(system.id))
+        if tow:
+            _ = self.systems_in_tow.pop(self.systems_in_tow.index(system.id))
         system.servicing.succeed()
         system.servicing_queue.succeed()
         system.interrupt_all_subassembly_processes()
