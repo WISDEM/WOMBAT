@@ -423,12 +423,7 @@ class ServiceEquipment(RepairsMixin):
             yield request
         else:
             request = request.value
-            sid = request.system_id
-            is_cable = request.cable
-            system = self.windfarm.cable(sid) if is_cable else self.windfarm.system(sid)
-            if TYPE_CHECKING:
-                assert isinstance(system, (System, Cable))
-            self.manager.invalidate_system(system)
+            self.manager.invalidate_system(request.system_id)
             yield request
 
     def enable_string_operations(self, cable: Cable) -> None:

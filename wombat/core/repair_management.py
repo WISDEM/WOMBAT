@@ -485,16 +485,22 @@ class RepairManager(FilterStore):
         # criteria and acting on the request before it's processed
         return None
 
-    def invalidate_system(self, system: System | Cable) -> None:
+    def invalidate_system(self, system: System | Cable | str) -> None:
         """Disables the ability for servicing equipment to service a specific system,
         sets the turbine status to be in servicing, and interrupts all the processes
         to turn off operations.
 
         Parameters
         ----------
-        system_id : str
-            The system to disable repairs.
+        system : Syste | Cable | str
+            The system, cable, or ``str`` id of one to disable repairs.
         """
+        if isinstance(system, str):
+            if "::" in system:
+                system = self.windfarm.cable(system)
+            else:
+                system = self.windfarm.system(system)
+
         if system.id not in self.invalid_systems and system.servicing.triggered:
             system.servicing_queue = self.env.event()
             self.invalid_systems.append(system.id)
