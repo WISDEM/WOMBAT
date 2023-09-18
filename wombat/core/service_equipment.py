@@ -370,15 +370,6 @@ class ServiceEquipment(RepairsMixin):
         all_clear = (wind <= max_wind) & (wave <= max_wave)
         return dt, hour, all_clear
 
-    def _avoid_timing_collisions(self) -> Generator:
-        """Wait a random number of seconds, between 0 and 10, to avoid requests for the
-        same system and therefore a timing collision.
-        """
-        seconds_to_wait, *_ = (
-            self.env.random_generator.integers(low=0, high=10, size=1) / 3600.0
-        )
-        yield self.env.timeout(seconds_to_wait)
-
     def get_speed(self, tow: bool = False) -> float:
         """Determines the appropriate speed that the servicing equipment should be
         traveling at for towing or traveling, and if the timeframe is during a reduced
