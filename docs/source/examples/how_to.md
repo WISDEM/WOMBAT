@@ -221,21 +221,6 @@ For modeling a tow-to-port strategy that the port rental costs should be include
 this category, and not in the port configuration.
 
 
-### Financial Model (SAM)
-
-WOMBAT uses PySAM to model the financials of the windfarm and retrieve higher-level cost
-metrics only data is passed into the `SAM_settings` filed in the main configuration. An
-input file exists, but is only for demonstration purposes, and does not contain
-meaningful inputs.
-
-```{warning}
-This does not currently work due to updates in PySAM that need to be remapped in the
-post-processing module.
-
-Update: This functionality will be entirely deprecated in v0.9.
-```
-
-
 ### Servicing Equipment
 
 The servicing equipment control the actual repairs within a simulation, and as of v0.5,
@@ -613,18 +598,6 @@ simulation, however, if a shorter run than was previously designed is required f
 debugging, or something similar, we can use `sum.run(until=<your-time>)` to do this. In
 the `run` method, not only is the simulation run, but the metrics class is loaded at the
 end to quickly transition to results aggregation without any further code.
-
-```{warning}
-It should be noted at this stage that a run time that isn't divisible by 8760 (hours in
-a year), the run will fail if the SAM financial model is being used due to a mismatch
-with PySAM's requirements and the model's outputs. This will be worked
-out in later iterations to cap it to the correct number of hours (future feature) for an
-evenly divisible year.
-
-Users should also be careful of leap years because the PySAM model cannot handle them,
-though if Feb 29 is provided, it will be a part of the analysis and stripped out before
-being fed to PySAM, so no errors will occur.
-```
 
 ```{code-cell} ipython3
 # Timing for a demonstration of performance
