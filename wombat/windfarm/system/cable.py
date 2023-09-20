@@ -92,13 +92,11 @@ class Cable:
 
         self.operating_level = 1.0
         self.servicing = self.env.event()
-        self.servicing_queue = self.env.event()
         self.downstream_failure = self.env.event()
         self.broken = self.env.event()
 
         # Ensure events start as processed and inactive
         self.servicing.succeed()
-        self.servicing_queue.succeed()
         self.downstream_failure.succeed()
         self.broken.succeed()
 
@@ -161,12 +159,6 @@ class Cable:
         for i, maintenance in enumerate(self.data.maintenance):
             desc = maintenance.description
             yield desc, self.env.process(self.run_single_maintenance(maintenance))
-
-    def recreate_processes(self) -> None:
-        """If a cable is being reset after a replacement, then all processes are
-        assumed to be reset to 0, and not pick back up where they left off.
-        """
-        self.processes = dict(self._create_processes())
 
     def interrupt_processes(self) -> None:
         """Interrupts all of the running processes within the subassembly except for the

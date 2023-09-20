@@ -1,6 +1,7 @@
 """The main API for the ``wombat``."""
 from __future__ import annotations
 
+import logging
 import datetime
 from typing import TYPE_CHECKING
 from pathlib import Path
@@ -87,6 +88,9 @@ class Configuration(FromDictMixin):
     end_year : int
         Final year of the simulation. The exact date will be determined by
         the last valid date of this year in ``weather``.
+    SAM_settings : str
+        The SAM settings file to be used for financial modeling, optional, by
+        default None.
     non_operational_start : str | datetime.datetime | None
         The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
         period of prohibited operations. When defined at the environment level, an
@@ -134,6 +138,7 @@ class Configuration(FromDictMixin):
     port: dict | str | Path = field(default=None)
     start_year: int = field(default=None)
     end_year: int = field(default=None)
+    SAM_settings: str = field(default=None)
     port_distance: int | float = field(default=None)
     non_operational_start: str | datetime.datetime | None = field(default=None)
     non_operational_end: str | datetime.datetime | None = field(default=None)
@@ -206,7 +211,16 @@ class Simulation(FromDictMixin):
             The validated simulation configuration
         """
         if isinstance(value, (str, Path)):
-            value = load_yaml(self.library_path / "project/config", value)
+            try:
+                value = load_yaml(self.library_path / "project/config", value)
+            except FileNotFoundError:
+                if TYPE_CHECKING:
+                    assert isinstance(value, (str, Path))
+                value = load_yaml(self.library_path / "config", value)
+                logging.warning(
+                    "DeprecationWarning: In v0.8, all project configurations must be"
+                    " located in: '<library>/project/config/"
+                )
         if isinstance(value, dict):
             value = Configuration.from_dict(value)
         if isinstance(value, Configuration):
@@ -265,8 +279,8 @@ class Simulation(FromDictMixin):
         return cls(  # type: ignore
             library_path=config.library,
             config=config,
-            random_seed=config.random_seed,
-            random_generator=config.random_generator,
+            random_seed=cls.random_seed,
+            random_generator=cls.random_generator,
         )
 
     def _setup_simulation(self):
@@ -371,6 +385,7 @@ class Simulation(FromDictMixin):
             turbine_id=self.windfarm.turbine_id.tolist(),
             substation_turbine_map=substation_turbine_map,
             service_equipment_names=[el.settings.name for el in self.service_equipment],
+            SAM_settings=self.config.SAM_settings,
         )
 
     def save_metrics_inputs(self) -> None:
@@ -383,8 +398,8 @@ class Simulation(FromDictMixin):
         }
         data = {
             "data_dir": str(self.config.library),
-            "events": str(self.env.events_log_fname),
-            "operations": str(self.env.operations_log_fname),
+            "events": str(self.env.events_log_fname.with_suffix(".csv")),
+            "operations": str(self.env.operations_log_fname.with_suffix(".csv")),
             "potential": str(self.env.power_potential_fname),
             "production": str(self.env.power_production_fname),
             "inflation_rate": self.config.inflation_rate,
@@ -399,6 +414,7 @@ class Simulation(FromDictMixin):
             "service_equipment_names": [
                 el.settings.name for el in self.service_equipment
             ],
+            "SAM_settings": self.config.SAM_settings,
         }
 
         with open(self.env.metrics_input_fname, "w") as f:

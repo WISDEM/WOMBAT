@@ -13,8 +13,7 @@
    :undoc-members:
    :exclude-members: name, library, layout, service_equipment, weather, workday_start,
     workday_end, inflation_rate, fixed_costs, project_capacity, start_year, end_year,
-    port, port_distance, non_operational_start, non_operational_end, reduced_speed_start,
-    reduced_speed_end, reduced_speed, random_seed, random_generator
+    port, SAM_settings
 ```
 
 ## Simulation Interface
@@ -34,8 +33,9 @@ For example usage of the Metrics class and its associated methods, please see th
    :members: from_simulation_outputs, power_production, time_based_availability,
     production_based_availability, capacity_factor, task_completion_rate,
     equipment_costs, service_equipment_utilization, vessel_crew_hours_at_sea,
-    number_of_tows, labor_costs, equipment_labor_cost_breakdowns, emissions,
-    process_times, component_costs, port_fees, project_fixed_costs, opex, npv
+    number_of_tows, labor_costs, equipment_labor_cost_breakdowns, component_costs,
+    opex, npv, project_fixed_costs, process_times, pysam_npv, pysam_lcoe_real,
+    pysam_lcoe_nominal, pysam_irr, pysam_all_outputs
    :member-order: bysource
    :undoc-members:
    :exclude-members:
