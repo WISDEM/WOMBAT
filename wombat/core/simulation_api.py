@@ -1,7 +1,6 @@
 """The main API for the ``wombat``."""
 from __future__ import annotations
 
-import logging
 import datetime
 from typing import TYPE_CHECKING
 from pathlib import Path
@@ -211,16 +210,7 @@ class Simulation(FromDictMixin):
             The validated simulation configuration
         """
         if isinstance(value, (str, Path)):
-            try:
-                value = load_yaml(self.library_path / "project/config", value)
-            except FileNotFoundError:
-                if TYPE_CHECKING:
-                    assert isinstance(value, (str, Path))
-                value = load_yaml(self.library_path / "config", value)
-                logging.warning(
-                    "DeprecationWarning: In v0.8, all project configurations must be"
-                    " located in: '<library>/project/config/"
-                )
+            value = load_yaml(self.library_path / "project/config", value)
         if isinstance(value, dict):
             value = Configuration.from_dict(value)
         if isinstance(value, Configuration):

@@ -6,7 +6,6 @@ servicing equipment.
 # TODO: NEED A SPECIFIC STARTUP METHOD
 from __future__ import annotations
 
-import logging
 from copy import deepcopy
 from math import ceil
 from typing import TYPE_CHECKING, Any, Generator
@@ -228,14 +227,7 @@ class ServiceEquipment(RepairsMixin):
         self.settings: ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData
 
         if isinstance(equipment_data_file, (str, Path)):
-            try:
-                data = load_yaml(env.data_dir / "vessels", equipment_data_file)
-            except FileNotFoundError:
-                data = load_yaml(env.data_dir / "repair/transport", equipment_data_file)
-                logging.warning(
-                    "DeprecationWarning: In v0.8, all servicing equipment"
-                    " configurations must be located in: '<library>/vessels/"
-                )
+            data = load_yaml(env.data_dir / "vessels", equipment_data_file)
         else:
             data = equipment_data_file
 

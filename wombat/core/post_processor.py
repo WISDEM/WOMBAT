@@ -1,7 +1,6 @@
 """The postprocessing metric computation."""
 from __future__ import annotations
 
-import logging
 import warnings
 from copy import deepcopy
 from math import fsum
@@ -178,18 +177,9 @@ class Metrics:
             # Create a zero-cost FixedCosts object
             self.fixed_costs = FixedCosts.from_dict({"operations": 0})
         else:
-            try:
-                if TYPE_CHECKING:
-                    assert isinstance(fixed_costs, str)
-                fixed_costs = load_yaml(self.data_dir / "project/config", fixed_costs)
-            except FileNotFoundError:
-                if TYPE_CHECKING:
-                    assert isinstance(fixed_costs, str)
-                fixed_costs = load_yaml(self.data_dir / "windfarm", fixed_costs)
-                logging.warning(
-                    "DeprecationWarning: In v0.8, all fixed cost configurations must be"
-                    " located in: '<library>/project/config/"
-                )
+            if TYPE_CHECKING:
+                assert isinstance(fixed_costs, str)
+            fixed_costs = load_yaml(self.data_dir / "project/config", fixed_costs)
             if TYPE_CHECKING:
                 assert isinstance(fixed_costs, dict)
             self.fixed_costs = FixedCosts.from_dict(fixed_costs)
@@ -235,17 +225,9 @@ class Metrics:
 
         if SAM_settings is not None:
             SAM_settings = "SAM_Singleowner_defaults.yaml"
-            try:
-                self.sam_settings = load_yaml(
-                    self.data_dir / "project/config", SAM_settings
-                )
-            except FileNotFoundError:
-                self.sam_settings = load_yaml(self.data_dir / "windfarm", SAM_settings)
-                logging.warning(
-                    "DeprecationWarning: In v0.8, all SAM configurations must be"
-                    " located in: '<library>/project/config/"
-                )
-
+            self.sam_settings = load_yaml(
+                self.data_dir / "project/config", SAM_settings
+            )
             self._setup_pysam()
         else:
             self.sam_settings = None

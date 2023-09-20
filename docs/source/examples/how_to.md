@@ -53,8 +53,7 @@ As of v0.6, the following structure will be adopted to mirror the format of the
 [ORBIT library structure](https://github.com/WISDEM/ORBIT/blob/master/ORBIT/core/library.py#L7-L24)
 to increase compatibility between similar libraries.
 
-WOMBAT will still support the original structure until v0.9, depending to allow users to
-update in their own time.
+As of v0.9, the library structure shown below is the only one that will work.
 ```
 
 To help users convert to the new structure, the following method is provided to create
@@ -82,22 +81,6 @@ The above method call will produce the below folder and subfolder structure.
   ├── vessels      <- Land-based and offshore servicing equipment configuration files
   ├── weather      <- Weather profiles
   ├── results      <- The analysis log files and any saved output data
-```
-
-Users can then migrate their data from the old (below) structure to the new (above)
-structure using their preferred method.
-
-```
-<libray>
-  ├── config            <- Simulation configuration files
-  ├── windfarm          <- Windfarm layout file(s); turbine, substation, and cable configurations
-  ├── outputs
-    ├── logs            <- The raw anaylsis log files
-    ├── metrics         <- A place to save metrics/computed outputs.
-    ├── <self-defined>  <- Any other folder you choose for saving outputs (not enforced)
-  ├── repair            <- Overarching folder for repair configurations, such as ports
-    ├── transport       <- Servicing equipment configurations
-  ├── weather           <- Weather profiles
 ```
 
 As a convenience feature you can import the provided validation data libraries as

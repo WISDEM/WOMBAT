@@ -15,6 +15,10 @@
 - Systems are no longer interrupted once the servicing equipment addressing a repair or maintenance task is dispatched, and instead are interrupted just before the crew is transferred to begin repair, maintenance, or unmorring. This has a small net positive increase in the availability for short travel distances, but can vary if the travel time is more than a few hours (i.e., large distance to port, slow travel due to weather, & etc.)
 - When a tow to port repair is in the queue, no other repairs or maintenance activities will occur for that turbine until it's brought into port for repairs.
 
+### Deprecations
+
+- The original library structure has been fully deprecated, please see the Reference/How To example for more details on converting data that has not yet been updated.
+
 ## v0.8.1 (28 August 2023)
 
 - Fixes a bug where servicing equipment waiting for the next operational period at the end of a simulation get stuck in an infinite loop because the timeout is set for just prior to the end of the simulation, and not just after the end of the simulation's maximum run time.
