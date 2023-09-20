@@ -1,3 +1,24 @@
+## Unreleased
+
+### Bug Fixes
+
+- Repairs that had a weather delay extended repairs past the end of the shift now properly extend the repair into future shifts instead of completing early. This has a small negative impact on availability because that means some repairs can take longer than they had originally.
+- Traveling to a system for a repair where the timing extends beyond the end of the shift, but into the next shift, is now registered as a shift delay just like travel weather delays that extend beyond the end of the current shift but before the start of the next shift. This has a small positive impact on availability because a turbine or cable may not start being repaired until weather is more consistently clear, rather than starting it and extending it for many shifts.
+
+### General Updates
+
+- `Metrics.equipment_labor_cost_breakdowns` now has a `by_equipment` boolean flag, so that the labor and equipment costs can be broken down by category and equipment. Additionally, `total_hours` has been added to the results, resulting in fewer computed metrics across the same set of breakdowns.
+
+### Methodology Updates
+
+- Subassemblies and cables are now able to resample their next times to failure for all maintenance and failure activities, so that replacement events reset the timing for failures across the board.
+- Systems are no longer interrupted once the servicing equipment addressing a repair or maintenance task is dispatched, and instead are interrupted just before the crew is transferred to begin repair, maintenance, or unmorring. This has a small net positive increase in the availability for short travel distances, but can vary if the travel time is more than a few hours (i.e., large distance to port, slow travel due to weather, & etc.)
+- When a tow to port repair is in the queue, no other repairs or maintenance activities will occur for that turbine until it's brought into port for repairs.
+
+### Deprecations
+
+- The original library structure has been fully deprecated, please see the Reference/How To example for more details on converting data that has not yet been updated.
+
 ## v0.8.1 (28 August 2023)
 
 - Fixes a bug where servicing equipment waiting for the next operational period at the end of a simulation get stuck in an infinite loop because the timeout is set for just prior to the end of the simulation, and not just after the end of the simulation's maximum run time.
