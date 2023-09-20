@@ -92,11 +92,13 @@ class Cable:
 
         self.operating_level = 1.0
         self.servicing = self.env.event()
+        self.servicing_queue = self.env.event()
         self.downstream_failure = self.env.event()
         self.broken = self.env.event()
 
         # Ensure events start as processed and inactive
         self.servicing.succeed()
+        self.servicing_queue.succeed()
         self.downstream_failure.succeed()
         self.broken.succeed()
 
