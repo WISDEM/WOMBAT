@@ -62,6 +62,7 @@ class RepairManager(FilterStore):
         self._current_id = 0
         self.invalid_systems: list[str] = []
         self.systems_in_tow: list[str] = []
+        self.systems_waiting_for_tow: list[str] = []
 
         self.downtime_based_equipment = StrategyMap()
         self.request_based_equipment = StrategyMap()
@@ -253,6 +254,7 @@ class RepairManager(FilterStore):
         # a requests-based threshold to meet at this time
         if "TOW" in request.details.service_equipment:
             if request.system_id not in self.port.invalid_systems:
+                self.systems_waiting_for_tow.append(request.system_id)
                 system = self.windfarm.system(request.system_id)
                 yield system.servicing_queue & system.servicing
                 yield self.env.timeout(self.env.get_random_seconds(high=1))
@@ -420,6 +422,8 @@ class RepairManager(FilterStore):
         for request in requests:
             if self._is_request_processing(request):
                 continue
+            if request.system_id in self.systems_waiting_for_tow:
+                continue
             if equipment_capability.intersection(request.details.service_equipment):
                 # If this is the first request for the system, make sure no other
                 # servicing equipment can access i
@@ -473,6 +477,8 @@ class RepairManager(FilterStore):
         for request in requests:
             if self._is_request_processing(request):
                 continue
+            if request.system_id in self.systems_waiting_for_tow:
+                continue
             if request.cable:
                 if not self.windfarm.cable(request.system_id).servicing.triggered:
                     continue
@@ -521,6 +527,9 @@ class RepairManager(FilterStore):
             )
         if tow:
             self.systems_in_tow.append(system.id)
+            _ = self.systems_waiting_for_tow.pop(
+                self.systems_waiting_for_tow.index(system.id)
+            )
 
     def interrupt_system(self, system: System | Cable) -> None:
         """Sets the turbine status to be in servicing, and interrupts all the processes
@@ -689,6 +698,15 @@ class RepairManager(FilterStore):
             self.request_status_map["pending"].difference_update([request.request_id])
             self.request_status_map["processing"].update([request.request_id])
             _ = self.get(lambda x: x is request)  # pylint: disable=W0640
+        sid = request.system_id
+
+        # Ensure that if it was reset, and a tow was waiting, that it gets cleared
+        if sid in self.systems_waiting_for_tow:
+            if sid not in self.systems_in_tow:
+                _ = self.systems_waiting_for_tow.pop(
+                    self.systems_waiting_for_tow.index(sid)
+                )
+
         return requests
 
     @property
