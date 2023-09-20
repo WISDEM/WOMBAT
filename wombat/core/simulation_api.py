@@ -87,9 +87,6 @@ class Configuration(FromDictMixin):
     end_year : int
         Final year of the simulation. The exact date will be determined by
         the last valid date of this year in ``weather``.
-    SAM_settings : str
-        The SAM settings file to be used for financial modeling, optional, by
-        default None.
     non_operational_start : str | datetime.datetime | None
         The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
         period of prohibited operations. When defined at the environment level, an
@@ -137,7 +134,6 @@ class Configuration(FromDictMixin):
     port: dict | str | Path = field(default=None)
     start_year: int = field(default=None)
     end_year: int = field(default=None)
-    SAM_settings: str = field(default=None)
     port_distance: int | float = field(default=None)
     non_operational_start: str | datetime.datetime | None = field(default=None)
     non_operational_end: str | datetime.datetime | None = field(default=None)
@@ -375,7 +371,6 @@ class Simulation(FromDictMixin):
             turbine_id=self.windfarm.turbine_id.tolist(),
             substation_turbine_map=substation_turbine_map,
             service_equipment_names=[el.settings.name for el in self.service_equipment],
-            SAM_settings=self.config.SAM_settings,
         )
 
     def save_metrics_inputs(self) -> None:
@@ -388,8 +383,8 @@ class Simulation(FromDictMixin):
         }
         data = {
             "data_dir": str(self.config.library),
-            "events": str(self.env.events_log_fname.with_suffix(".csv")),
-            "operations": str(self.env.operations_log_fname.with_suffix(".csv")),
+            "events": str(self.env.events_log_fname),
+            "operations": str(self.env.operations_log_fname),
             "potential": str(self.env.power_potential_fname),
             "production": str(self.env.power_production_fname),
             "inflation_rate": self.config.inflation_rate,
@@ -404,7 +399,6 @@ class Simulation(FromDictMixin):
             "service_equipment_names": [
                 el.settings.name for el in self.service_equipment
             ],
-            "SAM_settings": self.config.SAM_settings,
         }
 
         with open(self.env.metrics_input_fname, "w") as f:
