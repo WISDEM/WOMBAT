@@ -64,6 +64,8 @@ is, and how it should be computed.
  - [Process Times](#process-times): Timing of various stages of repair and maintenance
  - [Power Production](#power-production): Potential and actually produced power
  - [Net Present Value](#net-present-value): Project NPV calculator
+ - [PySAM-Powered Results](#pysam-powered-results): PySAM results, if configuration is provided--currently unavailable
+
 
 (setup)=
 ## Setup
@@ -556,4 +558,54 @@ For further documentation, see the API docs here: {py:meth}`wombat.core.post_pro
 ```{code-cell} ipython3
 :tags: ["output_scroll"]
 style(metrics.opex("annual"))
+```
+
+## PySAM-Powered Results
+
+For a number of project financial metrics, the PySAM library is utilized.
+
+```{warning}
+If a "SAM_settings" file is not provided to the simulation, then the following metrics will not be able to be calculated and will raise a `NotImplementedError`.
+```
+```{warning}
+All PySAM integrations will raise a `NotImplementedError` because the API needs to be re-mapped for PySAM v3.0+.
+```
+
+### Net Present Value (NPV)
+
+```{code-cell} ipython3
+:tags: ["output_scroll"]
+:tags: ["raises-exception"]
+metrics.pysam_npv()
+```
+
+### Real Levelized Cost of Energy (LCOE)
+
+```{code-cell} ipython3
+:tags: ["output_scroll"]
+:tags: ["raises-exception"]
+metrics.pysam_lcoe_real()
+```
+
+### Nominal Levelized Cost of Energy (LCOE)
+
+```{code-cell} ipython3
+:tags: ["output_scroll"]
+:tags: ["raises-exception"]
+metrics.pysam_lcoe_nominal()
+```
+
+### After-tax Internal Return Rate (IRR)
+
+```{code-cell} ipython3
+:tags: ["output_scroll"]
+:tags: ["raises-exception"]
+metrics.pysam_irr()
+```
+
+### Combined PySAM Outputs
+```{code-cell} ipython3
+:tags: ["output_scroll"]
+:tags: ["raises-exception"]
+metrics.pysam_all_outputs()
 ```

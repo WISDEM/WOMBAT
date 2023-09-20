@@ -77,9 +77,8 @@ class Subassembly:
             yield desc, self.env.process(self.run_single_maintenance(maintenance))
 
     def recreate_processes(self) -> None:
-        """If a turbine is being reset after a tow-to-port repair or replacement, then
-        all processes are assumed to be reset to 0, and not pick back up where they left
-        off.
+        """If a turbine is being reset after a tow-to-port repair, then all processes
+        are assumed to be reset to 0, and not pick back up where they left off.
         """
         self.processes = dict(self._create_processes())
 

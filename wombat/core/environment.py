@@ -291,27 +291,6 @@ class WombatEnvironment(simpy.Environment):
         self._events_buffer: list[dict] = []
         self._operations_buffer: list[dict] = []
 
-    def get_random_seconds(self, low: int = 0, high: int = 10) -> float:
-        """Generate a random number of seconds to wait, between :py:attr:`low` and
-        :py:attr:`high`.
-
-        Parameters
-        ----------
-        low : int, optional
-            Minimum number of seconds to wait, by default 0.
-        high : int, optional
-            Maximum number of seconds to wait, by default 10.
-
-        Returns
-        -------
-        float
-            Number of seconds to wait.
-        """
-        seconds_to_wait, *_ = (
-            self.random_generator.integers(low=low, high=high, size=1) / 3600.0
-        )
-        return seconds_to_wait
-
     @property
     def simulation_time(self) -> datetime:
         """Current time within the simulation ("datetime" column within weather)."""

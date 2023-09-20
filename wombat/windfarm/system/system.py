@@ -1,6 +1,7 @@
 """Creates the Turbine class."""
 from __future__ import annotations
 
+import logging
 from typing import Callable
 from operator import mul
 from functools import reduce
@@ -61,12 +62,10 @@ class System:
         self.capacity = subassemblies["capacity_kw"]
         self.subassemblies: list[Subassembly] = []
         self.servicing = self.env.event()
-        self.servicing_queue = self.env.event()
         self.cable_failure = self.env.event()
 
         # Ensure servicing statuses starts as processed and inactive
         self.servicing.succeed()
-        self.servicing_queue.succeed()
         self.cable_failure.succeed()
 
         system = system.lower().strip()
@@ -147,8 +146,17 @@ class System:
         if power_curve_dict is None:
             self.power_curve = IEC_power_curve(pd.Series([0]), pd.Series([0]))
         else:
-            power_curve_file = self.env.data_dir / "turbines" / power_curve_dict["file"]
-            power_curve = pd.read_csv(power_curve_file)
+            power_curve = power_curve_dict["file"]
+            try:
+                power_curve_file = self.env.data_dir / "turbines" / power_curve
+                power_curve = pd.read_csv(power_curve_file)
+            except FileNotFoundError:
+                power_curve_file = self.env.data_dir / "windfarm" / power_curve
+                power_curve = pd.read_csv(power_curve_file)
+                logging.warning(
+                    "DeprecationWarning: In v0.8, all power curve files must be located"
+                    " in: '<library>/turbines"
+                )
             power_curve = power_curve.loc[power_curve.power_kw != 0].reset_index(
                 drop=True
             )
