@@ -591,11 +591,9 @@ class Metrics:
         return pd.DataFrame(production / potential, columns=columns)
 
     def task_completion_rate(self, which: str, frequency: str) -> float | pd.DataFrame:
-        """Calculates the task completion rate over a project's lifetime as a single
-        value, annual average, or monthly average for the whole windfarm or by turbine.
-
-        .. note:: This currently assumes that if there are multiple substations, that
-          the turbines are all connected to multiple.
+        """Calculates the task completion rate (including tasks that are canceled after
+        a replacement event) over a project's lifetime as a single value, annual
+        average, or monthly average for the whole windfarm or by turbine.
 
         Parameters
         ----------
@@ -625,8 +623,8 @@ class Metrics:
             task_filter = ["maintenance", "repair"]
 
         cols = ["env_datetime", "request_id"]
-        completion_filter = [f"{el} complete" for el in task_filter]
         request_filter = [f"{el} request" for el in task_filter]
+        completion_filter = ["request canceled", *request_filter]
         requests = self.events.loc[
             self.events.action.isin(request_filter), cols
         ].reset_index(drop=True)
