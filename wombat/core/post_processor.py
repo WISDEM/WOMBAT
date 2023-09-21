@@ -624,7 +624,7 @@ class Metrics:
 
         cols = ["env_datetime", "request_id"]
         request_filter = [f"{el} request" for el in task_filter]
-        completion_filter = ["request canceled", *request_filter]
+        completion_filter = [*[f"{el} canceled" for el in task_filter], *request_filter]
         requests = self.events.loc[
             self.events.action.isin(request_filter), cols
         ].reset_index(drop=True)
