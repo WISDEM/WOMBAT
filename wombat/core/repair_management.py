@@ -683,6 +683,7 @@ class RepairManager(FilterStore):
             return None
 
         for request in requests:
+            which = "repair" if isinstance(request.details, Failure) else "maintenance"
             self.env.log_action(
                 system_id=request.system_id,
                 system_name=request.system_name,
@@ -691,7 +692,7 @@ class RepairManager(FilterStore):
                 system_ol=float("nan"),
                 part_ol=float("nan"),
                 agent="RepairManager",
-                action="request canceled",
+                action=f"{which} canceled",
                 reason="replacement required",
                 request_id=request.request_id,
             )

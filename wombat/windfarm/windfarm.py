@@ -425,7 +425,9 @@ class Windfarm:
             The ``Cable`` object.
         """
         if isinstance(cable_id, str):
-            edge_id = tuple(cable_id.split("::")[1:])
+            edge_id = tuple(cable_id.split("::"))
+            if len(edge_id) == 3:
+                edge_id = edge_id[1:]
         else:
             edge_id = cable_id
         try:
