@@ -1981,8 +1981,14 @@ class Metrics:
         return opex[[column]]
 
     def opex_breakdown(self, frequency: str) -> pd.DataFrame:
-        """Calculates the project's OpEx for the simulation at a project, annual, or
-        monthly level.
+        """Calculates the project's OpEx breakdown for the simulation at a project, annual, or
+        monthly level. The breakdown includes:
+        
+        - Operations costs (could include port fees and labor costs, in that case the port feed and labor costs would be zero)
+        - Port fees
+        - Labor costs
+        - Equipment costs
+        - Material costs
 
         Parameters
         ----------
@@ -2033,10 +2039,22 @@ class Metrics:
         column = "Total_OpEx"
         opex = pd.concat(opex_items, axis=1)
         opex.loc[:, column] = opex.sum(axis=1)
-         
+        
+        # Concatenate different cost types and total
 
         opex_breakdown = pd.concat([opex_items[0], opex_items[1], opex_items[2], opex_items[3], opex_items[4], opex[[column]]], axis=1)
+        
+        # Drop years when operations is Nan
+        
+        opex_breakdown = opex_breakdown.dropna(subset="operations", how ='any')
+        
+        # Add Annual OpEx
+
         opex_breakdown.loc['average'] = opex_breakdown.mean()
+        
+        # Add Annual OpEx per kW
+
+        opex_breakdown["Total_OpEx_($/kW)"] = opex_breakdown["Total_OpEx"]/(self.project_capacity*1000)
 
         return  opex_breakdown
 
