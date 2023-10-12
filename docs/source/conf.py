@@ -98,7 +98,13 @@ source_suffix = {
 nb_execution_mode = "auto"
 nb_execution_timeout = -1
 nb_execution_allow_errors = True
-# nb_execution_excludepatterns.append("*_demonstration.md")
+nb_execution_excludepatterns.extend(
+    [
+        "how_to.md",
+        "metrics_demonstration.md",
+        "strategy_demonstration.md",
+    ]
+)
 
 myst_heading_anchors = 3
 
