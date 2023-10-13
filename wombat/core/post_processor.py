@@ -2041,19 +2041,12 @@ class Metrics:
         opex.loc[:, column] = opex.sum(axis=1)
         
         # Concatenate different cost types and total
-
         opex_breakdown = pd.concat([opex_items[0], opex_items[1], opex_items[2], opex_items[3], opex_items[4], opex[[column]]], axis=1)
-        
-        # Drop years when operations is Nan
-        
-        opex_breakdown = opex_breakdown.dropna(subset="operations", how ='any')
-        
-        # Add Annual OpEx
 
+        # Add Annual OpEx
         opex_breakdown.loc['average'] = opex_breakdown.mean()
         
         # Add Annual OpEx per kW
-
         opex_breakdown["Total_OpEx_($/kW)"] = opex_breakdown["Total_OpEx"]/(self.project_capacity*1000)
 
         return  opex_breakdown
