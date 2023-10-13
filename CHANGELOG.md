@@ -5,6 +5,7 @@
 - Repairs that had a weather delay extended repairs past the end of the shift now properly extend the repair into future shifts instead of completing early. This has a small negative impact on availability because that means some repairs can take longer than they had originally.
 - Traveling to a system for a repair where the timing extends beyond the end of the shift, but into the next shift, is now registered as a shift delay just like travel weather delays that extend beyond the end of the current shift but before the start of the next shift. This has a small positive impact on availability because a turbine or cable may not start being repaired until weather is more consistently clear, rather than starting it and extending it for many shifts.
 - `Windfarm.cable()` now correctly identifies 2 and 3 length cable naming conventions to differentiate which version of the cable id is being retrieved.
+- An edge case where events occurred just after the end of a simulation has been resolved by checking the datetime stamp of that event and not adding any action log to the simulation that is after the `WombatEnvironment.end_datetime`.
 
 ### General Updates
 

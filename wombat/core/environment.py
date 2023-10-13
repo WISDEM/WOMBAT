@@ -680,9 +680,10 @@ class WombatEnvironment(simpy.Environment):
             )
         total_labor_cost = hourly_labor_cost + salary_labor_cost
         total_cost = total_labor_cost + equipment_cost + materials_cost
+        now = self.simulation_time
         row = {
             "datetime": dt.datetime.now(),
-            "env_datetime": self.simulation_time,
+            "env_datetime": now,
             "env_time": self.now,
             "system_id": system_id,
             "system_name": system_name,
@@ -705,7 +706,10 @@ class WombatEnvironment(simpy.Environment):
             "total_labor_cost": total_labor_cost,
             "total_cost": total_cost,
         }
-        self._events_buffer.append(row)
+        # Don't log the initiation of a crew transfer that can forced at the end of an
+        # operation but happens to be after the end of the simulation
+        if now <= self.end_datetime:
+            self._events_buffer.append(row)
 
     def _log_actions(self):
         """Writes the action log items every 8000 hours."""
