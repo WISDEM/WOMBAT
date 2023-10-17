@@ -984,11 +984,13 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     n_crews : int
         Number of crew units for the equipment.
 
-        .. note:: the input to this does not matter yet, as multi-crew functionality
+        .. note:: The input to this does not matter yet, as multi-crew functionality
             is not yet implemented.
 
     crew : ServiceCrew
-        The crew details, see ``ServiceCrew`` for more information.
+        The crew details, see :py:class:`ServiceCrew` for more information. Dictionary
+        of labor costs with the following: ``n_day_rate``, ``day_rate``,
+        ``n_hourly_rate``, and ``hourly_rate``.
     start_month : int
         The day to start operations for the rig and crew.
     start_day : int
@@ -1044,16 +1046,16 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         system, e.g. how long does it take to transfer the crew from the CTV to the
         turbine, default 0.
     onsite : bool
-        Indicator for if the rig and crew are based onsite.
+        Indicator for if the servicing equipment and crew are based onsite.
 
-        .. note:: if the rig and crew are onsite be sure that the start and end dates
-            represent the first and last day/month of the year, respectively, and the
-            start and end years represent the fist and last year in the weather file.
+        .. note:: If based onsite, be sure that the start and end dates represent the
+            first and last day/month of the year, respectively, and the start and end
+            years represent the fist and last year in the weather file.
 
     method : str
-        Determines if the ship will do all maximum severity repairs first or do all
-        the repairs at one turbine before going to the next, by default severity.
-        Should by one of "severity" or "turbine".
+        Determines if the equipment will do all maximum severity repairs first or do all
+        the repairs at one turbine before going to the next, by default severity. Must
+        be one of "severity" or "turbine".
     port_distance : int | float
         The distance, in km, the equipment must travel to go between port and site, by
         default 0.
@@ -1188,7 +1190,9 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
             is not yet implemented.
 
     crew : ServiceCrew
-        The crew details, see ``ServiceCrew`` for more information.
+        The crew details, see :py:class:`ServiceCrew` for more information. Dictionary
+        of labor costs with the following: ``n_day_rate``, ``day_rate``,
+        ``n_hourly_rate``, and ``hourly_rate``.
     charter_days : int
         The number of days the servicing equipment can be chartered for.
     capability : str
@@ -1640,7 +1644,9 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
         The number of service crews available to be working on repairs simultaneously;
         each crew is able to service exactly one repair.
     crew : ServiceCrew
-        The crew details, see ``ServiceCrew`` for more information.
+        The crew details, see :py:class:`ServiceCrew` for more information. Dictionary
+        of labor costs with the following: ``n_day_rate``, ``day_rate``,
+        ``n_hourly_rate``, and ``hourly_rate``.
     max_operations : int
         Total number of turbines the port can handle simultaneously.
     workday_start : int
