@@ -104,7 +104,7 @@ class Windfarm:
                 layout.id == substation, "substation_id"
             ].values[0]
 
-        self.turbine_id = layout.loc[~substation_filter, "id"].values
+        self.turbine_id: np.ndarray = layout.loc[~substation_filter, "id"].values
         substations = layout[substation_filter].copy()
         turbines = layout[~substation_filter].copy()
         substation_sections = [
@@ -130,7 +130,7 @@ class Windfarm:
                 cable=row.upstream_cable.values[0],
             )
 
-        self.graph = windfarm
+        self.graph: nx.DiGraph = windfarm
         self.layout_df = layout
 
     def _create_turbines_and_substations(self) -> None:

@@ -187,7 +187,8 @@ class System:
             Operating level of the turbine.
         """
         if self.cable_failure.triggered and self.servicing.triggered:
-            return reduce(mul, [sub.operating_level for sub in self.subassemblies])
+            ol: float = reduce(mul, [sub.operating_level for sub in self.subassemblies])
+            return ol
         return 0.0
 
     @property
@@ -201,7 +202,8 @@ class System:
             Operating level of the turbine.
         """
         if self.cable_failure.triggered:
-            return reduce(mul, [sub.operating_level for sub in self.subassemblies])
+            ol: float = reduce(mul, [sub.operating_level for sub in self.subassemblies])
+            return ol
         return 0.0
 
     def power(self, windspeed: list[float] | np.ndarray) -> np.ndarray:
