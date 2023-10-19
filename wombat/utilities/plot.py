@@ -10,10 +10,10 @@ from wombat import Simulation
 from wombat.windfarm import Windfarm
 
 
-def plot_farm(
+def plot_farm_layout(
     windfarm: Windfarm,
-    figure_kwargs: dict = {},
-    draw_kwargs: dict = {},
+    figure_kwargs: dict | None = None,
+    plot_kwargs: dict | None = None,
     return_fig: bool = False,
 ) -> None | tuple[plt.figure, plt.axes]:
     """Plot the graph representation of the windfarm as represented through WOMBAT.
@@ -22,9 +22,11 @@ def plot_farm(
         figure_kwargs : dict, optional
             Customized keyword arguments for matplotlib figure instantiation that
             will passed as ``plt.figure(**figure_kwargs). Defaults to {}.``
-        draw_kwargs : dict, optional
-            Customized keyword arguments for ``networkx.draw()`` that can will
-            passed as ``nx.draw(**figure_kwargs). Defaults to {}.``
+        plot_kwargs : dict, optional
+            Customized parameters for ``networkx.draw()`` that can will passed as
+            ``nx.draw(**figure_kwargs)``. Defaults to ``with_labels=True``,
+            ``horizontalalignment=right``, ``verticalalignment=bottom``,
+            ``font_weight=bold``, ``font_size=10``, and ``node_color=#E37225``.
         return_fig : bool, optional
             Whether or not to return the figure and axes objects for further editing
             and/or saving. Defaults to False.
@@ -33,24 +35,31 @@ def plot_farm(
     -------
         None | tuple[plt.figure, plt.axes]: _description_
     """
+    # Set the defaults for plotting
+    if figure_kwargs is None:
+        figure_kwargs = {}
+    if plot_kwargs is None:
+        plot_kwargs = {}
     figure_kwargs.setdefault("figsize", (14, 12))
     figure_kwargs.setdefault("dpi", 200)
+    plot_kwargs.setdefault("with_labels", True)
+    plot_kwargs.setdefault("horizontalalignment", "right")
+    plot_kwargs.setdefault("verticalalignment", "bottom")
+    plot_kwargs.setdefault("font_weight", "bold")
+    plot_kwargs.setdefault("font_size", 10)
+    plot_kwargs.setdefault("node_color", "#E37225")
 
     fig = plt.figure(**figure_kwargs)
     ax = fig.add_subplot(111)
 
+    # Get the node positions and all related edges, except the self-connected ones
     positions = {
         name: np.array([node["longitude"], node["latitude"]])
         for name, node in windfarm.graph.nodes(data=True)
     }
+    edges = [el for el in windfarm.graph.edges if el[0] != el[1]]
 
-    draw_kwargs.setdefault("with_labels", True)
-    draw_kwargs.setdefault("horizontalalignment", "right")
-    draw_kwargs.setdefault("verticalalignment", "bottom")
-    draw_kwargs.setdefault("font_weight", "bold")
-    draw_kwargs.setdefault("font_size", 10)
-    draw_kwargs.setdefault("node_color", "#E37225")
-    nx.draw(windfarm.graph, pos=positions, ax=ax, **draw_kwargs)
+    nx.draw(windfarm.graph, pos=positions, edgelist=edges, ax=ax, **plot_kwargs)
 
     fig.tight_layout()
     plt.show()
@@ -62,11 +71,12 @@ def plot_farm(
 
 def plot_farm_availability(
     sim: Simulation,
+    which: str = "energy",
     individual_turbines: bool = False,
     farm_95_CI: bool = False,
-    figure_kwargs: dict = {},
-    plot_kwargs: dict = {},
-    legend_kwargs: dict = {},
+    figure_kwargs: dict | None = None,
+    plot_kwargs: dict | None = None,
+    legend_kwargs: dict | None = None,
     tick_fontsize: int = 12,
     label_fontsize: int = 16,
     return_fig: bool = False,
@@ -77,6 +87,9 @@ def plot_farm_availability(
     ----------
     sim : Simulation
         A ``Simulation`` object that has been run.
+    which : str
+        One of "time" or "energy", to indicate the basis for the availability
+        calculation, by default "energy".
     individual_turbines : bool, optional
         Indicates if faint gray lines should be added in the background for the
         availability of each turbine, by default False.
@@ -106,14 +119,41 @@ def plot_farm_availability(
     """
     # Get the availability data
     metrics = sim.metrics
-    availability = metrics.time_based_availability("project", "windfarm").values[0][0]
-    windfarm_availability = metrics.time_based_availability("month-year", "windfarm")
-    turbine_availability = metrics.time_based_availability("month-year", "turbine")
+    if which == "time":
+        availability = metrics.time_based_availability("project", "windfarm").values[0][
+            0
+        ]
+        windfarm_availability = metrics.time_based_availability(
+            "month-year", "windfarm"
+        )
+        turbine_availability = metrics.time_based_availability("month-year", "turbine")
+        label = f"{sim.env.simulation_name} Time-Based Availability: {availability:.2%}"
+    elif which == "energy":
+        availability = metrics.production_based_availability(
+            "project", "windfarm"
+        ).values[0][0]
+        windfarm_availability = metrics.production_based_availability(
+            "month-year", "windfarm"
+        )
+        turbine_availability = metrics.production_based_availability(
+            "month-year", "turbine"
+        )
+        label = (
+            f"{sim.env.simulation_name} Energy-Based Availability: {availability:.2%}"
+        )
+    else:
+        raise ValueError("`which` must be one of 'energy' or 'time'.")
 
     # Set the defaults
+    if figure_kwargs is None:
+        figure_kwargs = {}
+    if plot_kwargs is None:
+        plot_kwargs = {}
+    if legend_kwargs is None:
+        legend_kwargs = {}
     figure_kwargs.setdefault("figsize", (15, 7))
     figure_kwargs.setdefault("dpi", 300)
-    plot_kwargs.setdefault("label", f"{sim.env.simulation_name}: {availability:.2%}")
+    plot_kwargs.setdefault("label", label)
     legend_kwargs.setdefault("fontsize", 14)
 
     fig = plt.figure(**figure_kwargs)
@@ -182,9 +222,9 @@ def plot_farm_availability(
     return None
 
 
-def plot_detailed_availability(
+def plot_operational_levels(
     sim: Simulation,
-    figure_kwargs: dict = {},
+    figure_kwargs: dict | None = None,
     cbar_label_fontsize: int = 14,
     return_fig: bool = False,
 ):
@@ -211,6 +251,8 @@ def plot_detailed_availability(
         See :py:attr:`return_fig` for details.
     """
     # Set the defaults
+    if figure_kwargs is None:
+        figure_kwargs = {}
     figure_kwargs.setdefault("figsize", (15, 10))
     figure_kwargs.setdefault("dpi", 300)
 

@@ -292,22 +292,33 @@ class Simulation(FromDictMixin):
         self.windfarm = Windfarm(self.env, self.config.layout, self.repair_manager)
 
         # Create the servicing equipment and set the necessary environment variables
-        self.service_equipment = []
+        self.service_equipment: dict[str, ServiceEquipment] = {}  # type: ignore
         for service_equipment in self.config.service_equipment:
             equipment = ServiceEquipment(
                 self.env, self.windfarm, self.repair_manager, service_equipment
             )
             equipment.finish_setup_with_environment_variables()
-            self.service_equipment.append(equipment)
+            name = equipment.settings.name
+            if name in self.service_equipment:
+                raise ValueError(
+                    f"Servicing equipment `{name}` already exists, please use unique"
+                    " names for all servicing equipment."
+                )
+            self.service_equipment[name] = equipment  # type: ignore
 
         # Create the port and add any tugboats to the available servicing equipment list
         if self.config.port is not None:
             self.port = Port(
                 self.env, self.windfarm, self.repair_manager, self.config.port
             )
-            self.service_equipment.extend(
-                self.port.service_equipment_manager.items  # type: ignore
-            )
+            for service_equipment in self.port.service_equipment_manager.items:
+                name = service_equipment.settings.name  # type: ignore
+                if name in self.service_equipment:
+                    raise ValueError(
+                        f"Servicing equipment `{name}` already exists, please use"
+                        " unique names for all servicing equipment."
+                    )
+                self.service_equipment[name] = service_equipment  # type: ignore
 
         if self.config.project_capacity * 1000 != round(self.windfarm.capacity, 6):
             raise ValueError(
@@ -372,7 +383,7 @@ class Simulation(FromDictMixin):
             substation_id=self.windfarm.substation_id.tolist(),
             turbine_id=self.windfarm.turbine_id.tolist(),
             substation_turbine_map=substation_turbine_map,
-            service_equipment_names=[el.settings.name for el in self.service_equipment],
+            service_equipment_names=[*self.service_equipment],  # type: ignore
         )
 
     def save_metrics_inputs(self) -> None:
@@ -398,9 +409,7 @@ class Simulation(FromDictMixin):
             "substation_id": self.windfarm.substation_id.tolist(),
             "turbine_id": self.windfarm.turbine_id.tolist(),
             "substation_turbine_map": substation_turbine_map,
-            "service_equipment_names": [
-                el.settings.name for el in self.service_equipment
-            ],
+            "service_equipment_names": [*self.service_equipment],
         }
 
         with open(self.env.metrics_input_fname, "w") as f:

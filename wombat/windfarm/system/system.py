@@ -188,7 +188,7 @@ class System:
         """
         if self.cable_failure.triggered and self.servicing.triggered:
             ol: float = reduce(mul, [sub.operating_level for sub in self.subassemblies])
-            return ol
+            return ol  # type: ignore
         return 0.0
 
     @property
@@ -203,7 +203,7 @@ class System:
         """
         if self.cable_failure.triggered:
             ol: float = reduce(mul, [sub.operating_level for sub in self.subassemblies])
-            return ol
+            return ol  # type: ignore
         return 0.0
 
     def power(self, windspeed: list[float] | np.ndarray) -> np.ndarray:

@@ -11,4 +11,3 @@ from .time import (
 )
 from .logging import setup_logger, format_events_log_message
 from .utilities import IEC_power_curve, _mean, cache, create_variable_from_string
-from .plot import plot_farm, plot_farm_availability, plot_detailed_availability
