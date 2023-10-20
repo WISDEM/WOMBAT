@@ -751,6 +751,78 @@ class WombatEnvironment(simpy.Environment):
         )
         return log_df
 
+    def _calculate_windfarm_total(
+        self, op: pd.DataFrame, prod: pd.DataFrame | None = None
+    ) -> pd.DataFrame:
+        """Calculates the overall wind farm operational level, accounting for substation
+        downtime by multiplying the sum of all downstream turbine operational levels by
+        the substation's operational level.
+
+        Parameters
+        ----------
+        op : pd.DataFrame
+            The turbine and substation operational level DataFrame.
+
+        Notes
+        -----
+        This is a crude cap on the operations, and so a smarter way of capping
+        the availability should be added in the future.
+
+        Returns
+        -------
+        pd.DataFrame
+            The aggregate wind farm operational level.
+        """
+        t_id = self.windfarm.turbine_id
+        turbines = self.windfarm.turbine_weights[t_id].values * op[t_id]
+        total = np.sum(
+            [
+                op[[sub]]
+                * np.array(
+                    [
+                        [math.fsum(row)]
+                        for _, row in turbines[val["turbines"]].iterrows()
+                    ]
+                ).reshape(-1, 1)
+                for sub, val in self.windfarm.substation_turbine_map.items()
+            ],
+            axis=0,
+        )
+        return total
+
+    def _calculate_adjusted_production(
+        self, op: pd.DataFrame, prod: pd.DataFrame
+    ) -> pd.DataFrame:
+        """Calculates the overall wind farm power production and adjusts individual
+        turbine production by accounting for substation downtime. This is done by
+        multiplying the all downstream turbine operational levels by the substation's
+        operational level.
+
+        Parameters
+        ----------
+        op : pd.DataFrame
+            The operational level DataFrame with turbine, substation, and windfarm
+            columns.
+        prod : pd.DataFrame
+            The turbine energy production DataFrame.
+
+        Notes
+        -----
+        This is a crude cap on the operations, and so a smarter way of capping
+        the availability should be added in the future.
+
+        Returns
+        -------
+        pd.DataFrame
+            Either the aggregate wind farm operational level or the total wind farm
+            energy production if the :py:attr:`prod` is provided.
+        """
+        # Adjust individual turbine production for substation downtime
+        for sub, val in self.windfarm.substation_turbine_map.items():
+            prod[val["turbines"]] *= op[[sub]].values
+        prod.windfarm = prod[self.windfarm.turbine_id].sum(axis=1)
+        return prod
+
     def load_operations_log_dataframe(self) -> pd.DataFrame:
         """Imports the logging file created in ``run`` and returns it as a formatted
         ``pandas.DataFrame``.
@@ -769,7 +841,7 @@ class WombatEnvironment(simpy.Environment):
             .set_index("datetime")
             .sort_values("datetime")
         )
-
+        log_df["windfarm"] = self._calculate_windfarm_total(log_df)
         return log_df
 
     def power_production_potential_to_csv(  # type: ignore
@@ -829,7 +901,7 @@ class WombatEnvironment(simpy.Environment):
         # the max of the substation's operating capacity and then summed.
         production_df = potential_df.copy()
         production_df[turbines] *= operations[turbines].values
-        production_df.windfarm = production_df[turbines].sum(axis=1)
+        production_df = self._calculate_adjusted_production(operations, production_df)
         pa.csv.write_csv(
             pa.Table.from_pandas(production_df),
             self.power_production_fname,

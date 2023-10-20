@@ -286,6 +286,13 @@ class Windfarm:
 
         self.substation_turbine_map: dict[str, dict[str, np.ndarray]] = s_t_map
 
+        # Calculate the turbine weights
+        self.turbine_weights: pd.DataFrame = (
+            pd.concat([pd.DataFrame(val) for val in s_t_map.values()])
+            .set_index("turbines")
+            .T
+        )
+
     def _create_wind_farm_map(self) -> None:
         """Creates a secondary graph object strictly for traversing the windfarm to turn
         on/off the appropriate turbines, substations, and cables more easily.

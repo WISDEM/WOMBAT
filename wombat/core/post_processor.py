@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import warnings
 from copy import deepcopy
-from math import fsum
 from typing import TYPE_CHECKING
 from pathlib import Path
 from itertools import chain, product
@@ -196,19 +195,19 @@ class Metrics:
 
         if isinstance(events, str):
             events = self._read_data(events)
-        self.events = self._apply_inflation_rate(self._tidy_data(events, kind="events"))
+        self.events = self._apply_inflation_rate(self._tidy_data(events))
 
         if isinstance(operations, str):
             operations = self._read_data(operations)
-        self.operations = self._tidy_data(operations, kind="operations")
+        self.operations = self._tidy_data(operations)
 
         if isinstance(potential, str):
             potential = self._read_data(potential)
-        self.potential = self._tidy_data(potential, kind="potential")
+        self.potential = self._tidy_data(potential)
 
         if isinstance(production, str):
             production = self._read_data(production)
-        self.production = self._tidy_data(production, kind="production")
+        self.production = self._tidy_data(production)
 
     @classmethod
     def from_simulation_outputs(cls, fpath: Path | str, fname: str) -> Metrics:
@@ -232,7 +231,7 @@ class Metrics:
         metrics = cls(**data)
         return metrics
 
-    def _tidy_data(self, data: pd.DataFrame, kind: str) -> pd.DataFrame:
+    def _tidy_data(self, data: pd.DataFrame) -> pd.DataFrame:
         """Tidies the "raw" csv-converted data to be able to be used among the
         ``Metrics`` class.
 
@@ -240,12 +239,6 @@ class Metrics:
         ----------
         data : pd.DataFrame
             The csv log data.
-        kind : str
-            The category of the input provided to ``data``. Should be one of:
-             - "operations"
-             - "events"
-             - "potential"
-             - "production"
 
         Returns
         -------
@@ -270,23 +263,6 @@ class Metrics:
             month=data.env_datetime.dt.month,
             day=data.env_datetime.dt.day,
         )
-        if kind == "operations":
-            data[self.turbine_id] = data[self.turbine_id].astype(float)
-            turbines = (
-                self.turbine_weights[self.turbine_id].values * data[self.turbine_id]
-            )
-            windfarm = np.sum(
-                [
-                    data[[sub]]
-                    * np.array(
-                        [[fsum(row)] for _, row in turbines[val["turbines"]].iterrows()]
-                    ).reshape(-1, 1)
-                    for sub, val in self.substation_turbine_map.items()
-                ],
-                axis=0,
-            )
-            windfarm = pd.DataFrame(windfarm, columns=["windfarm"], index=data.index)
-            data = pd.concat([data, windfarm], axis=1)
         return data
 
     def _read_data(self, fname: str) -> pd.DataFrame:
