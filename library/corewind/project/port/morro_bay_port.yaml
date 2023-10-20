@@ -1,0 +1,10 @@
+name: Morro Bay Port
+tugboats: [tugboat1.yaml, tugboat2.yaml]
+n_crews: 2
+crew:
+  day_rate: 0
+  n_day_rate: 0
+  hourly_rate: 0
+  n_hourly_rate: 0
+max_operations: 2
+annual_fee: 0
