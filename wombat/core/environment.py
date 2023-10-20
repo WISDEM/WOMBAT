@@ -818,10 +818,11 @@ class WombatEnvironment(simpy.Environment):
             energy production if the :py:attr:`prod` is provided.
         """
         # Adjust individual turbine production for substation downtime
+        prod = prod.copy()
         for sub, val in self.windfarm.substation_turbine_map.items():
             prod[val["turbines"]] *= op[[sub]].values
         prod.windfarm = prod[self.windfarm.turbine_id].sum(axis=1)
-        return prod
+        return prod[["windfarm"]]
 
     def load_operations_log_dataframe(self) -> pd.DataFrame:
         """Imports the logging file created in ``run`` and returns it as a formatted
@@ -901,7 +902,9 @@ class WombatEnvironment(simpy.Environment):
         # the max of the substation's operating capacity and then summed.
         production_df = potential_df.copy()
         production_df[turbines] *= operations[turbines].values
-        production_df = self._calculate_adjusted_production(operations, production_df)
+        production_df.windfarm = self._calculate_adjusted_production(
+            operations, production_df
+        )
         pa.csv.write_csv(
             pa.Table.from_pandas(production_df),
             self.power_production_fname,

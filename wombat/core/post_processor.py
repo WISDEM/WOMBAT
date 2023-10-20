@@ -51,18 +51,23 @@ def _check_frequency(frequency: str, which: str = "all") -> str:
 
 
 def _calculate_time_availability(
-    availability: np.ndarray, by_turbine: bool = False
+    availability: pd.DataFrame,
+    by_turbine: bool = False,
+    turbine_id: list[str] | None = None,
 ) -> float | np.ndarray:
     """Calculates the availability ratio of the whole timeseries or the whole
     timeseries, by turbine.
 
     Parameters
     ----------
-    availability : np.ndarray
+    availability : pd.DataFrame
         Timeseries array of operating ratios.
     by_turbine : bool, optional
         If True, calculates the availability rate of each column, otherwise across the
         whole array, by default False.
+    turbine_id : list[str], optional
+        A list of turbine IDs that is required if :py:attr:`by_turbine` is ``True``, by
+        default None.
 
     Returns
     -------
@@ -72,8 +77,8 @@ def _calculate_time_availability(
     """
     availability = availability > 0
     if by_turbine:
-        return availability.sum(axis=0) / availability.shape[0]
-    return availability.sum() / availability.size
+        return availability[turbine_id].values.sum(axis=0) / availability.shape[0]
+    return availability.windfarm.values.sum() / availability.windfarm.size
 
 
 class Metrics:
@@ -370,13 +375,15 @@ class Metrics:
         for sub, val in self.substation_turbine_map.items():
             turbine_operations[val["turbines"]] *= self.operations[[sub]].values
 
-        hourly = turbine_operations.loc[:, self.turbine_id].values
+        hourly = turbine_operations.loc[:, ["windfarm"] + self.turbine_id]
 
         # TODO: The below should be better summarized as:
         # (availability > 0).groupby().sum() / groupby().count()
 
         if frequency == "project":
-            availability = _calculate_time_availability(hourly, by_turbine=by_turbine)
+            availability = _calculate_time_availability(
+                hourly, by_turbine=by_turbine, turbine_id=self.turbine_id
+            )
             if not by_turbine:
                 return pd.DataFrame([availability], columns=["windfarm"])
 
@@ -392,7 +399,9 @@ class Metrics:
             counts = counts[self.turbine_id] if by_turbine else counts[["windfarm"]]
             annual = [
                 _calculate_time_availability(
-                    hourly[date_time.year == year], by_turbine=by_turbine
+                    hourly[date_time.year == year],
+                    by_turbine=by_turbine,
+                    turbine_id=self.turbine_id,
                 )
                 for year in counts.index
             ]
@@ -403,7 +412,9 @@ class Metrics:
             counts = counts[self.turbine_id] if by_turbine else counts[["windfarm"]]
             monthly = [
                 _calculate_time_availability(
-                    hourly[date_time.month == month], by_turbine=by_turbine
+                    hourly[date_time.month == month],
+                    by_turbine=by_turbine,
+                    turbine_id=self.turbine_id,
                 )
                 for month in counts.index
             ]
@@ -416,6 +427,7 @@ class Metrics:
                 _calculate_time_availability(
                     hourly[(date_time.year == year) & (date_time.month == month)],
                     by_turbine=by_turbine,
+                    turbine_id=self.turbine_id,
                 )
                 for year, month in counts.index
             ]
@@ -448,23 +460,24 @@ class Metrics:
             raise ValueError('``by`` must be one of "windfarm" or "turbine".')
         by_turbine = by == "turbine"
 
-        production = self.production.loc[:, self.turbine_id]
-        potential = self.potential.loc[:, self.turbine_id]
+        if by_turbine:
+            production = self.production.loc[:, self.turbine_id]
+            potential = self.potential.loc[:, self.turbine_id]
+        else:
+            production = self.production[["windfarm"]].copy()
+            potential = self.potential[["windfarm"]].copy()
 
         if frequency == "project":
             production = production.values
             potential = potential.values
             if (potential == 0).sum() > 0:
                 potential[potential == 0] = 1
-            if not by_turbine:
-                return pd.DataFrame(
-                    [production.sum() / potential.sum()], columns=["windfarm"]
-                )
-            availability = pd.DataFrame(
-                (production.sum(axis=0) / potential.sum(axis=0)).reshape(1, -1),
-                columns=self.turbine_id,
-            )
-            return availability
+
+            availability = production.sum(axis=0) / potential.sum(axis=0)
+            if by_turbine:
+                return pd.DataFrame([availability], columns=self.turbine_id)
+            else:
+                return pd.DataFrame([availability], columns=["windfarm"])
 
         production["year"] = production.index.year.values
         production["month"] = production.index.month.values
@@ -472,7 +485,7 @@ class Metrics:
         potential["year"] = potential.index.year.values
         potential["month"] = potential.index.month.values
 
-        group_cols = deepcopy(self.turbine_id)
+        group_cols = deepcopy(self.turbine_id) if by_turbine else ["windfarm"]
         if frequency == "annual":
             group_cols.insert(0, "year")
             production = production[group_cols].groupby("year").sum()
