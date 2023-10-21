@@ -1,5 +1,13 @@
 # Helpers and Plotting
 
+## Plotting
+
+```{eval-rst}
+.. automodule:: wombat.utilities.plot
+   :members:
+   :undoc-members:
+```
+
 ## Logging functions
 
 ```{eval-rst}
@@ -23,11 +31,3 @@
    :members:
    :undoc-members:
 ```
-
-<!-- ## Plotting
-
-```{eval-rst}
-.. automodule:: wombat.utilities.plot
-   :members:
-   :undoc-members:
-``` -->
