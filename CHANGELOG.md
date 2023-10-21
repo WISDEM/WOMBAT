@@ -6,11 +6,19 @@
 - Traveling to a system for a repair where the timing extends beyond the end of the shift, but into the next shift, is now registered as a shift delay just like travel weather delays that extend beyond the end of the current shift but before the start of the next shift. This has a small positive impact on availability because a turbine or cable may not start being repaired until weather is more consistently clear, rather than starting it and extending it for many shifts.
 - `Windfarm.cable()` now correctly identifies 2 and 3 length cable naming conventions to differentiate which version of the cable id is being retrieved.
 - An edge case where events occurred just after the end of a simulation has been resolved by checking the datetime stamp of that event and not adding any action log to the simulation that is after the `WombatEnvironment.end_datetime`.
+- A bug in how the total wind farm operating level was calculated is updated to account for substation downtime, rather than using a sum of all turbine values.
+- `Metrics.time_based_availability` and `Metrics.production_based_availability` have been updated to use to take advantage of the above fix. Similarly, the time-based availability skews higher now, as is expected when taking into account all availability greater than 0, and the energy-based availability drops moderately as a result of accounting for the substation downtime.
 
 ### General Updates
 
 - `Metrics.equipment_labor_cost_breakdowns` now has a `by_equipment` boolean flag, so that the labor and equipment costs can be broken down by category and equipment. Additionally, `total_hours` has been added to the results, resulting in fewer computed metrics across the same set of breakdowns.
 - "request canceled" and "complete" are now updated in the logging to directly state if it's a "repair" or "maintenance" task that was completed or canceled to ensure consistency across the logging messages. As a result, `Metrics.task_completion_rate()` can now correctly differentiate between the completed tasks effectively.
+- The use of unique naming for the servicing equipment is now enforced to ensure that there is no overlap and potential confusion in the model.
+- New, experimental plotting functionality has been added via `wombat.utilities.plot`.
+  - `plot_farm_layout` plots the graph layout of the farm. Note that this will not work if realistic lat/lon pairs have not been provided in the layout CSV.
+  - `plot_farm_availability` plots a line chart of the monthly overall windfarm availability. Additional toggles allow for the plotting of individual turbines in the background and/or the a 95% confidence interval band around the farm's availability
+  - `plot_detailed_availability` plots a heatmap of the hourly turbine and farm operational levels to help in debugging simulations where availability may be running suspiciously low (i.e., a turbine might have shut down or a cable failure didn't get repaired within a reasonable time frame).
+- `Simulation.service_equipment` is now a dictionary to provide clear access to the servicing equipment details.
 
 ### Methodology Updates
 
