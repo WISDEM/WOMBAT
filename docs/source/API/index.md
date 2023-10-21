@@ -27,4 +27,5 @@ simulation_api
 types
 core
 windfarm
+utilities
 ```

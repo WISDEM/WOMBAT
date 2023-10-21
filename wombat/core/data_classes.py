@@ -597,7 +597,7 @@ class SubassemblyData(FromDictMixin):
     maintenance : list[dict[str, float | str]]
         List of the maintenance classification dictionaries. This will be converted
         to a list of ``Maintenance`` objects in the post initialization hook.
-    failures : fict[int, dict[str, float | str]]
+    failures : dict[int, dict[str, float | str]]
         Dictionary of failure classifications in a numerical (ordinal) categorization
         order. This will be converted to a dictionary of ``Failure`` objects in the
         post initialization hook.
@@ -1661,8 +1661,8 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
         start of the simulation to the end of the simulation.
 
         .. note:: Don't include this cost in both this category and either the
-        ``FixedCosts.operations_management_administration`` bucket or
-        ``FixedCosts.marine_management`` category.
+            ``FixedCosts.operations_management_administration`` bucket or
+            ``FixedCosts.marine_management`` category.
 
     non_operational_start : str | datetime.datetime | None
         The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized

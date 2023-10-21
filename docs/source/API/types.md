@@ -146,7 +146,7 @@ hoping for the best.
 
 ### Sub String
 ```{eval-rst}
-.. autoclass:: wombat.core.data_classes.String
+.. autoclass:: wombat.core.data_classes.SubString
    :members:
    :undoc-members:
    :exclude-members: downstream, upstream
