@@ -24,7 +24,9 @@ hoping for the best.
    :exclude-members:
 ```
 
-## Maintenance Tasks
+## Scheduled and Unscheduled Maintenance
+
+### Maintenance Tasks
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.Maintenance
    :members:
@@ -33,8 +35,7 @@ hoping for the best.
     level, operation_reduction
 ```
 
-
-## Failures
+### Failures
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.Failure
    :members:
@@ -43,8 +44,18 @@ hoping for the best.
     maintenance, failures, level, equipment, system_value, description
 ```
 
+### Repair Requests
+```{eval-rst}
+.. autoclass:: wombat.core.data_classes.RepairRequest
+   :members:
+   :undoc-members:
+   :exclude-members: system_id, system_name, subassembly_id, subassembly_name,
+    severity_level, details, cable, upstream_turbines
+```
 
-## Service Equipment
+## Servicing Equipment and Crews
+
+### Service Equipment
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.ServiceEquipmentData
    :members:
@@ -52,8 +63,7 @@ hoping for the best.
    :exclude-members: data_dict, strategy
 ```
 
-
-## ServiceCrew
+### ServiceCrew
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.ServiceCrew
    :members:
@@ -61,8 +71,7 @@ hoping for the best.
    :exclude-members: n_day_rate, day_rate, n_hourly_rate, hourly_rate
 ```
 
-
-## Scheduled Service Equipment
+### Scheduled Service Equipment
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.ScheduledServiceEquipmentData
    :members:
@@ -75,8 +84,7 @@ hoping for the best.
     workday_end, crew, crew_transfer_time, n_crews, strategy
 ```
 
-
-## Unscheduled Service Equipment
+### Unscheduled Service Equipment
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.UnscheduledServiceEquipmentData
    :members:
@@ -90,8 +98,20 @@ hoping for the best.
     charter_days
 ```
 
+### Port Configuration
+```{eval-rst}
+.. autoclass:: wombat.core.data_classes.PortConfig
+   :members:
+   :undoc-members:
+   :exclude-members: name, tugboats, crew, n_crews, max_operations, workday_start,
+    workday_end, site_distance, annual_fee, non_operational_start, non_operational_end,
+    reduced_speed_start, reduced_speed_end, reduced_speed, non_operational_dates_set,
+    reduced_speed_dates_set, non_stop_shift
+```
 
-## Subassembly Model
+## Wind Farm Support
+
+### Subassembly Model
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.SubassemblyData
    :members:
@@ -100,8 +120,41 @@ hoping for the best.
     subassembly_id, subassembly_name, severity_level, details, cable, upstream_turbines
 ```
 
+### Wind Farm Map
+```{eval-rst}
+.. autoclass:: wombat.core.data_classes.WindFarmMap
+   :members:
+   :undoc-members:
+   :exclude-members: substation_map, export_cables
+```
 
-## Fixed Cost Model
+### Substation Map
+```{eval-rst}
+.. autoclass:: wombat.core.data_classes.SubstationMap
+   :members:
+   :undoc-members:
+   :exclude-members: string_starts, string_map, downstream
+```
+
+### String
+```{eval-rst}
+.. autoclass:: wombat.core.data_classes.String
+   :members:
+   :undoc-members:
+   :exclude-members: start, upstream_map
+```
+
+### Sub String
+```{eval-rst}
+.. autoclass:: wombat.core.data_classes.String
+   :members:
+   :undoc-members:
+   :exclude-members: downstream, upstream
+```
+
+## Miscellaneous
+
+### Fixed Cost Model
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.FixedCosts
    :members:
@@ -113,14 +166,4 @@ hoping for the best.
     third_party_liability, storm_coverage, annual_leases_fees, submerge_land_lease_costs,
     transmission_charges_rights, onshore_electrical_maintenance, labor, resolution,
     hierarchy, cost_category_validator
-```
-
-
-## Repair Requests
-```{eval-rst}
-.. autoclass:: wombat.core.data_classes.RepairRequest
-   :members:
-   :undoc-members:
-   :exclude-members: system_id, system_name, subassembly_id, subassembly_name,
-    severity_level, details, cable, upstream_turbines
 ```
