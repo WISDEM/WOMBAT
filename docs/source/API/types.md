@@ -32,7 +32,7 @@ hoping for the best.
    :members:
    :undoc-members:
    :exclude-members: time, materials, frequency, equipment, system_value, description,
-    level, operation_reduction
+    level, operation_reduction, rng, service_equipment, replacement
 ```
 
 ### Failures
@@ -41,7 +41,8 @@ hoping for the best.
    :members:
    :undoc-members:
    :exclude-members: scale, shape, time, materials, operation_reduction, weibull, name,
-    maintenance, failures, level, equipment, system_value, description
+    maintenance, failures, level, equipment, system_value, description, rng,
+    service_equipment, replacement
 ```
 
 ### Repair Requests
@@ -50,7 +51,7 @@ hoping for the best.
    :members:
    :undoc-members:
    :exclude-members: system_id, system_name, subassembly_id, subassembly_name,
-    severity_level, details, cable, upstream_turbines
+    severity_level, details, cable, upstream_turbines, upstream_cables,
 ```
 
 ## Servicing Equipment and Crews
@@ -81,7 +82,9 @@ hoping for the best.
     capability, mobilization_cost, mobilization_days, speed, max_windspeed_repair,
     max_windspeed_transport, max_waveheight_transport, max_waveheight_repair, onsite,
     method, max_severity, operating_dates, create_date_range, workday_start,
-    workday_end, crew, crew_transfer_time, n_crews, strategy
+    workday_end, crew, crew_transfer_time, n_crews, strategy, port_distance,
+    reduced_speed_start, reduced_speed_end, reduced_speed, speed_reduction_factor,
+    non_operational_end, non_operational_start,
 ```
 
 ### Unscheduled Service Equipment
@@ -95,7 +98,9 @@ hoping for the best.
     max_windspeed_transport, max_waveheight_transport, max_waveheight_repair, onsite,
     method, max_severity, operating_dates, create_date_range, workday_start,
     workday_end, crew, crew_transfer_time, n_crews, strategy, strategy_threshold,
-    charter_days
+    speed_reduction_factor, non_operational_end, non_operational_start, unmoor_hours,
+    reconnection_hours, port_distance, reduced_speed_start, reduced_speed_end,
+    reduced_speed, tow_speed, charter_days
 ```
 
 ### Port Configuration
@@ -117,7 +122,8 @@ hoping for the best.
    :members:
    :undoc-members:
    :exclude-members: name, maintenance, failures, system_id, system_name, system_value,
-    subassembly_id, subassembly_name, severity_level, details, cable, upstream_turbines
+    subassembly_id, subassembly_name, severity_level, details, cable, upstream_turbines,
+    rng
 ```
 
 ### Wind Farm Map
