@@ -21,6 +21,7 @@
 ### Deprecations
 
 - The original library structure has been fully deprecated, please see the Reference/How To example for more details on converting data that has not yet been updated.
+- All PySAM functionality has been deprecated as it's no longer relevant to this work.
 
 ## v0.8.1 (28 August 2023)
 
