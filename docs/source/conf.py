@@ -95,7 +95,7 @@ source_suffix = {
 }
 
 # toggle this between auto/off to rerun full documentation build
-nb_execution_mode = "auto"
+nb_execution_mode = "off"
 nb_execution_timeout = -1
 nb_execution_allow_errors = True
 nb_execution_excludepatterns.extend(
@@ -125,7 +125,6 @@ html_theme_options = {
     "navigation_depth": 2,
     "home_page_in_toc": True,
     "show_toc_level": 2,
-    # "show_nav_level": 2,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
