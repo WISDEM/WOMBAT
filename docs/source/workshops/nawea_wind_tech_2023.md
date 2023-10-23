@@ -12,6 +12,19 @@
 - Basic terminal proficiency (or Windows alternative)
 - Basic Python proficiency (WOMBAT doesn't requires very little code, but you still need to use Python)
 
+## Can't attend (or couldn't if this already happened)?
+
+Don't worry, all of the same steps apply for workshop setup and the required materials,
+but in lieu of doing this live, the actual workshop slides are located
+[here]() and the hands-on part is driven by the example notebook [here](). Just note
+that the spoken commentary is not included, but the materials to drive that content are
+all included in the slides with links to the appropriate documentation pages and the
+relevant screenshots so that participants can track down the required data in the
+COREWIND publications.
+
+This has also been turned into a usable example for the Morro Bay, California, USA 
+9D layout [here]().
+
 ## Pre-Workshop Setup
 
 1. Create a new Python environment (conda instructtions)
@@ -42,4 +55,10 @@
 
    >>> import wombat
    >>> wombat.__version__
+   ```
+
+5. If the result of `wombat.__version` is less than v0.9, please use the develop branch:
+
+   ```
+   git checkout develop
    ```
