@@ -215,7 +215,7 @@ class Simulation(FromDictMixin):
 
     @classmethod
     def from_config(
-        cls, library: str | Path, config: str | Path | dict | Configuration
+        cls, library_path: str | Path, config: str | Path | dict | Configuration
     ):
         """Creates the ``Simulation`` object only the configuration contents as either a
         full file path to the configuration file, a dictionary of the configuration
@@ -223,6 +223,10 @@ class Simulation(FromDictMixin):
 
         Parameters
         ----------
+        library_path : str | Path
+            The simulation's data library. If a filename is provided for
+            :py:attr:`config`, this is the data library from where it will be imported.
+            This will also be used to feed into the returned `Simulation.library_path`.
         config : str | Path | dict | Configuration
             The simulation configuration, see ``Configuration`` for more details on the
             contents. The following is a description of the acceptable contents:
@@ -241,9 +245,9 @@ class Simulation(FromDictMixin):
         Simulation
             A ready-to-run ``Simulation`` object.
         """
-        library = _library_mapper(library)
+        library_path = _library_mapper(library_path)
         if isinstance(config, (str, Path)):
-            config = library / "project" / "config" / config
+            config = library_path / "project" / "config" / config
             config = load_yaml(config.parent, config.name)
         if isinstance(config, dict):
             config = Configuration.from_dict(config)
@@ -254,7 +258,7 @@ class Simulation(FromDictMixin):
         if TYPE_CHECKING:
             assert isinstance(config, Configuration)  # mypy helper
         return cls(  # type: ignore
-            library_path=library,
+            library_path=library_path,
             config=config,
             random_seed=config.random_seed,
             random_generator=config.random_generator,

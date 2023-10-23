@@ -503,7 +503,6 @@ config = load_yaml(library_path / "project/config", "base.yaml")
 ```{code-block} yaml
 # Contents of: dinwoodie / config / base.yaml
 name: dinwoodie_base
-library: DINWOODIE
 weather: alpha_ventus_weather_2002_2014.csv  # located in: dinwoodie / weather
 service_equipment:
 # YAML-encoded list, but could also be created in standard Python list notation with
@@ -539,7 +538,7 @@ Load the file from the `Configuration` object that was created in the prior code
 
 ```{code-cell} ipython3
 
-sim = Simulation.from_config(library_path, config)
+sim = Simulation.from_config(library_path=library_path, config=config)
 
 # Delete any files that get initialized through the simulation environment
 sim.env.cleanup_log_files()
@@ -589,7 +588,6 @@ sim = Simulation(
     random_generator=rng,  # generator that can be shared among all processes
 )
 ```
-
 
 ## Run the analysis
 
