@@ -1639,7 +1639,8 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
         file, or list of files to create the port's tugboats.
 
         .. note:: Each tugboat is considered to be a tugboat + supporting vessels as
-        the primary purpose to tow turbines between a repair port and site.
+            the primary purpose to tow turbines between a repair port and site.
+
     n_crews : int
         The number of service crews available to be working on repairs simultaneously;
         each crew is able to service exactly one repair.
