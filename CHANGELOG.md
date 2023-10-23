@@ -19,6 +19,7 @@
   - `plot_farm_availability` plots a line chart of the monthly overall windfarm availability. Additional toggles allow for the plotting of individual turbines in the background and/or the a 95% confidence interval band around the farm's availability
   - `plot_detailed_availability` plots a heatmap of the hourly turbine and farm operational levels to help in debugging simulations where availability may be running suspiciously low (i.e., a turbine might have shut down or a cable failure didn't get repaired within a reasonable time frame).
 - `Simulation.service_equipment` is now a dictionary to provide clear access to the servicing equipment details.
+- `Simulation.from_config()` requires both a library input and a file name input for the configuration after deprecating the `library` field from the configuration requirements due to it being cumbersome
 
 ### Methodology Updates
 
@@ -30,6 +31,7 @@
 
 - The original library structure has been fully deprecated, please see the Reference/How To example for more details on converting data that has not yet been updated.
 - All PySAM functionality has been deprecated as it's no longer relevant to this work.
+- The `Simulation.config` no longer requires the `library` field to reduce conflicts with sharing data between users.
 
 ## v0.8.1 (28 August 2023)
 
