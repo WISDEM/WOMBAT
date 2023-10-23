@@ -19,7 +19,7 @@ crew_transfer_time: 0.25
 port_distance: 0  # will get automatically set from the port configuration if not provided
 n_crews: 1
 crew:
-  day_rate: 0
-  n_day_rate: 0
+  day_rate: 219.18  # 80K/yr / 365 days
+  n_day_rate: 10  # N technicians for all AHV jobs
   hourly_rate: 0
   n_hourly_rate: 0

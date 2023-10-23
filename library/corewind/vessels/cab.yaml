@@ -17,7 +17,7 @@ charter_days: 10
 crew_transfer_time: 0.25
 n_crews: 1
 crew:
-  day_rate: 0  # cabling vessels include the technicians
-  n_day_rate: 0
+  day_rate: 219.18  # 80K/yr / 365 days
+  n_day_rate: 10  # N technicians for all array cable tasks
   hourly_rate: 0
   n_hourly_rate: 0

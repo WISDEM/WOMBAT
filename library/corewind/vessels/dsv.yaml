@@ -17,7 +17,7 @@ charter_days: 4
 crew_transfer_time: 0.25
 n_crews: 1
 crew:
-  day_rate: 0  # crew comes with the vessel
-  n_day_rate: 0
+  day_rate: 219.18  # 80K/yr / 365 days
+  n_day_rate: 10  # N technicians for all DSV tasks
   hourly_rate: 0
   n_hourly_rate: 0

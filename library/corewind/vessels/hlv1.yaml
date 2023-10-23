@@ -1,4 +1,4 @@
-name: Heavy Lift Vessel 1
+name: Heavy Lift Vessel
 equipment_rate: 290000
 capability: LCN
 speed: 20.37  # 11 knots
@@ -17,7 +17,7 @@ charter_days: 20
 crew_transfer_time: 0.25
 n_crews: 1
 crew:
-  day_rate: 0
-  n_day_rate: 0  # crew comes with the vessel
+  day_rate: 219.18  # 80K/yr / 365 days
+  n_day_rate: 5  # Most tasks are 3 or 4, but some larger ones are 8, 10, and 21
   hourly_rate: 0
   n_hourly_rate: 0

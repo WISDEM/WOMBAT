@@ -2,7 +2,7 @@
 
 ## What You'll Need
 
-- [COREWIND Floating Wind Description](https://corewind.eu/wp-content/uploads/files/publications/COREWIND-D6.1-General-frame-of-the-analysis-and-description-of-the-new-FOW-assessment-app.pdf) 
+- [COREWIND Floating Wind Description](https://corewind.eu/wp-content/uploads/files/publications/COREWIND-D6.1-General-frame-of-the-analysis-and-description-of-the-new-FOW-assessment-app.pdf)
 - [COREWIND Floating Wind O&M Strategies Assessment](https://corewind.eu/wp-content/uploads/files/publications/COREWIND-D4.2-Floating-Wind-O-and-M-Strategies-Assessment.pdf)
 - Code editor (VSCode is what I use and therefore recommend)
 - Working python environment (Miniconda is my preference because it's lightweight)
@@ -16,14 +16,15 @@
 
 Don't worry, all of the same steps apply for workshop setup and the required materials,
 but in lieu of doing this live, the actual workshop slides are located
-[here]() and the hands-on part is driven by the example notebook [here](). Just note
-that the spoken commentary is not included, but the materials to drive that content are
-all included in the slides with links to the appropriate documentation pages and the
-relevant screenshots so that participants can track down the required data in the
-COREWIND publications.
+[here](../presentations.md#2023-nawea-windtech-workshop) and the hands-on part is driven
+ by the example notebook [here](https://github.com/WISDEM/WOMBAT/blob/main/examples/NAWEA_interactive_walkthrough.ipynb).
+Just note that the spoken commentary is not included, but the materials to drive that
+content areall included in the slides with links to the appropriate documentation pages
+and the relevant screenshots so that participants can track down the required data in
+the COREWIND publications.
 
-This has also been turned into a usable example for the Morro Bay, California, USA 
-9D layout [here]().
+This has also been turned into a usable example dataset for the Morro Bay, California,
+USA 9D layout [here](https://github.com/WISDEM/WOMBAT/blob/main/library/corewind/).
 
 ## Pre-Workshop Setup
 
@@ -57,7 +58,7 @@ This has also been turned into a usable example for the Morro Bay, California, U
    >>> wombat.__version__
    ```
 
-5. If the result of `wombat.__version` is less than v0.9, please use the develop branch:
+5. If the result of `wombat.__version__` is less than v0.9, please use the develop branch:
 
    ```
    git checkout develop
