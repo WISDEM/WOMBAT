@@ -12,19 +12,18 @@
 - Basic terminal proficiency (or Windows alternative)
 - Basic Python proficiency (WOMBAT doesn't requires very little code, but you still need to use Python)
 
-## Can't attend (or couldn't if this already happened)?
+## Slides and Data
 
-Don't worry, all of the same steps apply for workshop setup and the required materials,
-but in lieu of doing this live, the actual workshop slides are located
-[here](../presentations.md#2023-nawea-windtech-workshop) and the hands-on part is driven
- by the example notebook [here](https://github.com/WISDEM/WOMBAT/blob/main/examples/NAWEA_interactive_walkthrough.ipynb).
 Just note that the spoken commentary is not included, but the materials to drive that
-content areall included in the slides with links to the appropriate documentation pages
+content are all included in the slides with links to the appropriate documentation pages
 and the relevant screenshots so that participants can track down the required data in
-the COREWIND publications.
+the COREWIND publications more easily.
 
-This has also been turned into a usable example dataset for the Morro Bay, California,
-USA 9D layout [here](https://github.com/WISDEM/WOMBAT/blob/main/library/corewind/).
+- The slides can be found [here](../presentations.md#2023-nawea-windtech-workshop)
+- The accompanying example notebook is
+  [here](https://github.com/WISDEM/WOMBAT/blob/main/examples/NAWEA_interactive_walkthrough.ipynb).
+- Example dataset for the Morro Bay, California, USA 9D layout with connected
+  substations is [here](https://github.com/WISDEM/WOMBAT/blob/main/library/corewind/).
 
 ## Pre-Workshop Setup
 
