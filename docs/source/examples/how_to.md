@@ -539,7 +539,7 @@ Load the file from the `Configuration` object that was created in the prior code
 
 ```{code-cell} ipython3
 
-sim = Simulation.from_config(config)
+sim = Simulation.from_config(library_path, config)
 
 # Delete any files that get initialized through the simulation environment
 sim.env.cleanup_log_files()
