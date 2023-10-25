@@ -1,8 +1,111 @@
-[wombat.urls]
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wombat"
+version = "0.9rc1"
+authors = [{name = "Rob Hammond", email = "rob.hammond@nrel.gov"}]
+readme = {file = "README.md", content-type = "text/markdown"}
+description = "Windfarm operations and maintenance cost-benefit analysis tool"
+requires-python = ">=3.9, <3.11"
+license = {file = "LICENSE"}
+dependencies = [
+    "attrs>=21",
+    "numpy>=1.21",
+    "scipy>=1.8",
+    "pandas>=2",
+    "polars>=0.17",
+    "pyarrow>=10",
+    "jupyterlab>=3",
+    "simpy>=4.0.1",
+    "pyyaml>=6",
+    "geopy>=2.3",
+    "networkx>=2.7",
+    "matplotlib>=3.3",
+    "types-attrs>=19",
+    "types-typed-ast>=1.5",
+    "types-PyYAML>=6",
+    "types-python-dateutil>=2.8",
+]
+keywords = [
+    "python3",
+    "wind-energy",
+    "operations-maintenance",
+    "discrete-event-simulation",
+    "simulation",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Other Audience",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+
+[project.urls]
 source = "https://github.com/WISDEM/WOMBAT"
 documentation = "https://wisdem.github.io/WOMBAT/"
 issues = "https://github.com/WISDEM/WOMBAT/issues"
 changelog = "https://github.com/WISDEM/WOMBAT/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit>=2.20",
+    "black>=22.1",
+    "isort>=5.10",
+    "pytest>=7",
+    "pytest-cov>=4",
+    "mypy==0.991",
+    "ruff==0.0.246",
+]
+docs = [
+    "Sphinx",
+    "myst-nb>=0.16",
+    "myst-parser>=0.17",
+    "sphinx-book-theme<1",
+    "sphinxcontrib-spelling>=7",
+    "linkify-it-py>=2",
+    "sphinxcontrib-bibtex>=2.4",
+]
+all = [
+    "pre-commit>=2.20",
+    "black>=22.1",
+    "isort>=5.10",
+    "pytest>=7",
+    "pytest-cov>=4",
+    "mypy==0.991",
+    "ruff==0.0.246",
+    "Sphinx",
+    "myst-nb>=0.16",
+    "myst-parser>=0.17",
+    "sphinx-book-theme<1",
+    "sphinxcontrib-spelling>=7",
+    "linkify-it-py>=2",
+    "sphinxcontrib-bibtex>=2.4",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+# [tool.setuptools]
+# test-suite = "pytest"
+# tests-require = ["pytest", "pytest-cov"]
+
+[tool.setuptools.packages.find]
+where = ["wombat"]
+include = ["*.yaml", "*.csv"]
+exclude = ["*.tests", "*.tests.*", "tests.*", "tests"]
 
 [coverage.run]
 # Coverage.py configuration file
