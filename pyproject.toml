@@ -15,9 +15,13 @@ omit = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--strict --pdbcls=tests:Debugger -r sxX --cov=wombat --cov-report=html --cov-report=term-missing:skip-covered --no-cov-on-fail --ignore=setup.py"
+addopts = "--strict-markers --pdbcls=tests:Debugger -r sxX --cov=wombat --cov-report=html --cov-report=term-missing:skip-covered --no-cov-on-fail --ignore=setup.py"
 testpaths = "tests"
 cache_dir = ".cache"
+filterwarnings = [
+  "ignore::DeprecationWarning:simpy.*:",
+  "ignore::DeprecationWarning:pkg_resources.*:",
+]
 
 [tool.isort]
 skip = [

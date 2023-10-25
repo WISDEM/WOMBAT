@@ -2003,9 +2003,20 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
     # The first HLV call is at 14012.2435309168 hours when S00T2's generator has a
     # catastrophic failure putting the windfarm at 83.3% operations, which is less than
     # the 90% threshold. However, because the timing will be delayed during repairs,
-    # realized timeout will be at 14739.73 hours
-    timeout = 14739.73
+    # realized timeout will be at 14185.753253
+    timeout = 14185.753253
     env.run(timeout + 1)
+    # For checking in on the actual timing when it eventually changes
+    # df = env.load_events_log_dataframe()
+    # print(
+    #     df.loc[
+    #         df.agent == "Heavy Lift Vessel",
+    #         [
+    #             "env_datetime", "env_time", "agent", "action", "reason", "additional",
+    #             "duration", "system_id", "part_id", "request_id"
+    #         ]
+    #     ].tail(20).to_string()
+    # )
     assert hlv.enroute
     assert (
         hlv.transferring_crew
@@ -2019,17 +2030,19 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
 
     # Test that the HLV was successfully mobilized
     timeout += 60 * 24
-    timeout += 3.27  # weather delay
     env.run(timeout + 1 / 60)
-    print(env.now)
     assert hlv.transferring_crew is hlv.at_site is hlv.at_system is hlv.onsite is True
     assert hlv.enroute is hlv.at_port is False
     assert hlv.current_system == "S00T2"
 
-    # Ensure it's still here at the end
-    timeout += 30 * 24 - 1 / 60
+    # Ensure it's still here at the end, accounting for completing its last request
+    timeout += 30 * 24 + 10 + 15 / 60
     env.run(timeout)
-    assert hlv.onsite is hlv.at_site is True
+    assert hlv.onsite is hlv.at_site is hlv.at_system is True
     assert hlv.transferring_crew is hlv.at_port is hlv.enroute is False
-    assert hlv.at_system
-    assert hlv.current_system == "S00T1"
+    assert hlv.current_system == "S00T2"
+
+    # Check that it's gone
+    timeout += 24 + 15 / 60
+    env.run(timeout + 24)
+    assert hlv.onsite is False
