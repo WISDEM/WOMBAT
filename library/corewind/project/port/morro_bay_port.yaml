@@ -7,4 +7,4 @@ crew:
   hourly_rate: 0
   n_hourly_rate: 0
 max_operations: 2
-annual_fee: 0
+annual_fee: 24e6  # From ORBIT
