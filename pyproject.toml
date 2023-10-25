@@ -98,13 +98,8 @@ all = [
 [tool.setuptools]
 include-package-data = true
 
-# [tool.setuptools]
-# test-suite = "pytest"
-# tests-require = ["pytest", "pytest-cov"]
-
 [tool.setuptools.packages.find]
-where = ["wombat"]
-include = ["*.yaml", "*.csv"]
+include = ["wombat", "library", "*.yaml", "*.csv"]
 exclude = ["*.tests", "*.tests.*", "tests.*", "tests"]
 
 [coverage.run]
