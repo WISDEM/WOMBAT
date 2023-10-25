@@ -60,7 +60,7 @@ line_length = 88
 
 
 [tool.black]
-target-version=["py38", "py39", "py310"]
+target-version=["py39", "py310"]
 line-length=88
 
 include = '\.pyi?$'
@@ -81,7 +81,7 @@ exclude = '''
 [tool.ruff]
 src = ["wombat", "tests"]
 line-length = 88
-target-version = "py38"
+target-version = "py39"
 ignore-init-module-imports = true
 
 # See https://github.com/charliermarsh/ruff#supported-rules
