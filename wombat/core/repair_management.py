@@ -3,9 +3,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generator
+from typing import TYPE_CHECKING
 from itertools import chain
 from collections import Counter
+from collections.abc import Generator
 
 import numpy as np
 from simpy.resources.store import FilterStore, FilterStoreGet
