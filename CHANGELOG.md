@@ -20,6 +20,7 @@
   - `plot_detailed_availability` plots a heatmap of the hourly turbine and farm operational levels to help in debugging simulations where availability may be running suspiciously low (i.e., a turbine might have shut down or a cable failure didn't get repaired within a reasonable time frame).
 - `Simulation.service_equipment` is now a dictionary to provide clear access to the servicing equipment details.
 - `Simulation.from_config()` requires both a library input and a file name input for the configuration after deprecating the `library` field from the configuration requirements due to it being cumbersome
+- `Metrics.opex()` provides the opex output by category if `by_category` is set to be `True`
 
 ### Methodology Updates
 

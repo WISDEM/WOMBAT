@@ -5,9 +5,10 @@ from __future__ import annotations
 
 import datetime
 from math import fsum
-from typing import TYPE_CHECKING, Any, Callable, Sequence
+from typing import TYPE_CHECKING, Any, Callable
 from pathlib import Path
 from functools import partial, update_wrapper
+from collections.abc import Sequence
 
 import attr
 import attrs

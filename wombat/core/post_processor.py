@@ -1915,7 +1915,7 @@ class Metrics:
 
         return costs
 
-    def opex(self, frequency: str) -> pd.DataFrame:
+    def opex(self, frequency: str, by_category: bool = False) -> pd.DataFrame:
         """Calculates the project's OpEx for the simulation at a project, annual, or
         monthly level.
 
@@ -1924,10 +1924,14 @@ class Metrics:
         frequency : str
             One of project, annual, monthly, or month-year.
 
+        by_category : bool, optional
+            Indicates whether the values are with resepect to the various cost
+            categories (True) or not (False), by default False.
+
         Returns
         -------
         pd.DataFrame
-            The project's OpEx broken out at the desired time resolution.
+            The project's OpEx broken out at the desired time and category resolution.
         """
         frequency = _check_frequency(frequency, which="all")
 
@@ -1967,6 +1971,8 @@ class Metrics:
         column = "OpEx"
         opex = pd.concat(opex_items, axis=1)
         opex.loc[:, column] = opex.sum(axis=1)
+        if by_category:
+            return opex
         return opex[[column]]
 
     def process_times(self) -> pd.DataFrame:

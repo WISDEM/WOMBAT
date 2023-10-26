@@ -17,7 +17,7 @@ import sys
 import wombat
 
 
-sys.path.insert(0, os.path.abspath("."))
+sys.path.insert(0, os.path.abspath("../.."))
 
 
 # -- Project information -----------------------------------------------------
@@ -114,7 +114,7 @@ myst_heading_anchors = 3
 # a list of builtin themes.
 #
 html_theme = "sphinx_book_theme"
-html_title = f"WOMBAT v{wombat.__version__}"
+html_title = f"WOMBAT v{release}"
 html_theme_options = {
     "github_url": "https://github.com/WISDEM/WOMBAT",
     "repository_url": "https://github.com/WISDEM/WOMBAT",
