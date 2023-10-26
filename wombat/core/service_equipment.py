@@ -8,10 +8,11 @@ from __future__ import annotations
 
 from copy import deepcopy
 from math import ceil
-from typing import TYPE_CHECKING, Any, Generator
+from typing import TYPE_CHECKING, Any
 from pathlib import Path
 from datetime import timedelta
 from itertools import zip_longest
+from collections.abc import Generator
 
 import numpy as np
 import pandas as pd

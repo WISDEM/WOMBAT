@@ -9,8 +9,9 @@ operates on a strict shift scheduling basis.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generator
+from typing import TYPE_CHECKING
 from pathlib import Path
+from collections.abc import Generator
 
 import numpy as np
 import simpy
