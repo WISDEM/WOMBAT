@@ -1,6 +1,5 @@
 
-Reference
-=========
+# User Guide
 
 This page provides an overview of what WOMBAT is currently able to model, broken down by
 general category. Following this, there are separate pages for how this is done as
