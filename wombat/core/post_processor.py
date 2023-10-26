@@ -1926,7 +1926,7 @@ class Metrics:
 
         return costs
 
-    def opex(self, frequency: str, by_category:  bool = False) -> pd.DataFrame:
+    def opex(self, frequency: str, by_category: bool = False) -> pd.DataFrame:
         """Calculates the project's OpEx for the simulation at a project, annual, or
         monthly level.
 
@@ -1985,7 +1985,6 @@ class Metrics:
         if by_category:
             return opex
         return opex[[column]]
-
 
     def process_times(self) -> pd.DataFrame:
         """Calculates the time, in hours, to complete a repair/maintenance request, on
