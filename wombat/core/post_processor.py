@@ -1926,7 +1926,7 @@ class Metrics:
 
         return costs
 
-    def opex(self, frequency: str) -> pd.DataFrame:
+    def opex(self, frequency: str, by_category:  bool = False) -> pd.DataFrame:
         """Calculates the project's OpEx for the simulation at a project, annual, or
         monthly level.
 
@@ -1935,10 +1935,14 @@ class Metrics:
         frequency : str
             One of project, annual, monthly, or month-year.
 
+        by_category : bool, optional
+            Indicates whether the values are with resepect to the various cost
+            categories (True) or not (False), by default False.
+
         Returns
         -------
         pd.DataFrame
-            The project's OpEx broken out at the desired time resolution.
+            The project's OpEx broken out at the desired time and category resolution.
         """
         frequency = _check_frequency(frequency, which="all")
 
@@ -1978,78 +1982,10 @@ class Metrics:
         column = "OpEx"
         opex = pd.concat(opex_items, axis=1)
         opex.loc[:, column] = opex.sum(axis=1)
+        if by_category:
+            return opex
         return opex[[column]]
 
-    def opex_breakdown(self, frequency: str) -> pd.DataFrame:
-        """Calculates the project's OpEx breakdown for the simulation at a project, annual, or
-        monthly level. The breakdown includes:
-        
-        - Operations costs (could include port fees and labor costs, in that case the port feed and labor costs would be zero)
-        - Port fees
-        - Labor costs
-        - Equipment costs
-        - Material costs
-
-        Parameters
-        ----------
-        frequency : str
-            One of project, annual, monthly, or month-year.
-
-        Returns
-        -------
-        pd.DataFrame
-            The project's OpEx broken out at the desired time resolution.
-        """
-        frequency = _check_frequency(frequency, which="all")
-
-        # Get the materials costs and remove the component-level breakdown
-        materials = self.component_costs(frequency=frequency, by_category=True)
-        materials = materials.loc[:, ["materials_cost"]].reset_index()
-        if frequency == "project":
-            materials = pd.DataFrame(materials.loc[:, ["materials_cost"]].sum()).T
-        else:
-            if frequency == "annual":
-                group_col = ["year"]
-            elif frequency == "monthly":
-                group_col = ["month"]
-            elif frequency == "month-year":
-                group_col = ["year", "month"]
-            materials = (
-                materials[group_col + ["materials_cost"]].groupby(group_col).sum()
-            )
-
-        # Port fees will produce an 1x1 dataframe if values aren't present, so recreate
-        # it with the appropriate dimension
-        port_fees = self.port_fees(frequency=frequency)
-        if frequency != "project" and port_fees.shape == (1, 1):
-            port_fees = pd.DataFrame([], columns=["port_fees"], index=materials.index)
-            port_fees = port_fees.fillna(0)
-
-        # Create a list of data frames for the OpEx components
-        opex_items = [
-            self.project_fixed_costs(frequency=frequency, resolution="low"),
-            port_fees,
-            self.equipment_costs(frequency=frequency),
-            self.labor_costs(frequency=frequency),
-            materials,
-        ]
-        
-        
-        # Join the data frames and sum along the time axis and return
-        column = "Total_OpEx"
-        opex = pd.concat(opex_items, axis=1)
-        opex.loc[:, column] = opex.sum(axis=1)
-        
-        # Concatenate different cost types and total
-        opex_breakdown = pd.concat([opex_items[0], opex_items[1], opex_items[2], opex_items[3], opex_items[4], opex[[column]]], axis=1)
-
-        # Add Annual OpEx
-        opex_breakdown.loc['average'] = opex_breakdown.mean()
-        
-        # Add Annual OpEx per kW
-        opex_breakdown["Total_OpEx_($/kW)"] = opex_breakdown["Total_OpEx"]/(self.project_capacity*1000)
-
-        return  opex_breakdown
 
     def process_times(self) -> pd.DataFrame:
         """Calculates the time, in hours, to complete a repair/maintenance request, on
