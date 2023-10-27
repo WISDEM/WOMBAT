@@ -32,11 +32,6 @@ This is a Jupyter Notebook version of the
 [*Metrics Demonstration* section](./metrics_demonstration.md) of the documentation that
 allows users to interact with the varying maintenance strategy models.
 
-### `NAWEA_interactive_walkthrough.ipynb`
-
-This is the notebook used for the NAWEA WindTech 2023 Workshop. See
-[here](../workshops/nawea_wind_tech_2023.md) for details.
-
 
 ## Validation
 

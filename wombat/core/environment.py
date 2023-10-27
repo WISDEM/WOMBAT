@@ -291,27 +291,6 @@ class WombatEnvironment(simpy.Environment):
         self._events_buffer: list[dict] = []
         self._operations_buffer: list[dict] = []
 
-    def get_random_seconds(self, low: int = 0, high: int = 10) -> float:
-        """Generate a random number of seconds to wait, between :py:attr:`low` and
-        :py:attr:`high`.
-
-        Parameters
-        ----------
-        low : int, optional
-            Minimum number of seconds to wait, by default 0.
-        high : int, optional
-            Maximum number of seconds to wait, by default 10.
-
-        Returns
-        -------
-        float
-            Number of seconds to wait.
-        """
-        seconds_to_wait, *_ = (
-            self.random_generator.integers(low=low, high=high, size=1) / 3600.0
-        )
-        return seconds_to_wait
-
     @property
     def simulation_time(self) -> datetime:
         """Current time within the simulation ("datetime" column within weather)."""
@@ -680,10 +659,9 @@ class WombatEnvironment(simpy.Environment):
             )
         total_labor_cost = hourly_labor_cost + salary_labor_cost
         total_cost = total_labor_cost + equipment_cost + materials_cost
-        now = self.simulation_time
         row = {
             "datetime": dt.datetime.now(),
-            "env_datetime": now,
+            "env_datetime": self.simulation_time,
             "env_time": self.now,
             "system_id": system_id,
             "system_name": system_name,
@@ -706,10 +684,7 @@ class WombatEnvironment(simpy.Environment):
             "total_labor_cost": total_labor_cost,
             "total_cost": total_cost,
         }
-        # Don't log the initiation of a crew transfer that can forced at the end of an
-        # operation but happens to be after the end of the simulation
-        if now <= self.end_datetime:
-            self._events_buffer.append(row)
+        self._events_buffer.append(row)
 
     def _log_actions(self):
         """Writes the action log items every 8000 hours."""
@@ -751,79 +726,6 @@ class WombatEnvironment(simpy.Environment):
         )
         return log_df
 
-    def _calculate_windfarm_total(
-        self, op: pd.DataFrame, prod: pd.DataFrame | None = None
-    ) -> pd.DataFrame:
-        """Calculates the overall wind farm operational level, accounting for substation
-        downtime by multiplying the sum of all downstream turbine operational levels by
-        the substation's operational level.
-
-        Parameters
-        ----------
-        op : pd.DataFrame
-            The turbine and substation operational level DataFrame.
-
-        Notes
-        -----
-        This is a crude cap on the operations, and so a smarter way of capping
-        the availability should be added in the future.
-
-        Returns
-        -------
-        pd.DataFrame
-            The aggregate wind farm operational level.
-        """
-        t_id = self.windfarm.turbine_id
-        turbines = self.windfarm.turbine_weights[t_id].values * op[t_id]
-        total = np.sum(
-            [
-                op[[sub]]
-                * np.array(
-                    [
-                        [math.fsum(row)]
-                        for _, row in turbines[val["turbines"]].iterrows()
-                    ]
-                ).reshape(-1, 1)
-                for sub, val in self.windfarm.substation_turbine_map.items()
-            ],
-            axis=0,
-        )
-        return total
-
-    def _calculate_adjusted_production(
-        self, op: pd.DataFrame, prod: pd.DataFrame
-    ) -> pd.DataFrame:
-        """Calculates the overall wind farm power production and adjusts individual
-        turbine production by accounting for substation downtime. This is done by
-        multiplying the all downstream turbine operational levels by the substation's
-        operational level.
-
-        Parameters
-        ----------
-        op : pd.DataFrame
-            The operational level DataFrame with turbine, substation, and windfarm
-            columns.
-        prod : pd.DataFrame
-            The turbine energy production DataFrame.
-
-        Notes
-        -----
-        This is a crude cap on the operations, and so a smarter way of capping
-        the availability should be added in the future.
-
-        Returns
-        -------
-        pd.DataFrame
-            Either the aggregate wind farm operational level or the total wind farm
-            energy production if the :py:attr:`prod` is provided.
-        """
-        # Adjust individual turbine production for substation downtime
-        prod = prod.copy()
-        for sub, val in self.windfarm.substation_turbine_map.items():
-            prod[val["turbines"]] *= op[[sub]].values
-        prod.windfarm = prod[self.windfarm.turbine_id].sum(axis=1)
-        return prod[["windfarm"]]
-
     def load_operations_log_dataframe(self) -> pd.DataFrame:
         """Imports the logging file created in ``run`` and returns it as a formatted
         ``pandas.DataFrame``.
@@ -842,7 +744,7 @@ class WombatEnvironment(simpy.Environment):
             .set_index("datetime")
             .sort_values("datetime")
         )
-        log_df["windfarm"] = self._calculate_windfarm_total(log_df)
+
         return log_df
 
     def power_production_potential_to_csv(  # type: ignore
@@ -902,9 +804,7 @@ class WombatEnvironment(simpy.Environment):
         # the max of the substation's operating capacity and then summed.
         production_df = potential_df.copy()
         production_df[turbines] *= operations[turbines].values
-        production_df.windfarm = self._calculate_adjusted_production(
-            operations, production_df
-        )
+        production_df.windfarm = production_df[turbines].sum(axis=1)
         pa.csv.write_csv(
             pa.Table.from_pandas(production_df),
             self.power_production_fname,

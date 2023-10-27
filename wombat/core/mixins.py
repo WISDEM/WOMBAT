@@ -5,9 +5,8 @@ different types of classes.
 from __future__ import annotations
 
 import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Generator
 from functools import partial
-from collections.abc import Generator
 
 import numpy as np
 import pandas as pd

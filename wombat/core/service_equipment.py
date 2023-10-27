@@ -6,13 +6,13 @@ servicing equipment.
 # TODO: NEED A SPECIFIC STARTUP METHOD
 from __future__ import annotations
 
+import logging
 from copy import deepcopy
 from math import ceil
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Generator
 from pathlib import Path
 from datetime import timedelta
 from itertools import zip_longest
-from collections.abc import Generator
 
 import numpy as np
 import pandas as pd
@@ -127,7 +127,7 @@ def validate_end_points(start: str, end: str, no_intrasite: bool = False) -> Non
         raise ValueError("No travel within the site is allowed for this process")
 
 
-def reset_system_operations(system: System, subassembly_resets: list[str]) -> None:
+def reset_system_operations(system: System) -> None:
     """Completely resets the failure and maintenance events for a given system
     and its subassemblies, and puts each ``Subassembly.operating_level`` back to 100%.
 
@@ -138,14 +138,10 @@ def reset_system_operations(system: System, subassembly_resets: list[str]) -> No
     ----------
     system : System
         The turbine to be reset.
-    subassembly_resets : list[str]
-        The `subassembly_id`s to reset to good as new, if not assuming all
-        subassemblies.
     """
     for subassembly in system.subassemblies:
-        if subassembly.name in subassembly_resets:
-            subassembly.operating_level = 1.0
-            subassembly.recreate_processes()
+        subassembly.operating_level = 1.0
+        subassembly.recreate_processes()
 
 
 class ServiceEquipment(RepairsMixin):
@@ -228,7 +224,14 @@ class ServiceEquipment(RepairsMixin):
         self.settings: ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData
 
         if isinstance(equipment_data_file, (str, Path)):
-            data = load_yaml(env.data_dir / "vessels", equipment_data_file)
+            try:
+                data = load_yaml(env.data_dir / "vessels", equipment_data_file)
+            except FileNotFoundError:
+                data = load_yaml(env.data_dir / "repair/transport", equipment_data_file)
+                logging.warning(
+                    "DeprecationWarning: In v0.8, all servicing equipment"
+                    " configurations must be located in: '<library>/vessels/"
+                )
         else:
             data = equipment_data_file
 
@@ -396,20 +399,10 @@ class ServiceEquipment(RepairsMixin):
         simpy.resources.store.FilterStoreGet
             The next ``RepairRequest`` to be processed.
         """
-        # Wait between 2 and 10 seconds to ensure a tow-to-port repair is always first
-        yield self.env.timeout(self.env.get_random_seconds(low=2))
-
         if self.settings.method == "turbine":
-            request = self.manager.get_request_by_system(self.settings.capability)
+            return self.manager.get_request_by_system(self.settings.capability)
         if self.settings.method == "severity":
-            request = self.manager.get_request_by_severity(self.settings.capability)
-
-        if request is None:
-            yield request
-        else:
-            request = request.value
-            self.manager.invalidate_system(request.system_id)
-            yield request
+            return self.manager.get_request_by_severity(self.settings.capability)
 
     def enable_string_operations(self, cable: Cable) -> None:
         """Traverses the upstream cable and turbine connections and resets the
@@ -481,13 +474,12 @@ class ServiceEquipment(RepairsMixin):
         """
         operation_reduction = repair.details.operation_reduction
 
-        # Put the subassembly/component back to good as new condition and restart
+        # Put the subassembly/component back to good as new condition
         if repair.details.replacement:
             subassembly.operating_level = 1.0
             _ = self.manager.purge_subassembly_requests(
                 repair.system_id, repair.subassembly_id
             )
-            subassembly.recreate_processes()
         elif operation_reduction == 1:
             subassembly.operating_level = starting_operating_level
             subassembly.broken.succeed()
@@ -978,19 +970,9 @@ class ServiceEquipment(RepairsMixin):
 
         # If the the equipment will arive after the shift is over, then it must travel
         # back to port (if needed), and wait for the next shift
-        if self.settings.non_stop_shift:
-            hours_to_shift_end = hours
-        else:
-            hours_to_shift_end = hours_until_future_hour(
-                self.env.simulation_time, self.settings.workday_end
-            )
         future_time = self.env.simulation_time + timedelta(hours=hours)
         is_shift = self._is_workshift(future_time.hour)
-        if (
-            (not is_shift or hours > hours_to_shift_end)
-            and end != "port"
-            and not self.at_port
-        ):
+        if not is_shift and end != "port" and not self.at_port:
             kw = {
                 "additional": "insufficient time to complete travel before end of the shift"  # noqa: disabl#501
             }
@@ -1344,7 +1326,6 @@ class ServiceEquipment(RepairsMixin):
         request: RepairRequest,
         time_processed: int | float = 0,
         prior_operation_level: float = -1.0,
-        initial: bool = False,
     ) -> Generator[Timeout | Process, None, None]:
         """Processes the repair including any weather and shift delays.
 
@@ -1357,10 +1338,6 @@ class ServiceEquipment(RepairsMixin):
         prior_operation_level : float, optional
             The operating level of the ``System`` just before the repair has begun, by
             default -1.0.
-        initial : bool, optional
-            True for first step in a potentially-recursive logic, otherwise False. When
-            True, the repair manager will turn off the system being worked on, but if
-            done multiple times, the simulation will error out.
 
         Yields
         ------
@@ -1397,6 +1374,8 @@ class ServiceEquipment(RepairsMixin):
             "system_name": system.name,
             "part_id": subassembly.id,
             "part_name": subassembly.name,
+            "system_ol": system.operating_level,
+            "part_ol": subassembly.operating_level,
             "agent": self.settings.name,
             "reason": request.details.description,
             "request_id": request.request_id,
@@ -1415,9 +1394,6 @@ class ServiceEquipment(RepairsMixin):
             hours_available = hours_until_future_hour(current, end_shift)
 
         if hours_available <= self.settings.crew_transfer_time * 4:
-            shared_logging.update(
-                system_ol=system.operating_level, part_ol=subassembly.operating_level
-            )
             yield self.env.process(
                 self.travel(
                     start="site",
@@ -1429,27 +1405,22 @@ class ServiceEquipment(RepairsMixin):
 
             yield self.env.process(
                 self.in_situ_repair(
-                    request,
-                    prior_operation_level=starting_operational_level,
-                    initial=initial,
+                    request, prior_operation_level=starting_operational_level
                 )
             )
             return
 
         # Travel to site or the next system on site
         if not self.at_system and self.at_port:
-            shared_logging.update(
-                system_ol=system.operating_level, part_ol=subassembly.operating_level
-            )
             yield self.env.process(
                 self.travel(
                     start="port", end="site", set_current=system.id, **shared_logging
                 )
             )
-        elif self.at_system is not None and not self.at_port:
-            shared_logging.update(
-                system_ol=system.operating_level, part_ol=subassembly.operating_level
+            yield self.env.process(
+                self.crew_transfer(system, subassembly, request, to_system=True)
             )
+        elif self.at_system is not None and not self.at_port:
             yield self.env.process(
                 self.travel(
                     start="system",
@@ -1458,14 +1429,11 @@ class ServiceEquipment(RepairsMixin):
                     **shared_logging,
                 )
             )
+            yield self.env.process(
+                self.crew_transfer(system, subassembly, request, to_system=True)
+            )
         else:
             raise RuntimeError(f"{self.settings.name} is lost!")
-
-        if initial:
-            self.manager.interrupt_system(system)
-        yield self.env.process(
-            self.crew_transfer(system, subassembly, request, to_system=True)
-        )
 
         current = self.env.simulation_time
 
@@ -1516,10 +1484,6 @@ class ServiceEquipment(RepairsMixin):
                     hours_to_process = hours_required
                 # Ensure this gets the correct float hours to the start of the target
                 # hour, unless the hours to process is between (0, 1]
-                shared_logging.update(
-                    system_ol=system.operating_level,
-                    part_ol=subassembly.operating_level,
-                )
                 yield self.env.process(
                     self.process_repair(
                         hours_to_process, request.details, **shared_logging
@@ -1536,10 +1500,6 @@ class ServiceEquipment(RepairsMixin):
                 hours_to_process = hours_until_future_hour(
                     current, current.hour + delay
                 )
-                shared_logging.update(
-                    system_ol=system.operating_level,
-                    part_ol=subassembly.operating_level,
-                )
                 yield self.env.process(
                     self.weather_delay(
                         hours_to_process, location="system", **shared_logging
@@ -1552,25 +1512,9 @@ class ServiceEquipment(RepairsMixin):
         yield self.env.process(
             self.crew_transfer(system, subassembly, request, to_system=False)
         )
-        if shift_delay or hours_required > 0:
-            # For 24-hour shifts, we just need to start back at the top
-            if self.settings.non_stop_shift:
-                yield self.env.process(
-                    self.in_situ_repair(
-                        request,
-                        time_processed=hours_processed + time_processed,
-                        prior_operation_level=starting_operational_level,
-                    )
-                )
-                return
-            shared_logging.update(
-                system_ol=system.operating_level, part_ol=subassembly.operating_level
-            )
+        if shift_delay:
             yield self.env.process(
                 self.travel(start="site", end="port", **shared_logging)
-            )
-            shared_logging.update(
-                system_ol=system.operating_level, part_ol=subassembly.operating_level
             )
             yield self.env.process(self.wait_until_next_shift(**shared_logging))
 
@@ -1606,9 +1550,6 @@ class ServiceEquipment(RepairsMixin):
 
         # If this is the end of the shift, ensure that we're traveling back to port
         if not self.env.is_workshift(start_shift, end_shift):
-            shared_logging.update(
-                system_ol=system.operating_level, part_ol=subassembly.operating_level
-            )
             yield self.env.process(
                 self.travel(start="site", end="port", **shared_logging)
             )
@@ -1650,8 +1591,7 @@ class ServiceEquipment(RepairsMixin):
                     )
                 )
 
-            yield self.env.timeout(self.env.get_random_seconds(low=2))
-            _, request = self.get_next_request()
+            request = self.get_next_request()
             if request is None:
                 if not self.at_port:
                     yield self.env.process(
@@ -1672,6 +1612,7 @@ class ServiceEquipment(RepairsMixin):
                     )
                 )
             else:
+                request = request.value
                 yield self.manager.in_process_requests.put(request)
                 self.manager.request_status_map["pending"].difference_update(
                     [request.request_id]
@@ -1685,7 +1626,8 @@ class ServiceEquipment(RepairsMixin):
                 else:
                     system = self.windfarm.system(request.system_id)  # type: ignore
                 yield system.servicing
-                yield self.env.process(self.in_situ_repair(request, initial=True))
+                self.manager.halt_requests_for_system(system)
+                yield self.env.process(self.in_situ_repair(request))
 
     def run_unscheduled_in_situ(self) -> Generator[Process, None, None]:
         """Runs an in situ repair simulation for unscheduled servicing equipment, or
@@ -1741,7 +1683,7 @@ class ServiceEquipment(RepairsMixin):
             return
 
         while True and self.env.now < charter_end_env_time:
-            _, request = self.get_next_request()
+            request = self.get_next_request()
             if request is None:
                 yield self.env.process(
                     self.wait_until_next_shift(
@@ -1759,6 +1701,7 @@ class ServiceEquipment(RepairsMixin):
             self.dispatched = False
             return
 
+        request = request.value
         yield self.manager.in_process_requests.put(request)
         self.manager.request_status_map["pending"].difference_update(
             [request.request_id]
@@ -1774,8 +1717,12 @@ class ServiceEquipment(RepairsMixin):
             else:
                 system = self.windfarm.system(request.system_id)  # type: ignore
             yield system.servicing
-            yield self.env.timeout(self.env.get_random_seconds(low=2))
+            seconds_to_wait, *_ = (
+                self.env.random_generator.integers(low=0, high=30, size=1) / 3600.0
+            )
+            yield self.env.timeout(seconds_to_wait)
             yield system.servicing
+            self.manager.halt_requests_for_system(system)
 
         while True:
             if self.env.now >= charter_end_env_time:
@@ -1793,16 +1740,8 @@ class ServiceEquipment(RepairsMixin):
                 break
 
             if not self.onsite:
-                # Mobilize and immediately run the repair logic for the inital request
                 yield self.env.process(self.mobilize())
-
-                if request.cable:
-                    system = self.windfarm.cable(request.system_id)
-                else:
-                    system = self.windfarm.system(request.system_id)  # type: ignore
-
-                yield system.servicing
-                yield self.env.process(self.in_situ_repair(request, initial=True))
+                yield self.env.process(self.in_situ_repair(request))
 
             # Wait for next shift to start
             is_workshift = self.env.is_workshift(
@@ -1820,7 +1759,9 @@ class ServiceEquipment(RepairsMixin):
                     )
                 )
 
-            _, request = self.get_next_request()
+            # Wait one second to ensure there are no timing collisions
+            yield self.env.timeout(1.0 / 3600)
+            request = self.get_next_request()
             if request is None:
                 yield self.env.process(
                     self.wait_until_next_shift(
@@ -1832,12 +1773,14 @@ class ServiceEquipment(RepairsMixin):
                     )
                 )
             else:
+                request = request.value  # type: ignore
                 if request.cable:
                     system = self.windfarm.cable(request.system_id)
                 else:
                     system = self.windfarm.system(request.system_id)  # type: ignore
                 yield system.servicing
-                yield self.env.process(self.in_situ_repair(request, initial=True))
+                self.manager.halt_requests_for_system(system)
+                yield self.env.process(self.in_situ_repair(request))
         self.dispatched = False
 
     def run_tow_to_port(self, request: RepairRequest) -> Generator[Process, None, None]:
@@ -1879,9 +1822,6 @@ class ServiceEquipment(RepairsMixin):
             )
         )
 
-        # Turn off the turbine
-        self.manager.interrupt_system(system)
-
         # Unmoor the turbine and tow it back to port
         yield self.env.process(self.mooring_connection(system, request, which="unmoor"))
         yield self.env.process(
@@ -1889,9 +1829,7 @@ class ServiceEquipment(RepairsMixin):
         )
         self.dispatched = False
 
-    def run_tow_to_site(
-        self, request: RepairRequest, subassembly_resets: list[str] = []
-    ) -> Generator[Process, None, None]:
+    def run_tow_to_site(self, request: RepairRequest) -> Generator[Process, None, None]:
         """Runs the tow to site logic for after a turbine has had its repairs completed
         at port.
 
@@ -1899,8 +1837,6 @@ class ServiceEquipment(RepairsMixin):
         ----------
         request : RepairRequest
             The request the triggered the tow-to-port strategy.
-        subassembly_resets : list[str]
-            The `subassembly_id`s to reset to good as new. Defaults to [].
 
         Yields
         ------
@@ -1936,8 +1872,8 @@ class ServiceEquipment(RepairsMixin):
         )
 
         # Reset the turbine back to operating and return to port
-        reset_system_operations(system, subassembly_resets)
-        self.manager.enable_requests_for_system(system, tow=True)
+        reset_system_operations(system)
+        self.manager.enable_requests_for_system(system)
         yield self.env.process(
             self.travel(
                 "site",

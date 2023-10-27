@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import csv
+import logging
 import datetime as dt
 import itertools
 from math import fsum
@@ -65,12 +66,24 @@ class Windfarm:
         windfarm_layout : str
             Filename to use for reading in the windfarm layout; must be a csv file.
         """
-        layout_path = str(self.env.data_dir / "project/plant" / windfarm_layout)
-        layout = (
-            pd.read_csv(layout_path)
-            .sort_values(by=["string", "order"])
-            .reset_index(drop=True)
-        )
+        try:
+            layout_path = str(self.env.data_dir / "project/plant" / windfarm_layout)
+            layout = (
+                pd.read_csv(layout_path)
+                .sort_values(by=["string", "order"])
+                .reset_index(drop=True)
+            )
+        except FileNotFoundError:
+            layout_path = str(self.env.data_dir / "windfarm" / windfarm_layout)
+            layout = (
+                pd.read_csv(layout_path)
+                .sort_values(by=["string", "order"])
+                .reset_index(drop=True)
+            )
+            logging.warning(
+                "DeprecationWarning: In v0.8, all wind farm layout files must be"
+                " located in: '<library>/project/plant/"
+            )
         layout.subassembly = layout.subassembly.fillna("")
         layout.upstream_cable = layout.upstream_cable.fillna("")
 
@@ -104,7 +117,7 @@ class Windfarm:
                 layout.id == substation, "substation_id"
             ].values[0]
 
-        self.turbine_id: np.ndarray = layout.loc[~substation_filter, "id"].values
+        self.turbine_id = layout.loc[~substation_filter, "id"].values
         substations = layout[substation_filter].copy()
         turbines = layout[~substation_filter].copy()
         substation_sections = [
@@ -130,7 +143,7 @@ class Windfarm:
                 cable=row.upstream_cable.values[0],
             )
 
-        self.graph: nx.DiGraph = windfarm
+        self.graph = windfarm
         self.layout_df = layout
 
     def _create_turbines_and_substations(self) -> None:
@@ -143,6 +156,7 @@ class Windfarm:
         ValueError
             Raised if the subassembly data is not provided in the layout file.
         """
+        bad_data_location_messages = []
         for system_id, data in self.graph.nodes(data=True):
             name = data["subassembly"]
             node_type = data["type"]
@@ -153,7 +167,17 @@ class Windfarm:
                 )
 
             if (subassembly_dict := self.configs[node_type].get(name)) is None:
-                subassembly_dict = load_yaml(self.env.data_dir / f"{node_type}s", name)
+                try:
+                    subassembly_dict = load_yaml(
+                        self.env.data_dir / f"{node_type}s", name
+                    )
+                except FileNotFoundError:
+                    subassembly_dict = load_yaml(self.env.data_dir / "windfarm", name)
+                    message = (
+                        f"In v0.7, all {node_type} configurations must be located in:"
+                        f" '<library>/{node_type}s"
+                    )
+                    bad_data_location_messages.append(message)
                 self.configs[node_type][name] = subassembly_dict
 
             self.graph.nodes[system_id]["system"] = System(
@@ -164,6 +188,11 @@ class Windfarm:
                 subassembly_dict,
                 node_type,
             )
+
+        # Raise the warning for soon-to-be deprecated library structure
+        bad_data_location_messages = list(set(bad_data_location_messages))
+        for message in bad_data_location_messages:
+            logging.warning(f"DeprecationWarning: {message}")
 
     def _create_cables(self) -> None:
         """Instantiates the cable models as defined in the user-provided layout file,
@@ -234,6 +263,11 @@ class Windfarm:
             end_points = np.array((start_coordinates, end_coordinates))
             data["latitude"], data["longitude"] = end_points.mean(axis=0)
 
+        # Raise the warning for soon-to-be deprecated library structure
+        bad_data_location_messages = list(set(bad_data_location_messages))
+        for message in bad_data_location_messages:
+            logging.warning(f"DeprecationWarning: {message}")
+
     def calculate_distance_matrix(self) -> None:
         """Calculates the geodesic distance, in km, between all of the windfarm's nodes,
         e.g., substations and turbines, and cables.
@@ -285,13 +319,6 @@ class Windfarm:
             )
 
         self.substation_turbine_map: dict[str, dict[str, np.ndarray]] = s_t_map
-
-        # Calculate the turbine weights
-        self.turbine_weights: pd.DataFrame = (
-            pd.concat([pd.DataFrame(val) for val in s_t_map.values()])
-            .set_index("turbines")
-            .T
-        )
 
     def _create_wind_farm_map(self) -> None:
         """Creates a secondary graph object strictly for traversing the windfarm to turn
@@ -432,9 +459,7 @@ class Windfarm:
             The ``Cable`` object.
         """
         if isinstance(cable_id, str):
-            edge_id = tuple(cable_id.split("::"))
-            if len(edge_id) == 3:
-                edge_id = edge_id[1:]
+            edge_id = tuple(cable_id.split("::")[1:])
         else:
             edge_id = cable_id
         try:
