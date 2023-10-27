@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.abspath("../.."))
 # -- Project information -----------------------------------------------------
 
 project = "WOMBAT"
-copyright = "2023 Alliance for Sustainable Energy, LLC"
+copyright = "2021 Alliance for Sustainable Energy, LLC"
 author = (
     "Rob Hammond,"
     " Aubryn Cooperman,"
