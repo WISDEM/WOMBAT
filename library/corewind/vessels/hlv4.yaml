@@ -1,0 +1,23 @@
+name: Heavy Lift Vessel 4
+equipment_rate: 290000
+capability: LCN
+speed: 20.37  # 11 knots
+strategy: requests
+strategy_threshold: 1
+max_windspeed_transport: 10
+max_windspeed_repair: 10
+max_waveheight_transport: 2
+max_waveheight_repair: 2
+onsite: false
+mobilization_cost: 325000
+mobilization_days: 10
+workday_start: 0
+workday_end: 24
+charter_days: 20
+crew_transfer_time: 0.25
+n_crews: 1
+crew:
+  day_rate: 0
+  n_day_rate: 0  # crew comes with the vessel
+  hourly_rate: 0
+  n_hourly_rate: 0

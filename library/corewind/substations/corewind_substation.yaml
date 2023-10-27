@@ -1,0 +1,34 @@
+capacity_kw: 600
+capex_kw: 120  # 120,000 EUR/MW; https://guidetoanoffshorewindfarm.com/wind-farm-costs
+transformer:
+  name: transformer
+  maintenance:
+    -
+      description: oss annual inspection
+      time: 24
+      materials: 500
+      service_equipment: CTV
+      frequency: 365
+      level: 1
+    # n_technicians: 4
+  failures:
+    2:
+      scale: 5
+      shape: 1
+      time: 12
+      materials: 2000
+      service_equipment: CTV
+      operation_reduction: 0
+      level: 2
+      description: oss minor repair
+      # n_technicians: 2
+    4:
+      scale: 100
+      shape: 1
+      time: 60
+      materials: 100000
+      service_equipment: CTV
+      operation_reduction: 0
+      level: 4
+      description: oss major repair
+      # n_technicians: 5

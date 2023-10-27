@@ -1,0 +1,26 @@
+name: Tugboat 2
+equipment_rate: 30000
+# mobilization_cost: 200000
+capability: [TOW]
+speed: 37.04  # 20 knots
+strategy: requests
+max_windspeed_transport: 99
+max_windspeed_repair: 99
+max_waveheight_transport: 2.5
+max_waveheight_repair: 2.5
+onsite: false
+port_distance: 0  # automatically set from the port configuration
+# workday_start: 6
+# workday_end: 18
+strategy_threshold: 1  # needs to be here, but doesn't do anything
+charter_days: 3  # needs to be here, but doesn't do anything
+tow_speed: 9.26  # 5 knots
+unmoor_hours: 2
+reconnection_hours: 4
+crew_transfer_time: 0.25
+n_crews: 1
+crew:
+  day_rate: 219.18  # 80K/yr / 365 days
+  n_day_rate: 5  # Most tasks are 3 or 4, but some larger ones are 8, 10, and 21
+  hourly_rate: 0
+  n_hourly_rate: 0

@@ -53,8 +53,7 @@ As of v0.6, the following structure will be adopted to mirror the format of the
 [ORBIT library structure](https://github.com/WISDEM/ORBIT/blob/master/ORBIT/core/library.py#L7-L24)
 to increase compatibility between similar libraries.
 
-WOMBAT will still support the original structure until v0.9, depending to allow users to
-update in their own time.
+As of v0.9, the library structure shown below is the only one that will work.
 ```
 
 To help users convert to the new structure, the following method is provided to create
@@ -82,22 +81,6 @@ The above method call will produce the below folder and subfolder structure.
   ├── vessels      <- Land-based and offshore servicing equipment configuration files
   ├── weather      <- Weather profiles
   ├── results      <- The analysis log files and any saved output data
-```
-
-Users can then migrate their data from the old (below) structure to the new (above)
-structure using their preferred method.
-
-```
-<libray>
-  ├── config            <- Simulation configuration files
-  ├── windfarm          <- Windfarm layout file(s); turbine, substation, and cable configurations
-  ├── outputs
-    ├── logs            <- The raw anaylsis log files
-    ├── metrics         <- A place to save metrics/computed outputs.
-    ├── <self-defined>  <- Any other folder you choose for saving outputs (not enforced)
-  ├── repair            <- Overarching folder for repair configurations, such as ports
-    ├── transport       <- Servicing equipment configurations
-  ├── weather           <- Weather profiles
 ```
 
 As a convenience feature you can import the provided validation data libraries as
@@ -236,21 +219,6 @@ details on this optional piece of financial modeling.
 
 For modeling a tow-to-port strategy that the port rental costs should be included in
 this category, and not in the port configuration.
-
-
-### Financial Model (SAM)
-
-WOMBAT uses PySAM to model the financials of the windfarm and retrieve higher-level cost
-metrics only data is passed into the `SAM_settings` filed in the main configuration. An
-input file exists, but is only for demonstration purposes, and does not contain
-meaningful inputs.
-
-```{warning}
-This does not currently work due to updates in PySAM that need to be remapped in the
-post-processing module.
-
-Update: This functionality will be entirely deprecated in v0.9.
-```
 
 
 ### Servicing Equipment
@@ -535,7 +503,6 @@ config = load_yaml(library_path / "project/config", "base.yaml")
 ```{code-block} yaml
 # Contents of: dinwoodie / config / base.yaml
 name: dinwoodie_base
-library: DINWOODIE
 weather: alpha_ventus_weather_2002_2014.csv  # located in: dinwoodie / weather
 service_equipment:
 # YAML-encoded list, but could also be created in standard Python list notation with
@@ -571,7 +538,7 @@ Load the file from the `Configuration` object that was created in the prior code
 
 ```{code-cell} ipython3
 
-sim = Simulation.from_config(config)
+sim = Simulation.from_config(library_path=library_path, config=config)
 
 # Delete any files that get initialized through the simulation environment
 sim.env.cleanup_log_files()
@@ -622,7 +589,6 @@ sim = Simulation(
 )
 ```
 
-
 ## Run the analysis
 
 When the run method is called, the default run time is for the full length of the
@@ -630,18 +596,6 @@ simulation, however, if a shorter run than was previously designed is required f
 debugging, or something similar, we can use `sum.run(until=<your-time>)` to do this. In
 the `run` method, not only is the simulation run, but the metrics class is loaded at the
 end to quickly transition to results aggregation without any further code.
-
-```{warning}
-It should be noted at this stage that a run time that isn't divisible by 8760 (hours in
-a year), the run will fail if the SAM financial model is being used due to a mismatch
-with PySAM's requirements and the model's outputs. This will be worked
-out in later iterations to cap it to the correct number of hours (future feature) for an
-evenly divisible year.
-
-Users should also be careful of leap years because the PySAM model cannot handle them,
-though if Feb 29 is provided, it will be a part of the analysis and stripped out before
-being fed to PySAM, so no errors will occur.
-```
 
 ```{code-cell} ipython3
 # Timing for a demonstration of performance
