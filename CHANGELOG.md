@@ -1,3 +1,7 @@
+## v0.9.1 (27 October 2023)
+
+- Removes the pre-public release analysis data and results, located at`library/original-outdated`, from the repository, but can be found in all releases prior to v0.9.
+
 ## v0.9 (27 October 2023)
 
 ### Bug Fixes
