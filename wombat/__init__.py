@@ -1,7 +1,9 @@
 """Package initialization."""
 
+import importlib.metadata
+
 from wombat.core import Metrics, Simulation
 from wombat.core.library import create_library_structure
 
 
-__version__ = "0.8.1"
+__version__ = importlib.metadata.version("wombat")
