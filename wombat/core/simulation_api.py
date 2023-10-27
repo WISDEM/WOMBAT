@@ -1,6 +1,7 @@
 """The main API for the ``wombat``."""
 from __future__ import annotations
 
+import logging
 import datetime
 from typing import TYPE_CHECKING
 from pathlib import Path
@@ -51,6 +52,9 @@ class Configuration(FromDictMixin):
     ----------
     name: str
         Name of the simulation. Used for logging files.
+    library : str
+        The data directory. See ``wombat.simulation.WombatEnvironment`` for more
+        details.
     layout : str
         The windfarm layout file. See ``wombat.Windfarm`` for more details.
     service_equipment : str | list[str]
@@ -84,6 +88,9 @@ class Configuration(FromDictMixin):
     end_year : int
         Final year of the simulation. The exact date will be determined by
         the last valid date of this year in ``weather``.
+    SAM_settings : str
+        The SAM settings file to be used for financial modeling, optional, by
+        default None.
     non_operational_start : str | datetime.datetime | None
         The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
         period of prohibited operations. When defined at the environment level, an
@@ -119,6 +126,7 @@ class Configuration(FromDictMixin):
     """
 
     name: str
+    library: Path = field(converter=_library_mapper)
     layout: str
     service_equipment: str | list[str] = field(converter=convert_to_list)
     weather: str | pd.DataFrame
@@ -130,6 +138,7 @@ class Configuration(FromDictMixin):
     port: dict | str | Path = field(default=None)
     start_year: int = field(default=None)
     end_year: int = field(default=None)
+    SAM_settings: str = field(default=None)
     port_distance: int | float = field(default=None)
     non_operational_start: str | datetime.datetime | None = field(default=None)
     non_operational_end: str | datetime.datetime | None = field(default=None)
@@ -202,7 +211,16 @@ class Simulation(FromDictMixin):
             The validated simulation configuration
         """
         if isinstance(value, (str, Path)):
-            value = load_yaml(self.library_path / "project/config", value)
+            try:
+                value = load_yaml(self.library_path / "project/config", value)
+            except FileNotFoundError:
+                if TYPE_CHECKING:
+                    assert isinstance(value, (str, Path))
+                value = load_yaml(self.library_path / "config", value)
+                logging.warning(
+                    "DeprecationWarning: In v0.8, all project configurations must be"
+                    " located in: '<library>/project/config/"
+                )
         if isinstance(value, dict):
             value = Configuration.from_dict(value)
         if isinstance(value, Configuration):
@@ -213,20 +231,20 @@ class Simulation(FromDictMixin):
                 "dictionary, or ``Configuration`` object!",
             )
 
+        if self.config.library != self.library_path:
+            raise ValueError(
+                f"`library_path`: {self.library_path} and the library in `config`:"
+                f" {self.config.library} do not match!"
+            )
+
     @classmethod
-    def from_config(
-        cls, library_path: str | Path, config: str | Path | dict | Configuration
-    ):
+    def from_config(cls, config: str | Path | dict | Configuration):
         """Creates the ``Simulation`` object only the configuration contents as either a
         full file path to the configuration file, a dictionary of the configuration
         contents, or pre-loaded ``Configuration`` object.
 
         Parameters
         ----------
-        library_path : str | Path
-            The simulation's data library. If a filename is provided for
-            :py:attr:`config`, this is the data library from where it will be imported.
-            This will also be used to feed into the returned `Simulation.library_path`.
         config : str | Path | dict | Configuration
             The simulation configuration, see ``Configuration`` for more details on the
             contents. The following is a description of the acceptable contents:
@@ -245,9 +263,10 @@ class Simulation(FromDictMixin):
         Simulation
             A ready-to-run ``Simulation`` object.
         """
-        library_path = _library_mapper(library_path)
         if isinstance(config, (str, Path)):
-            config = library_path / "project" / "config" / config
+            config = Path(config).resolve()
+            if TYPE_CHECKING:
+                assert isinstance(config, Path)  # mypy helper
             config = load_yaml(config.parent, config.name)
         if isinstance(config, dict):
             config = Configuration.from_dict(config)
@@ -258,16 +277,16 @@ class Simulation(FromDictMixin):
         if TYPE_CHECKING:
             assert isinstance(config, Configuration)  # mypy helper
         return cls(  # type: ignore
-            library_path=library_path,
+            library_path=config.library,
             config=config,
-            random_seed=config.random_seed,
-            random_generator=config.random_generator,
+            random_seed=cls.random_seed,
+            random_generator=cls.random_generator,
         )
 
     def _setup_simulation(self):
         """Initializes the simulation objects."""
         self.env = WombatEnvironment(
-            self.library_path,
+            self.config.library,
             self.config.weather,
             simulation_name=self.config.name,
             workday_start=self.config.workday_start,
@@ -287,33 +306,20 @@ class Simulation(FromDictMixin):
         self.windfarm = Windfarm(self.env, self.config.layout, self.repair_manager)
 
         # Create the servicing equipment and set the necessary environment variables
-        self.service_equipment: dict[str, ServiceEquipment] = {}  # type: ignore
+        self.service_equipment = []
         for service_equipment in self.config.service_equipment:
             equipment = ServiceEquipment(
                 self.env, self.windfarm, self.repair_manager, service_equipment
             )
             equipment.finish_setup_with_environment_variables()
-            name = equipment.settings.name
-            if name in self.service_equipment:
-                raise ValueError(
-                    f"Servicing equipment `{name}` already exists, please use unique"
-                    " names for all servicing equipment."
-                )
-            self.service_equipment[name] = equipment  # type: ignore
+            self.service_equipment.append(equipment)
 
         # Create the port and add any tugboats to the available servicing equipment list
         if self.config.port is not None:
             self.port = Port(
                 self.env, self.windfarm, self.repair_manager, self.config.port
             )
-            for service_equipment in self.port.service_equipment_manager.items:
-                name = service_equipment.settings.name  # type: ignore
-                if name in self.service_equipment:
-                    raise ValueError(
-                        f"Servicing equipment `{name}` already exists, please use"
-                        " unique names for all servicing equipment."
-                    )
-                self.service_equipment[name] = service_equipment  # type: ignore
+            self.service_equipment.extend(self.port.service_equipment_manager.items)
 
         if self.config.project_capacity * 1000 != round(self.windfarm.capacity, 6):
             raise ValueError(
@@ -366,7 +372,7 @@ class Simulation(FromDictMixin):
             self.windfarm.system(t).capacity for t in self.windfarm.turbine_id
         ]
         self.metrics = Metrics(
-            data_dir=self.library_path,
+            data_dir=self.config.library,
             events=events,
             operations=operations,
             potential=power_potential,
@@ -378,7 +384,8 @@ class Simulation(FromDictMixin):
             substation_id=self.windfarm.substation_id.tolist(),
             turbine_id=self.windfarm.turbine_id.tolist(),
             substation_turbine_map=substation_turbine_map,
-            service_equipment_names=[*self.service_equipment],  # type: ignore
+            service_equipment_names=[el.settings.name for el in self.service_equipment],
+            SAM_settings=self.config.SAM_settings,
         )
 
     def save_metrics_inputs(self) -> None:
@@ -390,9 +397,9 @@ class Simulation(FromDictMixin):
             for s_id, dict in self.windfarm.substation_turbine_map.items()
         }
         data = {
-            "data_dir": str(self.library_path),
-            "events": str(self.env.events_log_fname),
-            "operations": str(self.env.operations_log_fname),
+            "data_dir": str(self.config.library),
+            "events": str(self.env.events_log_fname.with_suffix(".csv")),
+            "operations": str(self.env.operations_log_fname.with_suffix(".csv")),
             "potential": str(self.env.power_potential_fname),
             "production": str(self.env.power_production_fname),
             "inflation_rate": self.config.inflation_rate,
@@ -404,7 +411,10 @@ class Simulation(FromDictMixin):
             "substation_id": self.windfarm.substation_id.tolist(),
             "turbine_id": self.windfarm.turbine_id.tolist(),
             "substation_turbine_map": substation_turbine_map,
-            "service_equipment_names": [*self.service_equipment],
+            "service_equipment_names": [
+                el.settings.name for el in self.service_equipment
+            ],
+            "SAM_settings": self.config.SAM_settings,
         }
 
         with open(self.env.metrics_input_fname, "w") as f:

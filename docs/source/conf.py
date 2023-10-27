@@ -17,13 +17,13 @@ import sys
 import wombat
 
 
-sys.path.insert(0, os.path.abspath("../.."))
+sys.path.insert(0, os.path.abspath("."))
 
 
 # -- Project information -----------------------------------------------------
 
 project = "WOMBAT"
-copyright = "2021 Alliance for Sustainable Energy, LLC"
+copyright = "2023 Alliance for Sustainable Energy, LLC"
 author = (
     "Rob Hammond,"
     " Aubryn Cooperman,"
@@ -95,16 +95,10 @@ source_suffix = {
 }
 
 # toggle this between auto/off to rerun full documentation build
-nb_execution_mode = "off"
+nb_execution_mode = "auto"
 nb_execution_timeout = -1
 nb_execution_allow_errors = True
-nb_execution_excludepatterns.extend(
-    [
-        "how_to.md",
-        "metrics_demonstration.md",
-        "strategy_demonstration.md",
-    ]
-)
+# nb_execution_excludepatterns.append("*_demonstration.md")
 
 myst_heading_anchors = 3
 
@@ -114,7 +108,7 @@ myst_heading_anchors = 3
 # a list of builtin themes.
 #
 html_theme = "sphinx_book_theme"
-html_title = f"WOMBAT v{release}"
+html_title = f"WOMBAT v{wombat.__version__}"
 html_theme_options = {
     "github_url": "https://github.com/WISDEM/WOMBAT",
     "repository_url": "https://github.com/WISDEM/WOMBAT",
@@ -125,6 +119,7 @@ html_theme_options = {
     "navigation_depth": 2,
     "home_page_in_toc": True,
     "show_toc_level": 2,
+    # "show_nav_level": 2,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

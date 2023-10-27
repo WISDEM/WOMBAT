@@ -35,4 +35,4 @@ jobs:
         with:
           verbose: True
           password: ${{ secrets.TEST_PYPI_PASSWORD }}
-          repository-url: https://test.pypi.org/legacy/
+          repository_url: https://test.pypi.org/legacy/

@@ -1,5 +1,6 @@
 
-# User Guide
+Reference
+=========
 
 This page provides an overview of what WOMBAT is currently able to model, broken down by
 general category. Following this, there are separate pages for how this is done as
@@ -36,7 +37,7 @@ a short listing of the core functionality that WOMBAT can provide.
   `reduced_speed` (km/hr). This translates to a maximum speed of `reduced_speed` being
   enforced between the starting and ending dates each year of the simulation. For more
   details, see the documentation pages for the
-  [environment](../API/core.md#environment), [port](../API/core.md#port),
+  [environment](../API/simulation.md#environment), [port](../API/simulation.md#port),
   [unshcheduled servicing equipment](../API/types.md#unscheduled-service-equipment), or
   [scheduled servicing equipment](../API/types.md#scheduled-service-equipment).
 - Prohibited operation periods. This dictates periods of time where a site or port may
@@ -90,13 +91,13 @@ modeling assumptions as well as the basic operations of the maintenance and fail
 
 ### Repair Modeling
 
-- Repair Management: see [here](../API/core.md#repair-management) for complete details
+- Repair Management: see [here](../API/simulation.md#repair-management) for complete details
   - Generally, repairs and maintenance tasks operate on a first-in, first-out basis with
     higher severity level `Maintenance.level` and `Failure.level` being addressed first.
   - Servicing equipment, however, can specify if they operate on a "severity" or "turbine"
     basis that prioritizes focusing on either the highest serverity level first, or
     a single system first, respectively.
-- Servicing Equipment: see [here](../API/core.md#servicing-equipment) for complete details
+- Servicing Equipment: see [here](../API/simulation.md#servicing-equipment) for complete details
   - Can either be modeled on a scheduled basis, such as a year-round schedule for onsite
     equipment or equipment with an annual visit schedule during safe weather, or on
     an unscheduled basis with a threshold for number of submitted repair requests or
@@ -121,7 +122,7 @@ modeling assumptions as well as the basic operations of the maintenance and fail
     following additional capabilities:
     - TOW: tugboat or towing equipment
     - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
-  - See the [API docs](../API/core.md#port) for more details
+  - See the [API docs](../API/simulation.md#port) for more details
 
 ## Examples and Validation Work
 

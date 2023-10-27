@@ -24,8 +24,6 @@ To make a it easier for users, there is also a simulation interface provided.
 :maxdepth: 2
 
 simulation_api
+simulation
 types
-core
-windfarm
-utilities
 ```
