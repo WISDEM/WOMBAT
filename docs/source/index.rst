@@ -164,5 +164,8 @@ Using WOMBAT
 License
 -------
 
-Apache 2.0; please see the repository for license information:
-https://github.com/WISDEM/WOMBAT/blob/main/LICENSE
+Notice on the NREL application of the Apache-2 license, also found on the
+`GitHub <https://github.com/WISDEM/WOMBAT/blob/main/NOTICE>`_, along with the
+complete `license <https://github.com/WISDEM/WOMBAT/blob/main/LICENSE>`_ details.
+
+.. include:: ../../NOTICE
