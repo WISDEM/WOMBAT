@@ -1,4 +1,4 @@
-## v0.9 (DAY MONTH YEAR)
+## v0.9 (27 October 2023)
 
 ### Bug Fixes
 
