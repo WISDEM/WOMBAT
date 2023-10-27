@@ -16,8 +16,6 @@ WOMBAT - Windfarm Operations and Maintenance cost-Benefit Analysis Tool
 .. image:: https://jupyterbook.org/badge.svg
    :target: https://wisdem.github.io/WOMBAT
 
-|
-
 .. image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
    :target: https://github.com/pre-commit/pre-commit
    :alt: pre-commit
@@ -42,7 +40,7 @@ As a supplement to this documentation site, there is also an NREL Technical Repo
 goes through much of the design and implementation details available at:
 https://www.osti.gov/biblio/1894867. If you use this software, please cite it using the
 follwing BibTex information, or in commonly used citation formats
-[here](https://www.osti.gov/biblio/1894867).
+`here <https://www.osti.gov/biblio/1894867>`_.
 
 .. code-block:: bibtex
 
@@ -166,5 +164,8 @@ Using WOMBAT
 License
 -------
 
-Apache 2.0; please see the repository for license information:
-https://github.com/WISDEM/WOMBAT/blob/main/LICENSE
+Notice on the NREL application of the Apache-2 license, also found on the
+`GitHub <https://github.com/WISDEM/WOMBAT/blob/main/NOTICE>`_, along with the
+complete `license <https://github.com/WISDEM/WOMBAT/blob/main/LICENSE>`_ details.
+
+.. include:: ../../NOTICE

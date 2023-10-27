@@ -23,7 +23,8 @@
    :members:
    :undoc-members:
    :exclude-members: setup_simulation, config, env, initialize_metrics, library_path,
-    metrics, repair_manager, service_equipment, windfarm, port
+    metrics, repair_manager, service_equipment, windfarm, port, random_seed,
+    random_generator
 ```
 
 

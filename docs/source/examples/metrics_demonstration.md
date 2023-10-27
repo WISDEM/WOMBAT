@@ -492,11 +492,20 @@ Computes the total cost of all operating expenditures for the duration of the si
 
 - `frequency`, as explained [above](#common-parameter-explanations), options: "project", "annual", "monthly", and "month-year"
 
+- `by_category`
+  - `True` shows the port fees, fixed costs, labor costs, equipment costs, and materials costs in addition the total OpEx
+  - `False` shows only the total OpEx
+
 **Example Usage**:
 
 ```{code-cell} ipython3
 :tags: ["output_scroll"]
 style(metrics.opex("annual"))
+```
+
+```{code-cell} ipython3
+:tags: ["output_scroll"]
+style(metrics.opex("annual", by_category=True))
 ```
 
 ## Process Times
