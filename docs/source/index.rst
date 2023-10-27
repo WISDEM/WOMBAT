@@ -145,6 +145,7 @@ Welcome
 
    install
    presentations
+   workshops/index
    team
 
 
