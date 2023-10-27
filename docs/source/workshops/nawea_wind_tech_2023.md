@@ -19,7 +19,8 @@ content are all included in the slides with links to the appropriate documentati
 and the relevant screenshots so that participants can track down the required data in
 the COREWIND publications more easily.
 
-- The slides can be found [here](../presentations.md#2023-nawea-windtech-workshop)
+<!-- - The slides can be found [here](../presentations.md#2023-nawea-windtech-workshop) -->
+- Presentation coming soon!
 - The accompanying example notebook is
   [here](https://github.com/WISDEM/WOMBAT/blob/main/examples/NAWEA_interactive_walkthrough.ipynb).
 - Example dataset for the Morro Bay, California, USA 9D layout with connected
@@ -55,10 +56,4 @@ the COREWIND publications more easily.
 
    >>> import wombat
    >>> wombat.__version__
-   ```
-
-5. If the result of `wombat.__version__` is less than v0.9, please use the develop branch:
-
-   ```
-   git checkout develop
    ```
