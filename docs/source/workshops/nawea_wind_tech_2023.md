@@ -10,7 +10,7 @@
   - Miniconda: https://docs.conda.io/projects/miniconda/en/latest/miniconda-install.html
 - Basic git proficiency (we just need to clone a project and change branches)
 - Basic terminal proficiency (or Windows alternative)
-- Basic Python proficiency (WOMBAT doesn't requires very little code, but you still need to use Python)
+- Basic Python proficiency (WOMBAT requires very little code, but you still need to use Python)
 
 ## Slides and Data
 
@@ -28,7 +28,7 @@ the COREWIND publications more easily.
 
 ## Pre-Workshop Setup
 
-1. Create a new Python environment (conda instructtions)
+1. Create a new Python environment (conda instructions)
 
    ```
    conda create -n wombat_workshop python=3.10
@@ -38,7 +38,7 @@ the COREWIND publications more easily.
 2. Download WOMBAT from GitHub
 
    ```
-   git clone git clone https://github.com/WISDEM/WOMBAT.git
+   git clone https://github.com/WISDEM/WOMBAT.git
    ```
 
 3. Install WOMBAT as an editable package
