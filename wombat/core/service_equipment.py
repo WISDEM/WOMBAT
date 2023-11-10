@@ -966,7 +966,12 @@ class ServiceEquipment(RepairsMixin):
             elif {start, end} == {"site", "port"}:
                 additional = f"traveling from {start} to {end}"
                 distance = self.settings.port_distance
-                hours = self._calculate_interrupted_travel_time(distance)
+                try:
+                    hours = self._calculate_interrupted_travel_time(distance)
+                except IndexError:
+                    # If the end of the simulation is hit while finding a suitable
+                    # window exit, so the simulation can finish.
+                    return None
 
         if distance is None:
             raise ValueError("`distance` must be provided if `hours` is provided.")
