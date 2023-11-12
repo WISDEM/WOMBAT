@@ -60,7 +60,7 @@ pd.options.display.float_format = '{:,.2f}'.format
 
 Here we're providing the names of the configuration files (found at: dinwoodie / config)
 without their .yaml extensions (added in later) and the results that we want to compare
-between simulations to understand some of the timing and cost trade offs between
+between simulations to understand some of the timing and cost trade-offs between
 simulations.
 
 The dictionary of keys and lists will be used to create the results data frame where the

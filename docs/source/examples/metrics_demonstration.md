@@ -234,7 +234,7 @@ went unfinished in prior time periods. For further documentation, see the API do
 **Inputs**:
 
 - `which`
-  - "scheduled": scheduled maintenance only (classified as maintenace tasks in inputs)
+  - "scheduled": scheduled maintenance only (classified as maintenance tasks in inputs)
   - "unscheduled": unscheduled maintenance only (classified as failure events in inputs)
   - "both": Combined completion rate for all tasks
 - `frequency`, as explained [above](#common-parameter-explanations), options: "project",
