@@ -1,3 +1,14 @@
+## v0.9.2 (13 November 2023)
+
+### General
+
+- Adds the PowerPoint file used in the NAWEA/WindTech 2023 Workshop.
+- Updates all coming soon links and typos.
+
+### Bug Fixes
+
+- Fixes an edge-case introduced in v0.9.1 where traveling during a crew transfer process is able to occur after the end of the simulation period.
+
 ## v0.9.1 (27 October 2023)
 
 - Removes the pre-public release analysis data and results, located at`library/original-outdated`, from the repository, but can be found in all releases prior to v0.9. This is being done to manage the package size and ensure it can be published to PyPI.
@@ -20,7 +31,7 @@
 - The use of unique naming for the servicing equipment is now enforced to ensure that there is no overlap and potential confusion in the model.
 - New, experimental plotting functionality has been added via `wombat.utilities.plot`.
   - `plot_farm_layout` plots the graph layout of the farm. Note that this will not work if realistic lat/lon pairs have not been provided in the layout CSV.
-  - `plot_farm_availability` plots a line chart of the monthly overall windfarm availability. Additional toggles allow for the plotting of individual turbines in the background and/or the a 95% confidence interval band around the farm's availability
+  - `plot_farm_availability` plots a line chart of the monthly overall windfarm availability. Additional toggles allow for the plotting of individual turbines in the background and/or a 95% confidence interval band around the farm's availability
   - `plot_detailed_availability` plots a heatmap of the hourly turbine and farm operational levels to help in debugging simulations where availability may be running suspiciously low (i.e., a turbine might have shut down or a cable failure didn't get repaired within a reasonable time frame).
 - `Simulation.service_equipment` is now a dictionary to provide clear access to the servicing equipment details.
 - `Simulation.from_config()` requires both a library input and a file name input for the configuration after deprecating the `library` field from the configuration requirements due to it being cumbersome
@@ -29,7 +40,7 @@
 ### Methodology Updates
 
 - Subassemblies and cables are now able to resample their next times to failure for all maintenance and failure activities, so that replacement events reset the timing for failures across the board.
-- Systems are no longer interrupted once the servicing equipment addressing a repair or maintenance task is dispatched, and instead are interrupted just before the crew is transferred to begin repair, maintenance, or unmorring. This has a small net positive increase in the availability for short travel distances, but can vary if the travel time is more than a few hours (i.e., large distance to port, slow travel due to weather, & etc.)
+- Systems are no longer interrupted once the servicing equipment addressing a repair or maintenance task is dispatched, and instead are interrupted just before the crew is transferred to begin repair, maintenance, or unmooring. This has a small net positive increase in the availability for short travel distances, but can vary if the travel time is more than a few hours (i.e., large distance to port, slow travel due to weather, & etc.)
 - When a tow to port repair is in the queue, no other repairs or maintenance activities will occur for that turbine until it's brought into port for repairs.
 
 ### Deprecations
@@ -46,7 +57,7 @@
 
 ### Bug Fixes
 
-- Most of the `# type: ignore` comments have been removed or the past errors have been resolved
+- Most of the `# type: ignore` comments have been removed, or the past errors have been resolved
 - Failure and maintenance logic in the `Cable` and `Subassembly` models have been wrapped in `if`/`else` blocks to ensure previously unreachable code still can't be reached under limited conditions
 - Fixes a bug in where the mobilization duration is logged. Previously, the mobilization duration was logged upon completion, but now is logged while during the actual mobilizing, with costs still being logged upon completion.
 - Fixes an uncommon error where repairs are made twice causing the simulation to fail. This was caused by a control mismatch in the unscheduled repair process, and was fixed by better tracking and controlling when a repair moves from "pending" (submitted), to "processing" (handed off to the servicing equipment for repair or to the port for a tow-to-port repair cycle), to "completed" (the repair is registered as complete). Additionally, the servicing equipment no longer relies on receiving the first repair from the repair manager on dispatch, and follows the same `get_next_request()` logic that will occur following the initial dispatch and repair.
@@ -62,7 +73,7 @@
 ### General
 
 - All `assert` statements are now only called when type checking is performed
-- Replaces all `.get(lamda x: x == request)` with a 10x faster `.get(lambda x: x is request)` to more efficiently filter out the desired event to be removed from the repair manager and port repair manangement.
+- Replaces all `.get(lamda x: x == request)` with a 10x faster `.get(lambda x: x is request)` to more efficiently filter out the desired event to be removed from the repair manager and port repair management.
 - `WombatEnvironment.weather` is now a Polars DataFrame to improve efficiency and indexing bottlenecks introduced in Pandas 2.0.
 - All subassembly cable files are read in once, and stored in a dictionary to provide a modest speed up for the simulation initialization.
 
@@ -81,7 +92,7 @@
   - Maintenance and failure simulation process interruptions were occuring prior to starting the process timing, and causing simulation failures.
   - Duplicated parameters were being processed in `WombatEnvironment.log_action` stemming from improper handling of varying parameters in some of the more complex control flow logic in *in situ* repairs.
   - Another edge case of negative delays during crew transfers where there is insufficient time remaining in the shift after account for weather, so the method was called recursively, but not exiting the original loop.
-  - `Port` managment of *in situ* and tow-to-port capable tugboats wasn't properly accounting for tugboats of varying capabilities, and assuming all tugboats could do both. The vessel management and repair processing were out of sync causing duplicated turbine servicing/towing.
+  - `Port` management of *in situ* and tow-to-port capable tugboats wasn't properly accounting for tugboats of varying capabilities, and assuming all tugboats could do both. The vessel management and repair processing were out of sync causing duplicated turbine servicing/towing.
   - `RepairManager` has consolidated the dispatching of servicing equipment to be the following categories instead of the previously complex logic:
     - If a request is a tow-to-port category, have the port initiate the process
     - If the dispatching thresholds are met, then have the port initiate a repair for port-based servicing equipment, otherwise the repair manager will dispatch the appropriate servicing equipment.
@@ -112,10 +123,10 @@ In v0.6, due to a series of bug fixes, logic improvements, and feature additions
   - Variables `non_operational_start`, `non_operational_end` create the annualized period where operations are prohibited, resulting in the creation of the array `non_operational_dates` and set `non_operational_dates_set`.
   - Variables `reduced_speed_start`, `reduced_speed_end` create the annualized period where the maximum speed, `reduced_speed`, for all operations is imposed, resulting in the creation of the array `reduced_speed_dates` and set `reduced_speed_dates_set`.
 - Export Cables
-  - Models the export cabling system as a single cable between the substation and the interconnection point or as a connection between multiple subsations. for multiple connected substations, the model assumes they are independent systems.
-  - Adds support for "type" in the wind farm layout CSV file, which should be filled with either "substation" or "turbine". This column supports multi-substation farms so that accurate plots and connections can be made. For instance, multiple connected substatation, can now be accurately rendered and modeled in the farm.
+  - Models the export cabling system as a single cable between the substation and the interconnection point or as a connection between multiple substations. For multiple connected substations, the model assumes they are independent systems.
+  - Adds support for "type" in the wind farm layout CSV file, which should be filled with either "substation" or "turbine". This column supports multi-substation farms so that accurate plots and connections can be made. For instance, multiple connected substations, can now be accurately rendered and modeled in the farm.
   - Adds support for "upstream_cable_name" in the wind farm layout CSV file, to provide an individualized name to a cable in place of using the name field in the cable settings file for all similar cables.
-- New library structure that mirrors ORBIT (see below diagram)! In v0.7, the orignal library structure will be officially deprecated in favor of the below, and during the v0.6 lifecycle a warning will be raised to instruct users where to place and structure folders going forward.
+- New library structure that mirrors ORBIT (see below diagram)! In v0.7, the original library structure will be officially deprecated in favor of the below, and during the v0.6 lifecycle a warning will be raised to instruct users where to place and structure folders going forward.
   ```
   <library>
     ├── project
@@ -141,22 +152,22 @@ In v0.6, due to a series of bug fixes, logic improvements, and feature additions
 - Fix numerous bugs in the repair logic introduced by the use of boolean checks and status switches, which also improve simulation performance. These issues were primarily caused by erroneously resetting the status, but with the new event setting and `.succeed()` logic to clear an operation, the previously incorrect resetting is much harder to do.
 - Continue to improve the performance of low-level simulation operations to realize further improvements in memory usage and simulation performance
 - Logging is now based on directly writing to CSV in place of the `logging`-based infrastructure
-  - All underlying infrastructure withing the simulation have also been updated to accommodate the different file types, which allows for more direct interation at the end of the simulation and enables PyArrow csv read/write
+  - All underlying infrastructure withing the simulation have also been updated to accommodate the different file types, which allows for more direct interaction at the end of the simulation and enables PyArrow CSV read/write
   - This enables:
     - deprecation warnings to be passed directly to the terminal/notebook without interfering with the file handling
     - reasonable speedups to simulation times by not having additional overhead from the logging and buffering
 - `Metrics.process_times()` has been converted to efficient pandas code for fast computation.
 - The Metrics example usage documentation page has been rewritten and reformatted to provide more helpful information to users
-- `Metrics` methods now accurately account for the effect of substation oeprating reductions on upstream turbines so that each substation's subgraph multiplies the turbine operating capacity by the subastation operating capacity.
-- Fixes a bug in the `RepairManager.get_next_highest_severity_request()` where requests aren't processed in first in, first out order with a serverity level priority.
-- Remove duplicated logic in the the ``Subassembly`` and ``Cable`` maintenance and failure modeling ensuring that repetitive logic is identical between scenarios.
+- `Metrics` methods now accurately account for the effect of substation operating reductions on upstream turbines so that each substation's subgraph multiplies the turbine operating capacity by the substation operating capacity.
+- Fixes a bug in the `RepairManager.get_next_highest_severity_request()` where requests aren't processed in first in, first out order with a severity level priority.
+- Remove duplicated logic in the ``Subassembly`` and ``Cable`` maintenance and failure modeling ensuring that repetitive logic is identical between scenarios.
 
 ## 0.5.1 (22 July 2022)
 
 - Updates to use the most recent pandas API/recommendations, which fixes numerous warnings in the `Metrics` class
-- Fixes inconsistency in returning floats vs `DataFrame`s in the  `Metrics` class
+- Fixes inconsistency in returning floats vs `DataFrame`s in the `Metrics` class
 - Updates the examples to work with the returned `DataFrame` values, and adds warnings about the change in usage
-- Updates the documenation configuration to be compatible with the latest sphinx book theme API usage
+- Updates the documentation configuration to be compatible with the latest sphinx book theme API usage
 - Adds a potential fix to an occasional issue where the logging files can't be deleted using `WombatEnvironment.cleanup_log_files()` because the file is still considered to be in use
 
 ## 0.5.0 (30 June 2022)
@@ -166,8 +177,8 @@ In v0.6, due to a series of bug fixes, logic improvements, and feature additions
 - Adds a `Port` class to handle the tow-to-port class and tugboat-based service requests
 - Allows for any name to define the subassemblies of a turbine or substation to enable users to use the naming conventions they are most familiar with or most meaningful for their own work
 - Minor bug fixes in the `Metrics` class to improve stability, improve code reuse, and documentation\
-- Adds nearly all documentation udpates from PR #39 as a result of an internal code review, but makes the changes in the source files that generate the example notebooks, so is not a direct merge
-- Adds an annual fee to `PortConfig.annual_fee` that gets applied monthly, though is not included in any metrics as of yet.
+- Adds nearly all documentation updates from PR #39 as a result of an internal code review, but makes the changes in the source files that generate the example notebooks, so is not a direct merge
+- Adds an annual fee to `PortConfig.annual_fee` that gets applied monthly, though is not included in any metrics yet.
 - Adds `UnscheduledServiceEquipmentData.tow_speed` to differentiate between towing speeds and traveling speeds required between port and site, and implements the towing speed application appropriately
 - Adds a `location` flag to the events logging infrastructure and implements its usage across the simulation architecture
 - Creates the metric `Metrics.number_of_tows` to track the number of tows and provides breakdowns as needed
@@ -188,9 +199,9 @@ In v0.6, due to a series of bug fixes, logic improvements, and feature additions
 ## 0.4.0 (2022-February-4)
 
 - Testing now included!
-- `pathlib.Path` is used in place of `os` throughout for easier to read file manuevering.
+- `pathlib.Path` is used in place of `os` throughout for easier to read file maneuvering.
 - `attrs.define` and `attrs.field` have been adopted in place of `attr.s` and `attr.ib`, respectively.
-- typing style is updated for future python type annotations as, e.g., `Union[List[str], str]` ->
+- Typing style is updated for future python type annotations as, e.g., `Union[List[str], str]` ->
   `list[str] | str`.
 - Unused imports have been further cleaned up.
 - Better caching of commonly computed values for faster simulations
@@ -249,7 +260,7 @@ In v0.6, due to a series of bug fixes, logic improvements, and feature additions
 - `wombat.core.service_equipment.ServiceEquipment` has more attributes for tracking its location
   throughout a simulation.
 - `wombat.core.service_equipment.ServiceEquipment.find_uninterrupted_weather_window` now rounds
-  float inputs up to the nearest whole number to ensure the proper length window is retreived.
+  float inputs up to the nearest whole number to ensure the proper length window is retrieved.
 - `wombat.core.service_equipment.ServiceEquipment.find_interrupted_weather_window` uses `math.ceil`
   in place of `np.ceil().astype(int)` for strictly python data types in computation.
 - `wombat.core.service_equipment.ServiceEquipment.travel` consistently resets the location attributes
@@ -265,15 +276,15 @@ In v0.6, due to a series of bug fixes, logic improvements, and feature additions
 - `wombat.core.service_equipment.ServiceEquipment.process_repair`:
   - fixes a bug in the hours to process calculation by reconfiguring the control flow for both
     simplicity and accuracy.
-  - Additionally, the equipment will travel back to port if the workshift is over, so the equipment
+  - Additionally, the equipment will travel back to port if the work shift is over, so the equipment
     does not skip steps the repair logic.
   - Weather delays will also not be processed if the actual repair is finished, and will be moved to
     the crew transfer step.
   - The hours required vs hours available is reset for equipment that have around the clock shifts,
     so the timing is not arbitrarily capped, which also reduces the number of steps in the simulation.
-  - The workshift indicator check now accounts for the equipment's specific workshift settings, and
+  - The work shift indicator check now accounts for the equipment's specific work shift settings, and
     not the environment's to ensure the proper operating parameters are used.
-  - The control flow for if there isn't enough time to perform teh repair is updated to accurately
+  - The control flow for if there isn't enough time to perform the repair is updated to accurately
     account for when and where the equipment needs to travel
   - Cables are no longer retrieved through system and causing an error when processing their repairs.
 - `wombat.core.service_equipment.ServiceEquipment._calculate_intra_site_time` now accounts for a
@@ -286,7 +297,7 @@ In v0.6, due to a series of bug fixes, logic improvements, and feature additions
   retrieves the cable information for upstream cables to be reset.
 
 - `wombat.core.post_processor.Metrics.service_equipment_utilization` has a new methodolgy that uses the
-  acual number of days in operation instead of a backwards computation that consistently and
+  actual number of days in operation instead of a backwards computation that consistently and
   accurately accounts for the days where the servicing equipment is in operation. Additionally, the
   filtering is updated to match the filter for total days, which also improves accuracy of results.
 - `wombat.core.post_processor.Metrics.from_simulation_outputs` classmethod was added to easily load
@@ -300,7 +311,7 @@ In v0.6, due to a series of bug fixes, logic improvements, and feature additions
   `wombat.windfarm.system.system.System` all have an operating level property that is the current
   operating level and one that does not account for if a system is being serviced, and therefore
   registered as non-operational. This fixes a bug in the dispatching of unscheduled service equipment
-  when a repair request is submitted while a repair is occuring that drops the operating level below
+  when a repair request is submitted while a repair is occurring that drops the operating level below
   the strategy threshold. In the dispatching check we now are able to consider the operating level
   before a system was shut down for repairs and avoid improper dispatching.
 
@@ -310,7 +321,7 @@ In v0.6, due to a series of bug fixes, logic improvements, and feature additions
   and only interrupts the cable's own maintenance and failure simulation processes.
 - `wombat.windfarm.system.cable.Cable.interrupt_all_subassembly_processes` wraps `interrupt_processes`
   to ensure similar functionality between system and subassembly methods for use in the simulations.
-- `wombat.windfarm.system.cable.Cable` logging now properly records itself as the target of repais
+- `wombat.windfarm.system.cable.Cable` logging now properly records itself as the target of repairs
   and maintenance tasks instead of its starting node.
 - `wombat.windfarm.system.cable.Cable.upstream_nodes` has been updated to be in the correct order
   the nodes sit on the string
@@ -331,26 +342,26 @@ In v0.6, due to a series of bug fixes, logic improvements, and feature additions
 - `Windfarm.current_availability` is able to account for multiple substations and is now
   an accurate calculation of the operating level across the windfarm.
 - `Simulation.from_inputs()` is replaced by `Simulation.from_config()` to be more
-  straightfoward for users.
+  straightforward for users.
 - `ServiceCrew` has been added for expansion to multiple crews.
 - Servicing equipment now have separate `travel` and `crew_transfer`, `weather_delay`,
   and `repair` functions to more realistically simulate the separate processes involved.
 - The windfarm now has a distance matrix to calculate the distance between any two
-  systems oniste, for instance, substation to cable, cable to turbine, etc.
+  systems onsite, for instance, substation to cable, cable to turbine, etc.
 - Bug fix in the task completion rate metric.
 - `WombatEnvironment.log_action()` enforces the use of keyword arguments with only 3
   required inputs.
 - `WombatEnvironment.weather_forecast()` outputs now include the datetime index.
 - If no PySAM settings are provided, the `financial_model` will be set to `None` with a
-  `NotImplementedError` being raised for any attempted usage of the PySAM-powered
+  `NotImplementedError` being raised for any attempted usage of the PySAM powered
   functionality.
-- Fix bugs in `Maintenance` and `Failure` initializations.
+- Fix bugs in `Maintenance` and `Failure` initialization.
 - Fix bugs in operating level accounting from recent updates.
-- Update the unicode typing in all docstrings.
+- Update the Unicode typing in all docstrings.
 - Update the documentation to account for all the recent changes, including adding a new
   demonstration notebook for the 3 new strategies.
 
 ## 0.3.1 (2021-March-2)
 
-- Updated the the `simulation/` folder to be a single-level `core/` directory.
-- Updates the order of the keyword arguments for WombatEnvironment.log_action(), and makes all arguments keyword-only arguments.
+- Updated the `simulation/` folder to be a single-level `core/` directory.
+- Updates the order of the keyword arguments for `WombatEnvironment.log_action()`, and makes all arguments keyword-only arguments.
