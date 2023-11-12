@@ -23,10 +23,9 @@ Hammond, Rob, & Cooperman, Aubryn. Windfarm Operations and Maintenance cost-Bene
 
 This document is the actual presentation given in associating with the conference
 workshop. Please also see the [workshop's homepage](/workshops/nawea_wind_tech_2023).
-
-Link coming soon!
-<!-- <br/>
-{download}`presentation PDF <../../presentation_material/wombat_nawea_workshop_2023.pdf>` -->
+<br/>
+{download}`presentation PDF <../../presentation_material/nawea_2023_wombat_tutorial_87913.pdf>`
+| [NREL Publications](https://www.nrel.gov/docs/fy24osti/87913.pdf)
 
 ## FY20 DOE Presentation
 
