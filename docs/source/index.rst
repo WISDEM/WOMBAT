@@ -32,14 +32,14 @@ Overview
 --------
 
 The WOMBAT framework is designed to provide an open source tool adhering to FLOSS principles
-for the windfarm lifecycle research community. Specifically, WOMBAT is meant to serve as
+for the wind farm lifecycle research community. Specifically, WOMBAT is meant to serve as
 a what-if, or scenario-based, simulation tool, so that you can model the trade-offs in
-decision making for the operations and maintenance phase of a windfarm.
+decision-making for the operations and maintenance phase of a wind farm.
 
 As a supplement to this documentation site, there is also an NREL Technical Report that
 goes through much of the design and implementation details available at:
 https://www.osti.gov/biblio/1894867. If you use this software, please cite it using the
-follwing BibTex information, or in commonly used citation formats
+following BibTeX information, or in commonly used citation formats
 `here <https://www.osti.gov/biblio/1894867>`_.
 
 .. code-block:: bibtex
@@ -63,7 +63,7 @@ Latest Changes?
 
 As of v0.8, a series of bug fixes in the cable, subassembly, repair management, and
 servicing equipment models that ensure repairs can't happen twice under limited
-circumstances or that more than one repair can occur simutaneously. New features include
+circumstances or that more than one repair can occur simultaneously. New features include
 an emissions metric and random seeding of simulations, with significant simulation
 speedups across the board due to using Polars for managing the weather and datetime
 functionality.
@@ -77,7 +77,7 @@ Please see the CHANGELOG for details!
 The Model in 30 Seconds Or Less
 -------------------------------
 
-In general, the model has 2 overarching branches: the windfarm itself (the technology
+In general, the model has 2 overarching branches: the wind farm itself (the technology
 strategy), and the simulation environment (the maintenance strategy). For the wind farm
 model we can control the varying assets (system in the code)--substations, turbines, and
 cables--as well as the components that comprise each asset (subassemblies in the code).
@@ -92,16 +92,16 @@ below provides a more visual representation of this description.
 High Level Architecture
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-The code is largely broken up into two categories: the windfarm and objects contained
-within it, and the simulation and simulation evironment components. The windfarm is
+The code is largely broken up into two categories: the wind farm and objects contained
+within it, and the simulation and simulation environment components. The wind farm is
 composed of systems: substation(s), cables, and turbines, and each of those systems is
 composed of subassemblies (a conglomerate of components). For the simulation environment,
-we consider all of the pieces that allow the simulation to happen such as the API,
+we consider all the pieces that allow the simulation to happen such as the API,
 servicing equipment, repair manager to hold and pass on tasks, and results post-processing.
 
 .. image:: images/high_level_diagram.svg
 
-The following section describes how a windfarm is simulated and the flow of events as
+The following section describes how a wind farm is simulated and the flow of events as
 they occur within the model.
 
 Simulation Architecture
@@ -111,8 +111,8 @@ In the diagram below, we demonstrate the lifecycle of the simulation through the
 lifecycle of a single failure.
 
 1) The maximum length of the simulation is defined by the amount of wind and wave
-   timeseries data is provided for the simulation.
-2) Each subassemly failure model is a random sampling from a Weibull distribution, so
+   time series data is provided for the simulation.
+2) Each subassembly failure model is a random sampling from a Weibull distribution, so
    for the sake of clarity we'll consider this to be a catastrophic drivetrain failure.
    When the timeout (time to failure) is reached in the simulation, the subassembly's operating level is
    reduced to 0%, and a message is passed to the turbine level (the overarching system
@@ -130,7 +130,7 @@ lifecycle of a single failure.
 6) When the servicing is complete, the subassembly will be placed back to good-as-new
    condition and the turbine will be reset to operating. From there all the turbine's
    and drivetrain's failure and maintenance models be turned back on, and the simulation
-   will continue on in the same manner until it reaches it's user- or weather-defined
+   will continue on in the same manner until it reaches its user- or weather-defined
    ending point.
 
 .. image:: images/simulation_diagram.png

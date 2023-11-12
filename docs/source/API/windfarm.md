@@ -4,7 +4,8 @@ The wind farm classes define how the wind farm's graph model are created, and po
 timing out of the failures and maintenance events within the simulation for the cables,
 substations, and turbines.
 
-## Windfarm
+## Wind Farm
+
 ```{eval-rst}
 .. automodule:: wombat.windfarm.windfarm
    :members:
@@ -12,13 +13,15 @@ substations, and turbines.
 ```
 
 ## System: Wind turbine or substation
+
 ```{eval-rst}
 .. automodule:: wombat.windfarm.system.system
    :members:
    :undoc-members:
 ```
 
-## Subassembly: The modeled componenents of a system
+## Subassembly: The modeled components of a system
+
 ```{eval-rst}
 .. automodule:: wombat.windfarm.system.subassembly
    :members:
@@ -26,6 +29,7 @@ substations, and turbines.
 ```
 
 ## Cable: Hybrid system and subassembly model
+
 ```{eval-rst}
 .. automodule:: wombat.windfarm.system.cable
    :members:

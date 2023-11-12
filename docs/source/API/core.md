@@ -1,7 +1,7 @@
 # Simulation Core Classes
 
 There are a variety of components that enable a simulation to be run, from the
-environmen to the management of repairs to the servicing equipment. The below will show
+environment to the management of repairs to the servicing equipment. The below will show
 how each of the APIs are powered to enable the full flexibility of modeling.
 
 ```{image} ../images/simulation_tools.svg
@@ -11,6 +11,7 @@ how each of the APIs are powered to enable the full flexibility of modeling.
 ```
 
 ## Environment
+
 ```{eval-rst}
 .. autoclass:: wombat.core.environment.WombatEnvironment
    :members:
@@ -18,6 +19,7 @@ how each of the APIs are powered to enable the full flexibility of modeling.
 ```
 
 ## Repair Management
+
 ```{eval-rst}
 .. autoclass:: wombat.core.repair_management.RepairManager
    :members:
@@ -26,6 +28,7 @@ how each of the APIs are powered to enable the full flexibility of modeling.
 ```
 
 ## Servicing Equipment
+
 ```{eval-rst}
 .. automodule:: wombat.core.service_equipment
    :members:
@@ -40,6 +43,7 @@ how each of the APIs are powered to enable the full flexibility of modeling.
 ```
 
 ## Port
+
 ```{eval-rst}
 .. automodule:: wombat.core.port
    :exclude-members: Port

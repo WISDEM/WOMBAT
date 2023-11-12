@@ -1,12 +1,10 @@
 # Installation
 
-
-## Create a conda environoment
+## Create a conda environment
 
 Download the latest version of [Miniconda](<https://docs.conda.io/en/latest/miniconda.html>)
 for the appropriate OS. Follow the remaining [steps](<https://conda.io/projects/conda/en/latest/user-guide/install/index.html#regular-installation>)
 for the appropriate OS version.
-
 
 Using conda, create a new virtual environment, replacing `<environment_name>` with a name
 of your choosing (without spaces):
@@ -24,14 +22,13 @@ You can now use ``conda activate <environment_name>`` to enter the environment a
 The folowing all asssume you are in your `wombat` environment!
 ```
 
-
 ### Pip
 
 WOMBAT is listed on PyPI under `wombat`, and can be installed for users that don't
 intend to modify the code, by running the following:
 
-```text
-$ pip install wombat
+```bash
+pip install wombat
 ```
 
 ### From Source
@@ -45,26 +42,25 @@ data libraries using the following, so if issues arise, uninstall wombat, and re
 using the `pip install -e '.[dev]'` prompt in the next section
 ```
 
-```text
-$ git clone https://github.com/WISDEM/WOMBAT.git
-$ cd wombat
-$ pip install wombat/
+```bash
+git clone https://github.com/WISDEM/WOMBAT.git
+cd wombat
+pip install wombat/
 ```
 
-
-### For contributors:
+### For contributors
 
 Anyone seeking to work modify the code and contribute to the repository should follow
 the below prompt. This repository relies on automatic code formatting and linting
-provided through the pre-commit framework, and any contributors should having this
+provided through the pre-commit framework, and any contributors should have this
 functionality run and pass before submitting pull requests.
 
-```text
-$ git clone https://github.com/WISDEM/WOMBAT.git
-$ cd wombat
-$ pip install -e '.[dev]'  # some users may need double quotes here, not single quotes
+```bash
+git clone https://github.com/WISDEM/WOMBAT.git
+cd wombat
+pip install -e '.[dev]'  # some users may need double quotes here, not single quotes
 # Required for automatic code formatting!
-$ pre-commit install
+pre-commit install
 ```
 
 #### Running the tests
@@ -73,30 +69,29 @@ In addition, pytest is used to manage the testing framework, and can be run usin
 following to ensure that contributions don't break the existing tests. This will produce
 the results of the tests, including code coverage results, if the tests pass.
 
-```text
+```bash
 # From the top level of the repository
-$ pytest tests/
+pytest tests/
 ```
 
-
-### For documentation:
+### For documentation
 
 Additionally, for users that wish to modify the documentation or build the documentation
 site locally, the following prompt with will install the required documentation building
 packages.
 
-```text
-$ git clone https://github.com/WISDEM/WOMBAT.git
-$ cd wombat
-$ pip install -e '.[docs]'
+```bash
+git clone https://github.com/WISDEM/WOMBAT.git
+cd wombat
+pip install -e '.[docs]'
 ```
 
 #### Build the documentation site
 
-```text
-$ cd docs/
-$ sphinx-build -b html source _build
-$ make html
+```bash
+cd docs/
+sphinx-build -b html source _build
+make html
 ```
 
 Now, the documentation site should be able to be viewed locally at

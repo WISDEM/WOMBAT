@@ -3,7 +3,7 @@
 The WOMBAT framework relies on a set of base data classes powered by the attrs
 library and a series of simulation classes and methods to perform all the operations.
 
-To make a it easier for users, there is also a simulation interface provided.
+To make it easier for users, there is also a simulation interface provided.
 
 ## Package Hierarchy
 

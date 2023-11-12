@@ -10,7 +10,7 @@ simulation.
 :width: 2400px
 ```
 
-## What is this FromDictMixin I keep seeing in the code diagrams?
+## What is this `FromDictMixin` I keep seeing in the code diagrams?
 
 The `FromDictMixin` class provides a standard method for providing dictionary definitions
 to `attrs` dataclasses without worrying about overloading the definition. Plus, you get
@@ -27,6 +27,7 @@ hoping for the best.
 ## Scheduled and Unscheduled Maintenance
 
 ### Maintenance Tasks
+
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.Maintenance
    :members:
@@ -36,6 +37,7 @@ hoping for the best.
 ```
 
 ### Failures
+
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.Failure
    :members:
@@ -46,6 +48,7 @@ hoping for the best.
 ```
 
 ### Repair Requests
+
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.RepairRequest
    :members:
@@ -57,6 +60,7 @@ hoping for the best.
 ## Servicing Equipment and Crews
 
 ### Service Equipment
+
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.ServiceEquipmentData
    :members:
@@ -65,6 +69,7 @@ hoping for the best.
 ```
 
 ### ServiceCrew
+
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.ServiceCrew
    :members:
@@ -73,6 +78,7 @@ hoping for the best.
 ```
 
 ### Scheduled Service Equipment
+
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.ScheduledServiceEquipmentData
    :members:
@@ -88,6 +94,7 @@ hoping for the best.
 ```
 
 ### Unscheduled Service Equipment
+
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.UnscheduledServiceEquipmentData
    :members:
@@ -104,6 +111,7 @@ hoping for the best.
 ```
 
 ### Port Configuration
+
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.PortConfig
    :members:
@@ -117,6 +125,7 @@ hoping for the best.
 ## Wind Farm Support
 
 ### Subassembly Model
+
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.SubassemblyData
    :members:
@@ -127,6 +136,7 @@ hoping for the best.
 ```
 
 ### Wind Farm Map
+
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.WindFarmMap
    :members:
@@ -135,6 +145,7 @@ hoping for the best.
 ```
 
 ### Substation Map
+
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.SubstationMap
    :members:
@@ -143,6 +154,7 @@ hoping for the best.
 ```
 
 ### String
+
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.String
    :members:
@@ -151,6 +163,7 @@ hoping for the best.
 ```
 
 ### Sub String
+
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.SubString
    :members:
@@ -161,6 +174,7 @@ hoping for the best.
 ## Miscellaneous
 
 ### Fixed Cost Model
+
 ```{eval-rst}
 .. autoclass:: wombat.core.data_classes.FixedCosts
    :members:
