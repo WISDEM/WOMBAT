@@ -206,7 +206,7 @@ rotor_blades:
       # n_technicians: 21
 generator:
   name: generator
-  maintenance: 
+  maintenance:
   - description: annual turbine inspection
     time: 24
     materials: 1500

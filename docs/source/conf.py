@@ -98,6 +98,7 @@ source_suffix = {
 nb_execution_mode = "auto"
 nb_execution_timeout = -1
 nb_execution_allow_errors = True
+nb_merge_streams = True
 # nb_execution_excludepatterns.extend(
 #     [
 #         "how_to.md",

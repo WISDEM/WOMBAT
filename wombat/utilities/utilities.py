@@ -60,7 +60,7 @@ def create_variable_from_string(string: str) -> str:
     new_string = re.sub(
         "[^0-9a-zA-Z]+",
         "_",
-        re.sub("^\W+", "", re.sub("[^a-zA-Z]+$", "", string)),  # noqa: disable=W605
+        re.sub(r"^\W+", "", re.sub("[^a-zA-Z]+$", "", string)),  # noqa: disable=W605
     ).lower()
     return new_string
 

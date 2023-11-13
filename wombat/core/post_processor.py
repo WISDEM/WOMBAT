@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import warnings
 from copy import deepcopy
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from pathlib import Path
 from itertools import chain, product
 from collections import Counter
@@ -1426,6 +1426,7 @@ class Metrics:
         costs = costs.drop(columns=drop_columns)
         costs = costs.groupby(group_filter).sum().reset_index()
 
+        comparison_values: product[tuple[Any, Any]] | product[tuple[Any, Any, Any]]
         month_year = frequency == "month-year"
         if frequency in ("annual", "month-year"):
             years = costs.year.unique()
@@ -1740,6 +1741,10 @@ class Metrics:
             cols[_ix:_ix] = ["action"]
             cols.pop(-1)
             costs = costs.loc[:, cols]
+
+        comparison_values: product[tuple[Any, Any]] | product[
+            tuple[Any, Any, Any]
+        ] | product[tuple[Any, Any, Any, Any]]
         if frequency in ("annual", "month-year"):
             years = costs.year.unique()
             components = costs.component.unique()

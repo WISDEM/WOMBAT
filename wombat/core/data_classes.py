@@ -1486,7 +1486,7 @@ class EquipmentMap:
     """Internal mapping for servicing equipment strategy information."""
 
     strategy_threshold: int | float
-    equipment: "ServiceEquipment"  # noqa: disable=F821
+    equipment: ServiceEquipment  # noqa: disable=F821
 
 
 @define(auto_attribs=True)
@@ -1508,7 +1508,7 @@ class StrategyMap:
         self,
         capability: str,
         threshold: int | float,
-        equipment: "ServiceEquipment",  # noqa: disable=F821
+        equipment: ServiceEquipment,  # noqa: disable=F821
     ) -> None:
         """Update the strategy mapping between capability types and the
         available ``ServiceEquipment`` objects.
