@@ -12,8 +12,7 @@ kernelspec:
 
 # Servicing Strategies
 
-In this example, we'll demonstrate the essential differences in scheduled servicing, unscheduled servicing, and tow-to-port repair repair strategies. Each of the examples demonstrated below will be based on the 2015 Dinwoodie, et al. paper, though the the variations will be for demonstration purposes only.
-
+In this example, we'll demonstrate the essential differences in scheduled servicing, unscheduled servicing, and tow-to-port repair strategies. Each of the examples demonstrated below will be based on the 2015 Dinwoodie, et al. paper, though the variations will be for demonstration purposes only.
 
 ## WOMBAT Setup and Variables
 
@@ -24,7 +23,6 @@ When running tow-to-port a `Port` configuration is also required, which will con
 `FixedCosts` class as port fees are assumed to be constant. These costs are not considered in this example, so differences in cost should be taken with a grain
 of salt given the reduction of HLV and FSV operational and mobilization costs.
 ```
-
 
 Scenario descriptions:
 - **Scheduled**: exactly the same as the base case (fsv_scheduled.yaml and hlv_scheduled.yaml)
@@ -40,7 +38,7 @@ Scenario descriptions:
 
 In this example, we will demonstrate how the results for the base case for the Dinwoodie, et al. example vary based on how each of the vessels are scheduled. The configuration details all remain the same, regardless of details, except for the strategy information, which is defined as follows:
 
-This example is set up similarly to that of the validation cases to show how the results differ, and not a step-by-step guide for setting up the analyses. We refer the reader to the exensive [documentation](../API/index.md) and [How To example](how_to.md) for more information.
+This example is set up similarly to that of the validation cases to show how the results differ, and not a step-by-step guide for setting up the analyses. We refer the reader to the extensive [documentation](../API/index.md) and [How To example](how_to.md) for more information.
 
 ## Imports and notebook configuration
 
@@ -62,7 +60,7 @@ pd.options.display.float_format = '{:,.2f}'.format
 
 Here we're providing the names of the configuration files (found at: dinwoodie / config)
 without their .yaml extensions (added in later) and the results that we want to compare
-between simulations to understand some of the timing and cost trade offs between
+between simulations to understand some of the timing and cost trade-offs between
 simulations.
 
 The dictionary of keys and lists will be used to create the results data frame where the

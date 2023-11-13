@@ -688,7 +688,7 @@ class ServiceEquipment(RepairsMixin):
 
         # If all the safe operating windows are shorter than the time required, then
         # return the time until the end of the shift and indicate a shift delay
-        if all([window < hours_required for window in window_lengths]):
+        if all(window < hours_required for window in window_lengths):
             return max_hours, True
 
         # Find the length of the delay
@@ -966,7 +966,12 @@ class ServiceEquipment(RepairsMixin):
             elif {start, end} == {"site", "port"}:
                 additional = f"traveling from {start} to {end}"
                 distance = self.settings.port_distance
-                hours = self._calculate_interrupted_travel_time(distance)
+                try:
+                    hours = self._calculate_interrupted_travel_time(distance)
+                except IndexError:
+                    # If the end of the simulation is hit while finding a suitable
+                    # window exit, so the simulation can finish.
+                    return None
 
         if distance is None:
             raise ValueError("`distance` must be provided if `hours` is provided.")
@@ -992,7 +997,7 @@ class ServiceEquipment(RepairsMixin):
             and not self.at_port
         ):
             kw = {
-                "additional": "insufficient time to complete travel before end of the shift"  # noqa: disabl#501
+                "additional": "insufficient time to complete travel before end of the shift"  # noqa: E501
             }
             kw.update(kwargs)  # type: ignore
             yield self.env.process(
@@ -1005,7 +1010,7 @@ class ServiceEquipment(RepairsMixin):
             return
         elif not is_shift and self.at_port:
             kw = {
-                "additional": "insufficient time to complete travel before end of the shift"  # noqa: disabl#501
+                "additional": "insufficient time to complete travel before end of the shift"  # noqa: E501
             }
             kw.update(kwargs)
             yield self.env.process(self.wait_until_next_shift(**kw))
@@ -1667,7 +1672,7 @@ class ServiceEquipment(RepairsMixin):
                         **{
                             "agent": self.settings.name,
                             "reason": "no requests",
-                            "additional": "no work requests, waiting until the next shift",  # noqa: disabl#501
+                            "additional": "no work requests, waiting until the next shift",  # noqa: E501
                         }
                     )
                 )
@@ -1748,7 +1753,7 @@ class ServiceEquipment(RepairsMixin):
                         **{
                             "agent": self.settings.name,
                             "reason": "no requests",
-                            "additional": "no work requests submitted by start of shift",  # noqa: disabl#501
+                            "additional": "no work requests submitted by start of shift",  # noqa: E501
                         }
                     )
                 )
@@ -1827,7 +1832,7 @@ class ServiceEquipment(RepairsMixin):
                         **{
                             "agent": self.settings.name,
                             "reason": "no requests",
-                            "additional": "no work requests submitted by start of shift",  # noqa: disabl#501
+                            "additional": "no work requests submitted by start of shift",  # noqa: E501
                         }
                     )
                 )

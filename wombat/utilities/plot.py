@@ -175,7 +175,7 @@ def plot_farm_availability(
     # CI error bars surrounding the lines
     if farm_95_CI:
         N = turbine_availability.shape[1]
-        Z90, Z95, Z99 = (1.64, 1.96, 2.57)  # noqa: disable=F841
+        Z90, Z95, Z99 = (1.64, 1.96, 2.57)  # noqa: F841
         tm = turbine_availability.values.mean(axis=1)
         tsd = turbine_availability.values.std(axis=1)
         ci_lo = tm - Z95 * (tsd / np.sqrt(N))

@@ -1,5 +1,4 @@
-Examples Reference
-==================
+# Examples Reference
 
 This page will provide a brief overview of the varying examples available in the
 [examples folder on GitHub](https://github.com/WISDEM/WOMBAT/blob/main/examples).
@@ -17,8 +16,8 @@ to users.
 
 ### `how_to.ipynb`
 
-This is a Jupyter Notebook version of the [*How To* section](./how_to.md) of the documentation that
-allows users to interact with the walk through.
+This is a Jupyter Notebook version of the [*How To* section](./how_to.md) of the
+documentation that allows users to interact with the walk through.
 
 ### `strategy_demonstration.ipynb`
 
@@ -36,7 +35,6 @@ allows users to interact with the varying maintenance strategy models.
 
 This is the notebook used for the NAWEA WindTech 2023 Workshop. See
 [here](../workshops/nawea_wind_tech_2023.md) for details.
-
 
 ## Validation
 

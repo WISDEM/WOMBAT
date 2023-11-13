@@ -7,6 +7,7 @@
 ```
 
 ## Configuration
+
 ```{eval-rst}
 .. autoclass:: wombat.core.simulation_api.Configuration
    :members:
@@ -18,6 +19,7 @@
 ```
 
 ## Simulation Interface
+
 ```{eval-rst}
 .. autoclass:: wombat.core.simulation_api.Simulation
    :members:
@@ -27,9 +29,11 @@
     random_generator
 ```
 
-
 ## Metrics Computation
-For example usage of the Metrics class and its associated methods, please see the [examples documentation page](../examples/metrics_demonstration)
+
+For example usage of the Metrics class and its associated methods, please see the
+[examples documentation page](../examples/metrics_demonstration)
+
 ```{eval-rst}
 .. autoclass:: wombat.core.post_processor.Metrics
    :members: from_simulation_outputs, power_production, time_based_availability,
