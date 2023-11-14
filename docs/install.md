@@ -89,9 +89,7 @@ pip install -e '.[docs]'
 #### Build the documentation site
 
 ```bash
-cd docs/
-sphinx-build -b html source _build
-make html
+jupyter-book build docs
 ```
 
 Now, the documentation site should be able to be viewed locally at
