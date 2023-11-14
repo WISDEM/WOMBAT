@@ -70,13 +70,14 @@ dev = [
     "ruff==0.0.246",
 ]
 docs = [
-    "Sphinx",
+    "jupyter-book>=0.15",
     "myst-nb>=0.16",
     "myst-parser>=0.17",
-    "sphinx-book-theme<1",
-    "sphinxcontrib-spelling>=7",
     "linkify-it-py>=2",
+    "sphinx-autodoc-typehints",
+    "sphinxcontrib-autoyaml",
     "sphinxcontrib-bibtex>=2.4",
+    "sphinxcontrib-spelling>=7",
 ]
 all = [
     "pre-commit>=2.20",
@@ -86,13 +87,14 @@ all = [
     "pytest-cov>=4",
     "mypy==0.991",
     "ruff==0.0.246",
-    "Sphinx",
+    "jupyter-book>=0.15",
     "myst-nb>=0.16",
     "myst-parser>=0.17",
-    "sphinx-book-theme<1",
-    "sphinxcontrib-spelling>=7",
     "linkify-it-py>=2",
+    "sphinx-autodoc-typehints",
+    "sphinxcontrib-autoyaml",
     "sphinxcontrib-bibtex>=2.4",
+    "sphinxcontrib-spelling>=7",
 ]
 
 [tool.setuptools]

@@ -1,0 +1,103 @@
+# Book settings
+# Learn more at https://jupyterbook.org/customize/config.html
+
+title: WOMBAT
+author: Rob Hammond
+# logo: logo.png
+copyright: "2021 Alliance for Sustainable Energy, LLC"
+only_build_toc_files: false
+
+exclude_patterns: [_build, Thumbs.db, .DS_Store, "**.ipynb_checkpoints"]
+
+# Force re-execution of notebooks on each build.
+# See https://jupyterbook.org/content/execute.html
+execute:
+  execute_notebooks: auto
+  timeout: -1
+  allow_errors: true
+  exclude_patterns:
+    - _build
+    - Thumbs.db
+    - DS_Store
+    - "**.ipynb_checkpoints"
+
+# Define the name of the latex output file for PDF builds
+latex:
+  latex_documents:
+    targetname: book.tex
+
+# Add a bibtex file so that we can create citations
+bibtex_bibfiles:
+  - references.bib
+
+# Information about where the book exists on the web
+repository:
+  url: https://github.com/NREL/WAVES
+  path_to_book: docs  # Optional path to your book, relative to the repository root
+  branch: main  # Which branch of the repository should be used when creating links (optional)
+
+# Add GitHub buttons to your book
+# See https://jupyterbook.org/customize/config.html#add-a-link-to-your-repository
+html:
+  use_issues_button: true
+  use_repository_button: true
+  use_edit_page_button: true
+
+intersphinx_mapping:
+  pyton: https://docs.python.org/3.10
+  sphinx: https://www.sphinx-doc.org/en/3.x
+
+suppress_warnings: ["myst.domains"]
+
+parse:
+  myst_url_schemes: [mailto, http, https]
+  myst_heading_anchors: 3
+  myst_enable_extensions:
+  - dollarmath
+  - amsmath
+  - deflist
+  - linkify
+  - colon_fence
+  # - html_admonition
+  # - html_image
+  # - smartquotes
+  # - replacements
+  # - substitution
+
+sphinx:
+  extra_extensions:
+  - myst_nb
+  - sphinx_book_theme
+  - sphinx.ext.autodoc
+  - sphinx.ext.autosectionlabel
+  - sphinx.ext.autosummary
+  - sphinx.ext.coverage
+  - sphinx.ext.napoleon
+  - sphinx.ext.viewcode
+  - sphinx_autodoc_typehints
+  - sphinxcontrib.autoyaml
+  - sphinxcontrib.bibtex
+  config:
+    html_theme: sphinx_book_theme
+    language: 'python'
+    autoyaml_level: 3
+    autosummary_generate: true
+    autosectionlabel_prefix_document: true
+    autodoc_default_options:
+      members: true
+      member-order: bysource
+      undoc-members: true
+      private-members: true
+      # special-members: true
+      # inherited-members
+      # show-inheritance
+      # ignore-module-all
+      # imported-members: true
+      # exclude-members
+      # class-doc-from
+      # no-value
+    autodoc_typehints: description
+    napoleon_google_docstring: false
+    napoleon_use_admonition_for_notes: true
+    napoleon_use_rtype: false
+    nb_merge_streams: true

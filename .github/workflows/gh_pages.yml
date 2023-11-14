@@ -22,8 +22,7 @@ jobs:
 
       - name: Build documentation
         run: |
-          cd docs
-          make html
+          jupyter-book build docs/
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3.6.1

@@ -8,6 +8,7 @@
 ### Bug Fixes
 
 - Fixes an edge-case introduced in v0.9.1 where traveling during a crew transfer process is able to occur after the end of the simulation period.
+- The documentation has been completely converted to a Jupyter Book paradigm due to a build issue found in the GitHub Actions.
 
 ## v0.9.1 (27 October 2023)
 

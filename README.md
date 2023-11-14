@@ -192,13 +192,12 @@ pip install -e '.[docs]'
 Build the site
 
 > **Note**
-> You may want to change the "execute_notebook" parameter in the `conf.py` file to
-> "off" unless you're updating the coded examples or they will be run every time you
-> build the site.
+> You may want to change the "execute_notebooks" parameter in the `docs/_config.yaml`
+> file to "off" unless you're updating the coded examples or they will be run every time
+> you build the site.
 
 ```console
-cd docs/
-sphinx-build -b html source _build && make html
+jupyter-book build docs
 ```
 
 View the results: `docs/_build/html/index.html`
