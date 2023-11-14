@@ -94,7 +94,7 @@ all = [
     "sphinx-autodoc-typehints",
     "sphinxcontrib-autoyaml",
     "sphinxcontrib-bibtex>=2.4",
-    "sphinxcontrib-spelling>=7",s
+    "sphinxcontrib-spelling>=7",
 ]
 
 [tool.setuptools]
