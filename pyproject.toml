@@ -104,7 +104,7 @@ include-package-data = true
 include = ["wombat", "library", "*.yaml", "*.csv"]
 exclude = ["*.tests", "*.tests.*", "tests.*", "tests"]
 
-[coverage.run]
+[tool.coverage.run]
 # Coverage.py configuration file
 # https://coverage.readthedocs.io/en/latest/config.html
 branch = true
