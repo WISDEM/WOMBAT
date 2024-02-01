@@ -2,9 +2,6 @@
 requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
-[metadata]
-version = "attr: wombat.__version__"
-
 [project]
 name = "wombat"
 dynamic = ["version"]
