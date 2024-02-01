@@ -1,10 +1,5 @@
 # Contributor's Guide
 
-```{contents}
-:local:
-:depth: 2
-```
-
 (contributing:getting-started)=
 ## Getting Started
 
