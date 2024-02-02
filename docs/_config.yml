@@ -42,6 +42,7 @@ html:
   use_issues_button: true
   use_repository_button: true
   use_edit_page_button: true
+  home_page_in_navbar: false
 
 intersphinx_mapping:
   pyton: https://docs.python.org/3.10
@@ -79,6 +80,32 @@ sphinx:
   - sphinxcontrib.bibtex
   config:
     html_theme: sphinx_book_theme
+    html_theme_options:
+      icon_links: [
+        {
+            name: GitHub,
+            url: https://github.com/WISDEM/WOMBAT,
+            icon: fa-brands fa-github,
+        },
+        {
+            name: PyPI version,
+            url: https://pypi.org/project/WOMBAT/,
+            icon: "https://img.shields.io/pypi/v/WOMBAT",
+            type: url,
+        },
+        {
+            name: PyPI downloads,
+            url: https://pypi.org/project/WOMBAT/,
+            icon: "https://img.shields.io/pypi/dm/WOMBAT",
+            type: url,
+        },
+        {
+            name: Launch Binder,
+            url: "https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples",
+            icon: "https://mybinder.org/badge_logo.svg",
+            type: url,
+        },
+      ]
     language: 'python'
     autoyaml_level: 3
     autosummary_generate: true

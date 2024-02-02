@@ -7,6 +7,7 @@ parts:
 - caption: Getting Started
   chapters:
   - file: install
+  - file: contributing
   - file: presentations
   - file: workshops/index
     sections:
