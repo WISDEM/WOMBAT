@@ -1,35 +1,18 @@
-WOMBAT - Windfarm Operations and Maintenance cost-Benefit Analysis Tool
-=======================================================================
+# WOMBAT - Windfarm Operations and Maintenance cost-Benefit Analysis Tool
 
-.. image:: https://img.shields.io/badge/DOI-10.2172%2F1894867-brightgreen?link=https://doi.org/10.2172/1894867
-   :target: https://www.osti.gov/biblio/1894867
+[![DOI](https://img.shields.io/badge/DOI-10.2172%2F1894867-brightgreen?link=https://doi.org/10.2172/1894867)](https://www.osti.gov/biblio/1894867)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![PyPI Version](https://badge.fury.io/py/wombat.svg)](https://badge.fury.io/py/wombat)
+[![PyPI downloads](https://img.shields.io/pypi/dm/wombat?link=https%3A%2F%2Fpypi.org%2Fproject%2FWOMBAT%2F)](https://pypi.org/project/WOMBAT/)
 
-.. image:: https://badge.fury.io/py/wombat.svg
-   :target: https://badge.fury.io/py/wombat
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples)
+[![Documentation site](https://jupyterbook.org/badge.svg)](https://wisdem.github.io/WOMBAT)
 
-.. image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
-   :target: https://opensource.org/licenses/Apache-2.0
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
+[![Black formatter](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![isort import formatter](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 
-.. image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples
-
-.. image:: https://jupyterbook.org/badge.svg
-   :target: https://wisdem.github.io/WOMBAT
-
-.. image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
-   :target: https://github.com/pre-commit/pre-commit
-   :alt: pre-commit
-
-.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-   :target: https://github.com/psf/black
-
-.. image:: https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336
-   :target: https://pycqa.github.io/isort/
-
-
-
-Overview
---------
+## Overview
 
 The WOMBAT framework is designed to provide an open source tool adhering to FLOSS principles
 for the wind farm lifecycle research community. Specifically, WOMBAT is meant to serve as
@@ -40,9 +23,9 @@ As a supplement to this documentation site, there is also an NREL Technical Repo
 goes through much of the design and implementation details available at:
 https://www.osti.gov/biblio/1894867. If you use this software, please cite it using the
 following BibTeX information, or in commonly used citation formats
-`here <https://www.osti.gov/biblio/1894867>`_.
+[here](https://www.osti.gov/biblio/1894867).
 
-.. code-block:: bibtex
+```bibtex
 
    @techreport{hammond2022wombat,
       title = {Windfarm Operations and Maintenance cost-Benefit Analysis Tool (WOMBAT)},
@@ -54,12 +37,12 @@ following BibTeX information, or in commonly used citation formats
       month = {10},
       institution = {National Renewable Energy Lab. (NREL)},
    }
+```
 
 For any questions, feel free to open up an issue in the repository or email:
 rob.hammond@nrel.gov.
 
-Latest Changes?
----------------
+## Latest Changes?
 
 As of v0.8, a series of bug fixes in the cable, subassembly, repair management, and
 servicing equipment models that ensure repairs can't happen twice under limited
@@ -73,9 +56,7 @@ Please see the CHANGELOG for details!
 * On this site: https://wisdem.github.io/WOMBAT/changelog.html
 * On GitHub: https://github.com/WISDEM/WOMBAT/blob/main/CHANGELOG.md
 
-
-The Model in 30 Seconds Or Less
--------------------------------
+## The Model in 30 Seconds Or Less
 
 In general, the model has 2 overarching branches: the wind farm itself (the technology
 strategy), and the simulation environment (the maintenance strategy). For the wind farm
@@ -88,9 +69,7 @@ As for the environment, this is where the discrete event simulation itself happe
 addition to logging, repair logic, and other necessary modeling pieces. The image
 below provides a more visual representation of this description.
 
-
-High Level Architecture
-^^^^^^^^^^^^^^^^^^^^^^^
+### High Level Architecture
 
 The code is largely broken up into two categories: the wind farm and objects contained
 within it, and the simulation and simulation environment components. The wind farm is
@@ -99,13 +78,10 @@ composed of subassemblies (a conglomerate of components). For the simulation env
 we consider all the pieces that allow the simulation to happen such as the API,
 servicing equipment, repair manager to hold and pass on tasks, and results post-processing.
 
-.. image:: images/high_level_diagram.svg
+```{image} images/high_level_diagram.svg
+```
 
-The following section describes how a wind farm is simulated and the flow of events as
-they occur within the model.
-
-Simulation Architecture
-^^^^^^^^^^^^^^^^^^^^^^^
+### Simulation Architecture
 
 In the diagram below, we demonstrate the lifecycle of the simulation through the
 lifecycle of a single failure.
@@ -133,40 +109,14 @@ lifecycle of a single failure.
    will continue on in the same manner until it reaches its user- or weather-defined
    ending point.
 
-.. image:: images/simulation_diagram.png
+```{image} images/simulation_diagram.svg
+```
 
-
-.. Welcome
-.. -------
-
-.. .. toctree::
-..    :maxdepth: 2
-..    :caption: Getting Started
-
-..    install
-..    presentations
-..    workshops/index
-..    team
-
-
-
-.. Using WOMBAT
-.. ------------
-
-.. .. toctree::
-..    :maxdepth: 2
-..    :caption: Working with the code base
-
-..    examples/index
-..    API/index
-..    changelog
-
-
-License
--------
+## License
 
 Notice on the NREL application of the Apache-2 license, also found on the
-`GitHub <https://github.com/WISDEM/WOMBAT/blob/main/NOTICE>`_, along with the
-complete `license <https://github.com/WISDEM/WOMBAT/blob/main/LICENSE>`_ details.
+[GitHub](https://github.com/WISDEM/WOMBAT/blob/main/NOTICE), along with the
+complete [license](https://github.com/WISDEM/WOMBAT/blob/main/LICENSE) details.
 
-.. include:: ../NOTICE
+```{include} ../NOTICE
+```

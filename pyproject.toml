@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wombat"
-version = "0.9.2"
+dynamic = ["version"]
 authors = [{name = "Rob Hammond", email = "rob.hammond@nrel.gov"}]
 readme = {file = "README.md", content-type = "text/markdown"}
 description = "Windfarm operations and maintenance cost-benefit analysis tool"
@@ -104,7 +104,10 @@ include-package-data = true
 include = ["wombat", "library", "*.yaml", "*.csv"]
 exclude = ["*.tests", "*.tests.*", "tests.*", "tests"]
 
-[coverage.run]
+[tool.setuptools.dynamic]
+version = {attr = "wombat.__version__"}
+
+[tool.coverage.run]
 # Coverage.py configuration file
 # https://coverage.readthedocs.io/en/latest/config.html
 branch = true
