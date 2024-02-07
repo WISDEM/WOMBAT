@@ -1,3 +1,8 @@
+## Unreleased (TBD)
+
+- Replace the `black` formatter with `ruff`.
+- Adopt `pyupgrade` to ensure modern Python language usage.
+
 ## v0.9.2 (13 November 2023)
 
 ### General
