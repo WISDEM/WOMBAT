@@ -345,7 +345,8 @@ class Windfarm:
                 downstream=graph.nodes[s_id]["connection"],
             )
         self.wind_farm_map = WindFarmMap(
-            substation_map=wind_map, export_cables=export  # type: ignore
+            substation_map=wind_map,
+            export_cables=export,  # type: ignore
         )
 
     def finish_setup(self) -> None:

@@ -65,13 +65,12 @@ changelog = "https://github.com/WISDEM/WOMBAT/blob/main/CHANGELOG.md"
 [project.optional-dependencies]
 dev = [
     "pre-commit>=2.20",
-    "black>=22.1",
     "isort>=5.10",
     "pytest>=7",
     "pytest-cov>=4",
     "mypy==0.991",
     "ruff>=0.2",
-    "numpydoc",
+    "pyupgrade",
 ]
 docs = [
     "jupyter-book>=0.15",
@@ -165,26 +164,6 @@ length_sort = true
 lines_after_imports = 2
 line_length = 88
 
-
-[tool.black]
-target-version=["py39", "py310"]
-line-length=88
-
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
-
 [tool.numpydoc_validation]
 checks = [
   "all",
@@ -198,6 +177,7 @@ exclude = ["*__pycache__"]
 src = ["wombat", "tests"]
 line-length = 88
 target-version = "py39"
+fix = true
 
 [tool.ruff.lint]
 # See https://github.com/charliermarsh/ruff#supported-rules
