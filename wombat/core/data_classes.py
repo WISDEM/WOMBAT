@@ -250,7 +250,9 @@ def check_start_stop_dates(
 
 
 def valid_hour(
-    instance: Any, attribute: Attribute, value: int  # pylint: disable=W0613
+    instance: Any,
+    attribute: Attribute,
+    value: int,  # pylint: disable=W0613
 ) -> None:
     """Validate that the input is a valid time or null value (-1).
 
@@ -275,7 +277,9 @@ def valid_hour(
 
 
 def valid_reduction(
-    instance, attribute: Attribute, value: int | float  # pylint: disable=W0613
+    instance,
+    attribute: Attribute,
+    value: int | float,  # pylint: disable=W0613
 ) -> None:
     """Check to see if the reduction factor is between 0 and 1, inclusive.
 

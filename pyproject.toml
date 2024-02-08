@@ -65,12 +65,12 @@ changelog = "https://github.com/WISDEM/WOMBAT/blob/main/CHANGELOG.md"
 [project.optional-dependencies]
 dev = [
     "pre-commit>=2.20",
-    "black>=22.1",
     "isort>=5.10",
     "pytest>=7",
     "pytest-cov>=4",
     "mypy==0.991",
-    "ruff==0.0.246",
+    "ruff>=0.2",
+    "pyupgrade",
 ]
 docs = [
     "jupyter-book>=0.15",
@@ -164,36 +164,27 @@ length_sort = true
 lines_after_imports = 2
 line_length = 88
 
-
-[tool.black]
-target-version=["py39", "py310"]
-line-length=88
-
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
+[tool.numpydoc_validation]
+checks = [
+  "all",
+  "ES01",
+  "SA01",
+  "EX01",
+]
+exclude = ["*__pycache__"]
 
 [tool.ruff]
 src = ["wombat", "tests"]
 line-length = 88
 target-version = "py39"
-ignore-init-module-imports = true
+fix = true
 
+[tool.ruff.lint]
 # See https://github.com/charliermarsh/ruff#supported-rules
 # for rules included and matching to prefix.
 # TODO: "FBT", "B", "PIE, "T20", "SIM", "PTH", "PD", "I", "PL"
-select = ["F", "E", "W", "C4", "D", "UP"]
+ignore-init-module-imports = true
+select = ["F", "E", "W", "C4", "D", "UP", "NPY201"]
 
 # D205: not using summary lines and descriptions, just descriptions
 # D401: don't believe enough in imperative mode to make all the changes currently
@@ -229,7 +220,7 @@ exclude = [
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "setup.py" = ["D104"]
 "library/__init__.py" = ["D104"]
 "library/code_comparison/__init__.py" = ["D104"]
@@ -281,5 +272,5 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 "wombat/windfarm/__init__.py" = ["F401"]
 "wombat/windfarm/system/__init__.py" = ["F401"]
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "numpy"
