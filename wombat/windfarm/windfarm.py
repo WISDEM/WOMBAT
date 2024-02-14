@@ -404,6 +404,9 @@ class Windfarm:
 
         HOURS = 1
         while True:
+            # Loop 10K times, to limit the number of times we write to the operations
+            # log file. 10K was a crude optimization decision, so performance can vary
+            # dependending on the simulation
             for _ in range(10000):
                 yield self.env.timeout(HOURS)
                 message = {
