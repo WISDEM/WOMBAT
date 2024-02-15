@@ -1,8 +1,10 @@
-## Unreleased (TBD)
+## v0.9.3 (15 February 2024)
 
+- Reinstate the original time-based availability methodology, which is based on all
+  turbines, not the wind farm total.
 - Replace the `black` formatter with `ruff`.
 - Adopt `pyupgrade` to ensure modern Python language usage.
-- Add the NumPy 2.0 integration tool to Ruf.
+- Add the NumPy 2.0 integration tool to Ruff.
 
 ## v0.9.2 (13 November 2023)
 
