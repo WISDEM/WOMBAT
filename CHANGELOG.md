@@ -1,4 +1,4 @@
-## Unreleased (TBD)
+## v0.9.3 (15 February 2024)
 
 - Reinstate the original time-based availability methodology, which is based on all
   turbines, not the wind farm total.
