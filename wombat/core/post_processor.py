@@ -53,7 +53,6 @@ def _check_frequency(frequency: str, which: str = "all") -> str:
 def _calculate_time_availability(
     availability: pd.DataFrame,
     by_turbine: bool = False,
-    turbine_id: list[str] | None = None,
 ) -> float | np.ndarray:
     """Calculates the availability ratio of the whole timeseries or the whole
     timeseries, by turbine.
@@ -61,13 +60,10 @@ def _calculate_time_availability(
     Parameters
     ----------
     availability : pd.DataFrame
-        Timeseries array of operating ratios.
+        Timeseries array of operating ratios for all turbines.
     by_turbine : bool, optional
         If True, calculates the availability rate of each column, otherwise across the
         whole array, by default False.
-    turbine_id : list[str], optional
-        A list of turbine IDs that is required if :py:attr:`by_turbine` is ``True``, by
-        default None.
 
     Returns
     -------
@@ -77,8 +73,8 @@ def _calculate_time_availability(
     """
     availability = availability > 0
     if by_turbine:
-        return availability[turbine_id].values.sum(axis=0) / availability.shape[0]
-    return availability.windfarm.values.sum() / availability.windfarm.size
+        return availability.values.sum(axis=0) / availability.shape[0]
+    return availability.values.sum() / availability.size
 
 
 class Metrics:
@@ -375,15 +371,13 @@ class Metrics:
         for sub, val in self.substation_turbine_map.items():
             turbine_operations[val["turbines"]] *= self.operations[[sub]].values
 
-        hourly = turbine_operations.loc[:, ["windfarm"] + self.turbine_id]
+        hourly = turbine_operations.loc[:, self.turbine_id]
 
         # TODO: The below should be better summarized as:
         # (availability > 0).groupby().sum() / groupby().count()
 
         if frequency == "project":
-            availability = _calculate_time_availability(
-                hourly, by_turbine=by_turbine, turbine_id=self.turbine_id
-            )
+            availability = _calculate_time_availability(hourly, by_turbine=by_turbine)
             if not by_turbine:
                 return pd.DataFrame([availability], columns=["windfarm"])
 
@@ -401,7 +395,6 @@ class Metrics:
                 _calculate_time_availability(
                     hourly[date_time.year == year],
                     by_turbine=by_turbine,
-                    turbine_id=self.turbine_id,
                 )
                 for year in counts.index
             ]
@@ -414,7 +407,6 @@ class Metrics:
                 _calculate_time_availability(
                     hourly[date_time.month == month],
                     by_turbine=by_turbine,
-                    turbine_id=self.turbine_id,
                 )
                 for month in counts.index
             ]
@@ -427,7 +419,6 @@ class Metrics:
                 _calculate_time_availability(
                     hourly[(date_time.year == year) & (date_time.month == month)],
                     by_turbine=by_turbine,
-                    turbine_id=self.turbine_id,
                 )
                 for year, month in counts.index
             ]
