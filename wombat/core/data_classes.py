@@ -297,56 +297,6 @@ def valid_reduction(
         )
 
 
-def greater_than_zero(
-    instance,  # pylint: disable=W0613
-    attribute: Attribute,  # pylint: disable=W0613
-    value: int | float,
-) -> None:
-    """Check if an input is greater than 0.
-
-    Parameters
-    ----------
-    instance : Any
-        The class containing the attribute to be checked.
-    attribute : Attribute
-        The attribute's properties.
-    value : int | float
-        The user-input value for the ``attribute``.
-
-    Raises
-    ------
-    ValueError
-        Raised if ``value`` is less than or equal to zero.
-    """
-    if value <= 0:
-        raise ValueError("Input must be greater than 0.")
-
-
-def greater_than_equal_to_zero(
-    instance,  # pylint: disable=W0613
-    attribute: Attribute,  # pylint: disable=W0613
-    value: int | float,
-) -> None:
-    """Check if an input is at least 0.
-
-    Parameters
-    ----------
-    instance : Any
-        The class containing the attribute to be checked.
-    attribute : Attribute
-        The attribute's properties.
-    value : int | float
-        The user-input value for the ``attribute``.
-
-    Raises
-    ------
-    ValueError
-        Raised if ``value`` is less than or equal to zero.
-    """
-    if value < 0:
-        raise ValueError("Input must be at least 0.")
-
-
 @define
 class FromDictMixin:
     """A Mixin class to allow for kwargs overloading when a data class doesn't
@@ -1106,7 +1056,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
             iterable_validator=attrs.validators.instance_of(list),
         ),
     )
-    speed: float = field(converter=float, validator=greater_than_zero)
+    speed: float = field(converter=float, validator=attrs.validators.gt(0))
     max_windspeed_transport: float = field(converter=float)
     max_windspeed_repair: float = field(converter=float)
 
@@ -1326,7 +1276,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
             iterable_validator=attrs.validators.instance_of(list),
         ),
     )
-    speed: float = field(converter=float, validator=greater_than_zero)
+    speed: float = field(converter=float, validator=attrs.validators.gt(0))
     max_windspeed_transport: float = field(converter=float)
     max_windspeed_repair: float = field(converter=float)
     mobilization_cost: float = field(default=0, converter=float)
@@ -1355,7 +1305,9 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     charter_days: int = field(
         default=-1, converter=int, validator=attrs.validators.gt(0)
     )
-    tow_speed: float = field(default=1, converter=float, validator=greater_than_zero)
+    tow_speed: float = field(
+        default=1, converter=float, validator=attrs.validators.gt(0)
+    )
     unmoor_hours: int | float = field(default=0, converter=float)
     reconnection_hours: int | float = field(default=0, converter=float)
     non_operational_start: datetime.datetime = field(default=None, converter=parse_date)
@@ -1732,7 +1684,7 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
     workday_end: int = field(default=-1, converter=int, validator=valid_hour)
     site_distance: float = field(default=0.0, converter=float)
     annual_fee: float = field(
-        default=0, converter=float, validator=greater_than_equal_to_zero
+        default=0, converter=float, validator=attrs.validators.gt(0)
     )
     non_operational_start: datetime.datetime = field(default=None, converter=parse_date)
     non_operational_end: datetime.datetime = field(default=None, converter=parse_date)

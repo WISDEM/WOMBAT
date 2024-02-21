@@ -28,7 +28,6 @@ from wombat.core.data_classes import (
     convert_to_list,
     valid_reduction,
     annual_date_range,
-    greater_than_zero,
     clean_string_input,
     convert_to_list_lower,
     convert_ratio_to_absolute,
@@ -177,27 +176,6 @@ def test_valid_reduction():
 
     r = ReductionClass(0.999)
     assert r.speed_reduction == 0.999
-
-
-def test_greater_than_zero():
-    """Tests the ``greater_than_zero`` validator."""
-
-    @attr.s(auto_attribs=True)
-    class SpeedClass:
-        """Dummy class for testing ``greater_than_zero``."""
-
-        speed: int = attr.ib(converter=float, validator=greater_than_zero)
-
-    # Test the fringes
-    with pytest.raises(ValueError):
-        SpeedClass(0)
-    with pytest.raises(ValueError):
-        SpeedClass(-10)
-
-    s = SpeedClass(1)
-    assert s.speed == 1.0
-    s = SpeedClass(20.112)
-    assert s.speed == 20.112
 
 
 def test_FromDictMixin():
