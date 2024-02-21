@@ -4,6 +4,7 @@
   - MCN for medium cranes, which should enable greater options for land-based wind.
   - VSG for vessel support groups, or any representation of multiple vessels used for a
     single operation.
+- Updates Polars API usage to account for a series of deprecation and future warnings.
 
 ## v0.9.3 (15 February 2024)
 

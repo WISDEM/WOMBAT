@@ -892,7 +892,7 @@ class ServiceEquipment(RepairsMixin):
         distance_traveled[0] *= 1 - self.env.now % 1
 
         # Cumulative sum at the end of each full hour
-        distance_traveled_sum = distance_traveled.cumsum()
+        distance_traveled_sum = distance_traveled.cum_sum()
 
         # Get the index for the end of the hour where the distance requred to be
         # traveled is reached.
@@ -910,10 +910,10 @@ class ServiceEquipment(RepairsMixin):
 
         # Shave off the extra timing to get the exact travel time
         total_hours = ix_hours + 1  # add 1 for 0-indexing
-        traveled = distance_traveled_sum.take(ix_hours).item()
+        traveled = distance_traveled_sum.gather(ix_hours).item()
         if traveled > distance:
             difference = traveled - distance
-            speed_at_hour = distance_traveled.take(ix_hours).item()
+            speed_at_hour = distance_traveled.gather(ix_hours).item()
             reduction = difference / speed_at_hour
             total_hours -= reduction
 
