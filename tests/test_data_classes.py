@@ -1041,6 +1041,35 @@ def test_strategy_map(env_setup):
     assert mapping.SCN == [hlv_map, fsv_map]
     assert mapping.is_running
 
+    # MCM
+    fsv_dict = load_yaml(env.data_dir / "vessels", "fsv_downtime.yaml")
+    fsv_dict["capability"] = ["MCN"]
+    mcn = ServiceEquipmentData(fsv_dict).determine_type()
+    for capability in mcn.capability:
+        mapping.update(capability, mcn.strategy_threshold, mcn)
+    mcn_map = EquipmentMap(mcn.strategy_threshold, mcn)
+    assert mapping.MCN == [mcn_map]
+    assert mapping.is_running
+
+    # TOW/AHV
+    fsv_dict["capability"] = ["AHV", "TOW"]
+    tow = ServiceEquipmentData(fsv_dict).determine_type()
+    for capability in tow.capability:
+        mapping.update(capability, tow.strategy_threshold, tow)
+    tow_map = EquipmentMap(tow.strategy_threshold, tow)
+    assert mapping.TOW == [tow_map]
+    assert mapping.AHV == [tow_map]
+    assert mapping.is_running
+
+    # VSG
+    fsv_dict["capability"] = ["VSG"]
+    vsg = ServiceEquipmentData(fsv_dict).determine_type()
+    for capability in vsg.capability:
+        mapping.update(capability, vsg.strategy_threshold, vsg)
+    vsg_map = EquipmentMap(vsg.strategy_threshold, vsg)
+    assert mapping.VSG == [vsg_map]
+    assert mapping.is_running
+
 
 def test_FixedCosts_high_resolution_provided():
     """Test that high resolution inputs work and categories sum correctly."""
