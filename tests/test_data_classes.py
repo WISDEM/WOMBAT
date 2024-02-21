@@ -969,11 +969,15 @@ def test_strategy_map(env_setup):
     mapping = StrategyMap()
     assert mapping.CTV == []
     assert mapping.SCN == []
+    assert mapping.MCN == []
     assert mapping.LCN == []
     assert mapping.CAB == []
     assert mapping.RMT == []
     assert mapping.DRN == []
     assert mapping.DSV == []
+    assert mapping.TOW == []
+    assert mapping.AHV == []
+    assert mapping.VSG == []
     assert not mapping.is_running
 
     # Test for bad input

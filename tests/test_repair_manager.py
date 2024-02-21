@@ -61,34 +61,46 @@ def test_repair_manager_init(env_setup):
     fsv_map = EquipmentMap(fsv.settings.strategy_threshold, fsv)
     assert manager.request_based_equipment == StrategyMap()
     assert manager.downtime_based_equipment.SCN == [fsv_map]
+    assert manager.downtime_based_equipment.MCN == []
     assert manager.downtime_based_equipment.LCN == []
     assert manager.downtime_based_equipment.DRN == []
     assert manager.downtime_based_equipment.CTV == []
     assert manager.downtime_based_equipment.CAB == []
     assert manager.downtime_based_equipment.RMT == []
     assert manager.downtime_based_equipment.DSV == []
+    assert manager.downtime_based_equipment.TOW == []
+    assert manager.downtime_based_equipment.AHV == []
+    assert manager.downtime_based_equipment.VSG == []
 
     # Add a requests-based piece of equipment
     fsv = ServiceEquipment(env, windfarm, manager, "fsv_requests.yaml")
     fsv_map = EquipmentMap(fsv.settings.strategy_threshold, fsv)
     assert manager.request_based_equipment.SCN == [fsv_map]
-    assert manager.request_based_equipment.LCN == []
-    assert manager.request_based_equipment.DRN == []
-    assert manager.request_based_equipment.CTV == []
-    assert manager.request_based_equipment.CAB == []
-    assert manager.request_based_equipment.RMT == []
-    assert manager.request_based_equipment.DSV == []
+    assert manager.downtime_based_equipment.MCN == []
+    assert manager.downtime_based_equipment.LCN == []
+    assert manager.downtime_based_equipment.DRN == []
+    assert manager.downtime_based_equipment.CTV == []
+    assert manager.downtime_based_equipment.CAB == []
+    assert manager.downtime_based_equipment.RMT == []
+    assert manager.downtime_based_equipment.DSV == []
+    assert manager.downtime_based_equipment.TOW == []
+    assert manager.downtime_based_equipment.AHV == []
+    assert manager.downtime_based_equipment.VSG == []
 
     # Check for registering of equipment with multiple capabilities
     hlv = ServiceEquipment(env, windfarm, manager, "hlv_requests_multi_capability.yaml")
     hlv_map = EquipmentMap(hlv.settings.strategy_threshold, hlv)
     assert manager.request_based_equipment.SCN == [fsv_map, hlv_map]
     assert manager.request_based_equipment.LCN == [hlv_map]
-    assert manager.request_based_equipment.DRN == []
-    assert manager.request_based_equipment.CTV == []
-    assert manager.request_based_equipment.CAB == []
-    assert manager.request_based_equipment.RMT == []
-    assert manager.request_based_equipment.DSV == []
+    assert manager.downtime_based_equipment.MCN == []
+    assert manager.downtime_based_equipment.DRN == []
+    assert manager.downtime_based_equipment.CTV == []
+    assert manager.downtime_based_equipment.CAB == []
+    assert manager.downtime_based_equipment.RMT == []
+    assert manager.downtime_based_equipment.DSV == []
+    assert manager.downtime_based_equipment.TOW == []
+    assert manager.downtime_based_equipment.AHV == []
+    assert manager.downtime_based_equipment.VSG == []
 
     # Ensure that a scheduled equipment type will raise an error, though this should
     # never be called within the code
