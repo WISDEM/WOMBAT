@@ -27,6 +27,7 @@ if TYPE_CHECKING:
 VALID_EQUIPMENT = (
     "CTV",  # Crew tranfer vessel or onsite vehicle
     "SCN",  # Small crane
+    "MCN",  # Medium crane
     "LCN",  # Large crane
     "CAB",  # Cabling equipment
     "RMT",  # Remote reset or anything performed remotely
@@ -34,6 +35,7 @@ VALID_EQUIPMENT = (
     "DSV",  # Diving support vessel
     "TOW",  # Tugboat or support vessel for moving a turbine to a repair facility
     "AHV",  # Anchor handling vessel, typically a tugboat, w/o trigger tow-to-port
+    "VSG",  # Vessel support group, any group of vessels required for a single operation
 )
 
 # Define the valid unscheduled and valid strategies
@@ -295,56 +297,6 @@ def valid_reduction(
         )
 
 
-def greater_than_zero(
-    instance,  # pylint: disable=W0613
-    attribute: Attribute,  # pylint: disable=W0613
-    value: int | float,
-) -> None:
-    """Check if an input is greater than 0.
-
-    Parameters
-    ----------
-    instance : Any
-        The class containing the attribute to be checked.
-    attribute : Attribute
-        The attribute's properties.
-    value : int | float
-        The user-input value for the ``attribute``.
-
-    Raises
-    ------
-    ValueError
-        Raised if ``value`` is less than or equal to zero.
-    """
-    if value <= 0:
-        raise ValueError("Input must be greater than 0.")
-
-
-def greater_than_equal_to_zero(
-    instance,  # pylint: disable=W0613
-    attribute: Attribute,  # pylint: disable=W0613
-    value: int | float,
-) -> None:
-    """Check if an input is at least 0.
-
-    Parameters
-    ----------
-    instance : Any
-        The class containing the attribute to be checked.
-    attribute : Attribute
-        The attribute's properties.
-    value : int | float
-        The user-input value for the ``attribute``.
-
-    Raises
-    ------
-    ValueError
-        Raised if ``value`` is less than or equal to zero.
-    """
-    if value < 0:
-        raise ValueError("Input must be at least 0.")
-
-
 @define
 class FromDictMixin:
     """A Mixin class to allow for kwargs overloading when a data class doesn't
@@ -417,12 +369,14 @@ class Maintenance(FromDictMixin):
         - RMT: remote (no actual equipment BUT no special implementation)
         - DRN: drone
         - CTV: crew transfer vessel/vehicle
-        - SCN: small crane (i.e., field support vessel)
+        - SCN: small crane (i.e., cherry picker)
+        - MCN: medium crane (i.e., field support vessel)
         - LCN: large crane (i.e., heavy lift vessel)
         - CAB: cabling vessel/vehicle
         - DSV: diving support vessel
         - TOW: tugboat or towing equipment
         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
+        - VSG: vessel support group (group of vessels required for single operation)
     system_value : Union[int, float]
         Turbine replacement value. Used if the materials cost is a proportional cost.
     description : str
@@ -505,12 +459,14 @@ class Failure(FromDictMixin):
         - RMT: remote (no actual equipment BUT no special implementation)
         - DRN: drone
         - CTV: crew transfer vessel/vehicle
-        - SCN: small crane (i.e., field support vessel)
+        - SCN: small crane (i.e., cherry picker)
+        - MCN: medium crane (i.e., field support vessel)
         - LCN: large crane (i.e., heavy lift vessel)
         - CAB: cabling vessel/vehicle
         - DSV: diving support vessel
         - TOW: tugboat or towing equipment
         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
+        - VSG: vessel support group (group of vessels required for single operation)
     system_value : Union[int, float]
         Turbine replacement value. Used if the materials cost is a proportional cost.
     replacement : bool
@@ -1018,10 +974,13 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         - RMT: remote (no actual equipment BUT no special implementation)
         - DRN: drone
         - CTV: crew transfer vessel/vehicle
-        - SCN: small crane (i.e., field support vessel)
+        - SCN: small crane (i.e., cherry picker)
+        - MCN: medium crane (i.e., field support vessel)
         - LCN: large crane (i.e., heavy lift vessel)
         - CAB: cabling vessel/vehicle
         - DSV: diving support vessel
+        - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
+        - VSG: vessel support group (group of vessels required for single operation)
 
         Please note that "TOW" is unavailable for scheduled servicing equipment
     mobilization_cost : float
@@ -1097,7 +1056,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
             iterable_validator=attrs.validators.instance_of(list),
         ),
     )
-    speed: float = field(converter=float, validator=greater_than_zero)
+    speed: float = field(converter=float, validator=attrs.validators.gt(0))
     max_windspeed_transport: float = field(converter=float)
     max_windspeed_repair: float = field(converter=float)
 
@@ -1202,15 +1161,18 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         The number of days the servicing equipment can be chartered for.
     capability : str
         The type of capabilities the equipment contains. Must be one of:
+
         - RMT: remote (no actual equipment BUT no special implementation)
         - DRN: drone
         - CTV: crew transfer vessel/vehicle
-        - SCN: small crane (i.e., field support vessel)
+        - SCN: small crane (i.e., cherry picker)
+        - MCN: medium crane (i.e., field support vessel)
         - LCN: large crane (i.e., heavy lift vessel)
         - CAB: cabling vessel/vehicle
         - DSV: diving support vessel
         - TOW: tugboat or towing equipment
         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
+        - VSG: vessel support group (group of vessels required for single operation)
     speed : float
         Maximum transit speed, km/hr.
     tow_speed : float
@@ -1314,7 +1276,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
             iterable_validator=attrs.validators.instance_of(list),
         ),
     )
-    speed: float = field(converter=float, validator=greater_than_zero)
+    speed: float = field(converter=float, validator=attrs.validators.gt(0))
     max_windspeed_transport: float = field(converter=float)
     max_windspeed_repair: float = field(converter=float)
     mobilization_cost: float = field(default=0, converter=float)
@@ -1343,7 +1305,9 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     charter_days: int = field(
         default=-1, converter=int, validator=attrs.validators.gt(0)
     )
-    tow_speed: float = field(default=1, converter=float, validator=greater_than_zero)
+    tow_speed: float = field(
+        default=1, converter=float, validator=attrs.validators.gt(0)
+    )
     unmoor_hours: int | float = field(default=0, converter=float)
     reconnection_hours: int | float = field(default=0, converter=float)
     non_operational_start: datetime.datetime = field(default=None, converter=parse_date)
@@ -1490,7 +1454,7 @@ class EquipmentMap:
     """Internal mapping for servicing equipment strategy information."""
 
     strategy_threshold: int | float
-    equipment: ServiceEquipment  # noqa: disable=F821
+    equipment: ServiceEquipment  # noqa: F821
 
 
 @define(auto_attribs=True)
@@ -1499,6 +1463,7 @@ class StrategyMap:
 
     CTV: list[EquipmentMap] = field(factory=list)
     SCN: list[EquipmentMap] = field(factory=list)
+    MCN: list[EquipmentMap] = field(factory=list)
     LCN: list[EquipmentMap] = field(factory=list)
     CAB: list[EquipmentMap] = field(factory=list)
     RMT: list[EquipmentMap] = field(factory=list)
@@ -1506,13 +1471,14 @@ class StrategyMap:
     DSV: list[EquipmentMap] = field(factory=list)
     TOW: list[EquipmentMap] = field(factory=list)
     AHV: list[EquipmentMap] = field(factory=list)
+    VSG: list[EquipmentMap] = field(factory=list)
     is_running: bool = field(default=False, init=False)
 
     def update(
         self,
         capability: str,
         threshold: int | float,
-        equipment: ServiceEquipment,  # noqa: disable=F821
+        equipment: ServiceEquipment,  # noqa: F821
     ) -> None:
         """Update the strategy mapping between capability types and the
         available ``ServiceEquipment`` objects.
@@ -1537,6 +1503,8 @@ class StrategyMap:
             self.CTV.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "SCN":
             self.SCN.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "MCN":
+            self.MCN.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "LCN":
             self.LCN.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "CAB":
@@ -1551,6 +1519,8 @@ class StrategyMap:
             self.TOW.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "AHV":
             self.AHV.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "VSG":
+            self.VSG.append(EquipmentMap(threshold, equipment))  # type: ignore
         else:
             # This should not even be able to be reached
             raise ValueError(
@@ -1576,6 +1546,8 @@ class StrategyMap:
             return self.CTV
         if capability == "SCN":
             return self.SCN
+        if capability == "MCN":
+            return self.MCN
         if capability == "LCN":
             return self.LCN
         if capability == "CAB":
@@ -1590,6 +1562,8 @@ class StrategyMap:
             return self.TOW
         if capability == "AHV":
             return self.AHV
+        if capability == "VSG":
+            return self.VSG
         # This should not even be able to be reached
         raise ValueError(
             f"Invalid servicing equipmen capability '{capability}' has been provided!"
@@ -1611,6 +1585,8 @@ class StrategyMap:
             self.CTV.append(self.CTV.pop(ix))
         elif capability == "SCN":
             self.SCN.append(self.SCN.pop(ix))
+        elif capability == "MCN":
+            self.LCN.append(self.MCN.pop(ix))
         elif capability == "LCN":
             self.LCN.append(self.LCN.pop(ix))
         elif capability == "CAB":
@@ -1625,6 +1601,8 @@ class StrategyMap:
             self.TOW.append(self.TOW.pop(ix))
         elif capability == "AHV":
             self.AHV.append(self.AHV.pop(ix))
+        elif capability == "VSG":
+            self.VSG.append(self.AHV.pop(ix))
         else:
             # This should not even be able to be reached
             raise ValueError(
@@ -1706,7 +1684,7 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
     workday_end: int = field(default=-1, converter=int, validator=valid_hour)
     site_distance: float = field(default=0.0, converter=float)
     annual_fee: float = field(
-        default=0, converter=float, validator=greater_than_equal_to_zero
+        default=0, converter=float, validator=attrs.validators.gt(0)
     )
     non_operational_start: datetime.datetime = field(default=None, converter=parse_date)
     non_operational_end: datetime.datetime = field(default=None, converter=parse_date)

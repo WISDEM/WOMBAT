@@ -1,3 +1,13 @@
+## Unreleased (TBD)
+
+- Adds the following capability and servicing equipment codes:
+  - MCN for medium cranes, which should enable greater options for land-based wind.
+  - VSG for vessel support groups, or any representation of multiple vessels used for a
+    single operation.
+- Updates Polars API usage to account for a series of deprecation and future warnings.
+- Changes the metrics demonstration to use the COREWIND Morro Bay in situ example, and
+  adds the availability plotting to the demonstration example.
+
 ## v0.9.3 (15 February 2024)
 
 - Reinstate the original time-based availability methodology, which is based on all
