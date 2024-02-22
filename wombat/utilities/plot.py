@@ -120,24 +120,28 @@ def plot_farm_availability(
     # Get the availability data
     metrics = sim.metrics
     if which == "time":
-        availability = metrics.time_based_availability("project", "windfarm").values[0][
-            0
-        ]
+        availability = (
+            metrics.time_based_availability("project", "windfarm")
+            .astype(float)
+            .values[0][0]
+        )
         windfarm_availability = metrics.time_based_availability(
             "month-year", "windfarm"
-        )
+        ).astype(float)
         turbine_availability = metrics.time_based_availability("month-year", "turbine")
         label = f"{sim.env.simulation_name} Time-Based Availability: {availability:.2%}"
     elif which == "energy":
-        availability = metrics.production_based_availability(
-            "project", "windfarm"
-        ).values[0][0]
+        availability = (
+            metrics.production_based_availability("project", "windfarm")
+            .astype(float)
+            .values[0][0]
+        )
         windfarm_availability = metrics.production_based_availability(
             "month-year", "windfarm"
-        )
+        ).astype(float)
         turbine_availability = metrics.production_based_availability(
             "month-year", "turbine"
-        )
+        ).astype(float)
         label = (
             f"{sim.env.simulation_name} Energy-Based Availability: {availability:.2%}"
         )
