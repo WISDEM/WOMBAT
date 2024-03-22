@@ -278,7 +278,7 @@ def valid_hour(
         raise ValueError(f"Input {attribute.name} must be between 0 and 24, inclusive.")
 
 
-def valid_reduction(
+def validate_0_1_inclusive(
     instance,
     attribute: Attribute,
     value: int | float,  # pylint: disable=W0613
@@ -292,8 +292,8 @@ def valid_reduction(
     """
     if value < 0 or value > 1:
         raise ValueError(
-            f"Input for {attribute.name}'s `speed_reduction_factor` must be between"
-            " 0 and 1, inclusive."
+            f"Input for {attribute.name} must be between 0 and 1, inclusive, not:"
+            f" {value=}."
         )
 
 
@@ -650,6 +650,9 @@ class RepairRequest(FromDictMixin):
     cable: bool = field(default=False, converter=bool, kw_only=True)
     upstream_turbines: list[str] = field(default=Factory(list), kw_only=True)
     upstream_cables: list[str] = field(default=Factory(list), kw_only=True)
+    prior_operating_level: float = field(
+        default=1, kw_only=True, validator=validate_0_1_inclusive
+    )
     request_id: str = field(init=False)
 
     def assign_id(self, request_id: str) -> None:
@@ -1068,7 +1071,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     workday_end: int = field(default=-1, converter=int, validator=valid_hour)
     crew_transfer_time: float = field(converter=float, default=0.0)
     speed_reduction_factor: float = field(
-        default=0.0, converter=float, validator=valid_reduction
+        default=0.0, converter=float, validator=validate_0_1_inclusive
     )
     port_distance: float = field(default=0.0, converter=float)
     onsite: bool = field(default=False, converter=bool)
@@ -1287,7 +1290,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     workday_end: int = field(default=-1, converter=int, validator=valid_hour)
     crew_transfer_time: float = field(converter=float, default=0.0)
     speed_reduction_factor: float = field(
-        default=0.0, converter=float, validator=valid_reduction
+        default=0.0, converter=float, validator=validate_0_1_inclusive
     )
     port_distance: float = field(default=0.0, converter=float)
     onsite: bool = field(default=False, converter=bool)

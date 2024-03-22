@@ -169,7 +169,7 @@ class Cable:
         """
         self.processes = dict(self._create_processes())
 
-    def interrupt_processes(self) -> None:
+    def interrupt_processes(self, replacement: bool = False) -> None:
         """Interrupts all of the running processes within the subassembly except for the
         process associated with failure that triggers the catastrophic failure.
 
@@ -177,17 +177,28 @@ class Cable:
         ----------
         subassembly : Subassembly
             The subassembly that should have all processes interrupted.
+        replacement: bool, optional
+            Indicates if the interruption is caused a result of a replacement event.
+            Defaults to False.
         """
+        cause = "replacement" if replacement else "failure"
         for _, process in self.processes.items():
             try:
-                process.interrupt()
+                process.interrupt(cause=cause)
             except RuntimeError:
                 # This error occurs for the process halting all other processes.
                 pass
 
-    def interrupt_all_subassembly_processes(self) -> None:
-        """Thin wrapper for ``interrupt_processes`` for consistent usage with system."""
-        self.interrupt_processes()
+    def interrupt_all_subassembly_processes(self, replacement: bool = False) -> None:
+        """Thin wrapper for ``interrupt_processes`` for consistent usage with system.
+
+        Parameters
+        ----------
+        replacement: bool, optional
+            Indicates if the interruption is caused a result of a replacement event.
+            Defaults to False.
+        """
+        self.interrupt_processes(replacement=replacement)
 
     def stop_all_upstream_processes(self, failure: Failure | Maintenance) -> None:
         """Stops all upstream turbines and cables from producing power by creating a
@@ -266,6 +277,7 @@ class Cable:
             The maintenance or failure event that triggers a ``RepairRequest``.
         """
         which = "maintenance" if isinstance(action, Maintenance) else "repair"
+        current_ol = self.operating_level
         self.operating_level *= 1 - action.operation_reduction
 
         # Automatically submit a repair request
@@ -280,6 +292,7 @@ class Cable:
             cable=True,
             upstream_turbines=self.upstream_nodes,
             upstream_cables=self.upstream_cables,
+            prior_operating_level=current_ol,
         )
         repair_request = self.system.repair_manager.register_request(repair_request)
         self.env.log_action(
@@ -341,14 +354,10 @@ class Cable:
                         yield self.env.timeout(hours_to_next)
                         hours_to_next = 0
                         self.trigger_request(maintenance)
-                    except simpy.Interrupt:
-                        if not self.broken.triggered:
-                            # The subassembly had to restart the maintenance cycle
-                            hours_to_next = 0
-                        else:
-                            # A different process failed, so subtract the elapsed time
-                            # only if it had started to be processed
-                            hours_to_next -= 0 if start == -1 else self.env.now - start
+                    except simpy.Interrupt as i:
+                        if i.cause == "replacement":
+                            return
+                        hours_to_next -= 0 if start == -1 else self.env.now - start
 
     def run_single_failure(self, failure: Failure) -> Generator:
         """Runs a process to trigger one type of failure repair request throughout the
@@ -385,11 +394,7 @@ class Cable:
                         yield self.env.timeout(hours_to_next)
                         hours_to_next = 0
                         self.trigger_request(failure)
-                    except simpy.Interrupt:
-                        if not self.broken.triggered:
-                            # Restart after fixing
-                            hours_to_next = 0
-                        else:
-                            # A different process failed, so subtract the elapsed time
-                            # only if it had started to be processed
-                            hours_to_next -= 0 if start == -1 else self.env.now - start
+                    except simpy.Interrupt as i:
+                        if i.cause == "replacement":
+                            return
+                        hours_to_next -= 0 if start == -1 else self.env.now - start

@@ -532,7 +532,9 @@ class RepairManager(FilterStore):
                 self.systems_waiting_for_tow.index(system.id)
             )
 
-    def interrupt_system(self, system: System | Cable) -> None:
+    def interrupt_system(
+        self, system: System | Cable, replacement: bool = False
+    ) -> None:
         """Sets the turbine status to be in servicing, and interrupts all the processes
         to turn off operations.
 
@@ -540,10 +542,13 @@ class RepairManager(FilterStore):
         ----------
         system_id : str
             The system to disable repairs.
+        replacement: bool, optional
+            Indicates if the interruption is caused a result of a replacement event.
+            Defaults to False.
         """
         if system.servicing.triggered and system.id in self.invalid_systems:
             system.servicing = self.env.event()
-            system.interrupt_all_subassembly_processes()
+            system.interrupt_all_subassembly_processes(replacement=replacement)
         else:
             raise RuntimeError(
                 f"{self.env.simulation_time} {system.id} already being serviced"
