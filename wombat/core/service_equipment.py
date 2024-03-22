@@ -489,8 +489,12 @@ class ServiceEquipment(RepairsMixin):
             )
             subassembly.recreate_processes()
         elif operation_reduction == 1:
-            subassembly.operating_level = starting_operating_level
-            subassembly.broken.succeed()
+            subassembly.operating_level = repair.prior_operating_level
+            try:
+                subassembly.broken.succeed()
+            except RuntimeError as e:
+                print(subassembly.system.id, repair.details.description)
+                raise e
         elif operation_reduction == 0:
             subassembly.operating_level = starting_operating_level
         else:
@@ -1467,7 +1471,9 @@ class ServiceEquipment(RepairsMixin):
             raise RuntimeError(f"{self.settings.name} is lost!")
 
         if initial:
-            self.manager.interrupt_system(system)
+            self.manager.interrupt_system(
+                system, replacement=request.details.replacement
+            )
         yield self.env.process(
             self.crew_transfer(system, subassembly, request, to_system=True)
         )
@@ -1885,7 +1891,7 @@ class ServiceEquipment(RepairsMixin):
         )
 
         # Turn off the turbine
-        self.manager.interrupt_system(system)
+        self.manager.interrupt_system(system, replacement=request.details.replacement)
 
         # Unmoor the turbine and tow it back to port
         yield self.env.process(self.mooring_connection(system, request, which="unmoor"))
