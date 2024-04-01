@@ -169,7 +169,7 @@ class Cable:
         """
         self.processes = dict(self._create_processes())
 
-    def interrupt_processes(self, replacement: bool = False) -> None:
+    def interrupt_processes(self, replacement: str | None = None) -> None:
         """Interrupts all of the running processes within the subassembly except for the
         process associated with failure that triggers the catastrophic failure.
 
@@ -178,10 +178,13 @@ class Cable:
         subassembly : Subassembly
             The subassembly that should have all processes interrupted.
         replacement: bool, optional
-            Indicates if the interruption is caused a result of a replacement event.
-            Defaults to False.
+            If a subassebly `id` is provided, this indicates the interruption is caused
+            by its replacement event. Defaults to None.
         """
-        cause = "replacement" if replacement else "failure"
+        cause = "failure"
+        if self.id == replacement:
+            cause = "replacement"
+
         for _, process in self.processes.items():
             try:
                 process.interrupt(cause=cause)
@@ -189,14 +192,16 @@ class Cable:
                 # This error occurs for the process halting all other processes.
                 pass
 
-    def interrupt_all_subassembly_processes(self, replacement: bool = False) -> None:
+    def interrupt_all_subassembly_processes(
+        self, replacement: str | None = None
+    ) -> None:
         """Thin wrapper for ``interrupt_processes`` for consistent usage with system.
 
         Parameters
         ----------
         replacement: bool, optional
-            Indicates if the interruption is caused a result of a replacement event.
-            Defaults to False.
+            If a subassebly `id` is provided, this indicates the interruption is caused
+            by its replacement event. Defaults to None.
         """
         self.interrupt_processes(replacement=replacement)
 

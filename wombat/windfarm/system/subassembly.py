@@ -84,7 +84,7 @@ class Subassembly:
         self.processes = dict(self._create_processes())
 
     def interrupt_processes(
-        self, origin: Subassembly | None = None, replacement: bool = False
+        self, origin: Subassembly | None = None, replacement: str | None = None
     ) -> None:
         """Interrupts all of the running processes within the subassembly except for the
         process associated with failure that triggers the catastrophic failure.
@@ -97,10 +97,12 @@ class Subassembly:
             current subassembly, then a try/except flow is used to ensure the process
             that initiated the shutdown is not interrupting itself.
         replacement: bool, optional
-            Indicates if the interruption is caused a result of a replacement event.
-            Defaults to False.
+            If a subassebly `id` is provided, this indicates the interruption is caused
+            by its replacement event. Defaults to None.
         """
-        cause = "replacement" if replacement else "failure"
+        cause = "failure"
+        if self.id == replacement:
+            cause = "replacement"
         if origin is not None and id(origin) == id(self):
             for _, process in self.processes.items():
                 try:

@@ -533,7 +533,7 @@ class RepairManager(FilterStore):
             )
 
     def interrupt_system(
-        self, system: System | Cable, replacement: bool = False
+        self, system: System | Cable, replacement: str | None = None
     ) -> None:
         """Sets the turbine status to be in servicing, and interrupts all the processes
         to turn off operations.
@@ -542,9 +542,9 @@ class RepairManager(FilterStore):
         ----------
         system_id : str
             The system to disable repairs.
-        replacement: bool, optional
-            Indicates if the interruption is caused a result of a replacement event.
-            Defaults to False.
+        replacement: str | None, optional
+            If a subassebly `id` is provided, this indicates the interruption is caused
+            by its replacement event. Defaults to None.
         """
         if system.servicing.triggered and system.id in self.invalid_systems:
             system.servicing = self.env.event()

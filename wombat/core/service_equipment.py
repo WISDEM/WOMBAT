@@ -1471,9 +1471,10 @@ class ServiceEquipment(RepairsMixin):
             raise RuntimeError(f"{self.settings.name} is lost!")
 
         if initial:
-            self.manager.interrupt_system(
-                system, replacement=request.details.replacement
+            replacement = (
+                request.subassembly_id if request.details.replacement else None
             )
+            self.manager.interrupt_system(system, replacement=replacement)
         yield self.env.process(
             self.crew_transfer(system, subassembly, request, to_system=True)
         )
@@ -1891,7 +1892,8 @@ class ServiceEquipment(RepairsMixin):
         )
 
         # Turn off the turbine
-        self.manager.interrupt_system(system, replacement=request.details.replacement)
+        replacement = request.subassembly_id if request.details.replacement else None
+        self.manager.interrupt_system(system, replacement=replacement)
 
         # Unmoor the turbine and tow it back to port
         yield self.env.process(self.mooring_connection(system, request, which="unmoor"))
