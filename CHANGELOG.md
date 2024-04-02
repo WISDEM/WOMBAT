@@ -10,6 +10,7 @@
 - `RepairRequest.prior_operating_level` has been added to allow 100% reduction factor failures to correctly and consistently restore the operating level of a subassembly following a repair.
 - Replaces the `valid_reduction` attrs validator with `validate_0_1_inclusive` to reuse the logic in multiple places without duplicating checking methods.
 - Adds a `replacement` flag for interruption methods, so that a failure or replacement comment can be added as a cause for `simpy.process.interrupt`. This update allows the failure and maintenance processes to check if an interruption should cause the process to exit completely. Additionally, the forced exit ensures that processes can't persist after a replacement event when a process is recreated, which was happening in isolated cases.
+- Fixes a bug in `RepairManager.purge_subassemble_requests()` where the pending tows are cleared regardless of whether or not the focal subassembly is the cause of the tow, leading to a simulation failure.
 
 ## v0.9.3 (15 February 2024)
 
