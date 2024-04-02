@@ -2,9 +2,6 @@
 requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
-[metadata]
-version = "attr: wombat.__version__"
-
 [project]
 name = "wombat"
 dynamic = ["version"]
@@ -184,7 +181,7 @@ fix = true
 # for rules included and matching to prefix.
 # TODO: "FBT", "B", "PIE, "T20", "SIM", "PTH", "PD", "I", "PL"
 ignore-init-module-imports = true
-select = ["F", "E", "W", "C4", "D", "UP", "NPY201"]
+select = ["F", "E", "W", "C4", "D", "UP"]
 
 # D205: not using summary lines and descriptions, just descriptions
 # D401: don't believe enough in imperative mode to make all the changes currently
