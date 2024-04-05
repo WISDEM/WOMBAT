@@ -26,10 +26,10 @@ from wombat.core.data_classes import (
     UnscheduledServiceEquipmentData,
     valid_hour,
     convert_to_list,
-    valid_reduction,
     annual_date_range,
     clean_string_input,
     convert_to_list_lower,
+    validate_0_1_inclusive,
     convert_ratio_to_absolute,
 )
 
@@ -151,14 +151,16 @@ def test_valid_hour():
     assert hour.hour == 24
 
 
-def test_valid_reduction():
-    """Tests the ``valid_reduction`` validator."""
+def test_validate_0_1_inclusive():
+    """Tests the ``validate_0_1_inclusive`` validator."""
 
     @attr.s(auto_attribs=True)
     class ReductionClass:
-        """Dummy class for testing ``valid_reduction``."""
+        """Dummy class for testing ``validate_0_1_inclusive``."""
 
-        speed_reduction: int = attr.ib(converter=float, validator=valid_reduction)
+        speed_reduction: int = attr.ib(
+            converter=float, validator=validate_0_1_inclusive
+        )
 
     # Test the fringes
     with pytest.raises(ValueError):

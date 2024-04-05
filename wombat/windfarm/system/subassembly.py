@@ -83,7 +83,9 @@ class Subassembly:
         """
         self.processes = dict(self._create_processes())
 
-    def interrupt_processes(self, origin: Subassembly | None = None) -> None:
+    def interrupt_processes(
+        self, origin: Subassembly | None = None, replacement: str | None = None
+    ) -> None:
         """Interrupts all of the running processes within the subassembly except for the
         process associated with failure that triggers the catastrophic failure.
 
@@ -94,17 +96,23 @@ class Subassembly:
             from a subassembly shutdown event. If provided, and it is the same as the
             current subassembly, then a try/except flow is used to ensure the process
             that initiated the shutdown is not interrupting itself.
+        replacement: bool, optional
+            If a subassebly `id` is provided, this indicates the interruption is caused
+            by its replacement event. Defaults to None.
         """
+        cause = "failure"
+        if self.id == replacement:
+            cause = "replacement"
         if origin is not None and id(origin) == id(self):
             for _, process in self.processes.items():
                 try:
-                    process.interrupt()
+                    process.interrupt(cause=cause)
                 except RuntimeError:  # Process initiating process can't be interrupted
                     pass
             return
 
         for _, process in self.processes.items():
-            process.interrupt()
+            process.interrupt(cause=cause)
 
     def interrupt_all_subassembly_processes(self) -> None:
         """Thin wrapper for ``system.interrupt_all_subassembly_processes``."""
@@ -120,6 +128,7 @@ class Subassembly:
             The maintenance or failure event that triggers a ``RepairRequest``.
         """
         which = "maintenance" if isinstance(action, Maintenance) else "repair"
+        current_ol = self.operating_level
         self.operating_level *= 1 - action.operation_reduction
         if action.operation_reduction == 1:
             self.broken = self.env.event()
@@ -140,6 +149,7 @@ class Subassembly:
             subassembly_name=self.name,
             severity_level=action.level,
             details=action,
+            prior_operating_level=current_ol,
         )
         repair_request = self.system.repair_manager.register_request(repair_request)
         self.env.log_action(
@@ -195,14 +205,10 @@ class Subassembly:
                         hours_to_next = 0
                         self.trigger_request(maintenance)
 
-                    except simpy.Interrupt:
-                        if not self.broken.triggered:
-                            # The subassembly had to restart the maintenance cycle
-                            hours_to_next = 0
-                        else:
-                            # A different process failed, so subtract the elapsed time
-                            # only if it had started to be processed
-                            hours_to_next -= 0 if start == -1 else self.env.now - start
+                    except simpy.Interrupt as i:
+                        if i.cause == "replacement":
+                            return
+                        hours_to_next -= 0 if start == -1 else self.env.now - start
 
     def run_single_failure(self, failure: Failure) -> Generator:
         """Runs a process to trigger one type of failure repair request throughout the
@@ -241,11 +247,7 @@ class Subassembly:
                         hours_to_next = 0
                         self.trigger_request(failure)
 
-                    except simpy.Interrupt:
-                        if not self.broken.triggered:
-                            # The subassembly had to be replaced so reset the timing
-                            hours_to_next = 0
-                        else:
-                            # A different process failed, so subtract the elapsed time
-                            # only if it had started to be processed
-                            hours_to_next -= 0 if start == -1 else self.env.now - start
+                    except simpy.Interrupt as i:
+                        if i.cause == "replacement":
+                            return
+                        hours_to_next -= 0 if start == -1 else self.env.now - start
