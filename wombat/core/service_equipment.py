@@ -493,7 +493,6 @@ class ServiceEquipment(RepairsMixin):
             try:
                 subassembly.broken.succeed()
             except RuntimeError as e:
-                print(subassembly.system.id, repair.details.description)
                 raise e
         elif operation_reduction == 0:
             subassembly.operating_level = starting_operating_level
