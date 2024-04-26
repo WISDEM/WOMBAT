@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-import re
+from string import digits, punctuation
 from typing import Callable
 
 import numpy as np
@@ -57,11 +57,11 @@ def create_variable_from_string(string: str) -> str:
     'electrical_system'
 
     """
-    new_string = re.sub(
-        "[^0-9a-zA-Z]+",
-        "_",
-        re.sub(r"^\W+", "", re.sub("[^a-zA-Z]+$", "", string)),  # noqa: disable=W605
-    ).lower()
+    new_string = (
+        string.lstrip(punctuation + digits)
+        .translate(str.maketrans("", "", punctuation.replace("_", " ")))
+        .lower()
+    )
     return new_string
 
 
