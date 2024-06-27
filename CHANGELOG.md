@@ -14,6 +14,7 @@
 - Fixes a bug in `RepairManager.purge_subassemble_requests()` where the pending tows are cleared regardless of whether or not the focal subassembly is the cause of the tow, leading to a simulation failure.
 - Fixes a bug in `utilities/utilities.py:create_variable_from_string()` to operate in a way that is expected. The original method was removing all numerics, but only leading punctuation and numerics should be replaced, with any punctuation being replaced with an underscore.
 - Adds additional inline comments for clarification on internal methods.
+- Update README.md to be inline with current conda and Python standards.
 
 ## v0.9.3 (15 February 2024)
 
