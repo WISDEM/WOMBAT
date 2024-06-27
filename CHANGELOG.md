@@ -1,3 +1,19 @@
+## Unreleased (TBD)
+
+- Adds support for Python 3.11 and 3.12.
+- Adds the following capability and servicing equipment codes:
+  - MCN for medium cranes, which should enable greater options for land-based wind.
+  - VSG for vessel support groups, or any representation of multiple vessels used for a
+    single operation.
+- Updates Polars API usage to account for a series of deprecation and future warnings.
+- Changes the metrics demonstration to use the COREWIND Morro Bay in situ example, and
+  adds the availability plotting to the demonstration example.
+- `RepairRequest.prior_operating_level` has been added to allow 100% reduction factor failures to correctly and consistently restore the operating level of a subassembly following a repair.
+- Replaces the `valid_reduction` attrs validator with `validate_0_1_inclusive` to reuse the logic in multiple places without duplicating checking methods.
+- Adds a `replacement` flag for interruption methods, so that a failure or replacement comment can be added as a cause for `simpy.process.interrupt`. This update allows the failure and maintenance processes to check if an interruption should cause the process to exit completely. Additionally, the forced exit ensures that processes can't persist after a replacement event when a process is recreated, which was happening in isolated cases.
+- Fixes a bug in `RepairManager.purge_subassemble_requests()` where the pending tows are cleared regardless of whether or not the focal subassembly is the cause of the tow, leading to a simulation failure.
+- Fixes a bug in `utilities/utilities.py:create_variable_from_string()` to operate in a way that is expected. The original method was removing all numerics, but only leading punctuation and numerics should be replaced, with any punctuation being replaced with an underscore.
+
 ## v0.9.3 (15 February 2024)
 
 - Reinstate the original time-based availability methodology, which is based on all

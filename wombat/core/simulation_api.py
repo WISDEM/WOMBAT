@@ -178,6 +178,13 @@ class Simulation(FromDictMixin):
 
     def __attrs_post_init__(self) -> None:
         """Post-initialization hook."""
+        # Check for random seeding from the configuration if none provided directly
+        if self.random_seed is None:
+            self.random_seed = self.config.random_seed
+        if self.random_generator is None:
+            self.random_generator = self.config.random_generator
+
+        # Finish the setup
         self._setup_simulation()
 
     @config.validator  # type: ignore

@@ -261,6 +261,9 @@ CTV
 SCN
 : small crane (i.e., field support vessel or cherry picker)
 
+MCN
+: medium crane (i.e., anything between a cherry picker and a crawler crane)
+
 LCN
 : large crane (i.e., heavy lift vessel or crawler crane)
 
@@ -277,6 +280,10 @@ the simulation's `Port` will dispatch the tugboats as needed)
 AHV
 : anchor handling vessel (this is a variation on the tugboat for mooring repairs that
 will not tow anything between port and site, but operate at the site)
+
+VSG
+: vessel support group (used as a means for modeling a grouping of vessels used for a
+sing repair operation)
 
 Aside from the TOW and AHV capabilities there are no operations specific to each
 capability. The remaining configurations of a servicing equipment such as equipment

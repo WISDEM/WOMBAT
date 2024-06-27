@@ -29,6 +29,7 @@ import pandas as pd
 from pandas.io.formats.style import Styler
 
 from wombat.core import Simulation, Metrics
+from wombat.utilities import plot
 
 # Clean up the aesthetics for the pandas outputs
 pd.set_option("display.max_rows", 30)
@@ -86,7 +87,7 @@ required to generate the Metrics inputs and a method to reload those outputs as 
 
 ```{code-cell} ipython3
 :tags: ["output_scroll"]
-sim = Simulation("DINWOODIE", "base.yaml")
+sim = Simulation("COREWIND", "morro_bay_in_situ.yaml")
 
 # Both of these parameters are True by default for convenience
 sim.run(create_metrics=True, save_metrics_inputs=True)
@@ -199,6 +200,17 @@ style(metrics.time_based_availability(frequency="monthly", by="windfarm"))
 :tags: ["output_scroll"]
 # Demonstrate the granular monthly reporting
 style(metrics.time_based_availability(frequency="month-year", by="windfarm"))
+```
+
+### Plotting Availability
+
+As of v0.9, the ability to plot the wind farm and turbine availability has been enabled
+as an experimental feature. Please see the [plotting API documentation](plotting) for more details.
+
+```{code-cell} ipython3
+:tags: ["output_scroll"]
+# Demonstrate the granular monthly reporting
+plot.plot_farm_availability(sim=sim, which="energy", farm_95_CI=True)
 ```
 
 (metrics-demo:cf)=
@@ -396,7 +408,6 @@ print(f"Project total: ${total.values[0][0] / metrics.project_capacity:,.2f}/MW"
 ```{code-cell} ipython3
 :tags: ["output_scroll"]
 # Project totals for each type of labor
-# NOTE: this simulation relies on using a fixed labor cost, so this is still $0
 style(metrics.labor_costs(frequency="project", by_type=True))
 ```
 

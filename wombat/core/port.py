@@ -155,8 +155,8 @@ class Port(RepairsMixin, FilterStore):
         ix_month_starts = self.env.weather.filter(
             (pl.col("datetime").dt.day() == 1)
             & (pl.col("datetime").dt.hour() == 0)
-            & (pl.col("row_nr") > 0)
-        ).select(pl.col("row_nr"))
+            & (pl.col("index") > 0)
+        ).select(pl.col("index"))
 
         # At time 0 log the first monthly fee
         self.env.log_action(
