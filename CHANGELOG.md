@@ -1,5 +1,6 @@
 ## Unreleased (TBD)
 
+- Adds support for Python 3.11 and 3.12.
 - Adds the following capability and servicing equipment codes:
   - MCN for medium cranes, which should enable greater options for land-based wind.
   - VSG for vessel support groups, or any representation of multiple vessels used for a
