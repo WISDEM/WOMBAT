@@ -1605,7 +1605,7 @@ class StrategyMap:
         elif capability == "AHV":
             self.AHV.append(self.AHV.pop(ix))
         elif capability == "VSG":
-            self.VSG.append(self.AHV.pop(ix))
+            self.VSG.append(self.VSG.pop(ix))
         else:
             # This should not even be able to be reached
             raise ValueError(
