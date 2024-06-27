@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import csv
-import logging
 import datetime as dt
 import itertools
 from math import fsum
@@ -21,8 +20,8 @@ from wombat.utilities.utilities import cache
 
 class Windfarm:
     """The primary class for operating on objects within a windfarm. The substations,
-    cables, and turbines are created as a network object to be more appropriately accessed
-    and controlled.
+    cables, and turbines are created as a network object to be more appropriately
+    accessed and controlled.
     """
 
     def __init__(
@@ -35,6 +34,7 @@ class Windfarm:
         self.repair_manager = repair_manager
 
         # Set up the layout and instantiate all windfarm objects
+        self.configs: dict[str, dict] = {"turbine": {}, "substation": {}, "cable": {}}
         self._create_graph_layout(windfarm_layout)
         self._create_turbines_and_substations()
         self._create_cables()
@@ -57,30 +57,22 @@ class Windfarm:
 
     def _create_graph_layout(self, windfarm_layout: str) -> None:
         """Creates a network layout of the windfarm start from the substation(s) to
-        be able to capture downstream turbines that can be cut off in the event of a cable failure.
+        be able to capture downstream turbines that can be cut off in the event of a
+        cable failure.
 
         Parameters
         ----------
         windfarm_layout : str
             Filename to use for reading in the windfarm layout; must be a csv file.
         """
-        try:
-            layout_path = str(self.env.data_dir / "project/plant" / windfarm_layout)
-            layout = (
-                pd.read_csv(layout_path)
-                .sort_values(by=["string", "order"])
-                .reset_index(drop=True)
-            )
-        except FileNotFoundError:
-            layout_path = str(self.env.data_dir / "windfarm" / windfarm_layout)
-            layout = (
-                pd.read_csv(layout_path)
-                .sort_values(by=["string", "order"])
-                .reset_index(drop=True)
-            )
-            logging.warning(
-                "DeprecationWarning: In v0.7, all wind farm layout files must be located in: '<library>/project/plant/"
-            )
+        # Read in the layout CSV file, then sort it by string, then order to ensure
+        # it can be traversed in sequential order later
+        layout_path = str(self.env.data_dir / "project/plant" / windfarm_layout)
+        layout = (
+            pd.read_csv(layout_path)
+            .sort_values(by=["string", "order"])
+            .reset_index(drop=True)
+        )
         layout.subassembly = layout.subassembly.fillna("")
         layout.upstream_cable = layout.upstream_cable.fillna("")
 
@@ -93,19 +85,24 @@ class Windfarm:
 
         # Determine which nodes are substations and which are turbines
         if "type" in layout.columns:
+            # Extract the type directly from the layout file
             if layout.loc[~layout.type.isin(("substation", "turbine"))].size > 0:
                 raise ValueError(
-                    "At least one value in the 'type' column are not one of 'substation' or 'turbine'."
+                    "At least one value in the 'type' column are not one of:"
+                    " 'substation' or 'turbine'."
                 )
             substation_filter = layout.type == "substation"
             nx.set_node_attributes(
                 windfarm, dict(layout[["id", "type"]].values), name="type"
             )
         else:
+            # Deduce substations by their self-connected setting for interconnection
             substation_filter = layout.id == layout.substation_id
             _type = {True: "substation", False: "turbine"}
             d = {i: _type[val] for i, val in zip(layout.id, substation_filter.values)}
             nx.set_node_attributes(windfarm, d, name="type")
+
+        self.turbine_id: np.ndarray = layout.loc[~substation_filter, "id"].values
 
         self.substation_id = layout.loc[substation_filter, "id"].values
         for substation in self.substation_id:
@@ -113,13 +110,16 @@ class Windfarm:
                 layout.id == substation, "substation_id"
             ].values[0]
 
-        self.turbine_id = layout.loc[~substation_filter, "id"].values
+        # Create a mapping for each substation to all connected turbines (subgraphs)
         substations = layout[substation_filter].copy()
         turbines = layout[~substation_filter].copy()
         substation_sections = [
             turbines[turbines.substation_id == substation]
             for substation in substations.id
         ]
+
+        # For each subgraph, create the edge connections between substations and
+        # turbines. Note: these are pre-sorted in the layout creation step.
         for section in substation_sections:
             for _, row in section.iterrows():
                 if row.order == 0:
@@ -130,6 +130,7 @@ class Windfarm:
                 windfarm.add_edge(
                     start, current, length=row.distance, cable=row.upstream_cable
                 )
+        # Create the substation to substation and substation to self connections
         for substation in self.substation_id:
             row = layout.loc[layout.id == substation]
             windfarm.add_edge(
@@ -139,7 +140,7 @@ class Windfarm:
                 cable=row.upstream_cable.values[0],
             )
 
-        self.graph = windfarm
+        self.graph: nx.DiGraph = windfarm
         self.layout_df = layout
 
     def _create_turbines_and_substations(self) -> None:
@@ -152,36 +153,31 @@ class Windfarm:
         ValueError
             Raised if the subassembly data is not provided in the layout file.
         """
-        bad_data_location_messages = []
+        # Loop through all nodes in the graph, and create the actual simulation objects
         for system_id, data in self.graph.nodes(data=True):
-            if data["subassembly"] == "":
+            name = data["subassembly"]
+            node_type = data["type"]
+            if name == "":
                 raise ValueError(
-                    "A 'subassembly' file must be specified for all nodes in the windfarm layout!"
+                    "A 'subassembly' file must be specified for all nodes in the"
+                    " windfarm layout!"
                 )
 
-            try:
-                subassembly_dict = load_yaml(
-                    self.env.data_dir / f"{data['type']}s", data["subassembly"]
-                )
-            except FileNotFoundError:
-                subassembly_dict = load_yaml(
-                    self.env.data_dir / "windfarm", data["subassembly"]
-                )
-                message = f"In v0.7, all {data['type']} configurations must be located in: '<library>/{data['type']}s"
-                bad_data_location_messages.append(message)
+            # Read in unique system configuration files only once, and reference
+            # the existing dictionary when possible to reduce I/O
+            if (subassembly_dict := self.configs[node_type].get(name)) is None:
+                subassembly_dict = load_yaml(self.env.data_dir / f"{node_type}s", name)
+                self.configs[node_type][name] = subassembly_dict
+
+            # Create the turbine or substation simulation object
             self.graph.nodes[system_id]["system"] = System(
                 self.env,
                 self.repair_manager,
                 system_id,
                 data["name"],
                 subassembly_dict,
-                data["type"],
+                node_type,
             )
-
-        # Raise the warning for soon-to-be deprecated library structure
-        bad_data_location_messages = list(set(bad_data_location_messages))
-        for message in bad_data_location_messages:
-            logging.warning(f"DeprecationWarning: {message}")
 
     def _create_cables(self) -> None:
         """Instantiates the cable models as defined in the user-provided layout file,
@@ -195,20 +191,33 @@ class Windfarm:
         """
         get_name = "upstream_cable_name" in self.layout_df
         bad_data_location_messages = []
+
+        # Loop over all the edges in the graph and create cable objects
         for start_node, end_node, data in self.graph.edges(data=True):
+            name = data["cable"]
+
             # Check that the cable data is provided
-            if data["cable"] == "":
+            if name == "":
                 raise ValueError(
-                    "A 'cable' file must be specified for all nodes in the windfarm layout!"
-                )
-            try:
-                cable_dict = load_yaml(self.env.data_dir / "cables", data["cable"])
-            except FileNotFoundError:
-                cable_dict = load_yaml(self.env.data_dir / "windfarm", data["cable"])
-                bad_data_location_messages.append(
-                    "In v0.7, all cable configurations must be located in: '<library>/cables/"
+                    "An 'upstream_cable' file must be specified for all nodes in the"
+                    " windfarm layout!"
                 )
 
+            # Read in unique cable configuration files once to reduce I/O
+            if (cable_dict := self.configs["cable"].get(name)) is None:
+                try:
+                    cable_dict = load_yaml(self.env.data_dir / "cables", data["cable"])
+                except FileNotFoundError:
+                    cable_dict = load_yaml(
+                        self.env.data_dir / "windfarm", data["cable"]
+                    )
+                    bad_data_location_messages.append(
+                        "In v0.7, all cable configurations must be located in:"
+                        " '<library>/cables/"
+                    )
+                self.configs["cable"][name] = cable_dict
+
+            # Get the lat, lon pairs for the start and end points
             start_coordinates = (
                 self.graph.nodes[start_node]["latitude"],
                 self.graph.nodes[start_node]["longitude"],
@@ -218,6 +227,7 @@ class Windfarm:
                 self.graph.nodes[end_node]["longitude"],
             )
 
+            # Get the unique naming of the cable connection if it's configured
             name = None
             if get_name:
                 name, *_ = self.layout_df.loc[
@@ -231,27 +241,25 @@ class Windfarm:
                     start_coordinates, end_coordinates, ellipsoid="WGS-84"
                 ).km
 
+            # Encode whether it is an array cable or an export cable
             if self.graph.nodes[end_node]["type"] == "substation":
                 data["type"] = "export"
             else:
                 data["type"] = "array"
 
+            # Create the Cable simulation object
             data["cable"] = Cable(
                 self, self.env, data["type"], start_node, end_node, cable_dict, name
             )
 
-            # Calaculate the geometric center point
+            # Calaculate the geometric center point of the cable for later
+            # determining travel distances to cables
             end_points = np.array((start_coordinates, end_coordinates))
             data["latitude"], data["longitude"] = end_points.mean(axis=0)
 
-        # Raise the warning for soon-to-be deprecated library structure
-        bad_data_location_messages = list(set(bad_data_location_messages))
-        for message in bad_data_location_messages:
-            logging.warning(f"DeprecationWarning: {message}")
-
     def calculate_distance_matrix(self) -> None:
-        """Calculates the geodesic distance, in km, between all of the windfarm's nodes, e.g.,
-        substations and turbines, and cables.
+        """Calculates the geodesic distance, in km, between all of the windfarm's nodes,
+        e.g., substations and turbines, and cables.
         """
         ids = list(self.graph.nodes())
         ids.extend([data["cable"].id for *_, data in self.graph.edges(data=True)])
@@ -280,7 +288,7 @@ class Windfarm:
         """
         # Get all turbines connected to each substation, excepting any connected via
         # export cables that connect substations as these operate independently
-        s_t_map = {s: {"turbines": [], "weights": []} for s in self.substation_id}  # type: ignore
+        s_t_map: dict = {s: {"turbines": [], "weights": []} for s in self.substation_id}
         for substation_id in self.substation_id:
             nodes = set(
                 nx.bfs_tree(self.graph, substation_id, depth_limit=1).nodes
@@ -301,6 +309,13 @@ class Windfarm:
 
         self.substation_turbine_map: dict[str, dict[str, np.ndarray]] = s_t_map
 
+        # Calculate the turbine weights
+        self.turbine_weights: pd.DataFrame = (
+            pd.concat([pd.DataFrame(val) for val in s_t_map.values()])
+            .set_index("turbines")
+            .T
+        )
+
     def _create_wind_farm_map(self) -> None:
         """Creates a secondary graph object strictly for traversing the windfarm to turn
         on/off the appropriate turbines, substations, and cables more easily.
@@ -319,22 +334,25 @@ class Windfarm:
                     substations
                 )
             )
-            wind_map[s_id] = dict(strings=dict(zip(start_nodes, itertools.repeat({}))))
+            wind_map[s_id] = {"strings": dict(zip(start_nodes, itertools.repeat({})))}
 
             for start_node in start_nodes:
                 upstream = list(
                     itertools.chain(*nx.dfs_successors(graph, start_node).values())
                 )
                 wind_map[s_id]["strings"][start_node] = {
-                    start_node: SubString(downstream=s_id, upstream=upstream)  # type: ignore
+                    start_node: SubString(
+                        downstream=s_id,  # type: ignore
+                        upstream=upstream,  # type: ignore
+                    )
                 }
                 self.cable((s_id, start_node)).set_string_details(start_node, s_id)
 
                 downstream = start_node
                 for node in upstream:
-                    wind_map[s_id]["strings"][start_node][node] = SubString(  # type: ignore
-                        downstream=downstream,
-                        upstream=list(
+                    wind_map[s_id]["strings"][start_node][node] = SubString(
+                        downstream=downstream,  # type: ignore
+                        upstream=list(  # tye: ignore
                             itertools.chain(*nx.dfs_successors(graph, node).values())
                         ),
                     )
@@ -349,7 +367,10 @@ class Windfarm:
                 string_map=wind_map[s_id]["strings"],
                 downstream=graph.nodes[s_id]["connection"],
             )
-        self.wind_farm_map = WindFarmMap(substation_map=wind_map, export_cables=export)  # type: ignore
+        self.wind_farm_map = WindFarmMap(
+            substation_map=wind_map,
+            export_cables=export,  # type: ignore
+        )
 
     def finish_setup(self) -> None:
         """Final initialization hook for any substations, turbines, or cables."""
@@ -371,11 +392,11 @@ class Windfarm:
 
     def _log_operations(self):
         """Logs the operational data for a simulation."""
-        message = dict(
-            datetime=dt.datetime.now(),
-            env_datetime=self.env.simulation_time,
-            env_time=self.env.now,
-        )
+        message = {
+            "datetime": dt.datetime.now(),
+            "env_datetime": self.env.simulation_time,
+            "env_time": self.env.now,
+        }
         message.update(
             {system: self.system(system).operating_level for system in self.system_list}
         )
@@ -383,13 +404,16 @@ class Windfarm:
 
         HOURS = 1
         while True:
+            # Loop 10K times, to limit the number of times we write to the operations
+            # log file. 10K was a crude optimization decision, so performance can vary
+            # dependending on the simulation
             for _ in range(10000):
                 yield self.env.timeout(HOURS)
-                message = dict(
-                    datetime=dt.datetime.now(),
-                    env_datetime=self.env.simulation_time,
-                    env_time=self.env.now,
-                )
+                message = {
+                    "datetime": dt.datetime.now(),
+                    "env_datetime": self.env.simulation_time,
+                    "env_time": self.env.now,
+                }
                 message.update(
                     {
                         system: self.system(system).operating_level
@@ -426,8 +450,8 @@ class Windfarm:
         ----------
         cable_id : tuple[str, str] | str
             The cable's unique identifier, of the form: (``wombat.windfarm.System.id``,
-            ``wombat.windfarm.System.id``), for the (downstream node id, upstream node id),
-            or the ``Cable.id``.
+            ``wombat.windfarm.System.id``), for the (downstream node id, upstream node
+            id), or the ``Cable.id``.
 
         Returns
         -------
@@ -435,7 +459,9 @@ class Windfarm:
             The ``Cable`` object.
         """
         if isinstance(cable_id, str):
-            edge_id = tuple(cable_id.split("::")[1:])
+            edge_id = tuple(cable_id.split("::"))
+            if len(edge_id) == 3:
+                edge_id = edge_id[1:]
         else:
             edge_id = cable_id
         try:
@@ -445,8 +471,8 @@ class Windfarm:
 
     @property
     def current_availability(self) -> float:
-        """Calculates the product of all system ``operating_level`` variables across the
-        windfarm using the following forumation
+        r"""Calculates the product of all system ``operating_level`` variables across
+        the windfarm using the following forumation.
 
         .. math::
             \sum{
@@ -480,9 +506,9 @@ class Windfarm:
 
     @property
     def current_availability_wo_servicing(self) -> float:
-        """Calculates the product of all system ``operating_level`` variables across the
-        windfarm using the following forumation, ignoring 0 operating level due to ongoing
-        servicing.
+        r"""Calculates the product of all system ``operating_level`` variables across
+        the windfarm using the following forumation, ignoring 0 operating level due to
+        ongoing servicing.
 
         .. math::
             \sum{

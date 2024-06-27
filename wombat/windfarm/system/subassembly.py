@@ -1,8 +1,8 @@
-"""Provides the Subassembly class"""
+"""Provides the Subassembly class."""
 
 from __future__ import annotations
 
-from typing import Generator
+from collections.abc import Generator
 
 import simpy
 
@@ -25,7 +25,8 @@ class Subassembly:
         s_id: str,
         subassembly_data: dict,
     ) -> None:
-        """Creates a subassembly object that models various maintenance and failure types.
+        """Creates a subassembly object that models various maintenance and failure
+        types.
 
         Parameters
         ----------
@@ -36,14 +37,18 @@ class Subassembly:
         s_id : str
             A unique identifier for the subassembly within the system.
         subassembly_data : dict
-            A dictionary to be passed to ``SubassemblyData`` for creation and validation.
+            A dictionary to be passed to ``SubassemblyData`` for creation and
+            validation.
         """
-
         self.env = env
         self.system = system
         self.id = s_id
 
-        subassembly_data = {**subassembly_data, "system_value": self.system.value}
+        subassembly_data = {
+            **subassembly_data,
+            "system_value": self.system.value,
+            "rng": self.env.random_generator,
+        }
         self.data = SubassemblyData.from_dict(subassembly_data)
         self.name = self.data.name
 
@@ -57,42 +62,61 @@ class Subassembly:
         """Creates the processes for each of the failure and maintenance types.
 
         Yields
-        -------
+        ------
         Tuple[Union[str, int], simpy.events.Process]
             Creates a dictionary to keep track of the running processes within the
             subassembly.
         """
-        for level, failure in self.data.failures.items():
-            yield level, self.env.process(self.run_single_failure(failure))
+        for failure in self.data.failures:
+            level = failure.level
+            desc = failure.description
+            yield (level, desc), self.env.process(self.run_single_failure(failure))
 
-        for i, maintenance in enumerate(self.data.maintenance):
-            yield f"m{i}", self.env.process(self.run_single_maintenance(maintenance))
+        for maintenance in self.data.maintenance:
+            desc = maintenance.description
+            yield desc, self.env.process(self.run_single_maintenance(maintenance))
 
     def recreate_processes(self) -> None:
-        """If a turbine is being entirely reset after a tow-to-port repair, then all
-        processes are assumed to be reset to 0, and not pick back up where they left off.
+        """If a turbine is being reset after a tow-to-port repair or replacement, then
+        all processes are assumed to be reset to 0, and not pick back up where they left
+        off.
         """
         self.processes = dict(self._create_processes())
 
-    def interrupt_processes(self) -> None:
+    def interrupt_processes(
+        self, origin: Subassembly | None = None, replacement: str | None = None
+    ) -> None:
         """Interrupts all of the running processes within the subassembly except for the
         process associated with failure that triggers the catastrophic failure.
 
         Parameters
         ----------
-        subassembly : Subassembly
-            The subassembly that should have all processes interrupted.
+        origin : Subassembly
+            The subassembly that triggered the request, if the method call is coming
+            from a subassembly shutdown event. If provided, and it is the same as the
+            current subassembly, then a try/except flow is used to ensure the process
+            that initiated the shutdown is not interrupting itself.
+        replacement: bool, optional
+            If a subassebly `id` is provided, this indicates the interruption is caused
+            by its replacement event. Defaults to None.
         """
+        cause = "failure"
+        if self.id == replacement:
+            cause = "replacement"
+        if origin is not None and id(origin) == id(self):
+            for _, process in self.processes.items():
+                try:
+                    process.interrupt(cause=cause)
+                except RuntimeError:  # Process initiating process can't be interrupted
+                    pass
+            return
+
         for _, process in self.processes.items():
-            try:
-                process.interrupt()
-            except RuntimeError:
-                # This error occurs for the process halting all other processes.
-                pass
+            process.interrupt(cause=cause)
 
     def interrupt_all_subassembly_processes(self) -> None:
         """Thin wrapper for ``system.interrupt_all_subassembly_processes``."""
-        self.system.interrupt_all_subassembly_processes()
+        self.system.interrupt_all_subassembly_processes(origin=self)
 
     def trigger_request(self, action: Maintenance | Failure):
         """Triggers the actual repair or maintenance logic for a failure or maintenance
@@ -104,6 +128,7 @@ class Subassembly:
             The maintenance or failure event that triggers a ``RepairRequest``.
         """
         which = "maintenance" if isinstance(action, Maintenance) else "repair"
+        current_ol = self.operating_level
         self.operating_level *= 1 - action.operation_reduction
         if action.operation_reduction == 1:
             self.broken = self.env.event()
@@ -124,6 +149,7 @@ class Subassembly:
             subassembly_name=self.name,
             severity_level=action.level,
             details=action,
+            prior_operating_level=current_ol,
         )
         repair_request = self.system.repair_manager.register_request(repair_request)
         self.env.log_action(
@@ -142,7 +168,8 @@ class Subassembly:
         self.system.repair_manager.submit_request(repair_request)
 
     def run_single_maintenance(self, maintenance: Maintenance) -> Generator:
-        """Runs a process to trigger one type of maintenance request throughout the simulation.
+        """Runs a process to trigger one type of maintenance request throughout the
+        simulation.
 
         Parameters
         ----------
@@ -150,7 +177,7 @@ class Subassembly:
             A maintenance category.
 
         Yields
-        -------
+        ------
         simpy.events. HOURS_IN_DAY
             Time between maintenance requests.
         """
@@ -162,29 +189,30 @@ class Subassembly:
                     yield self.env.timeout(remainder)
                 except simpy.Interrupt:
                     remainder -= self.env.now
+            else:
+                while hours_to_next > 0:
+                    start = -1  # Ensure an interruption before processing is caught
+                    try:
+                        # Wait until these events are triggered and back to operational
+                        yield (
+                            self.system.servicing
+                            & self.system.cable_failure
+                            & self.broken
+                        )
 
-            while hours_to_next > 0:
-                start = -1  # Ensure an interruption before processing is caught
-                try:
-                    # Wait until these events are triggered and back to operational
-                    yield self.system.servicing & self.system.cable_failure & self.broken
-
-                    start = self.env.now
-                    yield self.env.timeout(hours_to_next)
-                    hours_to_next = 0
-                    self.trigger_request(maintenance)
-
-                except simpy.Interrupt:
-                    if not self.broken.triggered:
-                        # The subassembly had to restart the maintenance cycle
+                        start = self.env.now
+                        yield self.env.timeout(hours_to_next)
                         hours_to_next = 0
-                    else:
-                        # A different process failed, so subtract the elapsed time
-                        # only if it had started to be processed
+                        self.trigger_request(maintenance)
+
+                    except simpy.Interrupt as i:
+                        if i.cause == "replacement":
+                            return
                         hours_to_next -= 0 if start == -1 else self.env.now - start
 
     def run_single_failure(self, failure: Failure) -> Generator:
-        """Runs a process to trigger one type of failure repair request throughout the simulation.
+        """Runs a process to trigger one type of failure repair request throughout the
+        simulation.
 
         Parameters
         ----------
@@ -192,7 +220,7 @@ class Subassembly:
             A failure classification.
 
         Yields
-        -------
+        ------
         simpy.events. HOURS_IN_DAY
             Time between failure events that need to request a repair.
         """
@@ -205,20 +233,21 @@ class Subassembly:
                 except simpy.Interrupt:
                     remainder -= self.env.now
                 continue
-            while hours_to_next > 0:  # type: ignore
-                start = -1  # Ensure an interruption before processing is caught
-                try:
-                    yield self.system.servicing & self.system.cable_failure & self.broken
-                    start = self.env.now
-                    yield self.env.timeout(hours_to_next)
-                    hours_to_next = 0
-                    self.trigger_request(failure)
-
-                except simpy.Interrupt:
-                    if not self.broken.triggered:
-                        # The subassembly had to be replaced so reset the timing
+            else:
+                while hours_to_next > 0:  # type: ignore
+                    start = -1  # Ensure an interruption before processing is caught
+                    try:
+                        yield (
+                            self.system.servicing
+                            & self.system.cable_failure
+                            & self.broken
+                        )
+                        start = self.env.now
+                        yield self.env.timeout(hours_to_next)
                         hours_to_next = 0
-                    else:
-                        # A different process failed, so subtract the elapsed time
-                        # only if it had started to be processed
+                        self.trigger_request(failure)
+
+                    except simpy.Interrupt as i:
+                        if i.cause == "replacement":
+                            return
                         hours_to_next -= 0 if start == -1 else self.env.now - start

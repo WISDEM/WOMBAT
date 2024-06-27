@@ -1,21 +1,22 @@
 """Provides the O&M Enviroment class; a subclass of simpy.Environment."""
 from __future__ import annotations
 
+import io
 import csv
 import math
 import logging
 import datetime as dt
-from typing import TYPE_CHECKING, Tuple, Union, Optional
+from typing import TYPE_CHECKING
 from pathlib import Path
 from datetime import datetime, timedelta
 
 import numpy as np
 import simpy
 import pandas as pd
+import polars as pl
 import pyarrow as pa
 import pyarrow.csv  # pylint: disable=W0611
 from simpy.events import Event
-from pandas.core.indexes.datetimes import DatetimeIndex
 
 import wombat  # pylint: disable=W0611
 from wombat.utilities import hours_until_future_hour
@@ -54,9 +55,9 @@ EVENTS_COLUMNS = [
 
 
 class WombatEnvironment(simpy.Environment):
-    """The primary mechanism for powering an O&M simulation. This object has insight into
-    all other simulation objects, and controls the timing, date/time stamps, and weather
-    conditions.
+    """The primary mechanism for powering an O&M simulation. This object has insight
+    into all other simulation objects, and controls the timing, date/time stamps, and
+    weather conditions.
 
     Parameters
     ----------
@@ -75,7 +76,7 @@ class WombatEnvironment(simpy.Environment):
         by an ``ServiceEquipmentData`` object that operates outside of the "typical"
         working hours.
     simulation_name : str | None, optional
-        Name of the simulation; will be used for naming the log file, by default ``None``.
+        Name of the simulation; will be used for naming the log file, by default None.
         If ``None``, then the current time will be used. Will always save to
         ``data_dir``/outputs/logs/``simulation_name``.log.
 
@@ -117,6 +118,14 @@ class WombatEnvironment(simpy.Environment):
         The maximum operating speed during the annualized reduced speed operations.
         When defined at the environment level, an undefined or faster value will be
         overridden for all servicing equipment and any modeled port, by default 0.0.
+    random_seed : int | None
+        The random seed to be passed to a universal NumPy ``default_rng`` object to
+        generate Weibull random generators, by default None.
+    random_generator: np.random._generator.Generator | None
+        An optional numpy random generator that can be provided to seed a simulation
+        with the same generator each time, in place of the random seed. If a
+        :py:attr:`random_seed` is also provided, this will override the random seed,
+        by default None.
 
     Raises
     ------
@@ -139,6 +148,8 @@ class WombatEnvironment(simpy.Environment):
         reduced_speed_start: str | dt.datetime | None = None,
         reduced_speed_end: str | dt.datetime | None = None,
         reduced_speed: float = 0.0,
+        random_seed: int | None = None,
+        random_generator: np.random._generator.Generator | None = None,
     ) -> None:
         """Initialization."""
         super().__init__()
@@ -159,7 +170,9 @@ class WombatEnvironment(simpy.Environment):
 
         self.port_distance = port_distance
         self.weather = self._weather_setup(weather_file, start_year, end_year)
-        self.weather_dates = self.weather.index.to_pydatetime()
+        self.weather_dates = pd.DatetimeIndex(
+            self.weather.get_column("datetime").to_pandas()
+        ).to_pydatetime()
         self.max_run_time = self.weather.shape[0]
         self.shift_length = self.workday_end - self.workday_start
 
@@ -170,18 +183,28 @@ class WombatEnvironment(simpy.Environment):
         self.reduced_speed_end = parse_date(reduced_speed_end)
         self.reduced_speed = reduced_speed
 
+        if random_generator is not None:
+            self.random_generator = random_generator
+            self.random_seed = None
+        elif random_seed is not None:
+            self.random_seed = random_seed
+            self.random_generator = np.random.default_rng(seed=random_seed)
+        else:
+            self.random_seed = None
+            self.random_generator = np.random.default_rng()
+
         self.simulation_name = simulation_name
         self._logging_setup()
         self.process(self._log_actions())
 
     def _register_windfarm(self, windfarm: Windfarm) -> None:
-        """Adds the simulation windfarm to the class attributes"""
+        """Adds the simulation windfarm to the class attributes."""
         self.windfarm = windfarm
 
-    def run(self, until: Optional[Union[int, float, Event]] = None):
-        """Extends the ``simpy.Environment.run`` method to change the default behavior if
-        no argument is passed to ``until``, which will now run a simulation until the end
-        of the weather profile is reached.
+    def run(self, until: int | float | Event | None = None):
+        """Extends the ``simpy.Environment.run`` method to change the default behavior
+        if no argument is passed to ``until``, which will now run a simulation until the
+        end of the weather profile is reached.
 
         Parameters
         ----------
@@ -197,8 +220,10 @@ class WombatEnvironment(simpy.Environment):
             self._events_writer = csv.DictWriter(
                 self._events_csv, delimiter="|", fieldnames=EVENTS_COLUMNS
             )
-        if hasattr(self, "windfarm") and self._operations_csv.closed and time_check:  # type: ignore
-            self._operations_csv = open(self.operations_log_fname, "a")
+        if hasattr(self, "windfarm") and self._operations_csv.closed and time_check:
+            self._operations_csv: io.TextIOWrapper = open(
+                self.operations_log_fname, "a"
+            )
             self.windfarm._setup_logger(initial=False)
 
         if until is None:
@@ -215,6 +240,10 @@ class WombatEnvironment(simpy.Environment):
             self._operations_writer.writerows(self._operations_buffer)
             self._operations_buffer.clear()
             self._operations_csv.close()
+            print(
+                f"Simulation failed at hour {self.now:,.6f},"
+                f" simulation time: {self.simulation_time}"
+            )
             raise e
 
         # Ensure all logged events make it to their target file
@@ -262,6 +291,27 @@ class WombatEnvironment(simpy.Environment):
         self._events_buffer: list[dict] = []
         self._operations_buffer: list[dict] = []
 
+    def get_random_seconds(self, low: int = 0, high: int = 10) -> float:
+        """Generate a random number of seconds to wait, between :py:attr:`low` and
+        :py:attr:`high`.
+
+        Parameters
+        ----------
+        low : int, optional
+            Minimum number of seconds to wait, by default 0.
+        high : int, optional
+            Maximum number of seconds to wait, by default 10.
+
+        Returns
+        -------
+        float
+            Number of seconds to wait.
+        """
+        seconds_to_wait, *_ = (
+            self.random_generator.integers(low=low, high=high, size=1) / 3600.0
+        )
+        return seconds_to_wait
+
     @property
     def simulation_time(self) -> datetime:
         """Current time within the simulation ("datetime" column within weather)."""
@@ -277,16 +327,18 @@ class WombatEnvironment(simpy.Environment):
         return _dt + timedelta(minutes=minutes, seconds=seconds)
 
     def is_workshift(self, workday_start: int = -1, workday_end: int = -1) -> bool:
-        """Checks if the current simulation time is within the windfarm's working hours.
+        """Check if the current simulation time is within the windfarm's working hours.
 
         Parameters
         ----------
         workday_start : int
-            A valid hour in 24 hour time, by default -1. This should only be provided from an
-            ``ServiceEquipmentData`` object. ``workday_end`` must also be provided in order to be used.
+            A valid hour in 24 hour time, by default -1. This should only be provided
+            from an ``ServiceEquipmentData`` object. ``workday_end`` must also be
+            provided in order to be used.
         workday_end : int
-            A valid hour in 24 hour time, by default -1. This should only be provided from an
-            ``ServiceEquipmentData`` object. ``workday_start`` must also be provided in order to be used.
+            A valid hour in 24 hour time, by default -1. This should only be provided
+            from an ``ServiceEquipmentData`` object. ``workday_start`` must also be
+            provided in order to be used.
 
         Returns
         -------
@@ -315,11 +367,13 @@ class WombatEnvironment(simpy.Environment):
         hour : int
             Hour of the day.
         workday_start : int
-            A valid hour in 24 hour time, by default -1. This should only be provided from an
-            ``ServiceEquipmentData`` object. ``workday_end`` must also be provided in order to be used.
+            A valid hour in 24 hour time, by default -1. This should only be provided
+            from an ``ServiceEquipmentData`` object. ``workday_end`` must also be
+            provided in order to be used.
         workday_end : int
-            A valid hour in 24 hour time, by default -1. This should only be provided from an
-            ``ServiceEquipmentData`` object. ``workday_start`` must also be provided in order to be used.
+            A valid hour in 24 hour time, by default -1. This should only be provided
+            from an ``ServiceEquipmentData`` object. ``workday_start`` must also be
+            provided in order to be used.
 
         Returns
         -------
@@ -375,19 +429,17 @@ class WombatEnvironment(simpy.Environment):
         int
             Index of the weather profile corresponds to the first hour of ``date``.
         """
-        ix = self.weather.index.get_loc(date.strftime("%Y-%m-%d"))
-
-        # If the index is consecutive a slice is returned, else a numpy array
-        if isinstance(ix, slice):
-            return ix.start
-        return ix[0]
+        if isinstance(date, dt.datetime):
+            date = date.date()
+        ix, *_ = self.weather.filter(pl.col("datetime") == date)
+        return ix.item()
 
     def _weather_setup(
         self,
         weather_file: str,
-        start_year: Optional[int] = None,
-        end_year: Optional[int] = None,
-    ) -> pd.DataFrame:
+        start_year: int | None = None,
+        end_year: int | None = None,
+    ) -> pl.DataFrame:
         """Reads the weather data from the "<inputs>/weather" directory, and creates the
         ``start_date`` and ``end_date`` time stamps for the simulation.
 
@@ -411,32 +463,66 @@ class WombatEnvironment(simpy.Environment):
         pd.DataFrame
             The wind (and  wave) timeseries.
         """
+        REQUIRED = ["windspeed", "waveheight"]
+
         # PyArrow datetime conversion setup
         convert_options = pa.csv.ConvertOptions(
             timestamp_parsers=[
                 "%m/%d/%y %H:%M",
                 "%m/%d/%y %I:%M",
+                "%m/%d/%y %H:%M:%S",
+                "%m/%d/%y %I:%M:%S",
                 "%m/%d/%Y %H:%M",
                 "%m/%d/%Y %I:%M",
+                "%m/%d/%Y %H:%M:%S",
+                "%m/%d/%Y %I:%M:%S",
+                "%m-%d-%y %H:%M",
+                "%m-%d-%y %I:%M",
+                "%m-%d-%y %H:%M:%S",
+                "%m-%d-%y %I:%M:%S",
+                "%m-%d-%Y %H:%M",
+                "%m-%d-%Y %I:%M",
+                "%m-%d-%Y %H:%M:%S",
+                "%m-%d-%Y %I:%M:%S",
+                "%Y-%m-%d %H:%M",
+                "%Y-%m-%d %I:%M",
+                "%Y-%m-%d %H:%M:%S",
+                "%Y-%m-%d %I:%M:%S",
             ]
         )
         weather = (
-            pa.csv.read_csv(
-                self.data_dir / "weather" / weather_file,
-                convert_options=convert_options,
+            pl.from_pandas(
+                pa.csv.read_csv(
+                    self.data_dir / "weather" / weather_file,
+                    convert_options=convert_options,
+                )
+                .to_pandas()
+                .fillna(0.0)
+                .set_index("datetime")
+                .sort_index()
+                .resample("h")
+                .interpolate(limit_direction="both")  # , limit=5)
+                .reset_index(drop=False)
             )
-            .to_pandas()
-            .set_index("datetime")
+            .with_row_index()
+            .with_columns(
+                [
+                    pl.col("datetime").cast(pl.Datetime).dt.cast_time_unit("ns"),
+                    (pl.col("datetime").dt.hour()).alias("hour"),
+                ]
+            )
         )
-        weather = weather.fillna(0.0)
-        weather = weather.resample("H").interpolate(limit_direction="both", limit=5)
 
-        # Add in the hour of day column for more efficient handling within the simulation
-        weather = weather.assign(hour=weather.index.hour.astype(float))
+        missing = set(REQUIRED).difference(weather.columns)
+        if missing:
+            raise KeyError(
+                "The weather data are missing the following required columns:"
+                f" {missing}"
+            )
 
         # Create the start and end points
-        self.start_datetime = weather.index[0].to_pydatetime()
-        self.end_datetime = weather.index[-1].to_pydatetime()
+        self.start_datetime = weather.get_column("datetime").dt.min()
+        self.end_datetime = weather.get_column("datetime").dt.max()
         self.start_year = self.start_datetime.year
         self.end_year = self.end_datetime.year
 
@@ -452,8 +538,8 @@ class WombatEnvironment(simpy.Environment):
             )
         else:
             # Filter for the provided, validated starting year and update the attribute
-            weather = weather.loc[weather.index.year >= start_year]
-            self.start_datetime = weather.index[0].to_pydatetime()
+            weather = weather.filter(pl.col("datetime").dt.year() >= start_year)
+            self.start_datetime = weather.get_column("datetime").dt.min()
             start_year = self.start_year = self.start_datetime.year
 
         if end_year is None:
@@ -470,36 +556,45 @@ class WombatEnvironment(simpy.Environment):
                     f" ({start_year})"
                 )
             else:
-                # Filter for the provided, validated ending year and update the attribute
-                weather = weather.loc[weather.index.year <= end_year]
-                self.end_datetime = weather.index[-1].to_pydatetime()
+                # Filter for the provided, validated ending year and update
+                weather = weather.filter(pl.col("datetime").dt.year() <= end_year)
+                self.end_datetime = weather.get_column("datetime").dt.max()
                 self.end_year = self.end_datetime.year
         else:
             # Filter for the provided, validated ending year and update the attribute
-            weather = weather.loc[weather.index.year <= end_year]
-            self.end_datetime = weather.index[-1].to_pydatetime()
+            weather = weather.filter(pl.col("datetime").dt.year() <= end_year)
+            self.end_datetime = weather.get_column("datetime").dt.max()
             self.end_year = self.end_datetime.year
 
-        return weather
+        column_order = weather.columns
+        column_order.insert(0, column_order.pop(column_order.index("hour")))
+        column_order.insert(0, column_order.pop(column_order.index("waveheight")))
+        column_order.insert(0, column_order.pop(column_order.index("windspeed")))
+        column_order.insert(0, column_order.pop(column_order.index("datetime")))
+        column_order.insert(0, column_order.pop(column_order.index("index")))
+
+        # Ensure the columns are ordered correctly and re-compute pandas-compatible ix
+        return weather.select(column_order).drop("index").with_row_index()
 
     @property
-    def weather_now(self) -> Tuple[float, float, int]:
+    def weather_now(self) -> pl.DataFrame:
         """The current weather.
 
         Returns
         -------
-        Tuple[float, float, int]
-            Wind, wave, and hour data for the current time.
+        pl.DataFrame
+            A length 1 slice from the weather profile at the current ``int()`` rounded
+            hour, in simulation time.
         """
         # Rounds down because we won't arrive at the next weather event until that hour
         now = int(self.now)
-        return self.weather.iloc[now].values
+        return self.weather.slice(now, 1)
 
     def weather_forecast(
-        self, hours: Union[int, float]
-    ) -> Tuple[DatetimeIndex, np.ndarray, np.ndarray, np.ndarray]:
-        """Returns the wind and wave data for the next ``hours`` hours, starting from
-        the current hour's weather.
+        self, hours: int | float
+    ) -> tuple[pl.Series, pl.Series, pl.Series, pl.Series]:
+        """Returns the datetime, wind, wave, and hour data for the next ``hours`` hours,
+        starting from the current hour's weather.
 
         Parameters
         ----------
@@ -508,17 +603,15 @@ class WombatEnvironment(simpy.Environment):
 
         Returns
         -------
-        Tuple[DatetimeIndex, np.ndarray, np.ndarray, np.ndarray]
-            The pandas DatetimeIndex, windspeed array, and waveheight array for the
-            hours requested, each with shape (``hours`` + 1).
+        tuple[pl.Series, pl.Series, pl.Series, pl.Series]
+            Each of the relevant columns (datetime, wind, wave, hour) from the weather
+            profile.
         """
-        start = math.floor(self.now)
-
         # If it's not on the hour, ensure we're looking ``hours`` hours into the future
-        end = start + math.ceil(hours) + math.ceil(self.now % 1)
-
-        wind, wave, hour = self.weather.values[start:end].T
-        ix = self.weather.index[start:end]
+        start = math.floor(self.now)
+        _, ix, wind, wave, hour, *_ = self.weather.slice(
+            start, math.ceil(hours) + math.ceil(self.now % 1)
+        )
         return ix, hour, wind, wave
 
     def log_action(
@@ -538,10 +631,10 @@ class WombatEnvironment(simpy.Environment):
         distance_km: float = 0,
         request_id: str = "na",
         location: str = "na",
-        materials_cost: Union[int, float] = 0,
-        hourly_labor_cost: Union[int, float] = 0,
-        salary_labor_cost: Union[int, float] = 0,
-        equipment_cost: Union[int, float] = 0,
+        materials_cost: int | float = 0,
+        hourly_labor_cost: int | float = 0,
+        salary_labor_cost: int | float = 0,
+        equipment_cost: int | float = 0,
     ) -> None:
         """Formats the logging messages into the expected format for logging.
 
@@ -564,12 +657,14 @@ class WombatEnvironment(simpy.Environment):
         part_name : str
             Subassembly, component, or cable name, ``_.name``, by default "".
         system_ol : float | int
-            Turbine operating level, ``System.operating_level``. Use an empty string for n/a, by default 0.
+            Turbine operating level, ``System.operating_level``. Use an empty string
+            for n/a, by default 0.
         part_ol : float | int
             Subassembly, component, or cable operating level, ``_.operating_level``. Use
             an empty string for n/a, by default 0.
         request_id : str
-            The ``RepairManager`` assigned request_id found in ``RepairRequest.request_id``, by default "na".
+            The ``RepairManager`` assigned request_id found in
+            ``RepairRequest.request_id``, by default "na".
         location : str
             The location of where the event ocurred: should be one of site, port,
             enroute, or system, by default "na".
@@ -593,35 +688,39 @@ class WombatEnvironment(simpy.Environment):
             )
         total_labor_cost = hourly_labor_cost + salary_labor_cost
         total_cost = total_labor_cost + equipment_cost + materials_cost
-        row = dict(
-            datetime=dt.datetime.now(),
-            env_datetime=self.simulation_time,
-            env_time=self.now,
-            system_id=system_id,
-            system_name=system_name,
-            part_id=part_id,
-            part_name=part_name,
-            system_operating_level=system_ol,
-            part_operating_level=part_ol,
-            agent=agent,
-            action=action,
-            reason=reason,
-            additional=additional,
-            duration=duration,
-            distance_km=distance_km,
-            request_id=request_id,
-            location=location,
-            materials_cost=materials_cost,
-            hourly_labor_cost=hourly_labor_cost,
-            salary_labor_cost=salary_labor_cost,
-            equipment_cost=equipment_cost,
-            total_labor_cost=total_labor_cost,
-            total_cost=total_cost,
-        )
-        self._events_buffer.append(row)
+        now = self.simulation_time
+        row = {
+            "datetime": dt.datetime.now(),
+            "env_datetime": now,
+            "env_time": self.now,
+            "system_id": system_id,
+            "system_name": system_name,
+            "part_id": part_id,
+            "part_name": part_name,
+            "system_operating_level": system_ol,
+            "part_operating_level": part_ol,
+            "agent": agent,
+            "action": action,
+            "reason": reason,
+            "additional": additional,
+            "duration": duration,
+            "distance_km": distance_km,
+            "request_id": request_id,
+            "location": location,
+            "materials_cost": materials_cost,
+            "hourly_labor_cost": hourly_labor_cost,
+            "salary_labor_cost": salary_labor_cost,
+            "equipment_cost": equipment_cost,
+            "total_labor_cost": total_labor_cost,
+            "total_cost": total_cost,
+        }
+        # Don't log the initiation of a crew transfer that can forced at the end of an
+        # operation but happens to be after the end of the simulation
+        if now <= self.end_datetime:
+            self._events_buffer.append(row)
 
     def _log_actions(self):
-        """Writes the action log items every 8000 hours"""
+        """Writes the action log items every 8000 hours."""
         HOURS = 8000
         while True:
             yield self.timeout(HOURS)
@@ -637,20 +736,101 @@ class WombatEnvironment(simpy.Environment):
         pd.DataFrame
             The formatted logging data from a simulation.
         """
-        convert_options = pa.csv.ConvertOptions(
-            timestamp_parsers=["%y-%m-%d %H:%M:%S.%f", "%y-%m-%d %H:%M:%S"]
+        log_df = (
+            pd.read_csv(
+                self.events_log_fname,
+                delimiter="|",
+                engine="pyarrow",
+                dtype={
+                    "agent": "string",
+                    "action": "string",
+                    "reason": "string",
+                    "additional": "string",
+                    "system_id": "string",
+                    "system_name": "string",
+                    "part_id": "string",
+                    "part_name": "string",
+                    "request_id": "string",
+                    "location": "string",
+                },
+            )
+            .set_index("datetime")
+            .sort_index()
         )
-        parse_options = pa.csv.ParseOptions(delimiter="|")
-        log_df = pa.csv.read_csv(
-            self.events_log_fname,
-            convert_options=convert_options,
-            parse_options=parse_options,
-        ).to_pandas()
-        log_df.datetime = pd.to_datetime(log_df.datetime)
-        log_df.env_datetime = pd.to_datetime(log_df.env_datetime)
-        log_df = log_df.set_index("datetime").sort_values("datetime")
-
         return log_df
+
+    def _calculate_windfarm_total(
+        self, op: pd.DataFrame, prod: pd.DataFrame | None = None
+    ) -> pd.DataFrame:
+        """Calculates the overall wind farm operational level, accounting for substation
+        downtime by multiplying the sum of all downstream turbine operational levels by
+        the substation's operational level.
+
+        Parameters
+        ----------
+        op : pd.DataFrame
+            The turbine and substation operational level DataFrame.
+
+        Notes
+        -----
+        This is a crude cap on the operations, and so a smarter way of capping
+        the availability should be added in the future.
+
+        Returns
+        -------
+        pd.DataFrame
+            The aggregate wind farm operational level.
+        """
+        t_id = self.windfarm.turbine_id
+        turbines = self.windfarm.turbine_weights[t_id].values * op[t_id]
+        total = np.sum(
+            [
+                op[[sub]]
+                * np.array(
+                    [
+                        [math.fsum(row)]
+                        for _, row in turbines[val["turbines"]].iterrows()
+                    ]
+                ).reshape(-1, 1)
+                for sub, val in self.windfarm.substation_turbine_map.items()
+            ],
+            axis=0,
+        )
+        return total
+
+    def _calculate_adjusted_production(
+        self, op: pd.DataFrame, prod: pd.DataFrame
+    ) -> pd.DataFrame:
+        """Calculates the overall wind farm power production and adjusts individual
+        turbine production by accounting for substation downtime. This is done by
+        multiplying the all downstream turbine operational levels by the substation's
+        operational level.
+
+        Parameters
+        ----------
+        op : pd.DataFrame
+            The operational level DataFrame with turbine, substation, and windfarm
+            columns.
+        prod : pd.DataFrame
+            The turbine energy production DataFrame.
+
+        Notes
+        -----
+        This is a crude cap on the operations, and so a smarter way of capping
+        the availability should be added in the future.
+
+        Returns
+        -------
+        pd.DataFrame
+            Either the aggregate wind farm operational level or the total wind farm
+            energy production if the :py:attr:`prod` is provided.
+        """
+        # Adjust individual turbine production for substation downtime
+        prod = prod.copy()
+        for sub, val in self.windfarm.substation_turbine_map.items():
+            prod[val["turbines"]] *= op[[sub]].values
+        prod.windfarm = prod[self.windfarm.turbine_id].sum(axis=1)
+        return prod[["windfarm"]]
 
     def load_operations_log_dataframe(self) -> pd.DataFrame:
         """Imports the logging file created in ``run`` and returns it as a formatted
@@ -661,27 +841,24 @@ class WombatEnvironment(simpy.Environment):
         pd.DataFrame
             The formatted logging data from a simulation.
         """
-        convert_options = pa.csv.ConvertOptions(
-            timestamp_parsers=["%y-%m-%d %H:%M:%S.%f", "%y-%m-%d %H:%M:%S"]
+        log_df = (
+            pd.read_csv(
+                self.operations_log_fname,
+                delimiter="|",
+                engine="pyarrow",
+            )
+            .set_index("datetime")
+            .sort_values("datetime")
         )
-        parse_options = pa.csv.ParseOptions(delimiter="|")
-        log_df = pa.csv.read_csv(
-            self.operations_log_fname,
-            convert_options=convert_options,
-            parse_options=parse_options,
-        ).to_pandas()
-        log_df.datetime = pd.to_datetime(log_df.datetime)
-        log_df.env_datetime = pd.to_datetime(log_df.env_datetime)
-        log_df = log_df.set_index("datetime").sort_values("datetime")
-
+        log_df["windfarm"] = self._calculate_windfarm_total(log_df)
         return log_df
 
     def power_production_potential_to_csv(  # type: ignore
         self,
-        windfarm: "wombat.windfarm.Windfarm",  # type: ignore
-        operations: Optional[pd.DataFrame] = None,
+        windfarm: wombat.windfarm.Windfarm,
+        operations: pd.DataFrame | None = None,
         return_df: bool = True,
-    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    ) -> tuple[pd.DataFrame, pd.DataFrame]:
         """Creates the power production ``DataFrame`` and optionally returns it.
 
         Parameters
@@ -706,7 +883,7 @@ class WombatEnvironment(simpy.Environment):
             operations = self.load_operations_log_dataframe().sort_values("env_time")
 
         turbines = windfarm.turbine_id
-        windspeed = self.weather.windspeed
+        windspeed = self.weather.to_pandas().set_index("datetime").windspeed
         windspeed = windspeed.loc[operations.env_datetime].values
         potential_df = pd.DataFrame(
             [],
@@ -715,7 +892,7 @@ class WombatEnvironment(simpy.Environment):
             + turbines.tolist(),
         )
         potential_df[turbines] = np.vstack(
-            ([windfarm.system(t_id).power(windspeed) for t_id in turbines])
+            [windfarm.system(t_id).power(windspeed) for t_id in turbines]
         ).T
         potential_df = potential_df.assign(
             windspeed=windspeed,
@@ -733,7 +910,9 @@ class WombatEnvironment(simpy.Environment):
         # the max of the substation's operating capacity and then summed.
         production_df = potential_df.copy()
         production_df[turbines] *= operations[turbines].values
-        production_df.windfarm = production_df[turbines].sum(axis=1)
+        production_df.windfarm = self._calculate_adjusted_production(
+            operations, production_df
+        )
         pa.csv.write_csv(
             pa.Table.from_pandas(production_df),
             self.power_production_fname,
@@ -743,13 +922,12 @@ class WombatEnvironment(simpy.Environment):
             return potential_df, production_df
 
     def cleanup_log_files(self) -> None:
-        """This is a convenience method to clear the output log files in case a large
+        """Convenience method to clear the output log files in case a large
         batch of simulations is being run and there are space limitations.
 
         ... warning:: This shuts down the loggers, so no more logging will be able
             to be performed.
         """
-
         # NOTE: Everything is wrapped in a try/except clause to protect against failure
         # when inevitably a file has already been deleted on accident, or if in the
         # dataframe generation step, the original logs were deleted

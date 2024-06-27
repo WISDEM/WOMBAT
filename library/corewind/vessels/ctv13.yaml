@@ -1,0 +1,29 @@
+name: Crew Transfer Vessel 13
+equipment_rate: 3500
+capability: CTV
+speed: 37.04  # 20 knots
+strategy: scheduled
+max_windspeed_transport: 16
+max_windspeed_repair: 16
+max_waveheight_transport: 2
+max_waveheight_repair: 2
+onsite: True
+mobilization_cost: 0
+mobilization_days: 0
+port_distance: 30
+# workday_start: 0
+# workday_end: 24
+start_month: 1
+start_day: 1
+end_month: 12
+end_day: 31
+start_year: 2002
+end_year: 2021
+crew_transfer_time: 0.25
+n_crews: 1
+crew:
+  day_rate: 0  # crew comes with vessel
+  n_day_rate: 0
+  hourly_rate: 0
+  n_hourly_rate: 0
+# capex: 3000000

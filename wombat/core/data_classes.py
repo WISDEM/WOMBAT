@@ -5,19 +5,18 @@ from __future__ import annotations
 
 import datetime
 from math import fsum
-from typing import TYPE_CHECKING, Any, Callable, Sequence
+from typing import TYPE_CHECKING, Any, Callable
 from pathlib import Path
 from functools import partial, update_wrapper
+from collections.abc import Sequence
 
 import attr
 import attrs
 import numpy as np
 import pandas as pd
 from attrs import Factory, Attribute, field, define
-from scipy.stats import weibull_min
 
-from wombat.utilities import HOURS_IN_DAY, HOURS_IN_YEAR
-from wombat.utilities.time import parse_date
+from wombat.utilities.time import HOURS_IN_DAY, HOURS_IN_YEAR, parse_date
 
 
 if TYPE_CHECKING:
@@ -28,13 +27,15 @@ if TYPE_CHECKING:
 VALID_EQUIPMENT = (
     "CTV",  # Crew tranfer vessel or onsite vehicle
     "SCN",  # Small crane
+    "MCN",  # Medium crane
     "LCN",  # Large crane
     "CAB",  # Cabling equipment
     "RMT",  # Remote reset or anything performed remotely
     "DRN",  # Drone
     "DSV",  # Diving support vessel
     "TOW",  # Tugboat or support vessel for moving a turbine to a repair facility
-    "AHV",  # Anchor handling vessel, tpyically a tugboat, but doesn't trigger tow-to-port
+    "AHV",  # Anchor handling vessel, typically a tugboat, w/o trigger tow-to-port
+    "VSG",  # Vessel support group, any group of vessels required for a single operation
 )
 
 # Define the valid unscheduled and valid strategies
@@ -46,7 +47,7 @@ def convert_to_list(
     value: Sequence | str | int | float,
     manipulation: Callable | None = None,
 ) -> list:
-    """Converts an unknown element that could be a list or single, non-sequence element
+    """Convert an unknown element that could be a list or single, non-sequence element
     to a list of elements.
 
     Parameters
@@ -61,7 +62,6 @@ def convert_to_list(
     list
         The new list of elements.
     """
-
     if isinstance(value, (str, int, float)):
         value = [value]
     if manipulation is not None:
@@ -77,7 +77,7 @@ update_wrapper(convert_to_list_lower, convert_to_list)
 
 
 def clean_string_input(value: str | None) -> str | None:
-    """Converts a string to lower case and and removes leading and trailing white spaces.
+    """Convert a string to lower case and and removes leading and trailing white spaces.
 
     Parameters
     ----------
@@ -102,7 +102,7 @@ def annual_date_range(
     start_year: int,
     end_year: int,
 ) -> np.ndarray:
-    """Creates a series of date ranges across multiple years between the starting date
+    """Create a series of date ranges across multiple years between the starting date
     and ending date for each year from starting year to ending year. Will only work if
     the end year is the same as the starting year or later, and the ending month, day
     combinatoion is after the starting month, day combination.
@@ -129,7 +129,7 @@ def annual_date_range(
     ValueError: Raised if the ending year is prior to the starting year.
 
     Yields
-    -------
+    ------
     np.ndarray
         A ``numpy.ndarray`` of ``datetime.date`` objects.
     """
@@ -144,7 +144,7 @@ def annual_date_range(
     end = datetime.datetime(2022, end_month, end_day)
     if end < start:
         raise ValueError(
-            f"The starting month and day {start} is after the ending month and day {end}."
+            f"The starting month/day combination: {start}, is after the ending: {end}."
         )
 
     # Create a list of arrays of date ranges for each year
@@ -165,23 +165,23 @@ def annualized_date_range(
     end_date: datetime.datetime,
     end_year: int,
 ) -> np.ndarray:
-    """Creates an annualized list of dates based on the simulation years.
+    """Create an annualized list of dates based on the simulation years.
 
     Parameters
     ----------
     start_date : str
         The string start month and day in MM/DD or MM-DD format.
     start_year : int
-        _description_
+        The starting year in YYYY format.
     end_date : str
         The string end month and day in MM/DD or MM-DD format.
     end_year : int
-        _description_
+        The ending year in YYYY format.
 
     Returns
     -------
     set[datetime.datetime]
-        _description_
+        The set of dates the servicing equipment is available for operations.
     """
     additional = 1 if end_date < start_date else 0
     date_list = [
@@ -200,7 +200,7 @@ def annualized_date_range(
 
 
 def convert_ratio_to_absolute(ratio: int | float, total: int | float) -> int | float:
-    """Converts a proportional cost to an absolute cost.
+    """Convert a proportional cost to an absolute cost.
 
     Parameters
     ----------
@@ -214,7 +214,6 @@ def convert_ratio_to_absolute(ratio: int | float, total: int | float) -> int | f
     int | float
         The absolute cost of the materials.
     """
-
     if ratio <= 1:
         return ratio * total
     return ratio
@@ -223,7 +222,7 @@ def convert_ratio_to_absolute(ratio: int | float, total: int | float) -> int | f
 def check_start_stop_dates(
     instance: Any, attribute: attr.Attribute, value: datetime.datetime | None
 ) -> None:
-    """Ensures the date range start and stop points are not the same."""
+    """Ensure the date range start and stop points are not the same."""
     if attribute.name == "non_operational_end":
         start_date = instance.non_operational_start
         start_name = "non_operational_start"
@@ -235,12 +234,14 @@ def check_start_stop_dates(
         if start_date is None:
             return
         raise ValueError(
-            f"A starting date was provided, but no ending date was provided for `{attribute.name}`."
+            "A starting date was provided, but no ending date was provided"
+            f" for `{attribute.name}`."
         )
 
     if start_date is None:
         raise ValueError(
-            f"An ending date was provided, but no starting date was provided for `{start_name}`."
+            "An ending date was provided, but no starting date was provided"
+            f" for `{start_name}`."
         )
 
     if start_date == value:
@@ -251,9 +252,11 @@ def check_start_stop_dates(
 
 
 def valid_hour(
-    instance: Any, attribute: Attribute, value: int  # pylint: disable=W0613
+    instance: Any,
+    attribute: Attribute,
+    value: int,  # pylint: disable=W0613
 ) -> None:
-    """Validator that ensures that the input is a valid time or null value (-1).
+    """Validate that the input is a valid time or null value (-1).
 
     Parameters
     ----------
@@ -275,10 +278,12 @@ def valid_hour(
         raise ValueError(f"Input {attribute.name} must be between 0 and 24, inclusive.")
 
 
-def valid_reduction(
-    instance, attribute: Attribute, value: int | float  # pylint: disable=W0613
+def validate_0_1_inclusive(
+    instance,
+    attribute: Attribute,
+    value: int | float,  # pylint: disable=W0613
 ) -> None:
-    """Checks to see if the reduction factor is between 0 and 1, inclusive.
+    """Check to see if the reduction factor is between 0 and 1, inclusive.
 
     Parameters
     ----------
@@ -287,58 +292,9 @@ def valid_reduction(
     """
     if value < 0 or value > 1:
         raise ValueError(
-            f"Input for {attribute.name}'s `speed_reduction_factor` must be between 0 and 1, inclusive."
+            f"Input for {attribute.name} must be between 0 and 1, inclusive, not:"
+            f" {value=}."
         )
-
-
-def greater_than_zero(
-    instance,  # pylint: disable=W0613
-    attribute: Attribute,  # pylint: disable=W0613
-    value: int | float,
-) -> None:
-    """Checks if an input is greater than 0.
-
-    Parameters
-    ----------
-    instance : Any
-        The class containing the attribute to be checked.
-    attribute : Attribute
-        The attribute's properties.
-    value : int | float
-        The user-input value for the ``attribute``.
-
-    Raises
-    ------
-    ValueError
-        Raised if ``value`` is less than or equal to zero.
-    """
-    if value <= 0:
-        raise ValueError("Input must be greater than 0.")
-
-
-def greater_than_equal_to_zero(
-    instance,  # pylint: disable=W0613
-    attribute: Attribute,  # pylint: disable=W0613
-    value: int | float,
-) -> None:
-    """Checks if an input is at least 0.
-
-    Parameters
-    ----------
-    instance : Any
-        The class containing the attribute to be checked.
-    attribute : Attribute
-        The attribute's properties.
-    value : int | float
-        The user-input value for the ``attribute``.
-
-    Raises
-    ------
-    ValueError
-        Raised if ``value`` is less than or equal to zero.
-    """
-    if value < 0:
-        raise ValueError("Input must be at least 0.")
 
 
 @define
@@ -355,38 +311,44 @@ class FromDictMixin:
 
     @classmethod
     def from_dict(cls, data: dict):
-        """Maps a data dictionary to an `attrs`-defined class.
+        """Map a data dictionary to an `attrs`-defined class.
 
-        TODO: Add an error to ensure that either none or all the parameters are passed in
+        TODO: Add an error to ensure that either none or all the parameters are passed
 
         Parameters
         ----------
             data : dict
                 The data dictionary to be mapped.
+
         Returns
         -------
             cls : Any
                 The `attrs`-defined class.
         """
-        # Get all parameters from the input dictionary that map to the class initialization
-        kwargs = {  # type: ignore
-            a.name: data[a.name]  # type: ignore
-            for a in cls.__attrs_attrs__  # type: ignore
-            if a.name in data and a.init  # type: ignore
+        if TYPE_CHECKING:
+            assert hasattr(cls, "__attrs_attrs__")
+        # Get all parameters from the input dictionary that map to the class init
+        kwargs = {
+            a.name: data[a.name]
+            for a in cls.__attrs_attrs__
+            if a.name in data and a.init
         }
 
-        # Map the inputs must be provided: 1) must be initialized, 2) no default value defined
-        required_inputs = [  # type: ignore
-            a.name  # type: ignore
-            for a in cls.__attrs_attrs__  # type: ignore
+        # Map the inputs that must be provided:
+        # 1) must be initialized
+        # 2) no default value defined
+        required_inputs = [
+            a.name
+            for a in cls.__attrs_attrs__
             if a.init and isinstance(a.default, attr._make._Nothing)  # type: ignore
         ]
         undefined = sorted(set(required_inputs) - set(kwargs))
         if undefined:
             raise AttributeError(
-                f"The class defintion for {cls.__name__} is missing the following inputs: {undefined}"
+                f"The class defintion for {cls.__name__} is missing the following"
+                f" inputs: {undefined}"
             )
-        return cls(**kwargs)  # type: ignore
+        return cls(**kwargs)
 
 
 @define(frozen=True, auto_attribs=True)
@@ -401,23 +363,30 @@ class Maintenance(FromDictMixin):
         Cost of materials required to perform maintenance, in USD.
     frequency : float
         Optimal number of days between performing maintenance, in days.
-    service_equipment: Union[List[str], str]
-        Any combination of the ``Equipment.capability`` options.
-         - RMT: remote (no actual equipment BUT no special implementation)
-         - DRN: drone
-         - CTV: crew transfer vessel/vehicle
-         - SCN: small crane (i.e., field support vessel)
-         - LCN: large crane (i.e., heavy lift vessel)
-         - CAB: cabling vessel/vehicle
-         - DSV: diving support vessel
-         - TOW: tugboat or towing equipment
-         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
+    service_equipment: list[str] | str
+        Any combination of th following ``Equipment.capability`` options.
+
+        - RMT: remote (no actual equipment BUT no special implementation)
+        - DRN: drone
+        - CTV: crew transfer vessel/vehicle
+        - SCN: small crane (i.e., cherry picker)
+        - MCN: medium crane (i.e., field support vessel)
+        - LCN: large crane (i.e., heavy lift vessel)
+        - CAB: cabling vessel/vehicle
+        - DSV: diving support vessel
+        - TOW: tugboat or towing equipment
+        - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
+        - VSG: vessel support group (group of vessels required for single operation)
     system_value : Union[int, float]
         Turbine replacement value. Used if the materials cost is a proportional cost.
     description : str
         A short text description to be used for logging.
     operation_reduction : float
         Performance reduction caused by the failure, between (0, 1]. Defaults to 0.
+
+        .. warning:: As of v0.7, availability is very sensitive to the usage of this
+            parameter, and so it should be used carefully.
+
     level : int, optional
         Severity level of the maintenance. Defaults to 0.
     """
@@ -426,7 +395,7 @@ class Maintenance(FromDictMixin):
     materials: float = field(converter=float)
     frequency: float = field(converter=float)
     service_equipment: list[str] = field(
-        converter=convert_to_list_upper,  # type: ignore
+        converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
             iterable_validator=attrs.validators.instance_of(list),
@@ -444,11 +413,6 @@ class Maintenance(FromDictMixin):
         requirement to a list.
         """
         object.__setattr__(self, "frequency", self.frequency * HOURS_IN_DAY)
-        # object.__setattr__(
-        #     self,
-        #     "service_equipment",
-        #     convert_to_list(self.service_equipment, str.upper),
-        # )
         object.__setattr__(
             self,
             "materials",
@@ -456,7 +420,7 @@ class Maintenance(FromDictMixin):
         )
 
     def assign_id(self, request_id: str) -> None:
-        """Assigns a unique identifier to the request.
+        """Assign a unique identifier to the request.
 
         Parameters
         ----------
@@ -482,20 +446,27 @@ class Failure(FromDictMixin):
         Cost of the materials required to complete the repair, in $USD.
     operation_reduction : float
         Performance reduction caused by the failure, between (0, 1].
+
+        .. warning:: As of v0.7, availability is very sensitive to the usage of this
+            parameter, and so it should be used carefully.
+
     level : int, optional
         Level of severity, will be generated in the ``ComponentData.create_severities``
         method.
-    service_equipment: Union[List[str], str]
-        Any combination of the ``Equipment.capability`` options.
-         - RMT: remote (no actual equipment BUT no special implementation)
-         - DRN: drone
-         - CTV: crew transfer vessel/vehicle
-         - SCN: small crane (i.e., field support vessel)
-         - LCN: large crane (i.e., heavy lift vessel)
-         - CAB: cabling vessel/vehicle
-         - DSV: diving support vessel
-         - TOW: tugboat or towing equipment
-         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
+    service_equipment: list[str] | str
+        Any combination of the following ``Equipment.capability`` options:
+
+        - RMT: remote (no actual equipment BUT no special implementation)
+        - DRN: drone
+        - CTV: crew transfer vessel/vehicle
+        - SCN: small crane (i.e., cherry picker)
+        - MCN: medium crane (i.e., field support vessel)
+        - LCN: large crane (i.e., heavy lift vessel)
+        - CAB: cabling vessel/vehicle
+        - DSV: diving support vessel
+        - TOW: tugboat or towing equipment
+        - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
+        - VSG: vessel support group (group of vessels required for single operation)
     system_value : Union[int, float]
         Turbine replacement value. Used if the materials cost is a proportional cost.
     replacement : bool
@@ -503,6 +474,13 @@ class Failure(FromDictMixin):
         only a repair is necessary. Defaults to False
     description : str
         A short text description to be used for logging.
+    rng : np.random._generator.Generator
+
+        .. note:: Do not provide this, it comes from
+            :py:class:`wombat.core.environment.WombatEnvironment`
+
+        The shared random generator used for the Weibull sampling. This is fed through
+        the simulation environment to ensure consistent seeding between simulations.
     """
 
     scale: float = field(converter=float)
@@ -512,23 +490,25 @@ class Failure(FromDictMixin):
     operation_reduction: float = field(converter=float)
     level: int = field(converter=int)
     service_equipment: list[str] | str = field(
-        converter=convert_to_list_upper,  # type: ignore
+        converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
             iterable_validator=attrs.validators.instance_of(list),
         ),
     )
     system_value: int | float = field(converter=float)
+    rng: np.random._generator.Generator = field(
+        eq=False,
+        validator=attrs.validators.instance_of(np.random._generator.Generator),
+    )
     replacement: bool = field(default=False, converter=bool)
     description: str = field(default="failure", converter=str)
-    weibull: weibull_min = field(init=False, eq=False)
     request_id: str = field(init=False)
 
     def __attrs_post_init__(self):
-        """Creates the actual Weibull distribution and converts equipment requirements
+        """Create the actual Weibull distribution and converts equipment requirements
         to a list.
         """
-        object.__setattr__(self, "weibull", weibull_min(self.shape, scale=self.scale))
         object.__setattr__(
             self,
             "service_equipment",
@@ -541,9 +521,9 @@ class Failure(FromDictMixin):
         )
 
     def hours_to_next_failure(self) -> float | None:
-        """Samples the next time to failure in a Weibull distribution. If the ``scale``
-        and ``shape`` parameters are set to 0, then the model will return ``None`` to cause
-        the subassembly to timeout to the end of the simulation.
+        """Sample the next time to failure in a Weibull distribution. If the ``scale``
+        and ``shape`` parameters are set to 0, then the model will return ``None`` to
+        cause the subassembly to timeout to the end of the simulation.
 
         Returns
         -------
@@ -554,10 +534,10 @@ class Failure(FromDictMixin):
         if self.scale == self.shape == 0:
             return None
 
-        return self.weibull.rvs(size=1)[0] * HOURS_IN_YEAR
+        return self.rng.weibull(self.shape, size=1)[0] * self.scale * HOURS_IN_YEAR
 
     def assign_id(self, request_id: str) -> None:
-        """Assigns a unique identifier to the request.
+        """Assign a unique identifier to the request.
 
         Parameters
         ----------
@@ -578,7 +558,7 @@ class SubassemblyData(FromDictMixin):
     maintenance : list[dict[str, float | str]]
         List of the maintenance classification dictionaries. This will be converted
         to a list of ``Maintenance`` objects in the post initialization hook.
-    failures : fict[int, dict[str, float | str]]
+    failures : dict[int, dict[str, float | str]]
         Dictionary of failure classifications in a numerical (ordinal) categorization
         order. This will be converted to a dictionary of ``Failure`` objects in the
         post initialization hook.
@@ -589,13 +569,21 @@ class SubassemblyData(FromDictMixin):
 
     name: str = field(converter=str)
     maintenance: list[Maintenance | dict[str, float | str]]
-    failures: dict[int, Failure | dict[str, float | str]]
+    failures: list[Failure | dict[str, float | str]] | dict[
+        int, Failure | dict[str, float | str]
+    ]
     system_value: int | float = field(converter=float)
+    rng: np.random._generator.Generator = field(
+        validator=attrs.validators.instance_of(np.random._generator.Generator)
+    )
 
     def __attrs_post_init__(self):
-        """Converts the maintenance and failure data to ``Maintenance`` and ``Failure`` objects, respectively."""
+        """Convert the maintenance and failure data to ``Maintenance`` and ``Failure``
+        objects, respectively.
+        """
         for kwargs in self.maintenance:
-            assert isinstance(kwargs, dict)
+            if TYPE_CHECKING:
+                assert isinstance(kwargs, dict)
             kwargs.update({"system_value": self.system_value})
         object.__setattr__(
             self,
@@ -607,16 +595,20 @@ class SubassemblyData(FromDictMixin):
         )
 
         for kwargs in self.failures.values():  # type: ignore
-            assert isinstance(kwargs, dict)
+            if TYPE_CHECKING:
+                assert isinstance(kwargs, dict)
             kwargs.update({"system_value": self.system_value})
-        object.__setattr__(
-            self,
-            "failures",
-            {
-                level: Failure.from_dict(kw) if isinstance(kw, dict) else kw
-                for level, kw in self.failures.items()
-            },
-        )
+
+        failures_list = []
+        rng_dict = {"rng": self.rng}
+        if TYPE_CHECKING:
+            assert isinstance(self.failures, dict)
+        for config in self.failures.values():
+            if TYPE_CHECKING:
+                assert isinstance(config, dict)
+            config.update(rng_dict)
+            failures_list.append(Failure.from_dict(config))
+        object.__setattr__(self, "failures", failures_list)
 
 
 @define(frozen=True, auto_attribs=True)
@@ -640,9 +632,11 @@ class RepairRequest(FromDictMixin):
     cable : bool
         Indicator that the request is for a cable, by default False.
     upstream_turbines : list[str]
-        The cable's upstream turbines, by default []. No need to use this if ``cable`` == False.
+        The cable's upstream turbines, by default []. No need to use this if
+        ``cable`` == False.
     upstream_cables : list[str]
-        The cable's upstream cables, by default []. No need to use this if ``cable`` == False.
+        The cable's upstream cables, by default []. No need to use this if
+        ``cable`` == False.
     """
 
     system_id: str = field(converter=str)
@@ -656,10 +650,13 @@ class RepairRequest(FromDictMixin):
     cable: bool = field(default=False, converter=bool, kw_only=True)
     upstream_turbines: list[str] = field(default=Factory(list), kw_only=True)
     upstream_cables: list[str] = field(default=Factory(list), kw_only=True)
+    prior_operating_level: float = field(
+        default=1, kw_only=True, validator=validate_0_1_inclusive
+    )
     request_id: str = field(init=False)
 
     def assign_id(self, request_id: str) -> None:
-        """Assigns a unique identifier to the request.
+        """Assign a unique identifier to the request.
 
         Parameters
         ----------
@@ -669,10 +666,15 @@ class RepairRequest(FromDictMixin):
         object.__setattr__(self, "request_id", request_id)
         self.details.assign_id(request_id)
 
+    def __eq__(self, other) -> bool:
+        """Redefines the equality method to only check for the ``request_id``."""
+        return self.request_id == other.request_id
+
 
 @define(frozen=True, auto_attribs=True)
 class ServiceCrew(FromDictMixin):
-    """An internal data class for the indivdual crew units that are on the servicing equipment.
+    """An internal data class for the indivdual crew units that are on the servicing
+    equipment.
 
     Parameters
     ----------
@@ -705,7 +707,7 @@ class DateLimitsMixin:
     reduced_speed_end: datetime.datetime = field(converter=parse_date)
 
     def _set_environment_shift(self, start: int, end: int) -> None:
-        """Used to set the ``workday_start`` and ``workday_end`` to the environment's values.
+        """Set the ``workday_start`` and ``workday_end`` to the environment's values.
 
         Parameters
         ----------
@@ -716,9 +718,11 @@ class DateLimitsMixin:
         """
         object.__setattr__(self, "workday_start", start)
         object.__setattr__(self, "workday_end", end)
+        if self.workday_start == 0 and self.workday_end == 24:  # type: ignore
+            object.__setattr__(self, "non_stop_shift", True)
 
     def _set_port_distance(self, distance: int | float | None) -> None:
-        """Used to set ``port_distance`` from the environment's or port's variables.
+        """Set ``port_distance`` from the environment's or port's variables.
 
         Parameters
         ----------
@@ -729,7 +733,7 @@ class DateLimitsMixin:
             return
         if distance <= 0:
             return
-        if self.port_distance <= 0:  # type: ignore
+        if self.port_distance <= 0:
             object.__setattr__(self, "port_distance", float(distance))
 
     def _compare_dates(
@@ -738,7 +742,7 @@ class DateLimitsMixin:
         new_end: datetime.datetime | None,
         which: str,
     ) -> tuple[datetime.datetime | None, datetime.datetime | None]:
-        """Compares the orignal and newly input starting ane ending date for either the
+        """Compare the orignal and newly input starting ane ending date for either the
         non-operational date range or the reduced speed date range.
 
         Parameters
@@ -793,7 +797,7 @@ class DateLimitsMixin:
         end_date: datetime.datetime | None = None,
         end_year: int | None = None,
     ) -> None:
-        """Creates an annualized list of dates where servicing equipment should be
+        """Create an annualized list of dates where servicing equipment should be
         unavailable. Takes a a ``start_year`` and ``end_year`` to determine how many
         years should be covered.
 
@@ -808,7 +812,8 @@ class DateLimitsMixin:
             The ending date for the annual range of non-operational dates, by default
             None.
         end_year : int | None
-            The last year that should have a non-operational date range, by default None.
+            The last year that should have a non-operational date range, by default
+            None.
 
         Raises
         ------
@@ -838,7 +843,8 @@ class DateLimitsMixin:
             raise ValueError(f"Input to `end_year`: {end_year}, must be an integer.")
         if end_year < start_year:
             raise ValueError(
-                f"`start_year`: {start_year}, must less than or equal to the `end_year`: {end_year}"
+                "`start_year`: {start_year}, must less than or equal to the"
+                f" `end_year`: {end_year}"
             )
 
         # Create the date range
@@ -849,8 +855,8 @@ class DateLimitsMixin:
         object.__setattr__(self, "non_operational_dates_set", set(dates))
 
         # Update the operating dates field to ensure there is no overlap
-        if hasattr(self, "operating_dates"):
-            operating = np.setdiff1d(self.operating_dates, self.non_operational_dates)  # type: ignore
+        if hasattr(self, "operating_dates") and hasattr(self, "non_operational_dates"):
+            operating = np.setdiff1d(self.operating_dates, self.non_operational_dates)
             object.__setattr__(self, "operating_dates", operating)
             object.__setattr__(self, "operating_dates_set", set(operating))
 
@@ -862,7 +868,7 @@ class DateLimitsMixin:
         end_year: int | None = None,
         speed: float = 0.0,
     ) -> None:
-        """Creates an annualized list of dates where servicing equipment should be
+        """Create an annualized list of dates where servicing equipment should be
         operating with reduced speeds. The passed ``start_date``, ``end_date``, and
         ``speed`` will override provided values if they are more conservative than the
         current settings, or a value for ``speed`` will only override the existing value
@@ -910,7 +916,8 @@ class DateLimitsMixin:
             raise ValueError(f"Input to `end_year`: {end_year}, must be an integer.")
         if end_year < start_year:
             raise ValueError(
-                f"`start_year`: {start_year}, must less than or equal to the `end_year`: {end_year}"
+                "`start_year`: {start_year}, must less than or equal to the"
+                f" `end_year`: {end_year}"
             )
 
         # Create the date range
@@ -921,14 +928,16 @@ class DateLimitsMixin:
         object.__setattr__(self, "reduced_speed_dates_set", set(dates))
 
         # Update the reduced speed if none was originally provided
-        if speed != 0 and (self.reduced_speed == 0 or speed < self.reduced_speed):  # type: ignore
+        if TYPE_CHECKING:
+            assert hasattr(self, "reduced_speed")  # mypy helper
+        if speed != 0 and (self.reduced_speed == 0 or speed < self.reduced_speed):
             object.__setattr__(self, "reduced_speed", speed)
 
 
 @define(frozen=True, auto_attribs=True)
 class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
-    """The data class specification for servicing equipment that will use a pre-scheduled
-    basis for returning to site.
+    """The data class specification for servicing equipment that will use a
+    pre-scheduled basis for returning to site.
 
     Parameters
     ----------
@@ -939,11 +948,13 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     n_crews : int
         Number of crew units for the equipment.
 
-        .. note:: the input to this does not matter yet, as multi-crew functionality
+        .. note:: The input to this does not matter yet, as multi-crew functionality
             is not yet implemented.
 
     crew : ServiceCrew
-        The crew details, see ``ServiceCrew`` for more information.
+        The crew details, see :py:class:`ServiceCrew` for more information. Dictionary
+        of labor costs with the following: ``n_day_rate``, ``day_rate``,
+        ``n_hourly_rate``, and ``hourly_rate``.
     start_month : int
         The day to start operations for the rig and crew.
     start_day : int
@@ -966,10 +977,13 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         - RMT: remote (no actual equipment BUT no special implementation)
         - DRN: drone
         - CTV: crew transfer vessel/vehicle
-        - SCN: small crane (i.e., field support vessel)
+        - SCN: small crane (i.e., cherry picker)
+        - MCN: medium crane (i.e., field support vessel)
         - LCN: large crane (i.e., heavy lift vessel)
         - CAB: cabling vessel/vehicle
         - DSV: diving support vessel
+        - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
+        - VSG: vessel support group (group of vessels required for single operation)
 
         Please note that "TOW" is unavailable for scheduled servicing equipment
     mobilization_cost : float
@@ -996,19 +1010,19 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         The ending hour of a workshift, in 24 hour time.
     crew_transfer_time : float
         The number of hours it takes to transfer the crew from the equipment to the
-        system, e.g. how long does it take to transfer the crew from the CTV to the turbine,
-        default 0.
+        system, e.g. how long does it take to transfer the crew from the CTV to the
+        turbine, default 0.
     onsite : bool
-        Indicator for if the rig and crew are based onsite.
+        Indicator for if the servicing equipment and crew are based onsite.
 
-        .. note:: if the rig and crew are onsite be sure that the start and end dates
-            represent the first and last day/month of the year, respectively, and the
-            start and end years represent the fist and last year in the weather file.
+        .. note:: If based onsite, be sure that the start and end dates represent the
+            first and last day/month of the year, respectively, and the start and end
+            years represent the fist and last year in the weather file.
 
     method : str
-        Determines if the ship will do all maximum severity repairs first or do all
-        the repairs at one turbine before going to the next, by default severity.
-        Should by one of "severity" or "turbine".
+        Determines if the equipment will do all maximum severity repairs first or do all
+        the repairs at one turbine before going to the next, by default severity. Must
+        be one of "severity" or "turbine".
     port_distance : int | float
         The distance, in km, the equipment must travel to go between port and site, by
         default 0.
@@ -1037,15 +1051,15 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     name: str = field(converter=str)
     equipment_rate: float = field(converter=float)
     n_crews: int = field(converter=int)
-    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
+    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)
     capability: list[str] = field(
-        converter=convert_to_list_upper,  # type: ignore
+        converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
             iterable_validator=attrs.validators.instance_of(list),
         ),
     )
-    speed: float = field(converter=float, validator=greater_than_zero)
+    speed: float = field(converter=float, validator=attrs.validators.gt(0))
     max_windspeed_transport: float = field(converter=float)
     max_windspeed_repair: float = field(converter=float)
 
@@ -1057,23 +1071,23 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     workday_end: int = field(default=-1, converter=int, validator=valid_hour)
     crew_transfer_time: float = field(converter=float, default=0.0)
     speed_reduction_factor: float = field(
-        default=0.0, converter=float, validator=valid_reduction
+        default=0.0, converter=float, validator=validate_0_1_inclusive
     )
     port_distance: float = field(default=0.0, converter=float)
     onsite: bool = field(default=False, converter=bool)
-    method: str = field(  # type: ignore
+    method: str = field(
         default="severity",
-        converter=[str, str.lower],  # type: ignore
+        converter=[str, str.lower],
         validator=attrs.validators.in_(["turbine", "severity"]),
     )
     start_month: int = field(
-        default=-1, converter=int, validator=attrs.validators.ge(0)  # type: ignore
+        default=-1, converter=int, validator=attrs.validators.ge(0)
     )
-    start_day: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))  # type: ignore
-    start_year: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))  # type: ignore
-    end_month: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))  # type: ignore
-    end_day: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))  # type: ignore
-    end_year: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))  # type: ignore
+    start_day: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
+    start_year: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
+    end_month: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
+    end_day: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
+    end_year: int = field(default=-1, converter=int, validator=attrs.validators.ge(0))
     strategy: str = field(
         default="scheduled", validator=attrs.validators.in_(["scheduled"])
     )
@@ -1092,9 +1106,10 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     non_operational_dates: pd.DatetimeIndex = field(factory=list, init=False)
     non_operational_dates_set: pd.DatetimeIndex = field(factory=set, init=False)
     reduced_speed_dates: pd.DatetimeIndex = field(factory=set, init=False)
+    non_stop_shift: bool = field(default=False, init=False)
 
     def create_date_range(self) -> np.ndarray:
-        """Creates an ``np.ndarray`` of valid operational dates for the service equipment."""
+        """Create an ``np.ndarray`` of valid operational dates."""
         start_date = datetime.datetime(
             self.start_year, self.start_month, self.start_day
         )
@@ -1117,8 +1132,11 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         return date_range
 
     def __attrs_post_init__(self) -> None:
+        """Post-initialization."""
         object.__setattr__(self, "operating_dates", self.create_date_range())
         object.__setattr__(self, "operating_dates_set", set(self.operating_dates))
+        if self.workday_start == 0 and self.workday_end == 24:
+            object.__setattr__(self, "non_stop_shift", True)
 
 
 @define(frozen=True, auto_attribs=True)
@@ -1139,20 +1157,25 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
             is not yet implemented.
 
     crew : ServiceCrew
-        The crew details, see ``ServiceCrew`` for more information.
+        The crew details, see :py:class:`ServiceCrew` for more information. Dictionary
+        of labor costs with the following: ``n_day_rate``, ``day_rate``,
+        ``n_hourly_rate``, and ``hourly_rate``.
     charter_days : int
         The number of days the servicing equipment can be chartered for.
     capability : str
         The type of capabilities the equipment contains. Must be one of:
+
         - RMT: remote (no actual equipment BUT no special implementation)
         - DRN: drone
         - CTV: crew transfer vessel/vehicle
-        - SCN: small crane (i.e., field support vessel)
+        - SCN: small crane (i.e., cherry picker)
+        - MCN: medium crane (i.e., field support vessel)
         - LCN: large crane (i.e., heavy lift vessel)
         - CAB: cabling vessel/vehicle
         - DSV: diving support vessel
         - TOW: tugboat or towing equipment
         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
+        - VSG: vessel support group (group of vessels required for single operation)
     speed : float
         Maximum transit speed, km/hr.
     tow_speed : float
@@ -1222,23 +1245,23 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     non_operational_start : str | datetime.datetime | None
         The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
         period of prohibited operations. When defined at the environment level or the
-        port level, if a tugboat, an undefined or later starting date will be overridden,
-        by default None.
+        port level, if a tugboat, an undefined or later starting date will be
+        overridden, by default None.
     non_operational_end : str | datetime.datetime | None
         The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
         period of prohibited operations. When defined at the environment level or the
-        port level, if a tugboat, an undefined or earlier ending date will be overridden,
-        by default None.
+        port level, if a tugboat, an undefined or earlier ending date will be
+        overridden, by default None.
     reduced_speed_start : str | datetime.datetime | None
         The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
         period of reduced speed operations. When defined at the environment level or the
-        port level, if a tugboat, an undefined or later starting date will be overridden,
-        by default None.
+        port level, if a tugboat, an undefined or later starting date will be
+        overridden, by default None.
     reduced_speed_end : str | datetime.datetime | None
         The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
         period of reduced speed operations. When defined at the environment level or the
-        port level, if a tugboat, an undefined or earlier ending date will be overridden,
-        by default None.
+        port level, if a tugboat, an undefined or earlier ending date will be
+        overridden, by default None.
     reduced_speed : float
         The maximum operating speed during the annualized reduced speed operations.
         When defined at the environment level, an undefined or faster value will be
@@ -1248,15 +1271,15 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     name: str = field(converter=str)
     equipment_rate: float = field(converter=float)
     n_crews: int = field(converter=int)
-    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
+    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)
     capability: list[str] = field(
-        converter=convert_to_list_upper,  # type: ignore
+        converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.in_(VALID_EQUIPMENT),
             iterable_validator=attrs.validators.instance_of(list),
         ),
     )
-    speed: float = field(converter=float, validator=greater_than_zero)
+    speed: float = field(converter=float, validator=attrs.validators.gt(0))
     max_windspeed_transport: float = field(converter=float)
     max_windspeed_repair: float = field(converter=float)
     mobilization_cost: float = field(default=0, converter=float)
@@ -1267,13 +1290,13 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     workday_end: int = field(default=-1, converter=int, validator=valid_hour)
     crew_transfer_time: float = field(converter=float, default=0.0)
     speed_reduction_factor: float = field(
-        default=0.0, converter=float, validator=valid_reduction
+        default=0.0, converter=float, validator=validate_0_1_inclusive
     )
     port_distance: float = field(default=0.0, converter=float)
     onsite: bool = field(default=False, converter=bool)
     method: str = field(  # type: ignore
         default="severity",
-        converter=[str, str.lower],  # type: ignore
+        converter=[str, str.lower],
         validator=attrs.validators.in_(["turbine", "severity"]),
     )
     strategy: str | None = field(
@@ -1283,9 +1306,11 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     )
     strategy_threshold: int | float = field(default=-1, converter=float)
     charter_days: int = field(
-        default=-1, converter=int, validator=attrs.validators.gt(0)  # type: ignore
+        default=-1, converter=int, validator=attrs.validators.gt(0)
     )
-    tow_speed: float = field(default=1, converter=float, validator=greater_than_zero)
+    tow_speed: float = field(
+        default=1, converter=float, validator=attrs.validators.gt(0)
+    )
     unmoor_hours: int | float = field(default=0, converter=float)
     reconnection_hours: int | float = field(default=0, converter=float)
     non_operational_start: datetime.datetime = field(default=None, converter=parse_date)
@@ -1296,6 +1321,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     non_operational_dates: pd.DatetimeIndex = field(factory=list, init=False)
     non_operational_dates_set: pd.DatetimeIndex = field(factory=set, init=False)
     reduced_speed_dates: pd.DatetimeIndex = field(factory=set, init=False)
+    non_stop_shift: bool = field(default=False, init=False)
 
     @strategy_threshold.validator  # type: ignore
     def _validate_threshold(
@@ -1303,7 +1329,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         attribute: Attribute,  # pylint: disable=W0613
         value: int | float,
     ) -> None:
-        """Ensures a valid threshold is provided for a given ``strategy``."""
+        """Ensure a valid threshold is provided for a given ``strategy``."""
         if self.strategy == "downtime":
             if value <= 0 or value >= 1:
                 raise ValueError(
@@ -1316,6 +1342,11 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
                     "Requests-based strategies must have a ``strategy_threshold``",
                     "greater than 0!",
                 )
+
+    def __attrs_post_init__(self) -> None:
+        """Post-initialization hook."""
+        if self.workday_start == 0 and self.workday_end == 24:
+            object.__setattr__(self, "non_stop_shift", True)
 
 
 @define(frozen=True, auto_attribs=True)
@@ -1339,12 +1370,13 @@ class ServiceEquipmentData(FromDictMixin):
     Raises
     ------
     ValueError
-        If ``strategy`` is not one of "scheduled" or "unscheduled" an error will be raised.
+        Raised if ``strategy`` is not one of "scheduled" or "unscheduled".
 
     Examples
     --------
-    The below workflow is how a new data :py:class:`~data_classes.ScheduledServiceEquipmentData`
-    object could be created via a generic/routinized creation method, and is how the
+    The below workflow is how a new data
+    :py:class:`~data_classes.ScheduledServiceEquipmentData` object could be created via
+    a generic/routinized creation method, and is how the
     :py:class:`~service_equipment.ServiceEquipment`'s ``__init__`` method creates the
     settings data.
 
@@ -1389,25 +1421,27 @@ class ServiceEquipmentData(FromDictMixin):
     )
 
     def __attrs_post_init__(self):
+        """Post-initialization."""
         if self.strategy is None:
             object.__setattr__(
                 self, "strategy", clean_string_input(self.data_dict["strategy"])
             )
         if self.strategy not in VALID_STRATEGIES:
             raise ValueError(
-                f"ServiceEquipment strategy should be one of {VALID_STRATEGIES}; input: {self.strategy}."
+                f"ServiceEquipment strategy should be one of {VALID_STRATEGIES};"
+                f" input: {self.strategy}."
             )
 
     def determine_type(
         self,
     ) -> ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData:
-        """Generates the appropriate ServiceEquipmentData variation.
+        """Generate the appropriate ServiceEquipmentData variation.
 
         Returns
         -------
         Union[ScheduledServiceEquipmentData, UnscheduledServiceEquipmentData]
-            The appropriate ``xxServiceEquipmentData`` schema depending on the strategy the
-            ``ServiceEquipment`` will use.
+            The appropriate ``xxServiceEquipmentData`` schema depending on the strategy
+            the ``ServiceEquipment`` will use.
         """
         if self.strategy == "scheduled":
             return ScheduledServiceEquipmentData.from_dict(self.data_dict)
@@ -1423,7 +1457,7 @@ class EquipmentMap:
     """Internal mapping for servicing equipment strategy information."""
 
     strategy_threshold: int | float
-    equipment: "ServiceEquipment"  # noqa: disable=F821
+    equipment: ServiceEquipment  # noqa: F821
 
 
 @define(auto_attribs=True)
@@ -1432,6 +1466,7 @@ class StrategyMap:
 
     CTV: list[EquipmentMap] = field(factory=list)
     SCN: list[EquipmentMap] = field(factory=list)
+    MCN: list[EquipmentMap] = field(factory=list)
     LCN: list[EquipmentMap] = field(factory=list)
     CAB: list[EquipmentMap] = field(factory=list)
     RMT: list[EquipmentMap] = field(factory=list)
@@ -1439,15 +1474,16 @@ class StrategyMap:
     DSV: list[EquipmentMap] = field(factory=list)
     TOW: list[EquipmentMap] = field(factory=list)
     AHV: list[EquipmentMap] = field(factory=list)
+    VSG: list[EquipmentMap] = field(factory=list)
     is_running: bool = field(default=False, init=False)
 
     def update(
         self,
         capability: str,
         threshold: int | float,
-        equipment: "ServiceEquipment",  # noqa: disable=F821
+        equipment: ServiceEquipment,  # noqa: F821
     ) -> None:
-        """A method to update the strategy mapping between capability types and the
+        """Update the strategy mapping between capability types and the
         available ``ServiceEquipment`` objects.
 
         Parameters
@@ -1470,6 +1506,8 @@ class StrategyMap:
             self.CTV.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "SCN":
             self.SCN.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "MCN":
+            self.MCN.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "LCN":
             self.LCN.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "CAB":
@@ -1484,12 +1522,95 @@ class StrategyMap:
             self.TOW.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "AHV":
             self.AHV.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "VSG":
+            self.VSG.append(EquipmentMap(threshold, equipment))  # type: ignore
         else:
             # This should not even be able to be reached
             raise ValueError(
                 f"Invalid servicing equipment '{capability}' has been provided!"
             )
         self.is_running = True
+
+    def get_mapping(self, capability) -> list[EquipmentMap]:
+        """Gets the attribute matching the desired :py:attr:`capability`.
+
+        Parameters
+        ----------
+        capability : str
+            A string matching one of the ``UnscheduledServiceEquipmentData.capability``
+            (or scheduled) options.
+
+        Returns
+        -------
+        list[EquipmentMap]
+            Returns the matching mapping of available servicing equipment.
+        """
+        if capability == "CTV":
+            return self.CTV
+        if capability == "SCN":
+            return self.SCN
+        if capability == "MCN":
+            return self.MCN
+        if capability == "LCN":
+            return self.LCN
+        if capability == "CAB":
+            return self.CAB
+        if capability == "RMT":
+            return self.RMT
+        if capability == "DRN":
+            return self.DRN
+        if capability == "DSV":
+            return self.DSV
+        if capability == "TOW":
+            return self.TOW
+        if capability == "AHV":
+            return self.AHV
+        if capability == "VSG":
+            return self.VSG
+        # This should not even be able to be reached
+        raise ValueError(
+            f"Invalid servicing equipmen capability '{capability}' has been provided!"
+        )
+
+    def move_equipment_to_end(self, capability: str, ix: int) -> None:
+        """Moves a used equipment to the end of the mapping list to ensure a broader
+        variety of servicing equipment are used throughout a simulation.
+
+        Parameters
+        ----------
+        capability : str
+            A string matching one of ``capability`` options for servicing equipment
+            dataclasses.
+        ix : int
+            The index of the used servicing equipent.
+        """
+        if capability == "CTV":
+            self.CTV.append(self.CTV.pop(ix))
+        elif capability == "SCN":
+            self.SCN.append(self.SCN.pop(ix))
+        elif capability == "MCN":
+            self.LCN.append(self.MCN.pop(ix))
+        elif capability == "LCN":
+            self.LCN.append(self.LCN.pop(ix))
+        elif capability == "CAB":
+            self.CAB.append(self.CAB.pop(ix))
+        elif capability == "RMT":
+            self.RMT.append(self.RMT.pop(ix))
+        elif capability == "DRN":
+            self.DRN.append(self.DRN.pop(ix))
+        elif capability == "DSV":
+            self.DSV.append(self.DSV.pop(ix))
+        elif capability == "TOW":
+            self.TOW.append(self.TOW.pop(ix))
+        elif capability == "AHV":
+            self.AHV.append(self.AHV.pop(ix))
+        elif capability == "VSG":
+            self.VSG.append(self.VSG.pop(ix))
+        else:
+            # This should not even be able to be reached
+            raise ValueError(
+                f"Invalid servicing equipmen capability {capability} has been provided!"
+            )
 
 
 @define(frozen=True, auto_attribs=True)
@@ -1504,12 +1625,15 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
         file, or list of files to create the port's tugboats.
 
         .. note:: Each tugboat is considered to be a tugboat + supporting vessels as
-        the primary purpose to tow turbines between a repair port and site.
+            the primary purpose to tow turbines between a repair port and site.
+
     n_crews : int
         The number of service crews available to be working on repairs simultaneously;
         each crew is able to service exactly one repair.
     crew : ServiceCrew
-        The crew details, see ``ServiceCrew`` for more information.
+        The crew details, see :py:class:`ServiceCrew` for more information. Dictionary
+        of labor costs with the following: ``n_day_rate``, ``day_rate``,
+        ``n_hourly_rate``, and ``hourly_rate``.
     max_operations : int
         Total number of turbines the port can handle simultaneously.
     workday_start : int
@@ -1524,8 +1648,8 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
         start of the simulation to the end of the simulation.
 
         .. note:: Don't include this cost in both this category and either the
-        ``FixedCosts.operations_management_administration`` bucket or
-        ``FixedCosts.marine_management`` category.
+            ``FixedCosts.operations_management_administration`` bucket or
+            ``FixedCosts.marine_management`` category.
 
     non_operational_start : str | datetime.datetime | None
         The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
@@ -1556,14 +1680,14 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
 
     name: str = field(converter=str)
     tugboats: list[str | Path] = field(converter=convert_to_list)
-    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)  # type: ignore
+    crew: ServiceCrew = field(converter=ServiceCrew.from_dict)
     n_crews: int = field(default=1, converter=int)
     max_operations: int = field(default=1, converter=int)
     workday_start: int = field(default=-1, converter=int, validator=valid_hour)
     workday_end: int = field(default=-1, converter=int, validator=valid_hour)
     site_distance: float = field(default=0.0, converter=float)
     annual_fee: float = field(
-        default=0, converter=float, validator=greater_than_equal_to_zero
+        default=0, converter=float, validator=attrs.validators.gt(0)
     )
     non_operational_start: datetime.datetime = field(default=None, converter=parse_date)
     non_operational_end: datetime.datetime = field(default=None, converter=parse_date)
@@ -1574,11 +1698,17 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
     reduced_speed_dates: pd.DatetimeIndex = field(factory=set, init=False)
     non_operational_dates_set: pd.DatetimeIndex = field(factory=set, init=False)
     reduced_speed_dates_set: pd.DatetimeIndex = field(factory=set, init=False)
+    non_stop_shift: bool = field(default=False, init=False)
+
+    def __attrs_post_init__(self) -> None:
+        """Post-initialization hook."""
+        if self.workday_start == 0 and self.workday_end == 24:
+            object.__setattr__(self, "non_stop_shift", True)
 
 
 @define(frozen=True, auto_attribs=True)
 class FixedCosts(FromDictMixin):
-    """The fixed costs for operating a windfarm. All values are assumed to be in $/kW/yr.
+    """Fixed costs for operating a windfarm. All values are assumed to be in $/kW/yr.
 
     Parameters
     ----------
@@ -1592,8 +1722,8 @@ class FixedCosts(FromDictMixin):
         and equipment to coordinate high voltage equipment, switching, port activities,
         and marine activities.
 
-        .. note:: This should only be used when not breaking down the cost into the following
-            categories: ``project_management_administration``,
+        .. note:: This should only be used when not breaking down the cost into the
+            following categories: ``project_management_administration``,
             ``operation_management_administration``, ``marine_management``, and/or
             ``weather_forecasting``
 
@@ -1617,11 +1747,13 @@ class FixedCosts(FromDictMixin):
         operations.
     insurance : float
         Insurance policies during operational period including All Risk Property,
-        Buisness Interuption, Third Party Liability, and Brokers Fee, and Storm Coverage.
+        Buisness Interuption, Third Party Liability, and Brokers Fee, and Storm
+        Coverage.
 
         .. note:: This should only be used when not breaking down the cost into the
             following categories: ``brokers_fee``, ``operations_all_risk``,
-            ``business_interruption``, ``third_party_liability``, and/or ``storm_coverage``
+            ``business_interruption``, ``third_party_liability``, and/or
+            ``storm_coverage``
 
     brokers_fee : float
         Fees for arranging the insurance package.
@@ -1716,6 +1848,7 @@ class FixedCosts(FromDictMixin):
                 object.__setattr__(self, cost, 0)
 
     def __attrs_post_init__(self):
+        """Post-initialization."""
         grouped_names = {
             "operations_management_administration": [
                 "project_management_administration",
@@ -1817,8 +1950,7 @@ class FixedCosts(FromDictMixin):
 
 @define(auto_attribs=True)
 class SubString:
-    """
-    A list of the upstream connections for a turbine and its downstream connector.
+    """A list of the upstream connections for a turbine and its downstream connector.
 
     Parameters
     ----------
@@ -1834,8 +1966,7 @@ class SubString:
 
 @define(auto_attribs=True)
 class String:
-    """
-    All of the connection information for a complete string in a wind farm.
+    """All of the connection information for a complete string in a wind farm.
 
     Parameters
     ----------
@@ -1851,14 +1982,14 @@ class String:
 
 @define(auto_attribs=True)
 class SubstationMap:
-    """
-    A mapping of every ``String`` connected to a substation, excluding export
+    """A mapping of every ``String`` connected to a substation, excluding export
     connections to other substations.
 
     Parameters
     ----------
     string_starts : list[str]
-        A list of every first turbine's ``System.id`` in a string connected to the substation.
+        A list of every first turbine's ``System.id`` in a string connected to the
+        substation.
     string_map : dict[str, String]
         A dictionary mapping each string starting turbine to its ``String`` data.
     downstream : str
@@ -1874,8 +2005,7 @@ class SubstationMap:
 
 @define(auto_attribs=True)
 class WindFarmMap:
-    """
-    A list of the upstream connections for a turbine and its downstream connector.
+    """A list of the upstream connections for a turbine and its downstream connector.
 
     Parameters
     ----------
@@ -1891,7 +2021,8 @@ class WindFarmMap:
     def get_upstream_connections(
         self, substation: str, string_start: str, node: str, return_cables: bool = True
     ) -> list[str] | tuple[list[str], list[str]]:
-        """Retrieves the upstream turbines (and optionally cables) within the wind farm graph.
+        """Retrieve the upstream turbines (and optionally cables) within the wind farm
+        graph.
 
         Parameters
         ----------
@@ -1931,7 +2062,7 @@ class WindFarmMap:
         | list[list[str]]
         | tuple[list[list[str]], list[list[str]]]
     ):
-        """Retrieves the upstream turbines (and optionally, cables) connected to a
+        """Retrieve the upstream turbines (and optionally, cables) connected to a
         py:attr:`substation` in the wind farm graph.
 
         Parameters
@@ -1943,16 +2074,19 @@ class WindFarmMap:
             by default True
         by_string : bool, optional
             Indicates if the list of turbines (and cables) should be a nested list for
-            each string (py:obj:`True`), or as 1-D list (py:obj:`False`), by default True.
+            each string (py:obj:`True`), or as 1-D list (py:obj:`False`), by default
+            True.
 
         Returns
         -------
         list[str] | tuple[list[str], list[str]]
             A list of ``System.id`` for all of the upstream turbines of ``node`` if
-            ``return_cables=False``, otherwise the upstream turbine and the ``Cable.id`` lists
-            are returned. These are bifurcated in lists of lists for each string if ``by_string=True``
+            ``return_cables=False``, otherwise the upstream turbine and the ``Cable.id``
+            lists are returned. These are bifurcated in lists of lists for each string
+            if ``by_string=True``
         """
-        turbines, cables = [], []
+        turbines = []
+        cables = []
         substation_map = self.substation_map[substation]
         start_nodes = substation_map.string_starts
         for start_node in start_nodes:

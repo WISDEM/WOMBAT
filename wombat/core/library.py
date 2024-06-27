@@ -34,7 +34,8 @@ CODE_COMPARISON = DEFAULT_LIBRARY / "code_comparison"
 BASE_CASES = DEFAULT_LIBRARY / "baseline"
 
 DINWOODIE = CODE_COMPARISON / "dinwoodie"
-IEA_26 = DEFAULT_LIBRARY / "code_comparison" / "iea26"
+IEA_26 = CODE_COMPARISON / "iea26"
+COREWIND = DEFAULT_LIBRARY / "corewind"
 
 OSW_FIXED = BASE_CASES / "offshore_fixed"
 LBW = BASE_CASES / "land_based"
@@ -43,6 +44,7 @@ library_map = {
     "DINWOODIE": DINWOODIE,
     "IEA_26": IEA_26,
     "IEA26": IEA_26,
+    "COREWIND": COREWIND,
     "OSW_FIXED": OSW_FIXED,
     "LBW": LBW,
     "LAND_BASED": LBW,
@@ -81,7 +83,7 @@ def load_yaml(path: str | Path, fname: str | Path) -> Any:
     Any
         Whatever content is in the YAML file.
     """
-    return yaml.load(open(os.path.join(path, fname), "r"), Loader=custom_loader)
+    return yaml.load(open(os.path.join(path, fname)), Loader=custom_loader)
 
 
 def create_library_structure(

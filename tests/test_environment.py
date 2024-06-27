@@ -1,3 +1,6 @@
+"""Tests wombat/core/environment.py."""
+
+
 from __future__ import annotations
 
 import datetime
@@ -5,9 +8,10 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import polars as pl
 import pytest
 import numpy.testing as npt
-from pandas.testing import assert_index_equal
+from polars.testing import assert_series_equal
 
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.windfarm import Windfarm
@@ -16,13 +20,13 @@ from tests.conftest import TEST_DATA
 
 
 def test_data_dir():
+    """Tests the data_dir creation."""
     relative_library = Path(__file__).resolve().parent / "library"
     assert TEST_DATA == relative_library
 
 
 def test_setup():
     """Tests the setup of the `WombatEnvironment` and logging infrastructure."""
-
     # Test an invalid directory
     with pytest.raises(FileNotFoundError):
         WombatEnvironment(
@@ -30,6 +34,7 @@ def test_setup():
             weather_file="test_weather_quick_load.csv",
             workday_start=8,
             workday_end=18,
+            random_seed=2022,
         )
 
     # Test invalid starting hour - too low
@@ -39,6 +44,7 @@ def test_setup():
             weather_file="test_weather_quick_load.csv",
             workday_start=-1,
             workday_end=18,
+            random_seed=2022,
         )
 
     # Test invalid starting hour - too high
@@ -48,6 +54,7 @@ def test_setup():
             weather_file="test_weather_quick_load.csv",
             workday_start=24,
             workday_end=18,
+            random_seed=2022,
         )
 
     # Test invalid ending hour - too low
@@ -57,6 +64,7 @@ def test_setup():
             weather_file="test_weather_quick_load.csv",
             workday_start=8,
             workday_end=-1,
+            random_seed=2022,
         )
 
     # Test invalid ending hour - before start
@@ -66,6 +74,7 @@ def test_setup():
             weather_file="test_weather_quick_load.csv",
             workday_start=8,
             workday_end=3,
+            random_seed=2022,
         )
 
     # Test invalid ending hour - at the same time as start
@@ -75,6 +84,7 @@ def test_setup():
             weather_file="test_weather_quick_load.csv",
             workday_start=8,
             workday_end=8,
+            random_seed=2022,
         )
 
     # Test invalid start_year - later than file limits (2002 through 2003)
@@ -87,6 +97,7 @@ def test_setup():
             simulation_name="testing_setup",
             start_year=2004,
             end_year=2003,
+            random_seed=2022,
         )
 
     # Test invalid end_year - start year is after end year
@@ -99,6 +110,7 @@ def test_setup():
             simulation_name="testing_setup",
             start_year=2003,
             end_year=2002,
+            random_seed=2022,
         )
 
     # Test the data are read correctly with default starting and ending year
@@ -109,11 +121,12 @@ def test_setup():
         workday_start=8,
         workday_end=16,
         simulation_name="testing_setup",
+        random_seed=2022,
     )
     assert env.workday_start == 8
     assert env.workday_end == 16
     assert env.shift_length == 8
-    assert isinstance(env.weather, pd.DataFrame)
+    assert isinstance(env.weather, pl.DataFrame)
     assert env.start_datetime == datetime.datetime(2002, 1, 1, 0, 0)
     assert env.end_datetime == datetime.datetime(2003, 12, 31, 23, 0)
     assert env.max_run_time == 8760 * 2  # 2 year data file
@@ -134,6 +147,7 @@ def test_setup():
         workday_end=16,
         simulation_name="testing_setup",
         start_year=2003,
+        random_seed=2022,
     )
     assert env.start_datetime == datetime.datetime(2003, 1, 1, 0, 0)
     assert env.end_datetime == datetime.datetime(2003, 12, 31, 23, 0)
@@ -147,6 +161,7 @@ def test_setup():
         workday_end=16,
         simulation_name="testing_setup",
         end_year=2002,
+        random_seed=2022,
     )
     assert env.start_datetime == datetime.datetime(2002, 1, 1, 0, 0)
     assert env.end_datetime == datetime.datetime(2002, 12, 31, 23, 0)
@@ -161,6 +176,7 @@ def test_setup():
         simulation_name="testing_setup",
         start_year=2003,
         end_year=2003,
+        random_seed=2022,
     )
     assert env.start_datetime == datetime.datetime(2003, 1, 1, 0, 0)
     assert env.end_datetime == datetime.datetime(2003, 12, 31, 23, 0)
@@ -180,7 +196,6 @@ def test_timing():
      - ``is_workshift``
 
     """
-
     # Setup a basic environment
     env = WombatEnvironment(
         data_dir=TEST_DATA,
@@ -188,9 +203,10 @@ def test_timing():
         workday_start=8,
         workday_end=16,
         simulation_name="testing_setup",
+        random_seed=2022,
     )
     manager = RepairManager(env)
-    windfarm = Windfarm(env, "layout.csv", manager)
+    Windfarm(env, "layout.csv", manager)
 
     # Run for 96 hours from the start to this point in the data
     # 1/5/02 0:00,8.238614098,0.37854216
@@ -208,7 +224,8 @@ def test_timing():
     assert env.now == correct_index
     assert env.simulation_time == correct_datetime
     assert env.hours_to_next_shift() == 8
-    assert all(env.weather_now == (correct_wind, correct_wave, correct_hour))
+    current_conditions = env.weather_now.to_numpy().flatten()[2:]
+    assert all(current_conditions == (correct_wind, correct_wave, correct_hour))
     assert not env.is_workshift()
 
     # Test for a non-even timing of 128.7 hours
@@ -228,7 +245,8 @@ def test_timing():
     assert env.now == until
     assert env.simulation_time == correct_datetime
     assert env.hours_to_next_shift() == correct_hours_to_next_shift
-    assert all(env.weather_now == (correct_wind, correct_wave, correct_hour))
+    current_conditions = env.weather_now.to_numpy().flatten()[2:]
+    assert all(current_conditions == (correct_wind, correct_wave, correct_hour))
     assert env.is_workshift()
 
     env.cleanup_log_files()  # delete the logged data
@@ -243,9 +261,10 @@ def test_is_workshift():
         workday_start=8,
         workday_end=16,
         simulation_name="testing_setup",
+        random_seed=2022,
     )
     manager = RepairManager(env)
-    windfarm = Windfarm(env, "layout.csv", manager)
+    Windfarm(env, "layout.csv", manager)
     # Test for the 24 hours of the day with a basic 8am to 4pm workday
     assert not env.is_workshift()
     for i in range(23):
@@ -282,9 +301,10 @@ def test_hour_in_shift():
         workday_start=8,
         workday_end=16,
         simulation_name="testing_setup",
+        random_seed=2022,
     )
     manager = RepairManager(env)
-    windfarm = Windfarm(env, "layout.csv", manager)
+    Windfarm(env, "layout.csv", manager)
 
     # Test the boundary conditions at midnight
 
@@ -327,14 +347,15 @@ def test_hours_to_next_shift():
         workday_start=8,
         workday_end=16,
         simulation_name="testing_setup",
+        random_seed=2022,
     )
     manager = RepairManager(env)
-    windfarm = Windfarm(env, "layout.csv", manager)
+    Windfarm(env, "layout.csv", manager)
 
     # Test that at hour 0, there are 8 hours until 8am
     assert env.hours_to_next_shift() == 8
 
-    # Test that at hour 0, with starting time of 0, there are 24 hours until the next period
+    # Test that at hour 0, with start time 0, there are 24 hours until the next period
     assert env.hours_to_next_shift(workday_start=0)
 
     env.run(until=7)
@@ -365,15 +386,17 @@ def test_weather_forecast():
         workday_start=8,
         workday_end=16,
         simulation_name="testing_setup",
+        random_seed=2022,
     )
     manager = RepairManager(env)
-    windfarm = Windfarm(env, "layout.csv", manager)
+    Windfarm(env, "layout.csv", manager)
 
     # Test for the next 5 hours, but at the top of the hour
     # Starts with hour 0, and ends with the 5th hour following
-    correct_index = pd.DatetimeIndex(
-        pd.date_range("1/1/2002 00:00:00", "1/1/2002 04:00:00", freq="1H"),
-        name="datetime",
+    correct_index = pl.from_pandas(
+        pd.date_range(
+            "1/1/2002 00:00:00", "1/1/2002 04:00:00", freq="1h", name="datetime"
+        )
     )
     correct_hour = np.array([0, 1, 2, 3, 4], dtype=float)
     correct_wind = np.array(
@@ -383,10 +406,9 @@ def test_weather_forecast():
         [1.281772405, 1.586584315, 1.725690828, 1.680982063, 1.552232138]
     )
 
-    print(env.weather.shape)
     ix, hour, wind, wave = env.weather_forecast(hours=5)
-    assert ix.size == wind.size == wave.size == 5
-    assert_index_equal(ix, correct_index)
+    assert ix.shape[0] == wind.shape[0] == wave.shape[0] == 5
+    assert_series_equal(ix, correct_index)
     npt.assert_equal(hour, correct_hour)
     npt.assert_equal(wind, correct_wind)
     npt.assert_equal(wave, correct_wave)
@@ -394,9 +416,10 @@ def test_weather_forecast():
     # Test for 5 hours at an uneven start time increment
     # Starts at hour 1, and ends with the 5th hour following
     env.run(until=0.1)
-    correct_index = pd.DatetimeIndex(
-        pd.date_range("1/1/2002 00:00:00", "1/1/2002 05:00:00", freq="1H"),
-        name="datetime",
+    correct_index = pl.from_pandas(
+        pd.date_range(
+            "1/1/2002 00:00:00", "1/1/2002 05:00:00", freq="1h", name="datetime"
+        )
     )
     correct_hour = np.arange(6, dtype=float)
     correct_wind = np.array(
@@ -407,8 +430,8 @@ def test_weather_forecast():
     )
 
     ix, hour, wind, wave = env.weather_forecast(hours=5)
-    assert ix.size == hour.size == wind.size == wave.size == 6
-    assert_index_equal(ix, correct_index)
+    assert ix.shape[0] == hour.shape[0] == wind.shape[0] == wave.shape[0] == 6
+    assert_series_equal(ix, correct_index)
     npt.assert_equal(hour, correct_hour)
     npt.assert_equal(wind, correct_wind)
     npt.assert_equal(wave, correct_wave)
@@ -416,9 +439,10 @@ def test_weather_forecast():
     # Test for 5.5 hours at an uneven start time increment
     # Starts at hour 1, and ends at the 7th hour following
     env.run(until=1.2)
-    correct_index = pd.DatetimeIndex(
-        pd.date_range("1/1/2002 01:00:00", "1/1/2002 07:00:00", freq="1H"),
-        name="datetime",
+    correct_index = pl.from_pandas(
+        pd.date_range(
+            "1/1/2002 01:00:00", "1/1/2002 07:00:00", freq="1h", name="datetime"
+        )
     )
     correct_hour = np.arange(1, 8, dtype=float)
     correct_wind = np.array(
@@ -445,8 +469,8 @@ def test_weather_forecast():
     )
 
     ix, hour, wind, wave = env.weather_forecast(hours=5.5)
-    assert ix.size == hour.size == wind.size == wave.size == 7
-    assert_index_equal(ix, correct_index)
+    assert ix.shape[0] == hour.shape[0] == wind.shape[0] == wave.shape[0] == 7
+    assert_series_equal(ix, correct_index)
     npt.assert_equal(hour, correct_hour)
     npt.assert_equal(wind, correct_wind)
     npt.assert_equal(wave, correct_wave)

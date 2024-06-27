@@ -1,7 +1,6 @@
 """Creates the Turbine class."""
 from __future__ import annotations
 
-import logging
 from typing import Callable
 from operator import mul
 from functools import reduce
@@ -62,10 +61,12 @@ class System:
         self.capacity = subassemblies["capacity_kw"]
         self.subassemblies: list[Subassembly] = []
         self.servicing = self.env.event()
+        self.servicing_queue = self.env.event()
         self.cable_failure = self.env.event()
 
         # Ensure servicing statuses starts as processed and inactive
         self.servicing.succeed()
+        self.servicing_queue.succeed()
         self.cable_failure.succeed()
 
         system = system.lower().strip()
@@ -146,16 +147,8 @@ class System:
         if power_curve_dict is None:
             self.power_curve = IEC_power_curve(pd.Series([0]), pd.Series([0]))
         else:
-            power_curve = power_curve_dict["file"]
-            try:
-                power_curve_file = self.env.data_dir / "turbines" / power_curve
-                power_curve = pd.read_csv(power_curve_file)
-            except FileNotFoundError:
-                power_curve_file = self.env.data_dir / "windfarm" / power_curve
-                power_curve = pd.read_csv(power_curve_file)
-                logging.warning(
-                    "DeprecationWarning: In v0.7, all power curve files must be located in: '<library>/turbines"
-                )
+            power_curve_file = self.env.data_dir / "turbines" / power_curve_dict["file"]
+            power_curve = pd.read_csv(power_curve_file)
             power_curve = power_curve.loc[power_curve.power_kw != 0].reset_index(
                 drop=True
             )
@@ -168,9 +161,24 @@ class System:
                 bin_width=bin_width,
             )
 
-    def interrupt_all_subassembly_processes(self) -> None:
-        """Interrupts the running processes in all of the system's subassemblies."""
-        [subassembly.interrupt_processes() for subassembly in self.subassemblies]  # type: ignore
+    def interrupt_all_subassembly_processes(
+        self, origin: Subassembly | None = None, replacement: str | None = None
+    ) -> None:
+        """Interrupts the running processes in all of the system's subassemblies.
+
+        Parameters
+        ----------
+        origin : Subassembly
+            The subassembly that triggered the request, if the method call is coming
+            from a subassembly shutdown event.
+        replacement: bool, optional
+            If a subassebly `id` is provided, this indicates the interruption is caused
+            by its replacement event. Defaults to None.
+        """
+        [
+            subassembly.interrupt_processes(origin=origin, replacement=replacement)  # type: ignore
+            for subassembly in self.subassemblies
+        ]
 
     @property
     def operating_level(self) -> float:
@@ -181,10 +189,10 @@ class System:
         float
             Operating level of the turbine.
         """
-        if not self.cable_failure.triggered or not self.servicing.triggered:
-            return 0.0
-        else:
-            return reduce(mul, [sub.operating_level for sub in self.subassemblies])
+        if self.cable_failure.triggered and self.servicing.triggered:
+            ol: float = reduce(mul, [sub.operating_level for sub in self.subassemblies])
+            return ol  # type: ignore
+        return 0.0
 
     @property
     def operating_level_wo_servicing(self) -> float:
@@ -196,10 +204,10 @@ class System:
         float
             Operating level of the turbine.
         """
-        if not self.cable_failure.triggered:
-            return 0.0
-        else:
-            return reduce(mul, [sub.operating_level for sub in self.subassemblies])
+        if self.cable_failure.triggered:
+            ol: float = reduce(mul, [sub.operating_level for sub in self.subassemblies])
+            return ol  # type: ignore
+        return 0.0
 
     def power(self, windspeed: list[float] | np.ndarray) -> np.ndarray:
         """Generates the power output for an iterable of windspeed values.

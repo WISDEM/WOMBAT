@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-import re
+from string import digits, punctuation
 from typing import Callable
 
 import numpy as np
@@ -57,11 +57,11 @@ def create_variable_from_string(string: str) -> str:
     'electrical_system'
 
     """
-    new_string = re.sub(
-        "[^0-9a-zA-Z]+",
-        "_",
-        re.sub("^\W+", "", re.sub("[^a-zA-Z]+$", "", string)),  # noqa: disable=W605
-    ).lower()
+    new_string = (
+        string.lstrip(punctuation + digits)
+        .translate(str.maketrans("", "", punctuation.replace("_", " ")))
+        .lower()
+    )
     return new_string
 
 
@@ -72,8 +72,8 @@ def IEC_power_curve(
     windspeed_start: float = 0.0,
     windspeed_end: float = 30.0,
 ) -> Callable:
-    """
-    Direct copyfrom OpenOA: https://github.com/NREL/OpenOA/blob/main/operational_analysis/toolkits/power_curve/functions.py#L16-L57
+    """Direct copyfrom OpenOA:
+    https://github.com/NREL/OpenOA/blob/main/operational_analysis/toolkits/power_curve/functions.py#L16-L57
     Use IEC 61400-12-1-2 method for creating wind-speed binned power curve.
 
     Parameters
@@ -83,24 +83,27 @@ def IEC_power_curve(
         power_column : np.ndarray | pandas.Series
             The power curve's output power values, in kW.
         bin_width : float
-            Width of windspeed bin, default is 0.5 m/s according to standard, by default 0.5.
+            Width of windspeed bin, default is 0.5 m/s according to standard, by default
+            0.5.
         windspeed_start : float
-            Left edge of first windspeed bin, where all proceeding values will be 0.0, by default 0.0.
+            Left edge of first windspeed bin, where all proceeding values will be 0.0,
+            by default 0.0.
         windspeed_end : float
             Right edge of last windspeed bin, where all following values will be 0.0, by
             default 30.0.
-    Returns:
+
+    Returns
+    -------
         Callable
             Python function of the power curve, of type (Array[float] -> Array[float]),
             that maps input windspeed value(s) to ouptut power value(s).
     """
-
     if not isinstance(windspeed_column, pd.Series):
         windspeed_column = pd.Series(windspeed_column)
     if not isinstance(power_column, pd.Series):
         power_column = pd.Series(power_column)
 
-    # Set up evenly spaced bins of fixed width, with any value over the maximum getting np.inf
+    # Set up evenly spaced bins of fixed width, with np.inf for any value over the max
     n_bins = int(np.ceil((windspeed_end - windspeed_start) / bin_width)) + 1
     bins = np.append(np.linspace(windspeed_start, windspeed_end, n_bins), [np.inf])
 
@@ -115,7 +118,8 @@ def IEC_power_curve(
     # Linearly interpolate any missing bins
     P_bin = pd.Series(data=P_bin).interpolate(method="linear").bfill().values
 
-    # Create a closure over the computed bins which computes the power curve value for arbitrary array-like input
+    # Create a closure over the computed bins which computes the power curve value for
+    # arbitrary array-like input
     def pc_iec(x):
         P = np.zeros(np.shape(x))
         for i in range(0, len(bins) - 1):

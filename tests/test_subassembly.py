@@ -10,11 +10,11 @@ from wombat.core.data_classes import Failure, Maintenance
 from wombat.core.repair_management import RepairManager
 
 from tests.conftest import (
+    RNG,
     SUBSTATION,
     VESTAS_V90,
     GENERATOR_SUBASSEMBLY,
     VESTAS_V90_TEST_TIMEOUTS,
-    env_setup,
 )
 
 
@@ -36,22 +36,32 @@ def test_subassembly_initialization(env_setup):
     generator = Subassembly(TURBINE, ENV, subassembly_id, data_dict)
     correct_N_maintenance = len(GENERATOR_SUBASSEMBLY["maintenance"])
     correct_N_failures = len(GENERATOR_SUBASSEMBLY["failures"])
+    correct_descriptions = [
+        (el["level"], el["description"])
+        for el in GENERATOR_SUBASSEMBLY["failures"].values()
+    ]
+    correct_descriptions.extend(
+        [el["description"] for el in GENERATOR_SUBASSEMBLY["maintenance"]]
+    )
 
     assert generator.env == ENV
     assert generator.system == TURBINE
     assert generator.id == subassembly_id
     assert generator.name == data_dict["name"]
-    # assert subassembly.data == TURBINE.generator.data  # TODO: Request ID ruins equality testing
+    # assert subassembly.data == TURBINE.generator.data  # TODO: equality testing
     assert generator.broken.triggered
     assert generator.operating_level == 1.0
     assert len(generator.processes) == correct_N_maintenance + correct_N_failures
-    # Maintenance keys are m{i} and failure keys are integer severity
-    N_failures = len([el for el in generator.processes if isinstance(el, int)])
+    # Maintenance keys are descriptions
+    # Failure keys are tuples of severity and description
+    N_failures = len([el for el in generator.processes if isinstance(el, tuple)])
     assert N_failures == correct_N_failures
+    assert [*generator.processes] == correct_descriptions
 
     # Run the same tests for a substation and transformer
     subassembly_id = "TRNS1"
     data_dict = TRANSFORMER
+    data_dict.update({"rng": RNG})
     correct_N_maintenance = len(TRANSFORMER["maintenance"])
     correct_N_failures = len(TRANSFORMER["failures"])
     transformer = Subassembly(OSS, ENV, subassembly_id, data_dict)
@@ -60,19 +70,20 @@ def test_subassembly_initialization(env_setup):
     assert transformer.system == OSS
     assert transformer.id == subassembly_id
     assert transformer.name == data_dict["name"]
-    # assert subassembly.data == OSS.transformer.data  # TODO: Request ID ruins equality testing
+    # assert subassembly.data == OSS.transformer.data  # TODO: equality testing
     assert transformer.broken.triggered
     assert transformer.operating_level == 1.0
     assert len(transformer.processes) == correct_N_maintenance + correct_N_failures
-    # Maintenance keys are m{i} and failure keys are integer severity
-    N_failures = len([el for el in transformer.processes if isinstance(el, int)])
+
+    # Maintenance keys are descriptions
+    # Failure keys are tuples of severity and description
+    N_failures = len([el for el in transformer.processes if isinstance(el, tuple)])
     assert N_failures == correct_N_failures
 
 
 @pytest.mark.skip(reason="The timing of the failures needs to be updated")
 def test_interruptions_and_request_submission(env_setup):
-    """
-    Test the initialization of a subassembly.
+    """Test the initialization of a subassembly.
 
     NOTE: This test will not run correctly if not running the whole pytest suite because
     it relies on the when/where the the random variable is set in the process and the
@@ -89,11 +100,13 @@ def test_interruptions_and_request_submission(env_setup):
 
     # Timeout turbine will have (randomness controlled by random seed at the top):
     #  1) a generator maintenance event every 5 days (120 hours/time steps)
-    #  2) a generator failure event with a Weibull of scale 0.5, shape 1, with frequencies at:
+    #  2) a generator failure event with a Weibull of scale 0.5, shape 1, with
+    #      frequencies at:
     #      2.47, 13.47, 303.92 hours (last one not reached)
-    #  3) a gearbox failure event with a Weibull of scale 5, shape 1, with frequencies at:
+    #  3) a gearbox failure event with a Weibull of scale 5, shape 1, with
+    #      frequencies at:
     #      1054.20 and 9132.90 hours (last one not reached)
-    #  4) a generator catastrophic failure event at 3027.74 hours that turns everything off
+    #  4) a generator catastrophic failure event at 3027.74 hours that stops everything
 
     # The resets and maintenance tasks will be removed from the record for the
     # generator upon failure
@@ -102,7 +115,7 @@ def test_interruptions_and_request_submission(env_setup):
     correct_N_gearbox_failures = 1  # none reached
     correct_N_gearbox_maintenance = 0  # none reached
 
-    # PROCESS FOR DETERMINING ACTUAL EVENTS IN CASE OF CHANGE OF RANDOM BEHAVIOR FROM PYTEST
+    # PROCESS FOR DETERMINING ACTUAL EVENTS IN CASE OF CHANGE OF RANDOM BEHAVIOR
     """
     # TODO
     t = 2.47 + 13.47 + 303.92 + 175.41 + 599.03 + 597.26
@@ -145,12 +158,13 @@ def test_interruptions_and_request_submission(env_setup):
     assert len(gearbox_failures) == correct_N_gearbox_failures
     assert len(gearbox_maintenance) == correct_N_gearbox_maintenance
 
-    # Test that the correct failures/tasks get purged and all the processes are timed out appropriately
+    # Test that the correct failures/tasks get purged and all the processes are
+    # timed out appropriately
     ENV.run(catastrophic_timeout + 1)
 
     # Check that the generator is set to broken
-    assert TURBINE.generator.broken == True
-    assert TURBINE.gearbox.broken == False
+    assert TURBINE.generator.broken is True
+    assert TURBINE.gearbox.broken is False
     assert TURBINE.generator.operating_level == 0
     assert TURBINE.gearbox.operating_level == 1
     assert TURBINE.operating_level == 0
@@ -186,7 +200,7 @@ def test_interruptions_and_request_submission(env_setup):
         == correct_N_gearbox_failures + correct_N_gearbox_maintenance
     )
 
-    # Check the number of maintenance and failure requests submitted for each subassembly
+    # Check the number of maintenance and failure requests for each subassembly
     assert len(gearbox_failures) == correct_N_gearbox_failures
     assert len(gearbox_maintenance) == correct_N_gearbox_maintenance
     assert len(generator_failures) == 1  # all but catastrophic failure removed
@@ -195,8 +209,8 @@ def test_interruptions_and_request_submission(env_setup):
     # Run for another 24 hours to ensure nothing has changed
     ENV.run(catastrophic_timeout + 24)
 
-    assert TURBINE.generator.broken == True
-    assert TURBINE.gearbox.broken == False
+    assert TURBINE.generator.broken is True
+    assert TURBINE.gearbox.broken is False
     assert TURBINE.generator.operating_level == 0
     assert TURBINE.gearbox.operating_level == 1
     assert TURBINE.operating_level == 0
@@ -209,8 +223,8 @@ def test_interruptions_and_request_submission(env_setup):
     # Run until the end to ensure nothig has changed
     ENV.run(ENV.max_run_time)
 
-    assert TURBINE.generator.broken == True
-    assert TURBINE.gearbox.broken == False
+    assert TURBINE.generator.broken is True
+    assert TURBINE.gearbox.broken is False
     assert TURBINE.generator.operating_level == 0
     assert TURBINE.gearbox.operating_level == 1
     assert TURBINE.operating_level == 0
@@ -229,7 +243,7 @@ def test_timeouts_for_zeroed_out(env_setup):
     ENV = env_setup
     MANAGER = RepairManager(ENV)
     TURBINE = System(ENV, MANAGER, "WTG001", "Vestas V90 001", VESTAS_V90, "turbine")
-    windfarm = Windfarm(ENV, "layout.csv", MANAGER)
+    Windfarm(ENV, "layout.csv", MANAGER)
 
     # Run the simulation 1 timestep to get it started, then inspec the process timeouts
     ENV.run(1)
@@ -242,4 +256,4 @@ def test_timeouts_for_zeroed_out(env_setup):
             assert process._target._delay == ENV.max_run_time
 
     # Catastrophic failure at 284508.82985483576
-    # TODO: Don't have a way to test that all update to max_run_time - failure time at the moment
+    # TODO: Don't have a way to test that all update to max_run_time - failure time

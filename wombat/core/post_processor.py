@@ -1,17 +1,15 @@
 """The postprocessing metric computation."""
 from __future__ import annotations
 
-import logging
+import warnings
 from copy import deepcopy
-from math import fsum
+from typing import TYPE_CHECKING, Any
 from pathlib import Path
-from itertools import product
+from itertools import chain, product
+from collections import Counter
 
 import numpy as np
-import PySAM
 import pandas as pd
-import PySAM.PySSC as pssc
-import PySAM.Singleowner as pysam_singleowner_financial_model
 
 from wombat.core import FixedCosts
 from wombat.core.library import load_yaml
@@ -39,43 +37,48 @@ def _check_frequency(frequency: str, which: str = "all") -> str:
     ValueError
         Raised if an invalid value was raised
     """
+    opts: tuple[str, ...]
     if which == "all":
-        opts = ("project", "annual", "monthly", "month-year")  # type: ignore
+        opts = ("project", "annual", "monthly", "month-year")
     elif which == "monthly":
-        opts = ("project", "annual", "monthly")  # type: ignore
-    elif which == "annual":  # type: ignore
-        opts = ("project", "annual")  # type: ignore
-    frequency = frequency.lower().strip()  # type: ignore
+        opts = ("project", "annual", "monthly")
+    elif which == "annual":
+        opts = ("project", "annual")
+    frequency = frequency.lower().strip()
     if frequency not in opts:
-        raise ValueError(f"``frequency`` must be one of {opts}.")  # type: ignore
+        raise ValueError(f"``frequency`` must be one of {opts}.")
     return frequency
 
 
 def _calculate_time_availability(
-    availability: np.ndarray, by_turbine: bool = False
+    availability: pd.DataFrame,
+    by_turbine: bool = False,
 ) -> float | np.ndarray:
-    """Calculates the availability ratio of the whole timeseries or the whole timeseries, by turbine.
+    """Calculates the availability ratio of the whole timeseries or the whole
+    timeseries, by turbine.
 
     Parameters
     ----------
-    availability : np.ndarray
-        Timeseries array of operating ratios.
+    availability : pd.DataFrame
+        Timeseries array of operating ratios for all turbines.
     by_turbine : bool, optional
-        If True, calculates the availability rate of each column, otherwise across the whole array, by default False.
+        If True, calculates the availability rate of each column, otherwise across the
+        whole array, by default False.
 
     Returns
     -------
     float | np.ndarray
-        Availability ratio across the whole timeseries, or broken out by column (turbine).
+        Availability ratio across the whole timeseries, or broken out by column
+        (turbine).
     """
     availability = availability > 0
     if by_turbine:
-        return availability.sum(axis=0) / availability.shape[0]
-    return availability.sum() / availability.size
+        return availability.values.sum(axis=0) / availability.shape[0]
+    return availability.values.sum() / availability.size
 
 
 class Metrics:
-    """The metric computation class that will store the logged outputs and compile results."""
+    """The metric computation class for storing logs and compiling results."""
 
     _hourly_cost = "hourly_labor_cost"
     _salary_cost = "salary_labor_cost"
@@ -107,7 +110,6 @@ class Metrics:
         substation_turbine_map: dict[str, dict[str, list[str]]],
         service_equipment_names: str | list[str],
         fixed_costs: str | None = None,
-        SAM_settings: str | None = None,
     ) -> None:
         """Initializes the Metrics class.
 
@@ -116,9 +118,11 @@ class Metrics:
         data_dir : str | Path
             This should be the same as was used for running the analysis.
         events : str | pd.DataFrame
-            Either a pandas ``DataFrame`` or filename to be used to read the csv log data.
+            Either a pandas ``DataFrame`` or filename to be used to read the csv log
+            data.
         operations : str | pd.DataFrame
-            Either a pandas ``DataFrame`` or filename to be used to read the csv log data.
+            Either a pandas ``DataFrame`` or filename to be used to read the csv log
+            data.
         potential : str | pd.DataFrame
             Either a pandas ``DataFrame`` or a filename to be used to read the csv
             potential power production data.
@@ -131,7 +135,8 @@ class Metrics:
         project_capacity : float
             The project's rated capacity, in MW.
         turbine_capacities : Union[float, List[float]]
-            The capacity of each individual turbine corresponding to ``turbine_id``, in kW.
+            The capacity of each individual turbine corresponding to ``turbine_id``, in
+            kW.
         substation_id : str | list[str]
             The substation id(s).
         turbine_id : str | list[str]
@@ -147,15 +152,6 @@ class Metrics:
             simulation.
         fixed_costs : str | None
             The filename of the project's fixed costs.
-        SAM_settings : str | None
-            The SAM settings YAML file located in <data_dir>/windfarm/<SAM_settings>
-            that should end in ".yaml". If no input is provided, then the model will
-            raise a ``NotImplementedError`` when the SAM-powered metrics are attempted to
-            be accessed.
-
-            .. warning:: This functionality relies heavily on the user to configure
-                correctly. More information can be found at:
-                https://nrel-pysam.readthedocs.io/en/master/modules/Singleowner.html
         """
         self.data_dir = Path(data_dir)
         if not self.data_dir.is_dir():
@@ -166,16 +162,14 @@ class Metrics:
 
         if fixed_costs is None:
             # Create a zero-cost FixedCosts object
-            self.fixed_costs = FixedCosts.from_dict({"operations": 0})  # type: ignore
+            self.fixed_costs = FixedCosts.from_dict({"operations": 0})
         else:
-            try:
-                fixed_costs = load_yaml(self.data_dir / "project/config", fixed_costs)
-            except FileNotFoundError:
-                fixed_costs = load_yaml(self.data_dir / "windfarm", fixed_costs)  # type: ignore
-                logging.warning(
-                    "DeprecationWarning: In v0.7, all fixed cost configurations must be located in: '<library>/project/config/"
-                )
-            self.fixed_costs = FixedCosts.from_dict(fixed_costs)  # type: ignore
+            if TYPE_CHECKING:
+                assert isinstance(fixed_costs, str)
+            fixed_costs = load_yaml(self.data_dir / "project/config", fixed_costs)
+            if TYPE_CHECKING:
+                assert isinstance(fixed_costs, dict)
+            self.fixed_costs = FixedCosts.from_dict(fixed_costs)
 
         if isinstance(substation_id, str):
             substation_id = [substation_id]
@@ -194,7 +188,7 @@ class Metrics:
 
         if isinstance(service_equipment_names, str):
             service_equipment_names = [service_equipment_names]
-        self.service_equipment_names = sorted(list(set(service_equipment_names)))
+        self.service_equipment_names = sorted(set(service_equipment_names))
 
         if isinstance(turbine_capacities, (float, int)):
             turbine_capacities = [turbine_capacities]
@@ -202,36 +196,19 @@ class Metrics:
 
         if isinstance(events, str):
             events = self._read_data(events)
-        self.events = self._apply_inflation_rate(self._tidy_data(events, kind="events"))
+        self.events = self._apply_inflation_rate(self._tidy_data(events))
 
         if isinstance(operations, str):
             operations = self._read_data(operations)
-        self.operations = self._tidy_data(operations, kind="operations")
+        self.operations = self._tidy_data(operations)
 
         if isinstance(potential, str):
             potential = self._read_data(potential)
-        self.potential = self._tidy_data(potential, kind="potential")
+        self.potential = self._tidy_data(potential)
 
         if isinstance(production, str):
             production = self._read_data(production)
-        self.production = self._tidy_data(production, kind="production")
-
-        if SAM_settings is not None:
-            SAM_settings = "SAM_Singleowner_defaults.yaml"
-            try:
-                self.sam_settings = load_yaml(
-                    self.data_dir / "project/config", SAM_settings
-                )
-            except FileNotFoundError:
-                self.sam_settings = load_yaml(self.data_dir / "windfarm", SAM_settings)
-                logging.warning(
-                    "DeprecationWarning: In v0.7, all SAM configurations must be located in: '<library>/project/config/"
-                )
-
-            self._setup_pysam()
-        else:
-            self.sam_settings = None
-            self.financial_model = None
+        self.production = self._tidy_data(production)
 
     @classmethod
     def from_simulation_outputs(cls, fpath: Path | str, fname: str) -> Metrics:
@@ -255,27 +232,25 @@ class Metrics:
         metrics = cls(**data)
         return metrics
 
-    def _tidy_data(self, data: pd.DataFrame, kind: str) -> pd.DataFrame:
-        """Tidies the "raw" csv-converted data to be able to be used among the ``Metrics``
-        class.
+    def _tidy_data(self, data: pd.DataFrame) -> pd.DataFrame:
+        """Tidies the "raw" csv-converted data to be able to be used among the
+        ``Metrics`` class.
 
         Parameters
         ----------
         data : pd.DataFrame
             The csv log data.
-        kind : str
-            The category of the input provided to ``data``. Should be one of:
-             - "operations"
-             - "events"
-             - "potential"
-             - "production"
 
         Returns
         -------
         pd.DataFrame
             A tidied data frame to be used for all the operations in this class.
         """
-        data = data = data.convert_dtypes()
+        # Ignore odd pandas casting error for pandas>=1.5(?)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            data = data = data.convert_dtypes()
+
         if data.index.name != "datetime":
             try:
                 data.datetime = pd.to_datetime(data.datetime)
@@ -289,23 +264,6 @@ class Metrics:
             month=data.env_datetime.dt.month,
             day=data.env_datetime.dt.day,
         )
-        if kind == "operations":
-            data[self.turbine_id] = data[self.turbine_id].astype(float)
-            turbines = (
-                self.turbine_weights[self.turbine_id].values * data[self.turbine_id]
-            )
-            windfarm = np.sum(
-                [
-                    data[[sub]]
-                    * np.array(
-                        [[fsum(row)] for _, row in turbines[val["turbines"]].iterrows()]
-                    ).reshape(-1, 1)
-                    for sub, val in self.substation_turbine_map.items()
-                ],
-                axis=0,
-            )
-            windfarm = pd.DataFrame(windfarm, columns=["windfarm"], index=data.index)
-            data = pd.concat([data, windfarm], axis=1)
         return data
 
     def _read_data(self, fname: str) -> pd.DataFrame:
@@ -324,8 +282,34 @@ class Metrics:
         pd.DataFrame
             Dataframe of either the events or operations data.
         """
+        if "events" in fname:
+            data = (
+                pd.read_csv(
+                    self.data_dir / "outputs" / "logs" / fname,
+                    delimiter="|",
+                    engine="pyarrow",
+                    dtype={
+                        "agent": "string",
+                        "action": "string",
+                        "reason": "string",
+                        "additional": "string",
+                        "system_id": "string",
+                        "system_name": "string",
+                        "part_id": "string",
+                        "part_name": "string",
+                        "request_id": "string",
+                        "location": "string",
+                    },
+                )
+                .set_index("datetime")
+                .sort_index()
+            )
+            return data
+
         data = pd.read_csv(
-            self.data_dir / "outputs" / "logs" / fname, delimiter="|", engine="pyarrow"
+            self.data_dir / "outputs" / "logs" / fname,
+            delimiter="|",
+            engine="pyarrow",
         )
         return data
 
@@ -355,38 +339,6 @@ class Metrics:
 
         return events
 
-    def _setup_pysam(self) -> None:
-        """Creates and executes the PySAM model for financial metrics."""
-        # Define the model and import the SAM settings file.
-        self.financial_model = pysam_singleowner_financial_model.default(  # type: ignore
-            "WindPowerSingleOwner"
-        )
-        model_data = pssc.dict_to_ssc_table(self.sam_settings, "singleowner")
-        self.financial_model = pysam_singleowner_financial_model.wrap(model_data)  # type: ignore
-
-        # Remove the leap year production
-        leap_year_ix = self.production.index.month == 2
-        leap_year_ix &= self.production.index.day == 29
-        generation = self.production.loc[~leap_year_ix].windfarm.values
-
-        # Create a years variable for later use with the PySAM outputs
-        self.years = sorted(self.production.year.unique())
-
-        # Let mypy know that I know what I'm doing
-        assert isinstance(self.financial_model, PySAM.Singleowner.Singleowner)
-
-        # Replace the coded generation with modeled generation
-        self.financial_model.FinancialParameters.analysis_period = len(self.years)
-        self.financial_model.SystemOutput.gen = generation
-
-        # Reset the system capacity, in kW
-        self.financial_model.FinancialParameters.system_capacity = (
-            self.project_capacity * 1000
-        )
-
-        # Run the financial model
-        self.financial_model.execute()
-
     def time_based_availability(self, frequency: str, by: str) -> pd.DataFrame:
         """Calculates the time-based availabiliy over a project's lifetime as a single
         value, annual average, or monthly average for the whole windfarm or by turbine.
@@ -413,22 +365,26 @@ class Metrics:
             raise ValueError('``by`` must be one of "windfarm" or "turbine".')
         by_turbine = by == "turbine"
 
-        # Determine the operational capacity of each turbine with substation downtime impacts
+        # Determine the operational capacity of each turbine with substation downtime
         operations_cols = ["year", "month", "day", "windfarm"] + self.turbine_id
         turbine_operations = self.operations[operations_cols].copy()
         for sub, val in self.substation_turbine_map.items():
             turbine_operations[val["turbines"]] *= self.operations[[sub]].values
 
-        hourly = turbine_operations.loc[:, self.turbine_id].values
+        hourly = turbine_operations.loc[:, self.turbine_id]
 
-        # TODO: The below should be better summarized as: (availability > 0).groupby().sum() / groupby().count()
+        # TODO: The below should be better summarized as:
+        # (availability > 0).groupby().sum() / groupby().count()
 
         if frequency == "project":
             availability = _calculate_time_availability(hourly, by_turbine=by_turbine)
             if not by_turbine:
                 return pd.DataFrame([availability], columns=["windfarm"])
+
+            if TYPE_CHECKING:
+                assert isinstance(availability, np.ndarray)
             availability = pd.DataFrame(
-                availability.reshape(1, -1), columns=self.turbine_id  # type: ignore
+                availability.reshape(1, -1), columns=self.turbine_id
             )
             return availability
         elif frequency == "annual":
@@ -437,7 +393,8 @@ class Metrics:
             counts = counts[self.turbine_id] if by_turbine else counts[["windfarm"]]
             annual = [
                 _calculate_time_availability(
-                    hourly[date_time.year == year], by_turbine=by_turbine
+                    hourly[date_time.year == year],
+                    by_turbine=by_turbine,
                 )
                 for year in counts.index
             ]
@@ -448,7 +405,8 @@ class Metrics:
             counts = counts[self.turbine_id] if by_turbine else counts[["windfarm"]]
             monthly = [
                 _calculate_time_availability(
-                    hourly[date_time.month == month], by_turbine=by_turbine
+                    hourly[date_time.month == month],
+                    by_turbine=by_turbine,
                 )
                 for month in counts.index
             ]
@@ -493,23 +451,24 @@ class Metrics:
             raise ValueError('``by`` must be one of "windfarm" or "turbine".')
         by_turbine = by == "turbine"
 
-        production = self.production.loc[:, self.turbine_id]
-        potential = self.potential.loc[:, self.turbine_id]
+        if by_turbine:
+            production = self.production.loc[:, self.turbine_id]
+            potential = self.potential.loc[:, self.turbine_id]
+        else:
+            production = self.production[["windfarm"]].copy()
+            potential = self.potential[["windfarm"]].copy()
 
         if frequency == "project":
             production = production.values
             potential = potential.values
             if (potential == 0).sum() > 0:
                 potential[potential == 0] = 1
-            if not by_turbine:
-                return pd.DataFrame(
-                    [production.sum() / potential.sum()], columns=["windfarm"]
-                )
-            availability = pd.DataFrame(
-                (production.sum(axis=0) / potential.sum(axis=0)).reshape(1, -1),
-                columns=self.turbine_id,
-            )
-            return availability
+
+            availability = production.sum(axis=0) / potential.sum(axis=0)
+            if by_turbine:
+                return pd.DataFrame([availability], columns=self.turbine_id)
+            else:
+                return pd.DataFrame([availability], columns=["windfarm"])
 
         production["year"] = production.index.year.values
         production["month"] = production.index.month.values
@@ -517,7 +476,7 @@ class Metrics:
         potential["year"] = potential.index.year.values
         potential["month"] = potential.index.month.values
 
-        group_cols = deepcopy(self.turbine_id)
+        group_cols = deepcopy(self.turbine_id) if by_turbine else ["windfarm"]
         if frequency == "annual":
             group_cols.insert(0, "year")
             production = production[group_cols].groupby("year").sum()
@@ -543,9 +502,7 @@ class Metrics:
             columns = [by]
         return pd.DataFrame(production / potential, columns=columns)
 
-    def capacity_factor(  # type: ignore
-        self, which: str, frequency: str, by: str
-    ) -> pd.DataFrame:
+    def capacity_factor(self, which: str, frequency: str, by: str) -> pd.DataFrame:
         """Calculates the capacity factor over a project's lifetime as a single value,
         annual average, or monthly average for the whole windfarm or by turbine.
 
@@ -588,7 +545,7 @@ class Metrics:
                 return pd.DataFrame([production / potential], columns=["windfarm"])
 
             potential = production.shape[0] * np.array(self.turbine_capacities)
-            return pd.DataFrame((production.sum(axis=0) / potential)).T
+            return pd.DataFrame(production.sum(axis=0) / potential).T
 
         production["year"] = production.index.year.values
         production["month"] = production.index.month.values
@@ -614,11 +571,9 @@ class Metrics:
         return pd.DataFrame(production / potential, columns=columns)
 
     def task_completion_rate(self, which: str, frequency: str) -> float | pd.DataFrame:
-        """Calculates the task completion rate over a project's lifetime as a single value,
-        annual average, or monthly average for the whole windfarm or by turbine.
-
-        .. note:: This currently assumes that if there are multiple substations, that
-          the turbines are all connected to multiple.
+        """Calculates the task completion rate (including tasks that are canceled after
+        a replacement event) over a project's lifetime as a single value, annual
+        average, or monthly average for the whole windfarm or by turbine.
 
         Parameters
         ----------
@@ -648,8 +603,10 @@ class Metrics:
             task_filter = ["maintenance", "repair"]
 
         cols = ["env_datetime", "request_id"]
-        completion_filter = [f"{el} complete" for el in task_filter]
         request_filter = [f"{el} request" for el in task_filter]
+        completion_filter = [
+            f"{task} {el}" for task in task_filter for el in ("complete", "canceled")
+        ]
         requests = self.events.loc[
             self.events.action.isin(request_filter), cols
         ].reset_index(drop=True)
@@ -743,7 +700,8 @@ class Metrics:
         Raises
         ------
         ValueError
-            If ``frequency`` is not one of "project", "annual", "monthly", or "month-year".
+            If ``frequency`` is not one of "project", "annual", "monthly", or
+            "month-year".
         ValueError
             If ``by_equipment`` is not one of ``True`` or ``False``.
         """
@@ -869,14 +827,14 @@ class Metrics:
                     index=[year],
                     columns=operating_df.columns,
                 )
-                operating_df = operating_df.append(missing).sort_index()
+                operating_df = pd.concat([operating_df, missing], axis=0).sort_index()
             if year not in total_df.index:
                 missing = pd.DataFrame(
                     np.ones((1, total_df.shape[1])),
                     index=[year],
                     columns=operating_df.columns,
                 )
-                total_df = total_df.append(missing).sort_index()
+                total_df = pd.concat([total_df, missing], axis=0).sort_index()
 
         if frequency == "project":
             operating_df = operating_df.reset_index().sum()[
@@ -924,7 +882,8 @@ class Metrics:
         Raises
         ------
         ValueError
-            If ``frequency`` is not one of "project", "annual", "monthly", or "month-year".
+            If ``frequency`` is not one of "project", "annual", "monthly", or
+            "month-year".
         ValueError
             If ``by_equipment`` is not one of ``True`` or ``False``.
         ValueError
@@ -937,7 +896,8 @@ class Metrics:
 
         if not isinstance(vessel_crew_assumption, dict):
             raise ValueError(
-                "`vessel_crew_assumption` must be a dictionary of vessel name (keys) and number of crew (values)"
+                "`vessel_crew_assumption` must be a dictionary of vessel name (keys)"
+                " and number of crew (values)"
             )
 
         # Filter by the at sea indicators and required columns
@@ -1039,8 +999,8 @@ class Metrics:
         Returns
         -------
         float | pd.DataFrame
-            Returns either a float for whole project-level costs or a pandas ``DataFrame``
-            with columns:
+            Returns either a float for whole project-level costs or a pandas
+            ``DataFrame`` with columns:
 
             - year (if appropriate for frequency)
             - month (if appropriate for frequency)
@@ -1054,7 +1014,8 @@ class Metrics:
         Raises
         ------
         ValueError
-            If ``frequency`` is not one of "project", "annual", "monthly", or "month-year".
+            If ``frequency`` is not one of "project", "annual", "monthly", or
+            "month-year".
         ValueError
             If ``by_tug`` is not one of ``True`` or ``False``.
         ValueError
@@ -1162,11 +1123,13 @@ class Metrics:
                 tug_sums = pd.DataFrame(tug_sums_by_direction.sum()).T
             else:
                 tug_sums = tug_sums_by_direction.reset_index().groupby(total_cols).sum()
-            assert isinstance(tug_sums, pd.DataFrame)  # mypy checking
+            if TYPE_CHECKING:
+                assert isinstance(tug_sums, pd.DataFrame)  # mypy checking
             tug_sums = tug_sums.rename(
-                columns=dict((t, f"{t}_total_tows") for t in tug_sums.columns)
+                columns={t: f"{t}_total_tows" for t in tug_sums.columns}
             )
-            assert isinstance(tug_sums, pd.DataFrame)  # mypy checking
+            if TYPE_CHECKING:
+                assert isinstance(tug_sums, pd.DataFrame)  # mypy checking
             total = pd.DataFrame(
                 tug_sums.sum(axis=1), columns=["total_tows"]
             ).reset_index()
@@ -1225,7 +1188,7 @@ class Metrics:
                     else:
                         _total = tug_sums_by_direction.loc[s]
                     total_tows = total_tows.join(
-                        _total.rename(columns=dict((t, f"{t}_{s}") for t in tugboats)),
+                        _total.rename(columns={t: f"{t}_{s}" for t in tugboats}),
                         how="outer",
                     ).fillna(0)
                 total_tows = total_tows.reset_index()[columns]
@@ -1270,8 +1233,8 @@ class Metrics:
         Returns
         -------
         float | pd.DataFrame
-            Returns either a float for whole project-level costs or a pandas ``DataFrame``
-            with columns:
+            Returns either a float for whole project-level costs or a pandas
+            ``DataFrame`` with columns:
 
             - year (if appropriate for frequency)
             - month (if appropriate for frequency)
@@ -1282,7 +1245,8 @@ class Metrics:
         Raises
         ------
         ValueError
-            If ``frequency`` is not one of "project", "annual", "monthly", or "month-year".
+            If ``frequency`` is not one of "project", "annual", "monthly", or
+            "month-year".
         ValueError
             If ``by_type`` is not one of ``True`` or ``False``.
         """
@@ -1308,18 +1272,28 @@ class Metrics:
         elif frequency == "month-year":
             group_filter = ["year", "month"]
 
-        costs = self.events.groupby(group_filter).sum()[labor_cols].fillna(value=0)
+        costs = (
+            self.events.loc[:, labor_cols + group_filter]
+            .groupby(group_filter)
+            .sum()
+            .fillna(value=0)
+        )
         if not by_type:
             return pd.DataFrame(costs[self._labor_cost])
         return costs
 
     def equipment_labor_cost_breakdowns(
-        self, frequency: str, by_category: bool = False
+        self,
+        frequency: str,
+        by_category: bool = False,
+        by_equipment: bool = False,
     ) -> pd.DataFrame:
-        """Calculates the producitivty cost breakdowns for the simulation at a project, annual, or
-        monthly level that can be broken out to include the equipment and labor components.
+        """Calculates the producitivty cost and time breakdowns for the simulation at a
+        project, annual, or monthly level that can be broken out to include the
+        equipment and labor components, as well as be broken down by servicing
+        equipment.
 
-        .. note:: Does not produce a value if there is no cost associated with a "reason".
+        .. note:: Doesn't produce a value if there's no cost associated with a "reason".
 
         Parameters
         ----------
@@ -1328,6 +1302,9 @@ class Metrics:
         by_category : bool, optional
             Indicates whether to include the equipment and labor categories (True) or
             not (False), by default False.
+        by_equipment : bool, optional
+            Indicates whether the values are with resepect to the equipment utilized
+            (True) or not (False), by default False.
 
         Returns
         -------
@@ -1341,19 +1318,25 @@ class Metrics:
                 - total_labor_cost (if by_category == ``True``)
                 - equipment_cost (if by_category == ``True``)
                 - total_cost (if broken out)
+                - total_hours
 
         Raises
         ------
         ValueError
-            If ``frequency`` is not one of "project", "annual", "monthly", or "month-year".
+            If ``frequency`` is not one of "project", "annual", "monthly", or
+            "month-year".
         ValueError
             If ``by_category`` is not one of ``True`` or ``False``.
         """
         frequency = _check_frequency(frequency, which="all")
         if not isinstance(by_category, bool):
+            raise ValueError("``by_category`` must be one of ``True`` or ``False``")
+        if not isinstance(by_equipment, bool):
             raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
 
         group_filter = ["action", "reason", "additional"]
+        if by_equipment:
+            group_filter.insert(0, "agent")
         if frequency in ("annual", "month-year"):
             group_filter.insert(0, "year")
         elif frequency == "monthly":
@@ -1368,6 +1351,7 @@ class Metrics:
             "mobilization",
             "transferring crew",
             "traveling",
+            "towing",
         ]
         equipment = self.events[self.events[self._equipment_cost] > 0].agent.unique()
         costs = (
@@ -1375,14 +1359,14 @@ class Metrics:
                 self.events.agent.isin(equipment)
                 & self.events.action.isin(action_list)
                 & ~self.events.additional.isin(["work is complete"]),
-                group_filter + self._cost_columns,
+                group_filter + self._cost_columns + ["duration"],
             ]
             .groupby(group_filter)
             .sum()
             .reset_index()
+            .rename(columns={"duration": "total_hours"})
         )
         costs["display_reason"] = [""] * costs.shape[0]
-        group_filter.append("display_reason")
 
         non_shift_hours = (
             "not in working hours",
@@ -1390,8 +1374,15 @@ class Metrics:
             "no more return visits will be made",
             "will return next year",
             "waiting for next operational period",
+            "end of shift; will resume work in the next shift",
         )
-        weather_hours = ("weather delay", "weather unsuitable to transfer crew")
+        weather_hours = (
+            "weather delay",
+            "weather unsuitable to transfer crew",
+            "insufficient time to complete travel before end of the shift",
+            "weather unsuitable for mooring reconnection",
+            "weather unsuitable for unmooring",
+        )
         costs.loc[
             (costs.action == "delay") & (costs.additional.isin(non_shift_hours)),
             "display_reason",
@@ -1402,6 +1393,7 @@ class Metrics:
             costs.action == "transferring crew", "display_reason"
         ] = "Crew Transfer"
         costs.loc[costs.action == "traveling", "display_reason"] = "Site Travel"
+        costs.loc[costs.action == "towing", "display_reason"] = "Towing"
         costs.loc[costs.action == "mobilization", "display_reason"] = "Mobilization"
         costs.loc[
             costs.additional.isin(weather_hours), "display_reason"
@@ -1409,11 +1401,8 @@ class Metrics:
         costs.loc[costs.reason == "no requests", "display_reason"] = "No Requests"
 
         costs.reason = costs.display_reason
-        group_filter.pop(group_filter.index("action"))
-        group_filter.pop(group_filter.index("display_reason"))
-        group_filter.pop(group_filter.index("additional"))
 
-        drop_columns = [self._materials_cost]
+        drop_columns = [self._materials_cost, "display_reason", "additional", "action"]
         if not by_category:
             drop_columns.extend(
                 [
@@ -1423,9 +1412,12 @@ class Metrics:
                     self._equipment_cost,
                 ]
             )
+        group_filter.pop(group_filter.index("additional"))
+        group_filter.pop(group_filter.index("action"))
         costs = costs.drop(columns=drop_columns)
         costs = costs.groupby(group_filter).sum().reset_index()
 
+        comparison_values: product[tuple[Any, Any]] | product[tuple[Any, Any, Any]]
         month_year = frequency == "month-year"
         if frequency in ("annual", "month-year"):
             years = costs.year.unique()
@@ -1466,6 +1458,7 @@ class Metrics:
             "Repair",
             "Crew Transfer",
             "Site Travel",
+            "Towing",
             "Mobilization",
             "Weather Delay",
             "No Requests",
@@ -1473,13 +1466,164 @@ class Metrics:
         ]
         costs.reason = pd.Categorical(costs.reason, new_sort)
         costs = costs.set_index(group_filter)
+        sort_order = ["reason"]
+        if by_equipment:
+            costs = costs.loc[costs.index.get_level_values("agent").isin(equipment)]
+            costs.index = costs.index.set_names({"agent": "equipment_name"})
+            sort_order = ["equipment_name", "reason"]
         if frequency == "project":
-            return costs.sort_values(by="reason")
+            return costs.sort_values(by=sort_order)
         if frequency == "annual":
-            return costs.sort_values(by=["year", "reason"])
+            sort_order = ["year"] + sort_order
+            return costs.sort_values(by=sort_order)
         if frequency == "monthly":
-            return costs.sort_values(by=["month", "reason"])
-        return costs.sort_values(by=["year", "month", "reason"])
+            sort_order = ["month"] + sort_order
+            return costs.sort_values(by=sort_order)
+        sort_order = ["year", "month"] + sort_order
+        return costs.sort_values(by=sort_order)
+
+    def emissions(
+        self,
+        emissions_factors: dict,
+        maneuvering_factor: float = 0.1,
+        port_engine_on_factor: float = 0.25,
+    ) -> pd.DataFrame:
+        """Calculates the emissions, typically in tons, per hour of operations for
+        transiting, maneuvering (calculated as a % of transiting), idling at the site
+        (repairs, crew transfer, weather delays), and idling at port (weather delays),
+        excluding waiting overnight between shifts.
+
+        Parameters
+        ----------
+        emissions_factors : dict
+            Dictionary of emissions per hour for "transit", "maneuver", "idle at site",
+            and "idle at port" for each of the servicing equipment in the simulation.
+        maneuvering_factor : float, optional
+            The proportion of transit time that can be attributed to
+            maneuvering/positioning, by default 0.1.
+        port_engine_on_factor : float, optional
+            The proportion of idling at port time that can be attributed to having the
+            engine on and producing emissions, by default 0.25.
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame of "duration" (hours), "distance_km", and "emissions" (tons) for
+            each servicing equipment in the simulation for each emissions category.
+
+        Raises
+        ------
+        KeyError
+            Raised if any of the servicing equipment are missing from the
+            ``emissions_factors`` dictionary.
+        KeyError
+            Raised if any of the emissions categories are missing from each servcing
+            equipment definition in ``emissions_factors``.
+        """
+        if missing := set(self.service_equipment_names).difference(
+            [*emissions_factors]
+        ):
+            raise KeyError(
+                f"`emissions_factors` is missing the following keys: {missing}"
+            )
+
+        valid_categories = ("transit", "maneuvering", "idle at port", "idle at site")
+        emissions_categories = list(
+            chain(*[[*val] for val in emissions_factors.values()])
+        )
+        emissions_input = Counter(emissions_categories)
+        if (
+            len(set(valid_categories).difference(emissions_input.keys())) > 0
+            or len(set(emissions_input.values())) > 1
+        ):
+            raise KeyError(
+                "Each servicing equipment's emissions factors must have inputs for:"
+                f"{valid_categories}"
+            )
+
+        # Create the agent/duration subset
+        equipment_usage = (
+            self.events.loc[
+                self.events.agent.isin(self.service_equipment_names),
+                ["agent", "action", "reason", "location", "duration", "distance_km"],
+            ]
+            .groupby(["agent", "action", "reason", "location"])
+            .sum()
+            .reset_index(drop=False)
+        )
+        equipment_usage = equipment_usage.loc[
+            ~(
+                (equipment_usage.action == "delay")
+                & equipment_usage.reason.isin(("no requests", "work is complete"))
+            )
+        ]
+
+        # Map each of the locations to new categories and filter out unnecessary ones
+        conditions = [
+            equipment_usage.location.eq("site").astype(bool),
+            equipment_usage.location.eq("system").astype(bool),
+            equipment_usage.location.eq("port").astype(bool),
+            equipment_usage.location.eq("enroute").astype(bool),
+        ]
+        values = ["idle at site", "idle at site", "idle at port", "transit"]
+        equipment_usage = (
+            equipment_usage.assign(
+                category=np.select(conditions, values, default="invalid")
+            )
+            .drop(["action", "reason", "location"], axis=1)
+            .groupby(["agent", "category"])
+            .sum()
+            .drop("invalid", level="category")
+        )
+
+        # Create a new emissions factor DataFrame and mapping
+        categories = list(set().union(emissions_categories))
+        emissions_summary = pd.DataFrame(
+            [],
+            index=pd.MultiIndex.from_product(
+                [[*emissions_factors], categories], names=["agent", "category"]
+            ),
+        )
+        factors = [
+            [(eq, cat), ef]
+            for eq, d in emissions_factors.items()
+            for cat, ef in d.items()
+        ]
+        emissions_summary.loc[[ix for (ix, _) in factors], "emissions_factors"] = [
+            ef for (_, ef) in factors
+        ]
+
+        # Combine the emissions factors and the calculate the total distribution
+        equipment_usage = equipment_usage.join(emissions_summary, how="outer").fillna(0)
+
+        # Adjust the transiting time to account for maneuvering
+        transiting = equipment_usage.index.get_level_values("category") == "transit"
+        manuevering = (
+            equipment_usage.index.get_level_values("category") == "maneuvering"
+        )
+        equipment_usage.loc[manuevering, "duration"] = (
+            equipment_usage.loc[transiting, "duration"].values * maneuvering_factor
+        )
+        equipment_usage.loc[transiting, "duration"] = equipment_usage.loc[
+            transiting, "duration"
+        ] * (1 - maneuvering_factor)
+
+        # Adjust the idling at port time to only account for when the engine is on
+        port = equipment_usage.index.get_level_values("category") == "idle at port"
+        equipment_usage.loc[port, "duration"] = (
+            equipment_usage.loc[transiting, "duration"].values * port_engine_on_factor
+        )
+
+        equipment_usage = (
+            equipment_usage.fillna(0)
+            .assign(
+                emissions=equipment_usage.duration * equipment_usage.emissions_factors
+            )
+            .drop(columns=["emissions_factors"])
+            .fillna(0, axis=1)
+        )
+
+        return equipment_usage
 
     def component_costs(
         self, frequency: str, by_category: bool = False, by_action: bool = False
@@ -1508,8 +1652,8 @@ class Metrics:
         Returns
         -------
         float | pd.DataFrame
-            Returns either a float for whole project-level costs or a pandas ``DataFrame``
-            with columns:
+            Returns either a float for whole project-level costs or a pandas
+            ``DataFrame`` with columns:
 
             - year (if appropriate for frequency)
             - month (if appropriate for frequency)
@@ -1523,7 +1667,8 @@ class Metrics:
         Raises
         ------
         ValueError
-            If ``frequency`` is not one of "project", "annual", "monthly", or "month-year".
+            If ``frequency`` is not one of "project", "annual", "monthly", or
+            "month-year".
         ValueError
             If ``by_category`` is not one of ``True`` or ``False``.
         ValueError
@@ -1538,7 +1683,7 @@ class Metrics:
         part_filter = ~self.events.part_id.isna() & ~self.events.part_id.isin([""])
         events = self.events.loc[part_filter].copy()
 
-        # Need to simplify the cable identifiers to not include the connection information
+        # Need to simplify the cable identifiers to exclude the connection information
         events.loc[:, "component"] = [el.split("::")[0] for el in events.part_id.values]
 
         group_filter = []
@@ -1587,6 +1732,10 @@ class Metrics:
             cols[_ix:_ix] = ["action"]
             cols.pop(-1)
             costs = costs.loc[:, cols]
+
+        comparison_values: product[tuple[Any, Any]] | product[
+            tuple[Any, Any, Any]
+        ] | product[tuple[Any, Any, Any, Any]]
         if frequency in ("annual", "month-year"):
             years = costs.year.unique()
             components = costs.component.unique()
@@ -1694,7 +1843,7 @@ class Metrics:
         resolution : st
             One of "low", "medium", or "high", where the values correspond to:
 
-            - low: ``FixedCosts.resolution["low"]``, corresponding to the itemized costs.
+            - low: ``FixedCosts.resolution["low"]``, corresponding to itemized costs.
             - medium: ``FixedCosts.resolution["medium"]``, corresponding to the
               overarching cost categories.
             - high: ``FixedCosts.resolution["high"]``, corresponding to a lump sum.
@@ -1762,7 +1911,7 @@ class Metrics:
 
         return costs
 
-    def opex(self, frequency: str) -> pd.DataFrame:
+    def opex(self, frequency: str, by_category: bool = False) -> pd.DataFrame:
         """Calculates the project's OpEx for the simulation at a project, annual, or
         monthly level.
 
@@ -1771,10 +1920,14 @@ class Metrics:
         frequency : str
             One of project, annual, monthly, or month-year.
 
+        by_category : bool, optional
+            Indicates whether the values are with resepect to the various cost
+            categories (True) or not (False), by default False.
+
         Returns
         -------
         pd.DataFrame
-            The project's OpEx broken out at the desired time resolution.
+            The project's OpEx broken out at the desired time and category resolution.
         """
         frequency = _check_frequency(frequency, which="all")
 
@@ -1814,11 +1967,13 @@ class Metrics:
         column = "OpEx"
         opex = pd.concat(opex_items, axis=1)
         opex.loc[:, column] = opex.sum(axis=1)
+        if by_category:
+            return opex
         return opex[[column]]
 
     def process_times(self) -> pd.DataFrame:
-        """Calculates the time, in hours, to complete a repair/maintenance request, on both a
-        request to completion basis, and the actual time to complete the repair.
+        """Calculates the time, in hours, to complete a repair/maintenance request, on
+        both a request to completion basis, and the actual time to complete the repair.
 
         Returns
         -------
@@ -1878,6 +2033,26 @@ class Metrics:
             .sort_index()
         )
 
+        # Summarize the time to first repair/maintenance activity
+        submitted_df = (
+            events_valid.loc[
+                events_valid.action.isin(("repair request", "maintenance request")),
+                ["request_id", "env_time"],
+            ]
+            .set_index("request_id")
+            .sort_index()
+        )
+        action_df = (
+            events_valid.loc[
+                events_valid.action.isin(("repair", "maintenance")),
+                ["request_id", "env_time"],
+            ]
+            .groupby("request_id")
+            .min()
+            .sort_index()
+        )
+        time_to_repair_df = action_df.subtract(submitted_df, axis="index")
+
         # Create the timing dataframe
         timing = pd.DataFrame([], index=request_df_min.index)
         timing = timing.join(reason_df[["reason"]]).rename(
@@ -1898,7 +2073,10 @@ class Metrics:
             .diff(axis=1)[["env_time_max"]]
             .rename(columns={"env_time_max": "downtime"})
         )
-        timing.N = 1
+        timing = timing.join(
+            time_to_repair_df.rename(columns={"env_time": "time_to_start"})
+        )
+        timing["N"] = 1
 
         # Return only the categorically summed data
         return timing.groupby("category").sum().sort_index()
@@ -1921,8 +2099,8 @@ class Metrics:
         Returns
         -------
         float | pd.DataFrame
-            Returns either a float for whole project-level costs or a pandas ``DataFrame``
-            with columns:
+            Returns either a float for whole project-level costs or a pandas
+            ``DataFrame`` with columns:
 
             - year (if appropriate for frequency)
             - month (if appropriate for frequency)
@@ -1932,7 +2110,8 @@ class Metrics:
         Raises
         ------
         ValueError
-            If ``frequency`` is not one of "project", "annual", "monthly", or "month-year".
+            If ``frequency`` is not one of "project", "annual", "monthly", or
+            "month-year".
         ValueError
             If ``by_turbine`` is not one of ``True`` or ``False``.
         """
@@ -2029,147 +2208,3 @@ class Metrics:
         elif frequency == "monthly":
             return npv.reset_index().groupby("month").sum()[["NPV"]]
         return npv[["NPV"]]
-
-    def pysam_npv(self) -> float | pd.DataFrame:
-        """Returns the project-level after-tax net present values (NPV).
-
-        See here for more: https://nrel-pysam.readthedocs.io/en/master/modules/Singleowner.html#PySAM.Singleowner.Singleowner.Outputs.cf_project_return_aftertax_npv
-
-        .. warning::
-            PySAM functionality is currently disabled due to changes made in the new API
-            that need to be remapped.
-
-        Raises
-        ------
-        NotImplementedError: Raised if a PySAM input file is not provided to run the model.
-
-        Returns
-        -------
-        float
-            Final, project-level NPV, in $.
-        """
-        if self.financial_model is None:
-            raise NotImplementedError(
-                "No SAM inputs were provided, and 'pysam_npv()' cannot be calculated!"
-            )
-        npv = self.financial_model.Outputs.cf_project_return_aftertax_npv
-        npv = npv[len(self.years)]
-        return npv
-
-    def pysam_lcoe_real(self) -> float:
-        """Returns the real levelized cost of energy (LCOE) from PySAM.
-
-        See here for more: https://nrel-pysam.readthedocs.io/en/master/modules/Singleowner.html#PySAM.Singleowner.Singleowner.Outputs.lcoe_real
-
-        .. warning::
-            PySAM functionality is currently disabled due to changes made in the new API
-            that need to be remapped.
-
-        Raises
-        ------
-        NotImplementedError: Raised if a PySAM input file is not provided to run the model.
-
-        Returns
-        -------
-        float
-            Real LCOE, in $/kW.
-        """
-        if self.financial_model is None:
-            raise NotImplementedError(
-                "No SAM inputs were provided, and 'pysam_lcoe_real()' cannot be calculated!"
-            )
-        return self.financial_model.Outputs.lcoe_real / 100.0
-
-    def pysam_lcoe_nominal(self) -> float:
-        """Returns the nominal levelized cost of energy (LCOE) from PySAM.
-
-        See here for more: https://nrel-pysam.readthedocs.io/en/master/modules/Singleowner.html#PySAM.Singleowner.Singleowner.Outputs.lcoe_nom
-
-        .. warning::
-            PySAM functionality is currently disabled due to changes made in the new API
-            that need to be remapped.
-
-        Raises
-        ------
-        NotImplementedError: Raised if a PySAM input file is not provided to run the model.
-
-        Returns
-        -------
-        float
-            Nominal LCOE, in $/kW.
-        """
-        if self.financial_model is None:
-            raise NotImplementedError(
-                "No SAM inputs were provided, and 'pysam_lcoe_nominal()' cannot be calculated!"
-            )
-        return self.financial_model.Outputs.lcoe_nom / 100.0
-
-    def pysam_irr(self) -> float:
-        """Returns the project-level after-tax internal return rate (IRR).
-
-        See here for more: https://nrel-pysam.readthedocs.io/en/master/modules/Singleowner.html#PySAM.Singleowner.Singleowner.Outputs.cf_project_return_aftertax_irr
-
-        .. warning::
-            PySAM functionality is currently disabled due to changes made in the new API
-            that need to be remapped.
-
-        Raises
-        ------
-        NotImplementedError: Raised if a PySAM input file is not provided to run the model.
-
-        Returns
-        -------
-        pd.DataFrame
-            Annual after-tax IRR value, in %.
-        """
-        if self.financial_model is None:
-            raise NotImplementedError(
-                "No SAM inputs were provided, and 'pysam_irr()' cannot be calculated!"
-            )
-        irr = self.financial_model.Outputs.cf_project_return_aftertax_irr
-        irr = irr[len(self.years)]
-        return irr
-
-    def pysam_all_outputs(self) -> pd.DataFrame:
-        """Returns all the possible PySAM outputs that are included in this module as
-        columns in the following order:
-
-        - NPV
-        - Nominal LCOE
-        - Real LOCE
-        - IRR
-
-        .. warning::
-           PySAM functionality is currently disabled due to changes made in the new API
-           that need to be remapped.
-
-        Raises
-        ------
-        NotImplementedError: Raised if a PySAM input file is not provided to run the model.
-
-        Returns
-        -------
-        pd.DataFrame
-            Project financial values values.
-        """
-        if self.financial_model is None:
-            raise NotImplementedError(
-                "No SAM inputs were provided, and 'pysam_all_outputs()' cannot be calculated!"
-            )
-        financials = [
-            self.pysam_npv(),
-            self.pysam_lcoe_nominal(),
-            self.pysam_lcoe_real(),
-            self.pysam_irr(),
-        ]
-        descriptions = [
-            "After Tax NPV ($)",
-            "Nominal LCOE ($/kW)",
-            "Real LCOE ($/kW)",
-            "After Tax IRR (%)",
-        ]
-        financials = pd.DataFrame(
-            financials, index=descriptions, dtype=float, columns=["Value"]
-        )
-        financials.index.name = "Metric"  # type: ignore
-        return financials

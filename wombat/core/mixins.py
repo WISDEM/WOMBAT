@@ -5,8 +5,9 @@ different types of classes.
 from __future__ import annotations
 
 import datetime
-from typing import Generator
+from typing import TYPE_CHECKING
 from functools import partial
+from collections.abc import Generator
 
 import numpy as np
 import pandas as pd
@@ -31,7 +32,7 @@ class RepairsMixin:
     """
 
     env: WombatEnvironment
-    settings: PortConfig | ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData
+    settings: PortConfig | ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData  # noqa: E501
 
     def initialize_cost_calculators(self, which: str) -> None:
         """Creates the cost calculators for each of the subclasses that will need to
@@ -73,8 +74,10 @@ class RepairsMixin:
             start = self.env.workday_start
             end = self.env.workday_end
         elif which == "port":
-            start = self.port.settings.workday_start  # type: ignore
-            end = self.port.settings.workday_end  # type: ignore
+            if TYPE_CHECKING:
+                assert hasattr(self, "port")
+            start = self.port.settings.workday_start
+            end = self.port.settings.workday_end
         else:
             raise ValueError(
                 "Can only set the workday settings from a 'port' or 'env'."
@@ -100,15 +103,20 @@ class RepairsMixin:
             A boolean array for which values in working hours (True), and which values
             are outside working hours (False).
         """
-        is_workshift = self.settings.workday_start <= hour_ix
-        is_workshift &= hour_ix <= self.settings.workday_end
-        return is_workshift
+        if not self.settings.non_stop_shift:
+            is_workshift = self.settings.workday_start <= hour_ix
+            is_workshift &= hour_ix <= self.settings.workday_end
+            return is_workshift
+
+        if isinstance(hour_ix, np.ndarray):
+            return np.ones(hour_ix.shape, dtype=bool)
+        return True
 
     def wait_until_next_shift(self, **kwargs) -> Generator[Timeout, None, None]:
         """Delays the process until the start of the next shift.
 
         Yields
-        -------
+        ------
         Generator[Timeout, None, None]
             Delay until the start of the next shift.
         """
@@ -136,7 +144,7 @@ class RepairsMixin:
 
     def process_repair(
         self, hours: int | float, request_details: Maintenance | Failure, **kwargs
-    ) -> None | Generator[Timeout | Process, None, None]:
+    ) -> Generator[Timeout | Process, None, None]:
         """The logging and timeout process for performing a repair or doing maintenance.
 
         Parameters
@@ -145,10 +153,12 @@ class RepairsMixin:
             The lenght, in hours, of the repair or maintenance task.
         request_details : Maintenance | Failure
             The deatils of the request, this is only being checked for the type.
+        kwargs : dict
+            Additional parameters to be passed to ``WombatEnvironment.log_action``.
 
         Yields
-        -------
-        None | Generator[Timeout | Process, None, None]
+        ------
+        Generator[Timeout | Process, None, None]
             A ``Timeout`` is yielded of length ``hours``.
         """
         action = "repair" if isinstance(request_details, Failure) else "maintenance"
@@ -162,7 +172,7 @@ class RepairsMixin:
             hourly_labor_cost=hourly_cost,
             equipment_cost=equipment_cost,
             additional=action,
-            location="port" if isinstance(self.settings, PortConfig) else "site",
+            location="port" if isinstance(self.settings, PortConfig) else "system",
             **kwargs,
         )
         yield self.env.timeout(hours)
@@ -199,21 +209,22 @@ class RepairsMixin:
             )
 
         # Get the forecast and filter out dates prior to the start of the search
-        all_dates, *_ = self.env.weather_forecast(
-            8760
-        )  # get the dates for the next year
-        dates = all_dates[np.where(all_dates > start_search_date)[0]]
-        if dates.size == 0:
-            dates = all_dates[-1:]
+        all_dates, *_ = self.env.weather_forecast(8760)
+        dates = all_dates.filter(all_dates > start_search_date)
+        if dates.shape[0] == 0:
+            dates = all_dates.slice(-1)
 
         # Find the next operational date, and if no available dates, return the time
         # until the end of the forecast period
-        date_diff = set(dates.date).difference(self.settings.non_operational_dates_set)  # type: ignore
+        date_diff = set(dates.dt.date()).difference(
+            self.settings.non_operational_dates_set
+        )
         if not date_diff:
             diff = ((max(dates) - current).days + 1) * HOURS_IN_DAY
             return diff
-        next_available = min(date_diff)
-        next_available = dates[np.where(dates.date == next_available)[0][0]]
+        next_available = (
+            (dates.filter(dates.dt.date() == min(date_diff))).slice(0, 1).item()
+        )
 
         # Compute the difference between the current time and the future date
         diff = next_available - current

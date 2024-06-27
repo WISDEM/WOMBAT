@@ -1,0 +1,22 @@
+name: COREWIND Morro Bay In Situ
+weather: central_ca.csv
+service_equipment:
+  - ctv1.yaml
+  - ctv2.yaml
+  - ctv3.yaml
+  - ctv4.yaml
+  - ctv5.yaml
+  - ctv6.yaml
+  - ctv7.yaml
+  - cab.yaml
+  - dsv.yaml
+  - ahv.yaml
+  - hlv1.yaml
+layout: morro_bay_9D_layout.csv
+port_distance: 60  # 20/100 for West of Barra Island; 10 for Gran Canaria Island
+inflation_rate: 0
+workday_start: 6
+workday_end: 22
+start_year: 2002
+end_year: 2021
+project_capacity: 1200

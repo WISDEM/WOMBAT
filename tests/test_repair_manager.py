@@ -1,7 +1,5 @@
-"""Tests the Windfarm class."""
+"""Tests wombat/core/repair_management.py."""
 
-from re import M
-from copy import deepcopy
 
 import numpy as np
 import pytest
@@ -20,10 +18,11 @@ from wombat.core.service_equipment import ServiceEquipment
 from wombat.windfarm.system.system import System
 from wombat.windfarm.system.subassembly import Subassembly
 
-from tests.conftest import VESTAS_V90, GENERATOR_SUBASSEMBLY, env_setup
+from tests.conftest import VESTAS_V90, GENERATOR_SUBASSEMBLY
 
 
 def test_repair_manager_init(env_setup):
+    """Test the initialization steps."""
     env = env_setup
 
     # Test the capacity input
@@ -62,34 +61,46 @@ def test_repair_manager_init(env_setup):
     fsv_map = EquipmentMap(fsv.settings.strategy_threshold, fsv)
     assert manager.request_based_equipment == StrategyMap()
     assert manager.downtime_based_equipment.SCN == [fsv_map]
+    assert manager.downtime_based_equipment.MCN == []
     assert manager.downtime_based_equipment.LCN == []
     assert manager.downtime_based_equipment.DRN == []
     assert manager.downtime_based_equipment.CTV == []
     assert manager.downtime_based_equipment.CAB == []
     assert manager.downtime_based_equipment.RMT == []
     assert manager.downtime_based_equipment.DSV == []
+    assert manager.downtime_based_equipment.TOW == []
+    assert manager.downtime_based_equipment.AHV == []
+    assert manager.downtime_based_equipment.VSG == []
 
     # Add a requests-based piece of equipment
     fsv = ServiceEquipment(env, windfarm, manager, "fsv_requests.yaml")
     fsv_map = EquipmentMap(fsv.settings.strategy_threshold, fsv)
     assert manager.request_based_equipment.SCN == [fsv_map]
-    assert manager.request_based_equipment.LCN == []
-    assert manager.request_based_equipment.DRN == []
-    assert manager.request_based_equipment.CTV == []
-    assert manager.request_based_equipment.CAB == []
-    assert manager.request_based_equipment.RMT == []
-    assert manager.request_based_equipment.DSV == []
+    assert manager.downtime_based_equipment.MCN == []
+    assert manager.downtime_based_equipment.LCN == []
+    assert manager.downtime_based_equipment.DRN == []
+    assert manager.downtime_based_equipment.CTV == []
+    assert manager.downtime_based_equipment.CAB == []
+    assert manager.downtime_based_equipment.RMT == []
+    assert manager.downtime_based_equipment.DSV == []
+    assert manager.downtime_based_equipment.TOW == []
+    assert manager.downtime_based_equipment.AHV == []
+    assert manager.downtime_based_equipment.VSG == []
 
     # Check for registering of equipment with multiple capabilities
     hlv = ServiceEquipment(env, windfarm, manager, "hlv_requests_multi_capability.yaml")
     hlv_map = EquipmentMap(hlv.settings.strategy_threshold, hlv)
     assert manager.request_based_equipment.SCN == [fsv_map, hlv_map]
     assert manager.request_based_equipment.LCN == [hlv_map]
-    assert manager.request_based_equipment.DRN == []
-    assert manager.request_based_equipment.CTV == []
-    assert manager.request_based_equipment.CAB == []
-    assert manager.request_based_equipment.RMT == []
-    assert manager.request_based_equipment.DSV == []
+    assert manager.downtime_based_equipment.MCN == []
+    assert manager.downtime_based_equipment.DRN == []
+    assert manager.downtime_based_equipment.CTV == []
+    assert manager.downtime_based_equipment.CAB == []
+    assert manager.downtime_based_equipment.RMT == []
+    assert manager.downtime_based_equipment.DSV == []
+    assert manager.downtime_based_equipment.TOW == []
+    assert manager.downtime_based_equipment.AHV == []
+    assert manager.downtime_based_equipment.VSG == []
 
     # Ensure that a scheduled equipment type will raise an error, though this should
     # never be called within the code
@@ -100,7 +111,6 @@ def test_repair_manager_init(env_setup):
 
 def test_register_request_and_submit_request_and_get_request(env_setup):
     """Tests the ``RepairManager.submit_request`` method."""
-
     # Set up all the required infrastructure
     env = env_setup
     manager = RepairManager(env)
@@ -108,7 +118,7 @@ def test_register_request_and_submit_request_and_get_request(env_setup):
     generator = Subassembly(turbine, env, "GEN001", GENERATOR_SUBASSEMBLY)
 
     # Test that a submitted failure is registered correctly
-    manual_reset = generator.data.failures[1]
+    manual_reset = generator.data.failures[0]
     repair_request_failure = RepairRequest(
         turbine.id,
         turbine.name,
@@ -154,18 +164,14 @@ def test_register_request_and_submit_request_and_get_request(env_setup):
     retrieved_request = manager.get_request_by_system(["CTV"], system_id=turbine.id)
     assert retrieved_request.value == repair_request_failure
 
-    # Ensure that the turbine has been labeled invalid so that another servicing
-    # equipment can't access it
-    assert manager.invalid_systems == [turbine.id]
     retrieved_request = manager.get_request_by_system(["CTV"], system_id=turbine.id)
-    assert retrieved_request is None
+    assert retrieved_request.value is repair_request_maintenance
 
-    assert manager.items == [repair_request_maintenance]
+    assert manager.items == []
 
 
 def test_request_map(env_setup):
     """Tests the ``RepairManager.request_map`` property."""
-
     # Set up all the required infrastructure
     env = env_setup
     manager = RepairManager(env)
@@ -178,7 +184,7 @@ def test_request_map(env_setup):
     # Test that all the failures and maintenance tasks are registered correctly
     correct_request_map = {"CTV": 4, "SCN": 1, "LCN": 1}
     # Submit a request for all of the maintenance and failure objects in the generator
-    for repair in generator.data.maintenance + [*generator.data.failures.values()]:
+    for repair in generator.data.maintenance + generator.data.failures:
         repair_request = RepairRequest(
             turbine.id, turbine.name, generator.id, generator.name, repair.level, repair
         )
@@ -190,19 +196,19 @@ def test_request_map(env_setup):
 
 def test_get_requests(env_setup):
     """Tests the ``RepairManager.get_request_by_system`` and
-    ``RepairManager.get_next_highest_severity_request`` methods.
+    ``RepairManager.get_request_by_severity`` methods.
     """
-
     # Set up all the required infrastructure
     env = env_setup
     manager = RepairManager(env)
+    windfarm = Windfarm(env, "layout_single_subassembly.csv", manager)
     capability_list = VALID_EQUIPMENT
-    turbine1 = System(env, manager, "WTG001", "Vestas V90 001", VESTAS_V90, "turbine")
-    turbine2 = System(env, manager, "WTG002", "Vestas V90 002", VESTAS_V90, "turbine")
-    turbine3 = System(env, manager, "WTG003", "Vestas V90 003", VESTAS_V90, "turbine")
-    generator1 = Subassembly(turbine1, env, "GEN001", GENERATOR_SUBASSEMBLY)
-    generator2 = Subassembly(turbine2, env, "GEN002", GENERATOR_SUBASSEMBLY)
-    generator3 = Subassembly(turbine3, env, "GEN003", GENERATOR_SUBASSEMBLY)
+    turbine1 = windfarm.system("WTG001")
+    turbine2 = windfarm.system("WTG002")
+    turbine3 = windfarm.system("WTG003")
+    generator1 = [el for el in turbine1.subassemblies if el.name == "generator"][0]
+    generator2 = [el for el in turbine2.subassemblies if el.name == "generator"][0]
+    generator3 = [el for el in turbine3.subassemblies if el.name == "generator"][0]
 
     # Ensure no requests are returned
     for _id in ("WTG001", "WTG002", "WTG003"):
@@ -210,12 +216,12 @@ def test_get_requests(env_setup):
         assert request is None
 
     for severity in range(6):
-        request = manager.get_next_highest_severity_request(capability_list, severity)
+        request = manager.get_request_by_severity(capability_list, severity)
         assert request is None
 
     # Submit a handful of requests with variables indicating what the request is and
     # which turbine it is originating from
-    medium_repair1 = generator1.data.failures[3]
+    medium_repair1 = generator1.data.failures[2]
     medium_repair1 = RepairRequest(
         turbine1.id,
         turbine1.name,
@@ -239,7 +245,7 @@ def test_get_requests(env_setup):
     annual_reset2 = turbine2.repair_manager.register_request(annual_reset2)
     turbine2.repair_manager.submit_request(annual_reset2)
 
-    minor_repair2 = generator2.data.failures[2]
+    minor_repair2 = generator2.data.failures[1]
     minor_repair2 = RepairRequest(
         turbine2.id,
         turbine2.name,
@@ -251,7 +257,7 @@ def test_get_requests(env_setup):
     minor_repair2 = turbine2.repair_manager.register_request(minor_repair2)
     turbine2.repair_manager.submit_request(minor_repair2)
 
-    major_replacement3 = generator3.data.failures[5]
+    major_replacement3 = generator3.data.failures[4]
     major_replacement3 = RepairRequest(
         turbine3.id,
         turbine3.name,
@@ -263,7 +269,7 @@ def test_get_requests(env_setup):
     major_replacement3 = turbine3.repair_manager.register_request(major_replacement3)
     turbine3.repair_manager.submit_request(major_replacement3)
 
-    medium_repair3 = generator3.data.failures[3]
+    medium_repair3 = generator3.data.failures[2]
     medium_repair3 = RepairRequest(
         turbine3.id,
         turbine3.name,
@@ -275,7 +281,7 @@ def test_get_requests(env_setup):
     medium_repair3 = turbine3.repair_manager.register_request(medium_repair3)
     turbine3.repair_manager.submit_request(medium_repair3)
 
-    major_repair2 = generator2.data.failures[4]
+    major_repair2 = generator2.data.failures[3]
     major_repair2 = RepairRequest(
         turbine2.id,
         turbine2.name,
@@ -296,45 +302,54 @@ def test_get_requests(env_setup):
 
     # Test that the major replacement is retrieved first when requesting by severity
     # level 5 and that other invalid requests return None
-    request = manager.get_next_highest_severity_request(capability_list, 6)
+    request = manager.get_request_by_severity(capability_list, 6)
     assert request is None
 
-    request = manager.get_next_highest_severity_request(capability_list, 1)
+    request = manager.get_request_by_severity(capability_list, 1)
     assert request is None
 
-    request = manager.get_next_highest_severity_request(capability_list, 5)
+    request = manager.get_request_by_severity(capability_list, 5)
     assert request.value == major_replacement3
 
     # Ensure the next highest severity level request is (major repair 2) is picked
-    request = manager.get_next_highest_severity_request(capability_list)
+    request = manager.get_request_by_severity(capability_list)
     assert request.value == major_repair2
 
     # Test that the Turbine 2 requests are retrieved in order and with respect to
     # capability limitations and anything outside of the submitted capabilties is None
+    manager.invalidate_system(turbine2)
+    manager.interrupt_system(turbine2)
     request = manager.get_request_by_system(
         ["LCN", "CAB", "DSV", "RMT", "DRN"], turbine2.id
     )
     assert request is None
-    manager.enable_requests_for_system(turbine2.id)
+    manager.enable_requests_for_system(turbine2)
 
     request = manager.get_request_by_system(["CTV"], turbine2.id)
+    manager.invalidate_system(turbine2)
+    manager.interrupt_system(turbine2)
     assert request.value == annual_reset2
-    manager.enable_requests_for_system(turbine2.id)
+    manager.enable_requests_for_system(turbine2)
 
     request = manager.get_request_by_system(capability_list, turbine2.id)
+    manager.invalidate_system(turbine2)
+    manager.interrupt_system(turbine2)
     assert request.value == minor_repair2
-    manager.enable_requests_for_system(turbine2.id)
+    manager.enable_requests_for_system(turbine2)
 
     # With 1 requests left, ensure they're produced in the correct order and that
     # specifying incorrect severity levesls returns None
-    request = manager.get_next_highest_severity_request(capability_list, 4)
+    request = manager.get_request_by_severity(capability_list, 4)
     assert request is None
 
-    request = manager.get_next_highest_severity_request(capability_list, 2)
+    request = manager.get_request_by_severity(capability_list, 2)
     assert request is None
 
-    manager.enable_requests_for_system(turbine3.id)
-    request = manager.get_next_highest_severity_request(capability_list, 3)
+    # Activate turbine 3 and check that its medium repair is the next in the list
+    manager.invalidate_system(turbine3)
+    manager.interrupt_system(turbine3)
+    manager.enable_requests_for_system(turbine3)
+    request = manager.get_request_by_severity(capability_list, 3)
     assert request.value == medium_repair3
 
 
@@ -362,7 +377,7 @@ def test_purge_subassembly_requests(env_setup):
 
     # Submit a handful of requests with variables indicating what the request is and
     # which turbine it is originating from
-    gen_medium_repair1 = generator1.data.failures[3]
+    gen_medium_repair1 = generator1.data.failures[2]
     gen_medium_repair1 = RepairRequest(
         turbine1.id,
         turbine1.name,
@@ -374,7 +389,7 @@ def test_purge_subassembly_requests(env_setup):
     gen_medium_repair1 = turbine1.repair_manager.register_request(gen_medium_repair1)
     turbine1.repair_manager.submit_request(gen_medium_repair1)
 
-    gen_major_repair1 = generator1.data.failures[4]
+    gen_major_repair1 = generator1.data.failures[3]
     gen_major_repair1 = RepairRequest(
         turbine1.id,
         turbine1.name,
@@ -386,7 +401,7 @@ def test_purge_subassembly_requests(env_setup):
     gen_major_repair1 = turbine1.repair_manager.register_request(gen_major_repair1)
     turbine1.repair_manager.submit_request(gen_major_repair1)
 
-    gbx_medium_repair1 = gearbox1.data.failures[3]
+    gbx_medium_repair1 = gearbox1.data.failures[2]
     gbx_medium_repair1 = RepairRequest(
         turbine1.id,
         turbine1.name,
@@ -398,7 +413,7 @@ def test_purge_subassembly_requests(env_setup):
     gbx_medium_repair1 = turbine1.repair_manager.register_request(gbx_medium_repair1)
     turbine1.repair_manager.submit_request(gbx_medium_repair1)
 
-    gen_medium_repair2 = generator2.data.failures[3]
+    gen_medium_repair2 = generator2.data.failures[2]
     gen_medium_repair2 = RepairRequest(
         turbine2.id,
         turbine2.name,
@@ -410,7 +425,7 @@ def test_purge_subassembly_requests(env_setup):
     gen_medium_repair2 = turbine2.repair_manager.register_request(gen_medium_repair2)
     turbine2.repair_manager.submit_request(gen_medium_repair2)
 
-    gen_major_repair2 = generator2.data.failures[4]
+    gen_major_repair2 = generator2.data.failures[3]
     gen_major_repair2 = RepairRequest(
         turbine2.id,
         turbine2.name,
@@ -422,7 +437,7 @@ def test_purge_subassembly_requests(env_setup):
     gen_major_repair2 = turbine2.repair_manager.register_request(gen_major_repair2)
     turbine2.repair_manager.submit_request(gen_major_repair2)
 
-    gbx_medium_repair2 = gearbox2.data.failures[3]
+    gbx_medium_repair2 = gearbox2.data.failures[2]
     gbx_medium_repair2 = RepairRequest(
         turbine2.id,
         turbine2.name,
@@ -434,7 +449,7 @@ def test_purge_subassembly_requests(env_setup):
     gbx_medium_repair2 = turbine2.repair_manager.register_request(gbx_medium_repair2)
     turbine2.repair_manager.submit_request(gbx_medium_repair2)
 
-    gen_medium_repair3 = generator3.data.failures[3]
+    gen_medium_repair3 = generator3.data.failures[2]
     gen_medium_repair3 = RepairRequest(
         turbine3.id,
         turbine3.name,
@@ -446,7 +461,7 @@ def test_purge_subassembly_requests(env_setup):
     gen_medium_repair3 = turbine3.repair_manager.register_request(gen_medium_repair3)
     turbine3.repair_manager.submit_request(gen_medium_repair3)
 
-    gen_major_repair3 = generator3.data.failures[4]
+    gen_major_repair3 = generator3.data.failures[3]
     gen_major_repair3 = RepairRequest(
         turbine3.id,
         turbine3.name,
@@ -458,7 +473,7 @@ def test_purge_subassembly_requests(env_setup):
     gen_major_repair3 = turbine3.repair_manager.register_request(gen_major_repair3)
     turbine3.repair_manager.submit_request(gen_major_repair3)
 
-    gbx_medium_repair3 = gearbox3.data.failures[3]
+    gbx_medium_repair3 = gearbox3.data.failures[2]
     gbx_medium_repair3 = RepairRequest(
         turbine3.id,
         turbine3.name,

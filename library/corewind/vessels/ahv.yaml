@@ -1,0 +1,25 @@
+name: Anchor Handling Tug
+charter_days: 3  # needs to be here, but doesn't do anything
+equipment_rate: 66000  # AHV (55000) + Chartered CTV (11000)
+strategy: requests
+strategy_threshold: 1  # needs to be here, but doesn't do anything
+onsite: false
+capability: AHV
+speed: 24.08  # 13 knots
+tow_speed: 9.26
+mobilization_cost: 530000  # AHV (500000) + Chartered CTV (30000)
+mobilization_days: 20
+max_windspeed_transport: 20
+max_windspeed_repair: 20
+max_waveheight_transport: 2.5
+max_waveheight_repair: 2.5
+workday_start: 0
+workday_end: 24
+crew_transfer_time: 0.25
+port_distance: 0  # will get automatically set from the port configuration if not provided
+n_crews: 1
+crew:
+  day_rate: 219.18  # 80K/yr / 365 days
+  n_day_rate: 10  # N technicians for all AHV jobs
+  hourly_rate: 0
+  n_hourly_rate: 0

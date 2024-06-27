@@ -1,0 +1,31 @@
+# Table of contents
+# Learn more at https://jupyterbook.org/customize/toc.html
+
+format: jb-book
+root: index
+parts:
+- caption: Getting Started
+  chapters:
+  - file: install
+  - file: contributing
+  - file: presentations
+  - file: workshops/index
+    sections:
+    - file: workshops/nawea_wind_tech_2023
+  - file: team
+- caption: Working With the Code Base
+  chapters:
+  - file: examples/index
+    sections:
+    - file: examples/how_to
+    - file: examples/strategy_demonstration
+    - file: examples/metrics_demonstration
+    - file: examples/examples_reference
+  - file: API/index
+    sections:
+    - file: API/simulation_api
+    - file: API/types
+    - file: API/core
+    - file: API/windfarm
+    - file: API/utilities
+  - file: changelog
