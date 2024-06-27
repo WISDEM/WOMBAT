@@ -9,7 +9,7 @@ for the appropriate OS version.
 Using conda, create a new virtual environment, replacing `<environment_name>` with a name
 of your choosing (without spaces):
 ```text
-$ conda create -n <environment_name> python=3
+$ conda create -n <environment_name> python=3.x  # use your preferred 3.9-3.12 version
 $ conda activate <environment_name>
 ```
 You can now use ``conda activate <environment_name>`` to enter the environment and

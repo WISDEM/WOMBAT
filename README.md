@@ -63,23 +63,7 @@ folder, but here are a few highlights:
 
 ### Requirements
 
-* Python 3.8 through 3.10
-
-> **Note**
-> For Python 3.10 users that seek to install more than the base dependencies, it has
-> been noted that pip may take a long time to resolve all of the package requirements,
-> so it is recommended to use the following workflow:
-
-```console
-# Enter the source code directory
-cd wombat/
-
-# First install the base package requirements
-pip install -e .
-
-# Then install whichever additional dependencies are required/desired
-pip install -e '.[dev]'  # '.[docs]' or '.[all]'
-```
+* Python 3.9 through 3.12
 
 ### Environment Setup
 
@@ -91,7 +75,7 @@ for the appropriate OS version.
 Using conda, create a new virtual environment:
 
 ```console
-conda create -n <environment_name> python=3.8 --no-default-packages
+conda create -n <environment_name> python=3.11
 conda activate <environment_name>
 conda install -c anaconda pip
 
@@ -104,14 +88,22 @@ conda deactivate
 
 ### Installation
 
+Once in your desired environment, WOMBAT can be installed from PyPI via `pip install`
+or from source.
 
 #### Pip
+
+This option is best for those working with the latest release, or including WOMBAT as
+a tool in a workflow without the desire to modify the source code.
 
 ```console
 pip install wombat
 ```
 
 #### From Source
+
+This option is ideal for users that wish to work with the examples, modify the source
+code, and/or contribute back to the project.
 
 Install it directly into an activated virtual environment:
 
@@ -136,14 +128,15 @@ wombat.__version__
 
 For further usage, please see the documentation site at https://wisdem.github.io/WOMBAT.
 
-
 ### Requirements for Contributing to WOMBAT
 
 #### Code Contributions
 
 Code contributors should note that there is both an additional dependency suite for
-running the tests and enabling the pre-commit workflow to automically standardize the
-core code formatting principles.
+running the tests and enabling the pre-commit workflow to automatically standardize the
+core code formatting principles. In short, the following steps should be taken, but be
+sure to read the
+[contributor's guide](https://wisdem.github.io/WOMBAT/contributing.html)
 
 ```console
 git clone https://github.com/WISDEM/WOMBAT.git
@@ -170,7 +163,7 @@ Basic pre-commit issues that users might encounter and their remedies:
   applied changes. Once all checks pass, the commit is safe to be pushed.
 * `isort`, `black`, or simple file checks failed, but made changes
   * rerun the `add` and `commit` processes as needed until the changes satisfy the checks
-* `pylint` or `flake8` failed:
+* `ruff` failed:
   * Address the errors and rerun the `add` and `commit` processes
 * `mypy` has type errors that seem incorrect
   * Double check the typing is in fact as correct as it seems it should be and rerun the
@@ -194,8 +187,8 @@ Build the site
 
 > **Note**
 > You may want to change the "execute_notebooks" parameter in the `docs/_config.yaml`
-> file to "off" unless you're updating the coded examples or they will be run every time
-> you build the site.
+> file to "off" unless you're updating the coded examples, or they will be run every
+> time you build the site.
 
 ```console
 jupyter-book build docs
@@ -210,3 +203,45 @@ git clone https://github.com/WISDEM/WOMBAT.git
 cd wombat
 pip install -e '.[all]'
 ```
+
+### Dependencies
+
+Standard dependencies:
+
+* attrs>=21
+* numpy>=1.21
+* scipy>=1.8
+* pandas>=2
+* polars>=0.17
+* pyarrow>=10
+* jupyterlab>=3
+* simpy>=4.0.1
+* pyyaml>=6
+* geopy>=2.3
+* networkx>=2.7
+* matplotlib>=3.3
+* types-attrs>=19
+* types-typed-ast>=1.5
+* types-PyYAML>=6
+* types-python-dateutil>=2.8
+
+Optional "dev" dependencies:
+
+* pre-commit>=2.20
+* isort>=5.10
+* pytest>=7
+* pytest-cov>=4
+* mypy==0.991
+* ruff>=0.2
+* pyupgrade
+
+Optional "docs" dependencies:
+
+* jupyter-book>=0.15
+* myst-nb>=0.16
+* myst-parser>=0.17
+* linkify-it-py>=2
+* sphinx-autodoc-typehints
+* sphinxcontrib-autoyaml
+* sphinxcontrib-bibtex>=2.4
+* sphinxcontrib-spelling>=7
