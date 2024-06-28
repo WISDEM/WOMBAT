@@ -3,6 +3,7 @@ to the operations of servicing equipment and the `ServiceEquipment` class that p
 the repair and transportation logic for scheduled, unscheduled, and unscheduled towing
 servicing equipment.
 """
+
 # TODO: NEED A SPECIFIC STARTUP METHOD
 from __future__ import annotations
 
@@ -11,6 +12,7 @@ from math import ceil
 from typing import TYPE_CHECKING, Any
 from pathlib import Path
 from datetime import timedelta
+from functools import cache
 from itertools import zip_longest
 from collections.abc import Generator
 
@@ -28,7 +30,7 @@ from wombat.core import (
     ServiceEquipmentData,
 )
 from wombat.windfarm import Windfarm
-from wombat.utilities import HOURS_IN_DAY, cache, hours_until_future_hour
+from wombat.utilities import HOURS_IN_DAY, hours_until_future_hour
 from wombat.core.mixins import RepairsMixin
 from wombat.core.library import load_yaml
 from wombat.windfarm.system import System

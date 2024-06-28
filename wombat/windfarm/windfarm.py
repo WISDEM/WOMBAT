@@ -1,10 +1,12 @@
 """Creates the Windfarm class/model."""
+
 from __future__ import annotations
 
 import csv
 import datetime as dt
 import itertools
 from math import fsum
+from functools import cache
 
 import numpy as np
 import pandas as pd
@@ -15,7 +17,6 @@ from wombat.core import RepairManager, WombatEnvironment
 from wombat.core.library import load_yaml
 from wombat.windfarm.system import Cable, System
 from wombat.core.data_classes import String, SubString, WindFarmMap, SubstationMap
-from wombat.utilities.utilities import cache
 
 
 class Windfarm:
