@@ -532,7 +532,9 @@ class RepairManager(FilterStore):
                 self.systems_waiting_for_tow.index(system.id)
             )
 
-    def interrupt_system(self, system: System | Cable) -> None:
+    def interrupt_system(
+        self, system: System | Cable, replacement: str | None = None
+    ) -> None:
         """Sets the turbine status to be in servicing, and interrupts all the processes
         to turn off operations.
 
@@ -540,10 +542,13 @@ class RepairManager(FilterStore):
         ----------
         system_id : str
             The system to disable repairs.
+        replacement: str | None, optional
+            If a subassebly `id` is provided, this indicates the interruption is caused
+            by its replacement event. Defaults to None.
         """
         if system.servicing.triggered and system.id in self.invalid_systems:
             system.servicing = self.env.event()
-            system.interrupt_all_subassembly_processes()
+            system.interrupt_all_subassembly_processes(replacement=replacement)
         else:
             raise RuntimeError(
                 f"{self.env.simulation_time} {system.id} already being serviced"
@@ -671,19 +676,25 @@ class RepairManager(FilterStore):
         if not self.items:
             return None
 
-        requests = [
+        # First check the system matches because we'll need these separated later to
+        # ensure we don't incorrectly remove towing requests from other subassemblies
+        system_requests = [
             request
             for request in self.items
-            if (
-                request.system_id == system_id
-                and request.subassembly_id == subassembly_id
-                and request.request_id not in exclude
-            )
+            if request.system_id == system_id and request.request_id not in exclude
         ]
-        if requests == []:
+        if system_requests == []:
             return None
 
-        for request in requests:
+        subassembly_requests = [
+            request
+            for request in system_requests
+            if request.subassembly_id == subassembly_id
+        ]
+        if subassembly_requests == []:
+            return None
+
+        for request in subassembly_requests:
             which = "repair" if isinstance(request.details, Failure) else "maintenance"
             self.env.log_action(
                 system_id=request.system_id,
@@ -702,14 +713,18 @@ class RepairManager(FilterStore):
             _ = self.get(lambda x: x is request)  # pylint: disable=W0640
         sid = request.system_id
 
-        # Ensure that if it was reset, and a tow was waiting, that it gets cleared
+        # Ensure that if it was reset, and a tow was waiting, that it gets cleared,
+        # unless a separate subassembly required the tow
         if sid in self.systems_waiting_for_tow:
-            if sid not in self.systems_in_tow:
+            other_subassembly_match = [
+                r for r in system_requests if "TOW" in r.details.service_equipment
+            ]
+            if sid not in self.systems_in_tow and other_subassembly_match == []:
                 _ = self.systems_waiting_for_tow.pop(
                     self.systems_waiting_for_tow.index(sid)
                 )
 
-        return requests
+        return subassembly_requests
 
     @property
     def request_map(self) -> dict[str, int]:

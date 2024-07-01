@@ -13,12 +13,18 @@ kernelspec:
 (metrics-demo)=
 # Demonstration of the Available Metrics
 
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples)
+
 For a complete list of metrics and their documentation, please see the API Metrics
 [documentation](simulation-api:metrics).
 
 This demonstration will rely on the results produced in the "How To" notebook and serves
 as an extension of the API documentation to show what the results will look like
 depending on what inputs are provided.
+
+A Jupyter notebook of this tutorial can be run from
+`examples/metrics_demonstration.ipynb` locally, or through
+[binder](https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples).
 
 ```{code-cell} ipython3
 :tags: ["output_scroll"]
@@ -29,6 +35,7 @@ import pandas as pd
 from pandas.io.formats.style import Styler
 
 from wombat.core import Simulation, Metrics
+from wombat.utilities import plot
 
 # Clean up the aesthetics for the pandas outputs
 pd.set_option("display.max_rows", 30)
@@ -86,7 +93,7 @@ required to generate the Metrics inputs and a method to reload those outputs as 
 
 ```{code-cell} ipython3
 :tags: ["output_scroll"]
-sim = Simulation("DINWOODIE", "base.yaml")
+sim = Simulation("COREWIND", "morro_bay_in_situ.yaml")
 
 # Both of these parameters are True by default for convenience
 sim.run(create_metrics=True, save_metrics_inputs=True)
@@ -199,6 +206,17 @@ style(metrics.time_based_availability(frequency="monthly", by="windfarm"))
 :tags: ["output_scroll"]
 # Demonstrate the granular monthly reporting
 style(metrics.time_based_availability(frequency="month-year", by="windfarm"))
+```
+
+### Plotting Availability
+
+As of v0.9, the ability to plot the wind farm and turbine availability has been enabled
+as an experimental feature. Please see the [plotting API documentation](plotting) for more details.
+
+```{code-cell} ipython3
+:tags: ["output_scroll"]
+# Demonstrate the granular monthly reporting
+plot.plot_farm_availability(sim=sim, which="energy", farm_95_CI=True)
 ```
 
 (metrics-demo:cf)=
@@ -396,7 +414,6 @@ print(f"Project total: ${total.values[0][0] / metrics.project_capacity:,.2f}/MW"
 ```{code-cell} ipython3
 :tags: ["output_scroll"]
 # Project totals for each type of labor
-# NOTE: this simulation relies on using a fixed labor cost, so this is still $0
 style(metrics.labor_costs(frequency="project", by_type=True))
 ```
 
@@ -472,18 +489,6 @@ emissions_factors = {
         "idle at site": 0.5,
         "idle at port": 0.25,
     },
-    "Crew Transfer Vessel 2": {
-        "transit": 4,
-        "maneuvering": 3,
-        "idle at site": 0.5,
-        "idle at port": 0.25,
-    },
-    "Crew Transfer Vessel 3": {
-        "transit": 4,
-        "maneuvering": 3,
-        "idle at site": 0.5,
-        "idle at port": 0.25,
-    },
     "Field Support Vessel": {
         "transit": 6,
         "maneuvering": 4,
@@ -496,7 +501,23 @@ emissions_factors = {
         "idle at site": 1,
         "idle at port": 0.5,
     },
+    "Diving Support Vessel": {
+        "transit": 4,
+        "maneuvering": 7,
+        "idle at site": 0.2,
+        "idle at port": 0.2,
+    },
+    "Anchor Handling Vessel": {
+        "transit": 4,
+        "maneuvering": 3,
+        "idle at site": 1,
+        "idle at port": 0.25,
+    },
 }
+
+# Add in CTVs 2 through 7
+for i in range(2, 8):
+    emissions_factors[f"Crew Transfer Vessel {i}"] = emissions_factors[f"Crew Transfer Vessel 1"]
 
 style(metrics.emissions(emissions_factors=emissions_factors, maneuvering_factor=0.075, port_engine_on_factor=0.20))
 ```

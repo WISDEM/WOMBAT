@@ -3,6 +3,7 @@ to the operations of servicing equipment and the `ServiceEquipment` class that p
 the repair and transportation logic for scheduled, unscheduled, and unscheduled towing
 servicing equipment.
 """
+
 # TODO: NEED A SPECIFIC STARTUP METHOD
 from __future__ import annotations
 
@@ -11,6 +12,7 @@ from math import ceil
 from typing import TYPE_CHECKING, Any
 from pathlib import Path
 from datetime import timedelta
+from functools import cache
 from itertools import zip_longest
 from collections.abc import Generator
 
@@ -28,7 +30,7 @@ from wombat.core import (
     ServiceEquipmentData,
 )
 from wombat.windfarm import Windfarm
-from wombat.utilities import HOURS_IN_DAY, cache, hours_until_future_hour
+from wombat.utilities import HOURS_IN_DAY, hours_until_future_hour
 from wombat.core.mixins import RepairsMixin
 from wombat.core.library import load_yaml
 from wombat.windfarm.system import System
@@ -489,8 +491,11 @@ class ServiceEquipment(RepairsMixin):
             )
             subassembly.recreate_processes()
         elif operation_reduction == 1:
-            subassembly.operating_level = starting_operating_level
-            subassembly.broken.succeed()
+            subassembly.operating_level = repair.prior_operating_level
+            try:
+                subassembly.broken.succeed()
+            except RuntimeError as e:
+                raise e
         elif operation_reduction == 0:
             subassembly.operating_level = starting_operating_level
         else:
@@ -892,7 +897,7 @@ class ServiceEquipment(RepairsMixin):
         distance_traveled[0] *= 1 - self.env.now % 1
 
         # Cumulative sum at the end of each full hour
-        distance_traveled_sum = distance_traveled.cumsum()
+        distance_traveled_sum = distance_traveled.cum_sum()
 
         # Get the index for the end of the hour where the distance requred to be
         # traveled is reached.
@@ -910,10 +915,10 @@ class ServiceEquipment(RepairsMixin):
 
         # Shave off the extra timing to get the exact travel time
         total_hours = ix_hours + 1  # add 1 for 0-indexing
-        traveled = distance_traveled_sum.take(ix_hours).item()
+        traveled = distance_traveled_sum.gather(ix_hours).item()
         if traveled > distance:
             difference = traveled - distance
-            speed_at_hour = distance_traveled.take(ix_hours).item()
+            speed_at_hour = distance_traveled.gather(ix_hours).item()
             reduction = difference / speed_at_hour
             total_hours -= reduction
 
@@ -1467,7 +1472,10 @@ class ServiceEquipment(RepairsMixin):
             raise RuntimeError(f"{self.settings.name} is lost!")
 
         if initial:
-            self.manager.interrupt_system(system)
+            replacement = (
+                request.subassembly_id if request.details.replacement else None
+            )
+            self.manager.interrupt_system(system, replacement=replacement)
         yield self.env.process(
             self.crew_transfer(system, subassembly, request, to_system=True)
         )
@@ -1885,7 +1893,8 @@ class ServiceEquipment(RepairsMixin):
         )
 
         # Turn off the turbine
-        self.manager.interrupt_system(system)
+        replacement = request.subassembly_id if request.details.replacement else None
+        self.manager.interrupt_system(system, replacement=replacement)
 
         # Unmoor the turbine and tow it back to port
         yield self.env.process(self.mooring_connection(system, request, which="unmoor"))

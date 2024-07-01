@@ -12,7 +12,13 @@ kernelspec:
 
 # Servicing Strategies
 
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples)
+
 In this example, we'll demonstrate the essential differences in scheduled servicing, unscheduled servicing, and tow-to-port repair strategies. Each of the examples demonstrated below will be based on the 2015 Dinwoodie, et al. paper, though the variations will be for demonstration purposes only.
+
+A Jupyter notebook of this tutorial can be run from
+`examples/strategy_demonstration.ipynb`locally, or through
+[binder](https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples).
 
 ## WOMBAT Setup and Variables
 

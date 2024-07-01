@@ -26,11 +26,10 @@ from wombat.core.data_classes import (
     UnscheduledServiceEquipmentData,
     valid_hour,
     convert_to_list,
-    valid_reduction,
     annual_date_range,
-    greater_than_zero,
     clean_string_input,
     convert_to_list_lower,
+    validate_0_1_inclusive,
     convert_ratio_to_absolute,
 )
 
@@ -152,14 +151,16 @@ def test_valid_hour():
     assert hour.hour == 24
 
 
-def test_valid_reduction():
-    """Tests the ``valid_reduction`` validator."""
+def test_validate_0_1_inclusive():
+    """Tests the ``validate_0_1_inclusive`` validator."""
 
     @attr.s(auto_attribs=True)
     class ReductionClass:
-        """Dummy class for testing ``valid_reduction``."""
+        """Dummy class for testing ``validate_0_1_inclusive``."""
 
-        speed_reduction: int = attr.ib(converter=float, validator=valid_reduction)
+        speed_reduction: int = attr.ib(
+            converter=float, validator=validate_0_1_inclusive
+        )
 
     # Test the fringes
     with pytest.raises(ValueError):
@@ -177,27 +178,6 @@ def test_valid_reduction():
 
     r = ReductionClass(0.999)
     assert r.speed_reduction == 0.999
-
-
-def test_greater_than_zero():
-    """Tests the ``greater_than_zero`` validator."""
-
-    @attr.s(auto_attribs=True)
-    class SpeedClass:
-        """Dummy class for testing ``greater_than_zero``."""
-
-        speed: int = attr.ib(converter=float, validator=greater_than_zero)
-
-    # Test the fringes
-    with pytest.raises(ValueError):
-        SpeedClass(0)
-    with pytest.raises(ValueError):
-        SpeedClass(-10)
-
-    s = SpeedClass(1)
-    assert s.speed == 1.0
-    s = SpeedClass(20.112)
-    assert s.speed == 20.112
 
 
 def test_FromDictMixin():
@@ -969,11 +949,15 @@ def test_strategy_map(env_setup):
     mapping = StrategyMap()
     assert mapping.CTV == []
     assert mapping.SCN == []
+    assert mapping.MCN == []
     assert mapping.LCN == []
     assert mapping.CAB == []
     assert mapping.RMT == []
     assert mapping.DRN == []
     assert mapping.DSV == []
+    assert mapping.TOW == []
+    assert mapping.AHV == []
+    assert mapping.VSG == []
     assert not mapping.is_running
 
     # Test for bad input
@@ -1057,6 +1041,35 @@ def test_strategy_map(env_setup):
         mapping.update(capability, fsv.strategy_threshold, fsv)
     fsv_map = EquipmentMap(fsv.strategy_threshold, fsv)
     assert mapping.SCN == [hlv_map, fsv_map]
+    assert mapping.is_running
+
+    # MCM
+    fsv_dict = load_yaml(env.data_dir / "vessels", "fsv_downtime.yaml")
+    fsv_dict["capability"] = ["MCN"]
+    mcn = ServiceEquipmentData(fsv_dict).determine_type()
+    for capability in mcn.capability:
+        mapping.update(capability, mcn.strategy_threshold, mcn)
+    mcn_map = EquipmentMap(mcn.strategy_threshold, mcn)
+    assert mapping.MCN == [mcn_map]
+    assert mapping.is_running
+
+    # TOW/AHV
+    fsv_dict["capability"] = ["AHV", "TOW"]
+    tow = ServiceEquipmentData(fsv_dict).determine_type()
+    for capability in tow.capability:
+        mapping.update(capability, tow.strategy_threshold, tow)
+    tow_map = EquipmentMap(tow.strategy_threshold, tow)
+    assert mapping.TOW == [tow_map]
+    assert mapping.AHV == [tow_map]
+    assert mapping.is_running
+
+    # VSG
+    fsv_dict["capability"] = ["VSG"]
+    vsg = ServiceEquipmentData(fsv_dict).determine_type()
+    for capability in vsg.capability:
+        mapping.update(capability, vsg.strategy_threshold, vsg)
+    vsg_map = EquipmentMap(vsg.strategy_threshold, vsg)
+    assert mapping.VSG == [vsg_map]
     assert mapping.is_running
 
 

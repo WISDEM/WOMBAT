@@ -1,10 +1,12 @@
 """Creates the Windfarm class/model."""
+
 from __future__ import annotations
 
 import csv
 import datetime as dt
 import itertools
 from math import fsum
+from functools import cache
 
 import numpy as np
 import pandas as pd
@@ -15,7 +17,6 @@ from wombat.core import RepairManager, WombatEnvironment
 from wombat.core.library import load_yaml
 from wombat.windfarm.system import Cable, System
 from wombat.core.data_classes import String, SubString, WindFarmMap, SubstationMap
-from wombat.utilities.utilities import cache
 
 
 class Windfarm:
@@ -65,6 +66,8 @@ class Windfarm:
         windfarm_layout : str
             Filename to use for reading in the windfarm layout; must be a csv file.
         """
+        # Read in the layout CSV file, then sort it by string, then order to ensure
+        # it can be traversed in sequential order later
         layout_path = str(self.env.data_dir / "project/plant" / windfarm_layout)
         layout = (
             pd.read_csv(layout_path)
@@ -83,6 +86,7 @@ class Windfarm:
 
         # Determine which nodes are substations and which are turbines
         if "type" in layout.columns:
+            # Extract the type directly from the layout file
             if layout.loc[~layout.type.isin(("substation", "turbine"))].size > 0:
                 raise ValueError(
                     "At least one value in the 'type' column are not one of:"
@@ -93,10 +97,13 @@ class Windfarm:
                 windfarm, dict(layout[["id", "type"]].values), name="type"
             )
         else:
+            # Deduce substations by their self-connected setting for interconnection
             substation_filter = layout.id == layout.substation_id
             _type = {True: "substation", False: "turbine"}
             d = {i: _type[val] for i, val in zip(layout.id, substation_filter.values)}
             nx.set_node_attributes(windfarm, d, name="type")
+
+        self.turbine_id: np.ndarray = layout.loc[~substation_filter, "id"].values
 
         self.substation_id = layout.loc[substation_filter, "id"].values
         for substation in self.substation_id:
@@ -104,13 +111,16 @@ class Windfarm:
                 layout.id == substation, "substation_id"
             ].values[0]
 
-        self.turbine_id: np.ndarray = layout.loc[~substation_filter, "id"].values
+        # Create a mapping for each substation to all connected turbines (subgraphs)
         substations = layout[substation_filter].copy()
         turbines = layout[~substation_filter].copy()
         substation_sections = [
             turbines[turbines.substation_id == substation]
             for substation in substations.id
         ]
+
+        # For each subgraph, create the edge connections between substations and
+        # turbines. Note: these are pre-sorted in the layout creation step.
         for section in substation_sections:
             for _, row in section.iterrows():
                 if row.order == 0:
@@ -121,6 +131,7 @@ class Windfarm:
                 windfarm.add_edge(
                     start, current, length=row.distance, cable=row.upstream_cable
                 )
+        # Create the substation to substation and substation to self connections
         for substation in self.substation_id:
             row = layout.loc[layout.id == substation]
             windfarm.add_edge(
@@ -143,6 +154,7 @@ class Windfarm:
         ValueError
             Raised if the subassembly data is not provided in the layout file.
         """
+        # Loop through all nodes in the graph, and create the actual simulation objects
         for system_id, data in self.graph.nodes(data=True):
             name = data["subassembly"]
             node_type = data["type"]
@@ -152,10 +164,13 @@ class Windfarm:
                     " windfarm layout!"
                 )
 
+            # Read in unique system configuration files only once, and reference
+            # the existing dictionary when possible to reduce I/O
             if (subassembly_dict := self.configs[node_type].get(name)) is None:
                 subassembly_dict = load_yaml(self.env.data_dir / f"{node_type}s", name)
                 self.configs[node_type][name] = subassembly_dict
 
+            # Create the turbine or substation simulation object
             self.graph.nodes[system_id]["system"] = System(
                 self.env,
                 self.repair_manager,
@@ -177,6 +192,8 @@ class Windfarm:
         """
         get_name = "upstream_cable_name" in self.layout_df
         bad_data_location_messages = []
+
+        # Loop over all the edges in the graph and create cable objects
         for start_node, end_node, data in self.graph.edges(data=True):
             name = data["cable"]
 
@@ -186,6 +203,8 @@ class Windfarm:
                     "An 'upstream_cable' file must be specified for all nodes in the"
                     " windfarm layout!"
                 )
+
+            # Read in unique cable configuration files once to reduce I/O
             if (cable_dict := self.configs["cable"].get(name)) is None:
                 try:
                     cable_dict = load_yaml(self.env.data_dir / "cables", data["cable"])
@@ -199,6 +218,7 @@ class Windfarm:
                     )
                 self.configs["cable"][name] = cable_dict
 
+            # Get the lat, lon pairs for the start and end points
             start_coordinates = (
                 self.graph.nodes[start_node]["latitude"],
                 self.graph.nodes[start_node]["longitude"],
@@ -208,6 +228,7 @@ class Windfarm:
                 self.graph.nodes[end_node]["longitude"],
             )
 
+            # Get the unique naming of the cable connection if it's configured
             name = None
             if get_name:
                 name, *_ = self.layout_df.loc[
@@ -221,16 +242,19 @@ class Windfarm:
                     start_coordinates, end_coordinates, ellipsoid="WGS-84"
                 ).km
 
+            # Encode whether it is an array cable or an export cable
             if self.graph.nodes[end_node]["type"] == "substation":
                 data["type"] = "export"
             else:
                 data["type"] = "array"
 
+            # Create the Cable simulation object
             data["cable"] = Cable(
                 self, self.env, data["type"], start_node, end_node, cable_dict, name
             )
 
-            # Calaculate the geometric center point
+            # Calaculate the geometric center point of the cable for later
+            # determining travel distances to cables
             end_points = np.array((start_coordinates, end_coordinates))
             data["latitude"], data["longitude"] = end_points.mean(axis=0)
 
@@ -381,6 +405,9 @@ class Windfarm:
 
         HOURS = 1
         while True:
+            # Loop 10K times, to limit the number of times we write to the operations
+            # log file. 10K was a crude optimization decision, so performance can vary
+            # dependending on the simulation
             for _ in range(10000):
                 yield self.env.timeout(HOURS)
                 message = {

@@ -1,5 +1,6 @@
 # Helpers and Plotting
 
+(plotting)=
 ## Plotting
 
 ```{eval-rst}

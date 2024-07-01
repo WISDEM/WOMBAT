@@ -395,7 +395,7 @@ def test_weather_forecast():
     # Starts with hour 0, and ends with the 5th hour following
     correct_index = pl.from_pandas(
         pd.date_range(
-            "1/1/2002 00:00:00", "1/1/2002 04:00:00", freq="1H", name="datetime"
+            "1/1/2002 00:00:00", "1/1/2002 04:00:00", freq="1h", name="datetime"
         )
     )
     correct_hour = np.array([0, 1, 2, 3, 4], dtype=float)
@@ -418,7 +418,7 @@ def test_weather_forecast():
     env.run(until=0.1)
     correct_index = pl.from_pandas(
         pd.date_range(
-            "1/1/2002 00:00:00", "1/1/2002 05:00:00", freq="1H", name="datetime"
+            "1/1/2002 00:00:00", "1/1/2002 05:00:00", freq="1h", name="datetime"
         )
     )
     correct_hour = np.arange(6, dtype=float)
@@ -441,7 +441,7 @@ def test_weather_forecast():
     env.run(until=1.2)
     correct_index = pl.from_pandas(
         pd.date_range(
-            "1/1/2002 01:00:00", "1/1/2002 07:00:00", freq="1H", name="datetime"
+            "1/1/2002 01:00:00", "1/1/2002 07:00:00", freq="1h", name="datetime"
         )
     )
     correct_hour = np.arange(1, 8, dtype=float)

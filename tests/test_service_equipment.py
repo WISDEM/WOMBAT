@@ -162,7 +162,18 @@ def test_service_equipment_init(env_setup):
     assert manager.request_based_equipment.LCN == [
         EquipmentMap(hlv_dict["strategy_threshold"], hlv)
     ]
-    for capability in ("CTV", "SCN", "CAB", "RMT", "DRN", "DSV"):
+    for capability in (
+        "CTV",
+        "SCN",
+        "MCN",
+        "CAB",
+        "RMT",
+        "DRN",
+        "DSV",
+        "AHV",
+        "TOW",
+        "VSG",
+    ):
         assert getattr(manager.request_based_equipment, capability) == []
 
 

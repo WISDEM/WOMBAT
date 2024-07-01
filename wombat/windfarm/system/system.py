@@ -162,7 +162,7 @@ class System:
             )
 
     def interrupt_all_subassembly_processes(
-        self, origin: Subassembly | None = None
+        self, origin: Subassembly | None = None, replacement: str | None = None
     ) -> None:
         """Interrupts the running processes in all of the system's subassemblies.
 
@@ -171,9 +171,12 @@ class System:
         origin : Subassembly
             The subassembly that triggered the request, if the method call is coming
             from a subassembly shutdown event.
+        replacement: bool, optional
+            If a subassebly `id` is provided, this indicates the interruption is caused
+            by its replacement event. Defaults to None.
         """
         [
-            subassembly.interrupt_processes(origin=origin)  # type: ignore
+            subassembly.interrupt_processes(origin=origin, replacement=replacement)  # type: ignore
             for subassembly in self.subassemblies
         ]
 

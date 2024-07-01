@@ -500,11 +500,11 @@ class WombatEnvironment(simpy.Environment):
                 .fillna(0.0)
                 .set_index("datetime")
                 .sort_index()
-                .resample("H")
+                .resample("h")
                 .interpolate(limit_direction="both")  # , limit=5)
                 .reset_index(drop=False)
             )
-            .with_row_count()
+            .with_row_index()
             .with_columns(
                 [
                     pl.col("datetime").cast(pl.Datetime).dt.cast_time_unit("ns"),
@@ -571,10 +571,10 @@ class WombatEnvironment(simpy.Environment):
         column_order.insert(0, column_order.pop(column_order.index("waveheight")))
         column_order.insert(0, column_order.pop(column_order.index("windspeed")))
         column_order.insert(0, column_order.pop(column_order.index("datetime")))
-        column_order.insert(0, column_order.pop(column_order.index("row_nr")))
+        column_order.insert(0, column_order.pop(column_order.index("index")))
 
         # Ensure the columns are ordered correctly and re-compute pandas-compatible ix
-        return weather.select(column_order).drop(columns="row_nr").with_row_count()
+        return weather.select(column_order).drop("index").with_row_index()
 
     @property
     def weather_now(self) -> pl.DataFrame:

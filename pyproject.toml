@@ -2,16 +2,13 @@
 requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
-[metadata]
-version = "attr: wombat.__version__"
-
 [project]
 name = "wombat"
 dynamic = ["version"]
 authors = [{name = "Rob Hammond", email = "rob.hammond@nrel.gov"}]
 readme = {file = "README.md", content-type = "text/markdown"}
 description = "Windfarm operations and maintenance cost-benefit analysis tool"
-requires-python = ">=3.9, <3.11"
+requires-python = ">=3.9, <3.13"
 license = {file = "LICENSE"}
 dependencies = [
     "attrs>=21",
@@ -51,6 +48,8 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Typing :: Typed",
@@ -82,23 +81,7 @@ docs = [
     "sphinxcontrib-bibtex>=2.4",
     "sphinxcontrib-spelling>=7",
 ]
-all = [
-    "pre-commit>=2.20",
-    "black>=22.1",
-    "isort>=5.10",
-    "pytest>=7",
-    "pytest-cov>=4",
-    "mypy==0.991",
-    "ruff==0.0.246",
-    "jupyter-book>=0.15",
-    "myst-nb>=0.16",
-    "myst-parser>=0.17",
-    "linkify-it-py>=2",
-    "sphinx-autodoc-typehints",
-    "sphinxcontrib-autoyaml",
-    "sphinxcontrib-bibtex>=2.4",
-    "sphinxcontrib-spelling>=7",
-]
+all = ["wombat[dev,docs]"]
 
 [tool.setuptools]
 include-package-data = true
@@ -184,7 +167,7 @@ fix = true
 # for rules included and matching to prefix.
 # TODO: "FBT", "B", "PIE, "T20", "SIM", "PTH", "PD", "I", "PL"
 ignore-init-module-imports = true
-select = ["F", "E", "W", "C4", "D", "UP", "NPY201"]
+select = ["F", "E", "W", "C4", "D", "UP"]
 
 # D205: not using summary lines and descriptions, just descriptions
 # D401: don't believe enough in imperative mode to make all the changes currently
