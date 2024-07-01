@@ -41,7 +41,7 @@ This is the notebook used for the NAWEA WindTech 2023 Workshop. See
 ### `dinwoodie_validation.ipynb`
 
 This shows the latest results of the model validation using the modeling parameters from
-Dinwoodie, et. al, 2015 [^dinwoodie2015reference].
+Dinwoodie, et al., 2015 [^dinwoodie2015reference].
 
 ### `iea_26_validation.ipynb`
 
