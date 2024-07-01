@@ -17,7 +17,7 @@ Code-to-Code Comparison
 This document serves as a demonstration of the capabilities of this work in reference to
 two major works to document simulated O&M results from various industry and research
 software systems. Here we compare our software to the published results from
-Dinwoodie, et. al, 2015 :footcite:`dinwoodie2015reference` and IEA, 2016
+Dinwoodie, et al., 2015 :footcite:`dinwoodie2015reference` and IEA, 2016
 :footcite:`smart2016iea`.
 :download:`PDF <../../presentation_material/code_comparison.pdf>`
 

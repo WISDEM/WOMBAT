@@ -1,4 +1,5 @@
 """The postprocessing metric computation."""
+
 from __future__ import annotations
 
 import warnings
@@ -727,10 +728,15 @@ class Metrics:
                     .sum()
                     .fillna(0)
                     .reset_index(level=0)
+                    .fillna(0)
+                    .T
                 )
-                costs = costs.fillna(costs.max(axis=0)).T
-                costs = costs.rename(columns=costs.iloc[0]).drop(index="agent")
-                return costs.reset_index(drop=True)
+                costs = (
+                    costs.rename(columns=costs.iloc[0])
+                    .drop(index="agent")
+                    .reset_index(drop=True)
+                )
+                return costs
 
             col_filter = ["agent"] + col_filter
             costs = (
@@ -1389,15 +1395,15 @@ class Metrics:
         ] = "Not in Shift"
         costs.loc[costs.action == "repair", "display_reason"] = "Repair"
         costs.loc[costs.action == "maintenance", "display_reason"] = "Maintenance"
-        costs.loc[
-            costs.action == "transferring crew", "display_reason"
-        ] = "Crew Transfer"
+        costs.loc[costs.action == "transferring crew", "display_reason"] = (
+            "Crew Transfer"
+        )
         costs.loc[costs.action == "traveling", "display_reason"] = "Site Travel"
         costs.loc[costs.action == "towing", "display_reason"] = "Towing"
         costs.loc[costs.action == "mobilization", "display_reason"] = "Mobilization"
-        costs.loc[
-            costs.additional.isin(weather_hours), "display_reason"
-        ] = "Weather Delay"
+        costs.loc[costs.additional.isin(weather_hours), "display_reason"] = (
+            "Weather Delay"
+        )
         costs.loc[costs.reason == "no requests", "display_reason"] = "No Requests"
 
         costs.reason = costs.display_reason
@@ -1733,9 +1739,11 @@ class Metrics:
             cols.pop(-1)
             costs = costs.loc[:, cols]
 
-        comparison_values: product[tuple[Any, Any]] | product[
-            tuple[Any, Any, Any]
-        ] | product[tuple[Any, Any, Any, Any]]
+        comparison_values: (
+            product[tuple[Any, Any]]
+            | product[tuple[Any, Any, Any]]
+            | product[tuple[Any, Any, Any, Any]]
+        )
         if frequency in ("annual", "month-year"):
             years = costs.year.unique()
             components = costs.component.unique()

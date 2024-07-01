@@ -13,12 +13,18 @@ kernelspec:
 (metrics-demo)=
 # Demonstration of the Available Metrics
 
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples)
+
 For a complete list of metrics and their documentation, please see the API Metrics
 [documentation](simulation-api:metrics).
 
 This demonstration will rely on the results produced in the "How To" notebook and serves
 as an extension of the API documentation to show what the results will look like
 depending on what inputs are provided.
+
+A Jupyter notebook of this tutorial can be run from
+`examples/metrics_demonstration.ipynb` locally, or through
+[binder](https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples).
 
 ```{code-cell} ipython3
 :tags: ["output_scroll"]
@@ -483,18 +489,6 @@ emissions_factors = {
         "idle at site": 0.5,
         "idle at port": 0.25,
     },
-    "Crew Transfer Vessel 2": {
-        "transit": 4,
-        "maneuvering": 3,
-        "idle at site": 0.5,
-        "idle at port": 0.25,
-    },
-    "Crew Transfer Vessel 3": {
-        "transit": 4,
-        "maneuvering": 3,
-        "idle at site": 0.5,
-        "idle at port": 0.25,
-    },
     "Field Support Vessel": {
         "transit": 6,
         "maneuvering": 4,
@@ -507,7 +501,23 @@ emissions_factors = {
         "idle at site": 1,
         "idle at port": 0.5,
     },
+    "Diving Support Vessel": {
+        "transit": 4,
+        "maneuvering": 7,
+        "idle at site": 0.2,
+        "idle at port": 0.2,
+    },
+    "Anchor Handling Vessel": {
+        "transit": 4,
+        "maneuvering": 3,
+        "idle at site": 1,
+        "idle at port": 0.25,
+    },
 }
+
+# Add in CTVs 2 through 7
+for i in range(2, 8):
+    emissions_factors[f"Crew Transfer Vessel {i}"] = emissions_factors[f"Crew Transfer Vessel 1"]
 
 style(metrics.emissions(emissions_factors=emissions_factors, maneuvering_factor=0.075, port_engine_on_factor=0.20))
 ```

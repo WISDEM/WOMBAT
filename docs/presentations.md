@@ -41,7 +41,7 @@ of the model.
 This document serves as a demonstration of the capabilities of this work in reference to
 two major works to document simulated O&M results from various industry and research
 software systems. Here we compare our software to the published results from
-Dinwoodie, et. al, 2015 [^dinwoodie2015reference] and IEA, 2016 [^smart2016iea].
+Dinwoodie, et al., 2015 [^dinwoodie2015reference] and IEA, 2016 [^smart2016iea].
 <br/>
 {download}`presentation PDF <../presentation_material/code_comparison.pdf>`
 

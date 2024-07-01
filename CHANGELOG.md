@@ -1,4 +1,4 @@
-## Unreleased (TBD)
+## 0.9.4 (1 July 2024)
 
 - Adds support for Python 3.11 and 3.12.
 - Adds the following capability and servicing equipment codes:
@@ -17,6 +17,8 @@
 - Update README.md to be inline with current conda and Python standards.
 - Fully adopts `functools.cache` now that older Python versions where
   `functools.lru_cache` was the available caching method.
+- Fixes a Pandas `FutureWarning` by removing a now unnecessary piece of code in
+  `wombat/core/post_processor.py:equipment_costs`
 
 ## v0.9.3 (15 February 2024)
 
