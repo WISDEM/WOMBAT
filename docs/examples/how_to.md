@@ -11,8 +11,13 @@ kernelspec:
 
 # How To Use WOMBAT
 
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples)
+
 This tutorial will walk through the setup, running, and results stages of a WOMBAT
 simulation while providing background information about how each component is related.
+
+A Jupyter notebook of this tutorial can be run from `examples/how_to.ipynb` locally, or
+through [binder](https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples).
 
 ## Imports
 

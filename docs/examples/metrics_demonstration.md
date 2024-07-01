@@ -13,12 +13,18 @@ kernelspec:
 (metrics-demo)=
 # Demonstration of the Available Metrics
 
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples)
+
 For a complete list of metrics and their documentation, please see the API Metrics
 [documentation](simulation-api:metrics).
 
 This demonstration will rely on the results produced in the "How To" notebook and serves
 as an extension of the API documentation to show what the results will look like
 depending on what inputs are provided.
+
+A Jupyter notebook of this tutorial can be run from
+`examples/metrics_demonstration.ipynb` locally, or through
+[binder](https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples).
 
 ```{code-cell} ipython3
 :tags: ["output_scroll"]
