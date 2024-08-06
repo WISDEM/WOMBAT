@@ -1,3 +1,11 @@
+## Unreleased (TBD)
+
+- Fixes a bug that causes delayed mobilizations. The underlying cause was the lack of
+  resetting the index column of `WombatEnvironment.weather` after filtering out rows
+  that exist prior to the starting year of the simulation.
+- The Polars minimum version was bumped to avoid a deprecation error with the previous
+  index column generation method.
+
 ## 0.9.4 (1 July 2024)
 
 - Adds support for Python 3.11 and 3.12.
