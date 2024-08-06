@@ -1,4 +1,5 @@
 """Provides the O&M Enviroment class; a subclass of simpy.Environment."""
+
 from __future__ import annotations
 
 import io
@@ -538,7 +539,11 @@ class WombatEnvironment(simpy.Environment):
             )
         else:
             # Filter for the provided, validated starting year and update the attribute
-            weather = weather.filter(pl.col("datetime").dt.year() >= start_year)
+            weather = (
+                weather.filter(pl.col("datetime").dt.year() >= start_year)
+                .drop("index")
+                .with_row_index()
+            )
             self.start_datetime = weather.get_column("datetime").dt.min()
             start_year = self.start_year = self.start_datetime.year
 
