@@ -1,4 +1,4 @@
-## Unreleased (TBD)
+## 0.9.5 (6 August 2024)
 
 - Fixes a bug that causes delayed mobilizations. The underlying cause was the lack of
   resetting the index column of `WombatEnvironment.weather` after filtering out rows
