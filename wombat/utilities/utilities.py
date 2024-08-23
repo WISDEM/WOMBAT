@@ -1,6 +1,5 @@
 """Provides various utility functions that don't fit within a common theme."""
 
-
 from __future__ import annotations
 
 import re

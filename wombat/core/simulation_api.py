@@ -1,4 +1,5 @@
 """The main API for the ``wombat``."""
+
 from __future__ import annotations
 
 import datetime
@@ -16,8 +17,8 @@ from wombat.core import (
     FromDictMixin,
     RepairManager,
     ServiceEquipment,
-    WombatEnvironment
-    )
+    WombatEnvironment,
+)
 from wombat.windfarm import Windfarm
 from wombat.core.port import Port
 from wombat.core.library import load_yaml, library_map
@@ -285,13 +286,16 @@ class Simulation(FromDictMixin):
             random_generator=self.random_generator,
         )
         self.repair_manager = RepairManager(self.env)
-        self.windfarm = Windfarm(self.env, self.config.layout, self.config.anchor_layout, self.repair_manager)
+        self.windfarm = Windfarm(
+            self.env, self.config.layout, self.config.anchor_layout, self.repair_manager
+        )
 
         # Assuming your Windfarm object is named windfarm
         mooring_anchors = len(self.windfarm.mooring_map.anchors)
         mooring_lines = len(self.windfarm.mooring_map.mooring_lines)
-        print(f"Number of mooring anchors: {mooring_anchors}, Number of mooring lines: {mooring_lines}")
-        
+        print(
+            f"Number of mooring anchors: {mooring_anchors}, Number of mooring lines: {mooring_lines}"
+        )
 
         # Create the servicing equipment and set the necessary environment variables
         self.service_equipment: dict[str, ServiceEquipment] = {}  # type: ignore
@@ -328,9 +332,7 @@ class Simulation(FromDictMixin):
                 f" not equal to the sum of turbine capacities:"
                 f" {self.windfarm.capacity / 1000:,.6f} MW"
             )
-        
-     
-        
+
     def run(
         self,
         until: int | float | Event | None = None,
@@ -360,7 +362,6 @@ class Simulation(FromDictMixin):
         if create_metrics:
             self.initialize_metrics()
 
-
     def initialize_metrics(self) -> None:
         """Instantiates the `metrics` attribute after the simulation is run."""
         events = self.env.load_events_log_dataframe()
@@ -375,11 +376,10 @@ class Simulation(FromDictMixin):
         capacities = [
             self.windfarm.system(t).capacity for t in self.windfarm.turbine_id
         ]
-                
+
         anchor_ids = self.windfarm.anchor_ids
         mooringline_ids = self.windfarm.mooringline_ids
 
-        
         self.metrics = Metrics(
             data_dir=self.library_path,
             events=events,
@@ -398,7 +398,6 @@ class Simulation(FromDictMixin):
             service_equipment_names=[*self.service_equipment],
         )
 
-
     def save_metrics_inputs(self) -> None:
         """Saves the inputs for the `Metrics` initialization with either a direct
         copy of the data or a file reference that can be loaded later.
@@ -407,18 +406,17 @@ class Simulation(FromDictMixin):
             s_id: {k: v.tolist() for k, v in dict.items()}
             for s_id, dict in self.windfarm.substation_turbine_map.items()
         }
-        
-        
+
         # # Constructing a comprehensive mooring_map from Mooring instances
         mooring_map = {
             anchor_id: {
-                'connected_systems': mooring.connected_systems,
-                'mooring_data': mooring.mooring_data
+                "connected_systems": mooring.connected_systems,
+                "mooring_data": mooring.mooring_data,
                 # Add more attributes as needed
             }
             for anchor_id, mooring in self.windfarm.moorings.items()
         }
-        
+
         data = {
             "data_dir": str(self.library_path),
             "events": str(self.env.events_log_fname),
@@ -438,9 +436,6 @@ class Simulation(FromDictMixin):
             "mooring_map": mooring_map,
             "service_equipment_names": [*self.service_equipment],
         }
-        
 
         with open(self.env.metrics_input_fname, "w") as f:
             yaml.dump(data, f, default_flow_style=False, sort_keys=False)
-
-    

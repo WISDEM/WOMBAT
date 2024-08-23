@@ -57,7 +57,7 @@ class Subassembly:
         self.broken.succeed()  # start the event as inactive
 
         self.processes = dict(self._create_processes())
-        #print(f"Subassembly created: ID={self.id}, Name={self.name}")
+        # print(f"Subassembly created: ID={self.id}, Name={self.name}")
 
     def _create_processes(self):
         """Creates the processes for each of the failure and maintenance types.
@@ -131,8 +131,8 @@ class Subassembly:
         which = "maintenance" if isinstance(action, Maintenance) else "repair"
         current_ol = self.operating_level
         self.operating_level *= 1 - action.operation_reduction
-        #print(f"Triggering {which}: ID={self.id}, Reduction={action.operation_reduction}")
-        
+        # print(f"Triggering {which}: ID={self.id}, Reduction={action.operation_reduction}")
+
         if action.operation_reduction == 1:
             self.broken = self.env.event()
             self.interrupt_all_subassembly_processes()
@@ -155,9 +155,9 @@ class Subassembly:
             prior_operating_level=current_ol,
         )
         repair_request = self.system.repair_manager.register_request(repair_request)
-        
-        #print(f"{which.capitalize()} Request Triggered: {repair_request}")
-        
+
+        # print(f"{which.capitalize()} Request Triggered: {repair_request}")
+
         self.env.log_action(
             system_id=self.system.id,
             system_name=self.system.name,
@@ -193,10 +193,12 @@ class Subassembly:
                 remainder = self.env.max_run_time - self.env.now
                 try:
                     yield self.env.timeout(remainder)
-                    print(f"Running Maintenance: {maintenance.description}, Next in {hours_to_next}h")
+                    print(
+                        f"Running Maintenance: {maintenance.description}, Next in {hours_to_next}h"
+                    )
                 except simpy.Interrupt:
                     remainder -= self.env.now
-                    #print(f"Maintenance Interrupted: {maintenance.description}")
+                    # print(f"Maintenance Interrupted: {maintenance.description}")
             else:
                 while hours_to_next > 0:
                     start = -1  # Ensure an interruption before processing is caught
@@ -239,10 +241,12 @@ class Subassembly:
                 remainder = self.env.max_run_time - self.env.now
                 try:
                     yield self.env.timeout(remainder)
-                    print(f"Running Failure Handling: {failure.description}, Next in {hours_to_next}h")
+                    print(
+                        f"Running Failure Handling: {failure.description}, Next in {hours_to_next}h"
+                    )
                 except simpy.Interrupt:
                     remainder -= self.env.now
-                    #print(f"Failure Handling Interrupted: {failure.description}")
+                    # print(f"Failure Handling Interrupted: {failure.description}")
                 continue
             else:
                 while hours_to_next > 0:  # type: ignore

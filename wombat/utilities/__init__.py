@@ -1,6 +1,5 @@
 """Creates the utilities objects."""
 
-
 from .time import (
     HOURS_IN_DAY,
     HOURS_IN_YEAR,

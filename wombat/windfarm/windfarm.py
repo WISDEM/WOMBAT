@@ -1,4 +1,5 @@
 """Creates the Windfarm class/model."""
+
 from __future__ import annotations
 
 import csv
@@ -6,16 +7,23 @@ import datetime as dt
 import itertools
 from math import fsum
 
-
 import numpy as np
 import pandas as pd
 import networkx as nx
 from geopy import distance
 
-from wombat.core import  WombatEnvironment, RepairManager
+from wombat.core import RepairManager, WombatEnvironment
 from wombat.core.library import load_yaml
-from wombat.windfarm.system import Cable, System, Mooring 
-from wombat.core.data_classes import String, SubString, Anchor, MooringLine, WindFarmMap, SubstationMap, MooringMap
+from wombat.windfarm.system import Cable, System, Mooring
+from wombat.core.data_classes import (
+    Anchor,
+    String,
+    SubString,
+    MooringMap,
+    MooringLine,
+    WindFarmMap,
+    SubstationMap,
+)
 from wombat.utilities.utilities import cache
 
 
@@ -24,24 +32,29 @@ class Windfarm:
     cables, and turbines are created as a network object to be more appropriately
     accessed and controlled.
     """
-    
 
     def __init__(
         self,
         env: WombatEnvironment,
         windfarm_layout: str,
         repair_manager: RepairManager,
-        anchor_layout: str | None = None, 
-        ) -> None:
+        anchor_layout: str | None = None,
+    ) -> None:
         self.env = env
         self.repair_manager = repair_manager
 
         # Set up the layout and instantiate all windfarm objects
-        self.configs: dict[str, dict] = {"turbine": {}, "substation": {}, "cable": {}, "mooringline": {}, "anchor":{}}
-        
+        self.configs: dict[str, dict] = {
+            "turbine": {},
+            "substation": {},
+            "cable": {},
+            "mooringline": {},
+            "anchor": {},
+        }
+
         if anchor_layout is not None:
             self.anchor_layout = anchor_layout
-            
+
         self._create_graph_layout(windfarm_layout)
         self._create_turbines_and_substations()
         self._create_cables()
@@ -50,19 +63,16 @@ class Windfarm:
         self.capacity: int | float = sum(
             self.system(turb).capacity for turb in self.turbine_id
         )
-        
-       
 
         self._create_substation_turbine_map()
         self._create_wind_farm_map()
-       
+
         if anchor_layout is not None:
             self._create_mooring_map()
-            self.integrate_mooring_with_main_graph()  
-        
+            self.integrate_mooring_with_main_graph()
 
             self.create_combo_farm()
-       
+
         self.finish_setup()
         self.calculate_distance_matrix()
 
@@ -184,7 +194,7 @@ class Windfarm:
                 subassembly_dict,
                 node_type,
             )
-            
+
     def _create_cables(self) -> None:
         """Instantiates the cable models as defined in the user-provided layout file,
         and connects these models to the appropriate graph edges to create a fully
@@ -195,16 +205,13 @@ class Windfarm:
         ValueError
             Raised if the cable model is not specified.
         """
-        
         get_name = "upstream_cable_name" in self.layout_df
         bad_data_location_messages = []
         for start_node, end_node, data in self.graph.edges(data=True):
             # Skip cable setup if either node is an anchor
             if self.is_anchor(start_node) or self.is_anchor(end_node):
                 continue  # Skip this iteration, effectively ignoring the edge for cable creation
-    
-           
-            
+
             name = data["cable"]
 
             # Check that the cable data is provided
@@ -261,67 +268,76 @@ class Windfarm:
             # Calaculate the geometric center point
             end_points = np.array((start_coordinates, end_coordinates))
             data["latitude"], data["longitude"] = end_points.mean(axis=0)
-    
-
-    
 
     def _create_mooring_layout(self, anchor_layout: str) -> None:
-        if not hasattr(self, 'mooring_graph'):
+        if not hasattr(self, "mooring_graph"):
             self.mooring_graph = nx.Graph()
-    
+
         # Load mooring layout data from CSV
         mooring_layout_path = self.env.data_dir / "project/plant" / anchor_layout
         mooring_layout_df = pd.read_csv(mooring_layout_path)
-    
 
         # Dictionary to store Mooring objects and track anchors
         anchor_dict = {}
 
         # Process each row in the DataFrame
         for _, row in mooring_layout_df.iterrows():
-            anchor_id = row['anchor_id']
-            anchor_type = row['type']
-            anchor_coords = (row['latitude'], row['longitude'])
-    
-    
+            anchor_id = row["anchor_id"]
+            anchor_type = row["type"]
+            anchor_coords = (row["latitude"], row["longitude"])
+
             if anchor_id in anchor_dict:
                 # Update the existing anchor's connected systems
                 existing_anchor = anchor_dict[anchor_id]
-                existing_anchor['connected_systems'].extend(
-                    [cs.strip() for cs in row['All Connected Items'].split(',') if cs.strip()]
+                existing_anchor["connected_systems"].extend(
+                    [
+                        cs.strip()
+                        for cs in row["All Connected Items"].split(",")
+                        if cs.strip()
+                    ]
                 )
             else:
                 # Create a new anchor
                 yaml_filename = f"corewind_{anchor_type}.yaml"
-                anchor_yaml_data = load_yaml(self.env.data_dir / "mooring", yaml_filename)
-    
+                anchor_yaml_data = load_yaml(
+                    self.env.data_dir / "mooring", yaml_filename
+                )
+
                 # Ensure all required keys ('name', 'maintenance', 'failures') are present
-                if not all(key in anchor_yaml_data for key in ['name', 'maintenance', 'failures']):
-                    raise ValueError(f"Configuration for anchor {anchor_id} is missing required fields.")
-    
-                connected_systems = [cs.strip() for cs in row['All Connected Items'].split(',') if cs.strip()]
-    
-                mooring_data = {
-                    'anchor': anchor_yaml_data,
-                    'mooringlines': {}
-                }
-    
+                if not all(
+                    key in anchor_yaml_data
+                    for key in ["name", "maintenance", "failures"]
+                ):
+                    raise ValueError(
+                        f"Configuration for anchor {anchor_id} is missing required fields."
+                    )
+
+                connected_systems = [
+                    cs.strip()
+                    for cs in row["All Connected Items"].split(",")
+                    if cs.strip()
+                ]
+
+                mooring_data = {"anchor": anchor_yaml_data, "mooringlines": {}}
+
                 mooringline_ids = []
                 for i in range(1, len(connected_systems) + 1):
-                    connected_item_key = f'Connected Item {i}'
-                    mooringline_id_key = f'MooringLine ID {i}'
-                    mooringline_type_key = f'Mooring Type {i}'
-    
+                    connected_item_key = f"Connected Item {i}"
+                    mooringline_id_key = f"MooringLine ID {i}"
+                    mooringline_type_key = f"Mooring Type {i}"
+
                     connected_system = row[connected_item_key].strip()
                     mooringline_id = row[mooringline_id_key].strip()
-                    mooringline_type = row.get(mooringline_type_key, 'default').strip()
-    
+                    mooringline_type = row.get(mooringline_type_key, "default").strip()
+
                     mooring_yaml_filename = f"{mooringline_type}"
-                    mooring_yaml_data = load_yaml(self.env.data_dir / "mooring", mooring_yaml_filename)
-                    mooring_data['mooringlines'][mooringline_id] = mooring_yaml_data
-    
+                    mooring_yaml_data = load_yaml(
+                        self.env.data_dir / "mooring", mooring_yaml_filename
+                    )
+                    mooring_data["mooringlines"][mooringline_id] = mooring_yaml_data
+
                     mooringline_ids.append(mooringline_id)
-    
+
                 mooring = Mooring(
                     windfarm=self,
                     env=self.env,
@@ -329,48 +345,56 @@ class Windfarm:
                     mooringline_ids=mooringline_ids,
                     connected_systems=connected_systems,
                     anchor_data=anchor_yaml_data,
-                    mooringlines_data=mooring_data['mooringlines'],
-                    name=None
+                    mooringlines_data=mooring_data["mooringlines"],
+                    name=None,
                 )
-    
+
                 self.mooring_graph.add_node(
                     anchor_id,
-                    type='anchor',
+                    type="anchor",
                     anchor_type=anchor_type,
                     latitude=anchor_coords[0],
                     longitude=anchor_coords[1],
                     connected_systems=connected_systems,
                     config=anchor_yaml_data,
-                    object=mooring
+                    object=mooring,
                 )
-    
-                anchor_dict[anchor_id] = {'mooring': mooring, 'connected_systems': connected_systems}
-                
-    
+
+                anchor_dict[anchor_id] = {
+                    "mooring": mooring,
+                    "connected_systems": connected_systems,
+                }
+
             for connected_system in connected_systems:
-                system_coords = (self.graph.nodes[connected_system]['latitude'], self.graph.nodes[connected_system]['longitude'])
-                center_coords = [(anchor_coords[0] + system_coords[0]) / 2, (anchor_coords[1] + system_coords[1]) / 2]
-    
+                system_coords = (
+                    self.graph.nodes[connected_system]["latitude"],
+                    self.graph.nodes[connected_system]["longitude"],
+                )
+                center_coords = [
+                    (anchor_coords[0] + system_coords[0]) / 2,
+                    (anchor_coords[1] + system_coords[1]) / 2,
+                ]
+
                 mooringline_id = mooringline_ids.pop(0)
                 self.mooring_graph.add_edge(
-                    anchor_id, connected_system,
+                    anchor_id,
+                    connected_system,
                     mooringline_id=mooringline_id,
                     type=mooringline_type,
                     center_coords=center_coords,
                     config=mooring_yaml_data,
-                    maintenance=mooring_yaml_data.get('maintenance', []),
-                    failures=mooring_yaml_data.get('failures', [])
+                    maintenance=mooring_yaml_data.get("maintenance", []),
+                    failures=mooring_yaml_data.get("failures", []),
                 )
-    
+
         # Log successful setup
-        #print(f"Mooring layout for {len(mooring_layout_df)} anchors has been created with all associated mooring lines.")
-    
+        # print(f"Mooring layout for {len(mooring_layout_df)} anchors has been created with all associated mooring lines.")
+
         # Store the moorings dictionary in the class attribute
-        self.moorings = {anchor_id: anchor['mooring'] for anchor_id, anchor in anchor_dict.items()}
+        self.moorings = {
+            anchor_id: anchor["mooring"] for anchor_id, anchor in anchor_dict.items()
+        }
 
-
-   
-    
     def is_anchor(self, node_id: str) -> bool:
         """Check if a node ID represents an anchor."""
         return "anchor" in node_id
@@ -382,30 +406,42 @@ class Windfarm:
     def _is_substation(self, node_id: str) -> bool:
         """Check if a node ID represents a substation."""
         return node_id.startswith("SS")
-    
-   
- 
+
     def calculate_distance_matrix(self) -> None:
         """Calculates the geodesic distance, in km, between all nodes (substations, turbines, anchors) and midpoints of edges (cables, mooring lines)."""
-        
         # Collect coordinates for substations, turbines, and anchors
-        coords = {node_id: (data["latitude"], data["longitude"]) for node_id, data in self.graph.nodes(data=True) if "latitude" in data and "longitude" in data}
+        coords = {
+            node_id: (data["latitude"], data["longitude"])
+            for node_id, data in self.graph.nodes(data=True)
+            if "latitude" in data and "longitude" in data
+        }
         if hasattr(self, "anchor_layout"):
-            coords.update({node_id: (data["latitude"], data["longitude"]) for node_id, data in self.mooring_graph.nodes(data=True) if "latitude" in data and "longitude" in data})
-        
+            coords.update(
+                {
+                    node_id: (data["latitude"], data["longitude"])
+                    for node_id, data in self.mooring_graph.nodes(data=True)
+                    if "latitude" in data and "longitude" in data
+                }
+            )
+
         # Calculate midpoints for cables and mooring lines and treat them as virtual nodes
         for start_node, end_node, data in self.graph.edges(data=True):
-            if "latitude" in data and "longitude" in data:  # If direct coordinates are provided
+            if (
+                "latitude" in data and "longitude" in data
+            ):  # If direct coordinates are provided
                 midpoint_id = f"{start_node}::{end_node}"
                 coords[midpoint_id] = (data["latitude"], data["longitude"])
-        
+
         if hasattr(self, "anchor_layout"):
             for start_node, end_node, data in self.mooring_graph.edges(data=True):
-                if "latitude" in data and "longitude" in data:  # If direct coordinates are provided
-                    midpoint_id = f"{start_node}--{end_node}"  # Use '--' for mooring lines
+                if (
+                    "latitude" in data and "longitude" in data
+                ):  # If direct coordinates are provided
+                    midpoint_id = (
+                        f"{start_node}--{end_node}"  # Use '--' for mooring lines
+                    )
                     coords[midpoint_id] = (data["latitude"], data["longitude"])
-            
-            
+
         # Calculate distances
         ids = list(coords.keys())
         dist_arr = np.zeros((len(ids), len(ids)))
@@ -419,21 +455,20 @@ class Windfarm:
         # Create the distance matrix DataFrame
         self.distance_matrix = pd.DataFrame(dist_arr, index=ids, columns=ids)
 
-
     def get_systems(self, system_ids: list[str]):
         """Fetches multiple System objects based on their IDs.
-        
+
         Parameters
         ----------
         system_ids : list[str]
             A list of system IDs for which to fetch the System objects.
-            
+
         Returns
         -------
         list[System]
             A list of System objects corresponding to the provided IDs.
         """
-        return [self.system(system_id) for system_id in system_ids]    
+        return [self.system(system_id) for system_id in system_ids]
 
     def _create_substation_turbine_map(self) -> None:
         """Creates ``substation_turbine_map``, a dictionary, that maps substation(s) to
@@ -469,8 +504,6 @@ class Windfarm:
             .set_index("turbines")
             .T
         )
-        
-
 
     def _create_wind_farm_map(self) -> None:
         """Creates a secondary graph object strictly for traversing the windfarm to turn
@@ -527,61 +560,62 @@ class Windfarm:
             substation_map=wind_map,
             export_cables=export,  # type: ignore
         )
-        
+
     def _create_mooring_map(self):
-        if not hasattr(self, 'mooring_map'):
+        if not hasattr(self, "mooring_map"):
             self.mooring_map = MooringMap()
-        
+
         # Iterate through the nodes in the mooring_graph, adding anchors to the mooring map
         for node_id, node_attrs in self.mooring_graph.nodes(data=True):
-            if 'anchor' in node_attrs.get('type', '').lower():
+            if "anchor" in node_attrs.get("type", "").lower():
                 # Create an Anchor object from the node attributes
                 anchor = Anchor(
                     id=node_id,
-                    type=node_attrs['anchor_type'],
-                    coordinates=(node_attrs['longitude'], node_attrs['latitude'])
+                    type=node_attrs["anchor_type"],
+                    coordinates=(node_attrs["longitude"], node_attrs["latitude"]),
                 )
-    
 
-            
                 # Add connections to the anchor object
-                for connected_system in node_attrs['connected_systems']:
+                for connected_system in node_attrs["connected_systems"]:
                     anchor.add_connection(connected_system)
-    
+
                 # Add the Anchor object to the mooring map
                 self.mooring_map.add_anchor(anchor)
-                #print(f"Anchor added: {anchor.id}")
-
+                # print(f"Anchor added: {anchor.id}")
 
         # Now, iterate over the edges to add MooringLine instances
-        for anchor_id, connected_system_id, edge_attrs in self.mooring_graph.edges(data=True):
+        for anchor_id, connected_system_id, edge_attrs in self.mooring_graph.edges(
+            data=True
+        ):
             # Create a MooringLine instance using the edge attributes
             mooring_line = MooringLine(
-                id=edge_attrs['mooringline_id'],
+                id=edge_attrs["mooringline_id"],
                 anchor_id=anchor_id,
-                mooringline_type=edge_attrs['type'],
-                connected_to=connected_system_id
+                mooringline_type=edge_attrs["type"],
+                connected_to=connected_system_id,
             )
             # Add the MooringLine to the mooring map
             self.mooring_map.add_mooring_line(mooring_line)
 
-           # print(f"Mooring line added: {edge_attrs['mooringline_id']} from {anchor_id} to {connected_system_id}")
+            # print(f"Mooring line added: {edge_attrs['mooringline_id']} from {anchor_id} to {connected_system_id}")
 
-    
             # If the connected system is a turbine or substation, add reverse mapping to graph nodes
-            if self._is_turbine(connected_system_id) or self._is_substation(connected_system_id):
-                connected_systems_list = self.graph.nodes[connected_system_id].setdefault('mooring_systems', [])
+            if self._is_turbine(connected_system_id) or self._is_substation(
+                connected_system_id
+            ):
+                connected_systems_list = self.graph.nodes[
+                    connected_system_id
+                ].setdefault("mooring_systems", [])
                 if anchor_id not in connected_systems_list:
                     connected_systems_list.append(anchor_id)
 
-                   # print(f"Reverse mapping added for {connected_system_id}: {connected_systems_list}")
+                # print(f"Reverse mapping added for {connected_system_id}: {connected_systems_list}")
 
-            
-    # Log successful setup
-        print(f"Mooring map created with {len(self.mooring_map.anchors)} anchors and {len(self.mooring_map.mooring_lines)} mooring lines.")
-        
+        # Log successful setup
+        print(
+            f"Mooring map created with {len(self.mooring_map.anchors)} anchors and {len(self.mooring_map.mooring_lines)} mooring lines."
+        )
 
-   
     def integrate_mooring_with_main_graph(self):
         # Assuming that `self.mooring_graph` and `self.graph` are already populated
 
@@ -595,32 +629,37 @@ class Windfarm:
             self.graph.add_edge(u, v, **edge_attrs)
             self.graph.add_edge(v, u, **edge_attrs)
 
-
     def create_combo_farm(self):
         """Integrates all components into a unified graph, ensuring mooring lines and anchors are included."""
         self.combo_graph = nx.MultiDiGraph()
-        
+
         # Add nodes and edges from the main windfarm graph
         for node, data in self.graph.nodes(data=True):
-            if 'system' in data:
+            if "system" in data:
                 self.combo_graph.add_node(node, **data)
         for u, v, data in self.graph.edges(data=True):
             self.combo_graph.add_edge(u, v, **data)
-        
+
         # Integrate mooring components (anchors and mooring lines)
         for anchor_id, data in self.mooring_graph.nodes(data=True):
             # Ensure the Mooring object is correctly accessed from node data
-            mooring_obj = data.get('object')  # This should be your Mooring object
-            if mooring_obj and hasattr(mooring_obj, 'connected_systems'):
-                self.combo_graph.add_node(anchor_id, object=mooring_obj, type='mooring')
+            mooring_obj = data.get("object")  # This should be your Mooring object
+            if mooring_obj and hasattr(mooring_obj, "connected_systems"):
+                self.combo_graph.add_node(anchor_id, object=mooring_obj, type="mooring")
                 # Add connections from the mooring to connected systems
                 for system_id in mooring_obj.connected_systems:
-                    if system_id in self.combo_graph and not self.combo_graph.has_edge(anchor_id, system_id):
-                        self.combo_graph.add_edge(anchor_id, system_id, object=mooring_obj)
-                    if system_id in self.combo_graph and not self.combo_graph.has_edge(system_id, anchor_id):
-                        self.combo_graph.add_edge(system_id, anchor_id, object=mooring_obj)
-
-                    
+                    if system_id in self.combo_graph and not self.combo_graph.has_edge(
+                        anchor_id, system_id
+                    ):
+                        self.combo_graph.add_edge(
+                            anchor_id, system_id, object=mooring_obj
+                        )
+                    if system_id in self.combo_graph and not self.combo_graph.has_edge(
+                        system_id, anchor_id
+                    ):
+                        self.combo_graph.add_edge(
+                            system_id, anchor_id, object=mooring_obj
+                        )
 
     def finish_setup(self) -> None:
         """Final initialization hook for any substations, turbines, or cables."""
@@ -629,9 +668,8 @@ class Windfarm:
                 self.cable((start_node, end_node)).finish_setup()
             else:
                 # Log or handle cases where a cable is attempted to be setup with an anchor
-                #print(f"Skipping finish setup for cable between {start_node} and {end_node} as it involves an anchor.")
+                # print(f"Skipping finish setup for cable between {start_node} and {end_node} as it involves an anchor.")
                 continue
-
 
     def _setup_logger(self, initial: bool = True):
         self._log_columns = [
@@ -677,8 +715,6 @@ class Windfarm:
             self.env._operations_writer.writerows(self.env._operations_buffer)
             self.env._operations_buffer.clear()
 
-
-
     @cache
     def system(self, system_id: str) -> System:
         """Convenience function to returns the desired `System` object for a turbine or
@@ -695,27 +731,26 @@ class Windfarm:
         The `System` object if it's a turbine or substation, or the `Anchor` object if it's an anchor.
         """
         node_data = self.graph.nodes[system_id]
-        if 'system' in node_data:
-            return node_data['system']
-        elif 'object' in node_data and isinstance(node_data['object'], Mooring):
+        if "system" in node_data:
+            return node_data["system"]
+        elif "object" in node_data and isinstance(node_data["object"], Mooring):
             # Assuming anchors are stored as Mooring objects in the 'object' field
-            return node_data['object']
+            return node_data["object"]
         else:
             raise KeyError(f"No system found with ID {system_id}.")
-
 
     @cache
     def combo_system(self, system_id: str) -> System:
         """Returns the desired `System` object or `Mooring` object from the combo_graph."""
         try:
             # Attempt to return a system object
-            return self.combo_graph.nodes[system_id]['system']
+            return self.combo_graph.nodes[system_id]["system"]
         except KeyError:
             # Handle mooring objects differently if 'system' is not found
-            if 'object' in self.combo_graph.nodes[system_id]:
+            if "object" in self.combo_graph.nodes[system_id]:
                 # Return the mooring object or a suitable representation if it's recognized as a mooring type
-                if self.combo_graph.nodes[system_id]['type'] == 'mooring':
-                    return self.combo_graph.nodes[system_id]['object']
+                if self.combo_graph.nodes[system_id]["type"] == "mooring":
+                    return self.combo_graph.nodes[system_id]["object"]
             # Raise an error if neither a system nor a mooring object could be found
             raise KeyError(f"No system found with ID {system_id} in combo_graph.")
 
@@ -746,7 +781,6 @@ class Windfarm:
             return self.graph.edges[edge_id]["cable"]
         except KeyError:
             raise KeyError(f"Edge {edge_id} is invalid.")
-    
 
     @cache
     def fetch_mooring_component(self, id):
@@ -755,60 +789,61 @@ class Windfarm:
         This can fetch either a node or an edge from the mooring graph.
         """
         if id in self.mooring_graph.nodes:
-            return self.mooring_graph.nodes[id].get('object')  # Fetching node object
-        for (u, v, data) in self.mooring_graph.edges(data=True):
-            if data.get('mooringline_id') == id:
+            return self.mooring_graph.nodes[id].get("object")  # Fetching node object
+        for u, v, data in self.mooring_graph.edges(data=True):
+            if data.get("mooringline_id") == id:
                 return data  # Return edge data including mooring line details
         return None  # No valid component found
 
-    
     @cache
     def mooring(self, identifier: str):
         """
-        Convenience function to return a mooring component (either an anchor node or a mooring line edge) 
+        Convenience function to return a mooring component (either an anchor node or a mooring line edge)
         in the windfarm based on its identifier.
-    
+
         Parameters
         ----------
         identifier : str
             The unique identifier for either an anchor or a mooring line.
-        
+
         Returns
         -------
         object
             The Mooring object if it's an anchor or details of the mooring line if it's a line.
         """
-       
         """
         Returns a mooring component (either an anchor node or a mooring line edge) based on its identifier.
         """
-        if ',' in identifier:  # Suggests multiple IDs in one string
-            ids = identifier.split(',')
+        if "," in identifier:  # Suggests multiple IDs in one string
+            ids = identifier.split(",")
             results = []
             for id in ids:
                 result = self.fetch_mooring_component(id.strip())
                 if result:
                     results.append(result)
             return results if results else None
-    
+
         # Single ID processing
         return self.fetch_mooring_component(identifier)
-        
-
-    
-
 
     @property
     def anchor_ids(self):
         """Extracts anchor IDs dynamically from the mooring_graph."""
-        return [node for node, data in self.mooring_graph.nodes(data=True) if data.get('type') == 'anchor']
-    
+        return [
+            node
+            for node, data in self.mooring_graph.nodes(data=True)
+            if data.get("type") == "anchor"
+        ]
+
     @property
     def mooringline_ids(self):
         """Collects all mooring line IDs from the mooring_graph edges."""
-        return [data['mooringline_id'] for _, _, data in self.mooring_graph.edges(data=True) if 'mooringline_id' in data]
+        return [
+            data["mooringline_id"]
+            for _, _, data in self.mooring_graph.edges(data=True)
+            if "mooringline_id" in data
+        ]
 
-    
     @property
     def current_availability(self) -> float:
         r"""Calculates the product of all system ``operating_level`` variables across

@@ -1,8 +1,8 @@
-""""Defines the Mooring class and mooring simulations."""
+""" "Defines the Mooring class and mooring simulations."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-from itertools import zip_longest
 from collections.abc import Generator
 
 import numpy as np
@@ -43,31 +43,34 @@ class Mooring:
         connected_systems: list[str],
         anchor_data: dict,
         mooringlines_data: dict,
-#        mooring_data: dict,
+        #        mooring_data: dict,
         name: str | None = None,
     ) -> None:
-        
         """Initializes the Mooring class."""
         self.env = env
         self.windfarm = windfarm
         self.anchor_id = anchor_id
         self.mooringline_ids = mooringline_ids
-        self.connected_systems = [sys_id.strip() for sys_id in connected_systems]# connected_systems
-        self.id = f"{anchor_id}" # _{','.join(mooringline_ids)}" if mooringline_ids else anchor_id
+        self.connected_systems = [
+            sys_id.strip() for sys_id in connected_systems
+        ]  # connected_systems
+        self.id = f"{anchor_id}"  # _{','.join(mooringline_ids)}" if mooringline_ids else anchor_id
         self.name = name if name is not None else self.id
-        
-        # Handle multiple connected systems
-        self.systems = [self.windfarm.system(sys_id.strip()) for sys_id in connected_systems] if connected_systems else []
-        
 
-         # Set mooring_id based on context
+        # Handle multiple connected systems
+        self.systems = (
+            [self.windfarm.system(sys_id.strip()) for sys_id in connected_systems]
+            if connected_systems
+            else []
+        )
+
+        # Set mooring_id based on context
         if mooringline_ids:
             # It's a mooring line
             self.mooring_id = f"M-{','.join(mooringline_ids)}"
         else:
             # It's an anchor
             self.mooring_id = f"A-{anchor_id}"
-        
 
         # Assuming the first system's value is representative
         if self.systems:
@@ -75,32 +78,30 @@ class Mooring:
         else:
             system_value = 0  # Default or error value
 
-        
-        
         # Merge anchor and mooring line data into mooring_data
         self.mooring_data = {
-            'name': anchor_data.get('name', 'Default Anchor Name'),
-            'maintenance': anchor_data.get('maintenance', []),
-            'failures': anchor_data.get('failures', {}),
-            }
+            "name": anchor_data.get("name", "Default Anchor Name"),
+            "maintenance": anchor_data.get("maintenance", []),
+            "failures": anchor_data.get("failures", {}),
+        }
 
         # Integrate mooring line data
         for mooringline_id, data in mooringlines_data.items():
-            self.mooring_data['maintenance'].extend(data.get('maintenance', []))
-            self.mooring_data['failures'].update(data.get('failures', {}))
+            self.mooring_data["maintenance"].extend(data.get("maintenance", []))
+            self.mooring_data["failures"].update(data.get("failures", {}))
 
-        
         # Now, add system_value and random number generator to the dictionary for SubassemblyData creation
-        self.data = SubassemblyData.from_dict({
-            **self.mooring_data,
-            "system_value": system_value,  # Could be adjusted based on context
-            "rng": self.env.random_generator,
-        })
-        
-        
+        self.data = SubassemblyData.from_dict(
+            {
+                **self.mooring_data,
+                "system_value": system_value,  # Could be adjusted based on context
+                "rng": self.env.random_generator,
+            }
+        )
+
         self.name = self.data.name
 
-        #print(f"Preparing to create SubassemblyData with mooring_data: {self.mooring_data}")
+        # print(f"Preparing to create SubassemblyData with mooring_data: {self.mooring_data}")
 
         self.operating_level = 1.0
         self.servicing = self.env.event()
@@ -112,58 +113,62 @@ class Mooring:
         # self.mooringline_failure = self.env.event()
         self.broken = self.env.event()
 
-        #Ensure events start as processed and inactive
+        # Ensure events start as processed and inactive
         self.servicing.succeed()
         self.servicing_queue.succeed()
 
         self.mooring_failure.succeed()
 
-
         self.broken.succeed()
 
-        #need to get the time scale of a distribution like this
+        # need to get the time scale of a distribution like this
         self.processes = dict(self._create_processes())
 
-        self.maintenance= Maintenance
-    
+        self.maintenance = Maintenance
 
-    
-   
     def _init_subassembly_data(self):
-        combined_maintenance = self.mooring_data['anchor']['maintenance'][:]
-        combined_failures = self.mooring_data['anchor']['failures'].copy()
-        names = [self.mooring_data['anchor']['name']] + [data['name'] for data in self.mooring_data['mooringlines'].values()]
-    
-        for mooringline_data in self.mooring_data['mooringlines'].values():
-            combined_maintenance.extend(mooringline_data['maintenance'])
-            combined_failures.update(mooringline_data['failures'])  # If 'failures' is a dict
-    
-        self.data = SubassemblyData.from_dict({
-            'name': ', '.join(names),
-            'maintenance': combined_maintenance,
-            'failures': combined_failures,
-            'system_value': self.systems[0].value if self.systems else 0,
-            'rng': self.env.random_generator,
-        })
+        combined_maintenance = self.mooring_data["anchor"]["maintenance"][:]
+        combined_failures = self.mooring_data["anchor"]["failures"].copy()
+        names = [self.mooring_data["anchor"]["name"]] + [
+            data["name"] for data in self.mooring_data["mooringlines"].values()
+        ]
 
-    
+        for mooringline_data in self.mooring_data["mooringlines"].values():
+            combined_maintenance.extend(mooringline_data["maintenance"])
+            combined_failures.update(
+                mooringline_data["failures"]
+            )  # If 'failures' is a dict
+
+        self.data = SubassemblyData.from_dict(
+            {
+                "name": ", ".join(names),
+                "maintenance": combined_maintenance,
+                "failures": combined_failures,
+                "system_value": self.systems[0].value if self.systems else 0,
+                "rng": self.env.random_generator,
+            }
+        )
+
     def finish_setup(self) -> None:
         """Finalizes the setup of mooring connections after initial attributes are defined."""
         mooring_details = self.windfarm.mooring_map.get(self.id)
         if not mooring_details:
-            raise ValueError(f"Details for mooring ID {self.id} are missing in the mooring map.")
-    
+            raise ValueError(
+                f"Details for mooring ID {self.id} are missing in the mooring map."
+            )
+
         # Extract and store the connected systems as System objects
-        self.connected_systems_details = [self.windfarm.system(sys_id) for sys_id in mooring_details.get("connected_systems", [])]
-    
+        self.connected_systems_details = [
+            self.windfarm.system(sys_id)
+            for sys_id in mooring_details.get("connected_systems", [])
+        ]
 
         # Handle different connection types if applicable
-        if hasattr(self, 'connection_type'):
+        if hasattr(self, "connection_type"):
             self.handle_connection_types(mooring_details)
 
         # Store additional mooring line details if necessary
         self.mooring_lines = mooring_details.get("mooring_lines", [])
-    
 
     def _create_processes(self):
         """Creates the processes for each of the failure and maintenance types.
@@ -223,8 +228,6 @@ class Mooring:
             by its replacement event. Defaults to None.
         """
         self.interrupt_processes(replacement=replacement)
-        
-
 
     def log_event(self, action, detail):
         """Log detailed actions for debugging."""
@@ -234,23 +237,20 @@ class Mooring:
             detail=detail,
             timestamp=self.env.now,
             connected_systems=self.connected_systems,
-            mooring_id=self.id
-        ) 
-        
-        
-    
-    
+            mooring_id=self.id,
+        )
+
     def stop_all_mooring_processes(self, failure: Failure | Maintenance) -> None:
         """Stops all turbines from producing power by creating an event for each System.mooring_failure
-        and handles both direct and indirect impacts based on shared mooring connections."""
+        and handles both direct and indirect impacts based on shared mooring connections.
+        """
         logging_context = {
             "agent": self.mooring_id,
-            #"action": "stop processes",
-            
-            #"reason": "Connectivity failure",
-            "request_id": failure.request_id   #"some_unique_identifier",  
+            # "action": "stop processes",
+            # "reason": "Connectivity failure",
+            "request_id": failure.request_id,  # "some_unique_identifier",
         }
-    
+
         # Log the start of the process
         self.env.log_action(
             system_id=self.mooring_id,
@@ -258,16 +258,18 @@ class Mooring:
             action="Process Stop Initiated",
             reason="Connectivity failure triggered",
             additional="Starting shutdown of all connected systems",
-            **logging_context
+            **logging_context,
         )
-        
-        #print(f"Process Stop Initiated for mooring_id: {self.mooring_id}")
-        
+
+        # print(f"Process Stop Initiated for mooring_id: {self.mooring_id}")
+
         # Function to safely interrupt processes within subassemblies
         def safe_interrupt(system):
             for subassembly in system.subassemblies:
                 for process in subassembly.processes.values():
-                    if not process.triggered:  # Check if the process has not been triggered
+                    if (
+                        not process.triggered
+                    ):  # Check if the process has not been triggered
                         try:
                             process.interrupt(cause="mooring failure")
                         except RuntimeError as e:
@@ -276,22 +278,26 @@ class Mooring:
                                 system_name=system.name,
                                 action="Interrupt Failed",
                                 reason=str(e),
-                                **logging_context
+                                **logging_context,
                             )
-           #                 print(f"Interrupt Failed for system_id: {system.id}, reason: {str(e)}")
-        
+
+        #                 print(f"Interrupt Failed for system_id: {system.id}, reason: {str(e)}")
+
         # Directly affected systems
         directly_affected_systems = set()
         for system_id in self.connected_systems:
             if self.windfarm.is_anchor(system_id):
-               # Skip any shutdown logic for anchors since they don't influence power production
-               continue
+                # Skip any shutdown logic for anchors since they don't influence power production
+                continue
             else:
                 system = self.windfarm.system(system_id)
-                if system.system_type == "turbine" or system.system_type == "substation":
+                if (
+                    system.system_type == "turbine"
+                    or system.system_type == "substation"
+                ):
                     system.mooring_failure = self.env.event()
                     safe_interrupt(system)
-                    #system.interrupt_all_subassembly_processes()
+                    # system.interrupt_all_subassembly_processes()
                     directly_affected_systems.add(system_id)
                     self.env.log_action(
                         system_id=system_id,
@@ -300,48 +306,53 @@ class Mooring:
                         reason="Directly connected to failed mooring",
                         system_ol=0,
                         part_ol=np.nan,
-                        **logging_context
+                        **logging_context,
                     )
-                    
-          #          print(f"Direct Impact - Failure Triggered for system_id: {system_id}")
-          
-        
-        #print(f"Directly affected systems: {directly_affected_systems}")
-            
 
-       # Indirectly affected systems due to shared mooring connections
+        #          print(f"Direct Impact - Failure Triggered for system_id: {system_id}")
+
+        # print(f"Directly affected systems: {directly_affected_systems}")
+
+        # Indirectly affected systems due to shared mooring connections
         indirectly_affected_systems = set()
-        all_checked_systems = set(directly_affected_systems)  # Keep track of all checked systems
+        all_checked_systems = set(
+            directly_affected_systems
+        )  # Keep track of all checked systems
         anchors_to_check = set()
-        
+
         # First, gather all anchors connected to directly affected systems
         for system_id in directly_affected_systems:
-            anchors_to_check.update(self.windfarm.mooring_map.get_anchor_connections(system_id))
-        
-        #print(f"Initial anchors to check: {anchors_to_check}")
-        
+            anchors_to_check.update(
+                self.windfarm.mooring_map.get_anchor_connections(system_id)
+            )
+
+        # print(f"Initial anchors to check: {anchors_to_check}")
+
         # Now gather all systems connected to these anchors
         for anchor_id in anchors_to_check:
-            connected_systems = self.windfarm.mooring_map.get_connected_turbines(anchor_id) + self.windfarm.mooring_map.get_connected_substations(anchor_id)
-         #   print(f"Connected systems for anchor_id {anchor_id}: {connected_systems}")
+            connected_systems = self.windfarm.mooring_map.get_connected_turbines(
+                anchor_id
+            ) + self.windfarm.mooring_map.get_connected_substations(anchor_id)
+            #   print(f"Connected systems for anchor_id {anchor_id}: {connected_systems}")
             for connected_system_id in connected_systems:
                 if connected_system_id not in directly_affected_systems:
                     indirectly_affected_systems.add(connected_system_id)
                     all_checked_systems.add(connected_system_id)
-        
+
         # Print final indirectly affected systems
-        #print(f"Indirectly affected systems: {indirectly_affected_systems}")
+        # print(f"Indirectly affected systems: {indirectly_affected_systems}")
 
-
-    
         for system_id in indirectly_affected_systems:
             if self.windfarm.is_anchor(system_id):
                 # Skip any shutdown logic for anchors since they don't influence power production
                 continue
             else:
                 system = self.windfarm.system(system_id)
-                if system.system_type == "turbine" or system.system_type == "substation":
-                    system.mooring_failure= self.env.event()
+                if (
+                    system.system_type == "turbine"
+                    or system.system_type == "substation"
+                ):
+                    system.mooring_failure = self.env.event()
                     safe_interrupt(system)
                     # system.interrupt_all_subassembly_processes()
                     self.env.log_action(
@@ -351,11 +362,10 @@ class Mooring:
                         reason="Affected by shared mooring connectivity",
                         system_ol=0,
                         part_ol=np.nan,
-                        **logging_context
+                        **logging_context,
                     )
-                    
-            #        print(f"Indirect Impact - Failure Triggered for system_id: {system_id}")
 
+            #        print(f"Indirect Impact - Failure Triggered for system_id: {system_id}")
 
         # Log the completion of the process
         self.env.log_action(
@@ -364,23 +374,20 @@ class Mooring:
             action="Process Stop Completed",
             reason="All relevant systems have been processed",
             additional="Shutdown complete",
-            **logging_context
+            **logging_context,
         )
 
-        #print("Process Stop Completed for Global Mooring System")
-         
- 
-        
-        
+        # print("Process Stop Completed for Global Mooring System")
+
     def trigger_request(self, action: Maintenance | Failure):
         """Triggers the actual repair or maintenance logic for a failure or maintenance
         event, respectively.
-        
+
         Parameters
         ----------
         action : Maintenance | Failure
             The maintenance or failure event that triggers a `RepairRequest`.
-            """
+        """
         which = "maintenance" if isinstance(action, Maintenance) else "repair"
         self.operating_level *= 1 - action.operation_reduction
 
@@ -394,7 +401,7 @@ class Mooring:
             details=action,
             mooring=True,
             connected_systems=self.connected_systems,
-            #part_ol=self.operating_level,
+            # part_ol=self.operating_level,
         )
         repair_request = self.windfarm.repair_manager.register_request(repair_request)
         self.env.log_action(
@@ -422,7 +429,6 @@ class Mooring:
                 self.id, self.id, exclude=[repair_request.request_id]
             )
         self.windfarm.repair_manager.submit_request(repair_request)
-
 
     def run_single_maintenance(self, maintenance: Maintenance) -> Generator:
         """Runs a process to trigger one type of maintenance request throughout the
@@ -465,7 +471,6 @@ class Mooring:
                             # A different process failed, so subtract the elapsed time
                             # only if it had started to be processed
                             hours_to_next -= 0 if start == -1 else self.env.now - start
-
 
     def run_single_failure(self, failure: Failure) -> Generator:
         """Runs a process to trigger one type of failure repair request throughout the

@@ -32,7 +32,9 @@ class RepairsMixin:
     """
 
     env: WombatEnvironment
-    settings: PortConfig | ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData  # noqa: E501
+    settings: (
+        PortConfig | ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData
+    )  # noqa: E501
 
     def initialize_cost_calculators(self, which: str) -> None:
         """Creates the cost calculators for each of the subclasses that will need to
