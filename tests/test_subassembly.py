@@ -1,6 +1,5 @@
 """Tests the Subassembly class."""
 
-
 import numpy as np
 import pytest
 

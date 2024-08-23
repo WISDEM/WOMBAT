@@ -1,4 +1,5 @@
 """Creates the Turbine class."""
+
 from __future__ import annotations
 
 from typing import Callable
@@ -63,13 +64,16 @@ class System:
         self.servicing = self.env.event()
         self.servicing_queue = self.env.event()
         self.cable_failure = self.env.event()
+        self.mooring_failure = self.env.event()
 
         # Ensure servicing statuses starts as processed and inactive
         self.servicing.succeed()
         self.servicing_queue.succeed()
         self.cable_failure.succeed()
+        self.mooring_failure.succeed()
 
         system = system.lower().strip()
+        self.system_type = system.lower().strip()
         self._calculate_system_value(subassemblies)
         if system not in ("turbine", "substation"):
             raise ValueError("'system' must be one of 'turbine' or 'substation'!")
@@ -182,21 +186,25 @@ class System:
 
     @property
     def operating_level(self) -> float:
-        """The turbine's operating level, based on subassembly and cable performance.
+        """The turbine's operating level, based on subassembly, mooring and cable performance.
 
         Returns
         -------
         float
             Operating level of the turbine.
         """
-        if self.cable_failure.triggered and self.servicing.triggered:
+        if (
+            self.cable_failure.triggered
+            and self.mooring_failure.triggered
+            and self.servicing.triggered
+        ):  # and self.anchor_failure.triggered and self.mooringline_failure.triggered
             ol: float = reduce(mul, [sub.operating_level for sub in self.subassemblies])
             return ol  # type: ignore
         return 0.0
 
     @property
     def operating_level_wo_servicing(self) -> float:
-        """The turbine's operating level, based on subassembly and cable performance,
+        """The turbine's operating level, based on subassembly, mooring and cable performance,
         without accounting for servicing status.
 
         Returns
@@ -204,7 +212,9 @@ class System:
         float
             Operating level of the turbine.
         """
-        if self.cable_failure.triggered:
+        if (
+            self.cable_failure.triggered and self.mooring_failure.triggered
+        ):  # self.anchor_failure.triggered and self.mooringline_failure.triggered
             ol: float = reduce(mul, [sub.operating_level for sub in self.subassemblies])
             return ol  # type: ignore
         return 0.0

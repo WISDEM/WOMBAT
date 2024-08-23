@@ -107,7 +107,9 @@ class Metrics:
         project_capacity: float,
         turbine_capacities: list[float],
         substation_id: str | list[str],
+        anchor_id: str | list[str],
         turbine_id: str | list[str],
+        mooringline_id: str | list[str],
         substation_turbine_map: dict[str, dict[str, list[str]]],
         service_equipment_names: str | list[str],
         fixed_costs: str | None = None,
@@ -181,11 +183,21 @@ class Metrics:
         self.turbine_id = turbine_id
 
         self.substation_turbine_map = substation_turbine_map
+
         self.turbine_weights = (
             pd.concat([pd.DataFrame(val) for val in substation_turbine_map.values()])
             .set_index("turbines")
             .T
         )
+        if isinstance(anchor_id, str):
+            anchor_id = [anchor_id]
+        self.anchor_id = anchor_id
+
+        if isinstance(mooringline_id, str):
+            mooringline_id = [mooringline_id]
+        self.mooringline_id = mooringline_id
+
+        # self.mooring_map = mooring_map
 
         if isinstance(service_equipment_names, str):
             service_equipment_names = [service_equipment_names]
@@ -210,6 +222,9 @@ class Metrics:
         if isinstance(production, str):
             production = self._read_data(production)
         self.production = self._tidy_data(production)
+
+        # self.mooring_map = mooring_map
+        # TODO
 
     @classmethod
     def from_simulation_outputs(cls, fpath: Path | str, fname: str) -> Metrics:
@@ -728,15 +743,10 @@ class Metrics:
                     .sum()
                     .fillna(0)
                     .reset_index(level=0)
-                    .fillna(0)
-                    .T
                 )
-                costs = (
-                    costs.rename(columns=costs.iloc[0])
-                    .drop(index="agent")
-                    .reset_index(drop=True)
-                )
-                return costs
+                costs = costs.fillna(costs.max(axis=0)).T
+                costs = costs.rename(columns=costs.iloc[0]).drop(index="agent")
+                return costs.reset_index(drop=True)
 
             col_filter = ["agent"] + col_filter
             costs = (

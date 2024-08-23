@@ -1,6 +1,5 @@
 """Tests wombat/core/repair_management.py."""
 
-
 import numpy as np
 import pytest
 

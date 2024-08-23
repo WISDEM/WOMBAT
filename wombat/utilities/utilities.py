@@ -4,10 +4,17 @@ from __future__ import annotations
 
 from string import digits, punctuation
 from typing import Callable
-from functools import cache
 
 import numpy as np
 import pandas as pd
+
+
+try:
+    from functools import cache  # type: ignore
+except ImportError:
+    from functools import lru_cache
+
+    cache = lru_cache(None)
 
 
 # Don't repeat the most common inputs that occur when there are no state changes, but

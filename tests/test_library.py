@@ -1,6 +1,5 @@
 """Tests for wombat/core/library.py."""
 
-
 from wombat.core.library import load_yaml, library_map
 
 

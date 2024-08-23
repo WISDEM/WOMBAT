@@ -1,6 +1,5 @@
 """Tests wombat/core/environment.py."""
 
-
 from __future__ import annotations
 
 import datetime

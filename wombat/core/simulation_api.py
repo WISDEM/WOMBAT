@@ -1,4 +1,5 @@
 """The main API for the ``wombat``."""
+
 from __future__ import annotations
 
 import datetime
@@ -120,6 +121,7 @@ class Configuration(FromDictMixin):
 
     name: str
     layout: str
+    anchor_layout: str
     service_equipment: str | list[str] = field(converter=convert_to_list)
     weather: str | pd.DataFrame
     workday_start: int = field(converter=int)
@@ -178,13 +180,6 @@ class Simulation(FromDictMixin):
 
     def __attrs_post_init__(self) -> None:
         """Post-initialization hook."""
-        # Check for random seeding from the configuration if none provided directly
-        if self.random_seed is None:
-            self.random_seed = self.config.random_seed
-        if self.random_generator is None:
-            self.random_generator = self.config.random_generator
-
-        # Finish the setup
         self._setup_simulation()
 
     @config.validator  # type: ignore
@@ -291,7 +286,16 @@ class Simulation(FromDictMixin):
             random_generator=self.random_generator,
         )
         self.repair_manager = RepairManager(self.env)
-        self.windfarm = Windfarm(self.env, self.config.layout, self.repair_manager)
+        self.windfarm = Windfarm(
+            self.env, self.config.layout, self.config.anchor_layout, self.repair_manager
+        )
+
+        # Assuming your Windfarm object is named windfarm
+        mooring_anchors = len(self.windfarm.mooring_map.anchors)
+        mooring_lines = len(self.windfarm.mooring_map.mooring_lines)
+        print(
+            f"Number of mooring anchors: {mooring_anchors}, Number of mooring lines: {mooring_lines}"
+        )
 
         # Create the servicing equipment and set the necessary environment variables
         self.service_equipment: dict[str, ServiceEquipment] = {}  # type: ignore
@@ -359,7 +363,7 @@ class Simulation(FromDictMixin):
             self.initialize_metrics()
 
     def initialize_metrics(self) -> None:
-        """Instantiates the ``metrics`` attribute after the simulation is run."""
+        """Instantiates the `metrics` attribute after the simulation is run."""
         events = self.env.load_events_log_dataframe()
         operations = self.env.load_operations_log_dataframe()
         power_potential, power_production = self.env.power_production_potential_to_csv(
@@ -372,6 +376,10 @@ class Simulation(FromDictMixin):
         capacities = [
             self.windfarm.system(t).capacity for t in self.windfarm.turbine_id
         ]
+
+        anchor_ids = self.windfarm.anchor_ids
+        mooringline_ids = self.windfarm.mooringline_ids
+
         self.metrics = Metrics(
             data_dir=self.library_path,
             events=events,
@@ -385,7 +393,9 @@ class Simulation(FromDictMixin):
             substation_id=self.windfarm.substation_id.tolist(),
             turbine_id=self.windfarm.turbine_id.tolist(),
             substation_turbine_map=substation_turbine_map,
-            service_equipment_names=[*self.service_equipment],  # type: ignore
+            anchor_id=anchor_ids,
+            mooringline_id=mooringline_ids,
+            service_equipment_names=[*self.service_equipment],
         )
 
     def save_metrics_inputs(self) -> None:
@@ -396,6 +406,17 @@ class Simulation(FromDictMixin):
             s_id: {k: v.tolist() for k, v in dict.items()}
             for s_id, dict in self.windfarm.substation_turbine_map.items()
         }
+
+        # # Constructing a comprehensive mooring_map from Mooring instances
+        mooring_map = {
+            anchor_id: {
+                "connected_systems": mooring.connected_systems,
+                "mooring_data": mooring.mooring_data,
+                # Add more attributes as needed
+            }
+            for anchor_id, mooring in self.windfarm.moorings.items()
+        }
+
         data = {
             "data_dir": str(self.library_path),
             "events": str(self.env.events_log_fname),
@@ -410,7 +431,9 @@ class Simulation(FromDictMixin):
             "fixed_costs": self.config.fixed_costs,
             "substation_id": self.windfarm.substation_id.tolist(),
             "turbine_id": self.windfarm.turbine_id.tolist(),
+            "anchor_id": self.windfarm.anchor_ids,
             "substation_turbine_map": substation_turbine_map,
+            "mooring_map": mooring_map,
             "service_equipment_names": [*self.service_equipment],
         }
 

@@ -13,6 +13,7 @@ signifies the user's input library path:
   ├── substations  <- Substation configuration files
   ├── turbines     <- Turbine configuration and power curve files
   ├── vessels      <- Land-based and offshore servicing equipment configuration files
+  ├── mooring      <- anchor and mooring lines configuration files
   ├── weather      <- Weather profiles
   ├── results      <- The analysis log files and any saved output data
 ```
@@ -38,6 +39,7 @@ IEA_26 = CODE_COMPARISON / "iea26"
 COREWIND = DEFAULT_LIBRARY / "corewind"
 
 OSW_FIXED = BASE_CASES / "offshore_fixed"
+OSW_FLOATING = BASE_CASES / "offshore_floating"
 LBW = BASE_CASES / "land_based"
 
 library_map = {
@@ -46,6 +48,7 @@ library_map = {
     "IEA26": IEA_26,
     "COREWIND": COREWIND,
     "OSW_FIXED": OSW_FIXED,
+    "OSW_FLOATING": OSW_FLOATING,
     "LBW": LBW,
     "LAND_BASED": LBW,
 }
@@ -102,6 +105,7 @@ def create_library_structure(
     ├── substations  <- Substation configuration files
     ├── turbines     <- Turbine configuration and power curve files
     ├── vessels      <- Land-based and offshore servicing equipment configuration files
+    ├── mooring      <- anchor and mooring lines configuration files
     ├── weather      <- Weather profiles
     ├── results      <- The analysis log files and any saved output data
     ```
@@ -134,6 +138,7 @@ def create_library_structure(
         "substations",
         "turbines",
         "vessels",
+        "mooring",
         "weather",
         "results",
     )

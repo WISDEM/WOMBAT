@@ -1,6 +1,5 @@
 """Creates the necessary repair classes."""
 
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -24,7 +23,7 @@ from wombat.core import (
 if TYPE_CHECKING:
     from wombat.core import Port, ServiceEquipment
     from wombat.windfarm import Windfarm
-    from wombat.windfarm.system import Cable, System
+    from wombat.windfarm.system import Cable, System, Mooring
 
 
 class RepairManager(FilterStore):
@@ -178,7 +177,7 @@ class RepairManager(FilterStore):
         """Run any equipment that has a pending request where the current windfarm
         operating capacity is less than or equal to the servicing equipment's threshold.
 
-        TODO: This methodology needs to better resolve dispatching every equipment
+         This methodology needs to better resolve dispatching every equipment
         relating to a request vs just the one(s) that are required. Basically, don't
         dispatch every available HLV, but just one plus one of every other capability
         category that has pending requests
@@ -193,7 +192,7 @@ class RepairManager(FilterStore):
         # have an operating reduction threshold to meet at this time
         if "TOW" in request.details.service_equipment:
             if request.system_id not in self.port.invalid_systems:
-                system = self.windfarm.system(request.system_id)
+                system = self.windfarm.system(request.system_id)  # combo
                 yield system.servicing_queue & system.servicing
                 yield self.env.timeout(self.env.get_random_seconds(high=1))
                 if request.system_id in self.systems_in_tow:
@@ -202,11 +201,13 @@ class RepairManager(FilterStore):
                 yield self.env.process(self.port.run_tow_to_port(request))
             return
 
-        # Wait for the actual system or cable to be available
+        # Wait for the actual system, cable or mooring to be available
         if request.cable:
             yield self.windfarm.cable(request.system_id).servicing
+        elif request.mooring:  # This condition is newly added for mooring
+            yield self.windfarm.mooring(request.system_id).servicing
         else:
-            yield self.windfarm.system(request.system_id).servicing
+            yield self.windfarm.system(request.system_id).servicing  # combo
 
         operating_capacity = self.windfarm.current_availability_wo_servicing
         for capability in self.request_map:
@@ -232,7 +233,7 @@ class RepairManager(FilterStore):
                     if request.system_id in self.port.invalid_systems:
                         break
 
-                    yield self.windfarm.system(request.system_id).servicing
+                    yield self.windfarm.system(request.system_id).servicing  # combo
                     self.env.process(
                         self.port.run_unscheduled_in_situ(request, initial=True)
                     )
@@ -256,7 +257,7 @@ class RepairManager(FilterStore):
         if "TOW" in request.details.service_equipment:
             if request.system_id not in self.port.invalid_systems:
                 self.systems_waiting_for_tow.append(request.system_id)
-                system = self.windfarm.system(request.system_id)
+                system = self.windfarm.system(request.system_id)  # combo
                 yield system.servicing_queue & system.servicing
                 yield self.env.timeout(self.env.get_random_seconds(high=1))
                 if request.system_id in self.systems_in_tow:
@@ -265,11 +266,13 @@ class RepairManager(FilterStore):
                 yield self.env.process(self.port.run_tow_to_port(request))
             return
 
-        # Wait for the actual system or cable to be available
+        # Wait for the actual system, cable or mooring to be available
         if request.cable:
             yield self.windfarm.cable(request.system_id).servicing
+        elif request.mooring:  # Correctly added mooring
+            yield self.windfarm.mooring(request.system_id).servicing
         else:
-            yield self.windfarm.system(request.system_id).servicing
+            yield self.windfarm.system(request.system_id).servicing  # combo_
 
         dispatched = None
         for capability, n_requests in self.request_map.items():
@@ -480,12 +483,22 @@ class RepairManager(FilterStore):
                 continue
             if request.system_id in self.systems_waiting_for_tow:
                 continue
+
+            # Check if the request is for a cable or mooring and if it's available for servicing
             if request.cable:
                 if not self.windfarm.cable(request.system_id).servicing.triggered:
                     continue
-            else:
-                if not self.windfarm.system(request.system_id).servicing.triggered:
+            # Add a specific check for mooring requests
+            elif request.mooring:  # This is the new line to handle mooring specifically
+                if not self.windfarm.mooring(request.system_id).servicing.triggered:
                     continue
+            # Fall back to general system checks if not cable or mooring
+            else:
+                if not self.windfarm.system(
+                    request.system_id
+                ).servicing.triggered:  # combo
+                    continue
+
             if request.system_id not in self.invalid_systems:
                 if equipment_capability.intersection(request.details.service_equipment):
                     self.request_status_map["pending"].difference_update(
@@ -500,7 +513,7 @@ class RepairManager(FilterStore):
         return None
 
     def invalidate_system(
-        self, system: System | Cable | str, tow: bool = False
+        self, system: System | Cable | Mooring | str, tow: bool = False
     ) -> None:
         """Disables the ability for servicing equipment to service a specific system,
         sets the turbine status to be in servicing, and interrupts all the processes
@@ -508,16 +521,20 @@ class RepairManager(FilterStore):
 
         Parameters
         ----------
-        system : System | Cable | str
-            The system, cable, or ``str`` id of one to disable repairs.
+        system : System | Cable | Mooring | str
+            The system, cable, mooring or ``str`` id of one to disable repairs.
         tow : bool, optional
             Set to True if this is for a tow-to-port request.
         """
         if isinstance(system, str):
             if "::" in system:
                 system = self.windfarm.cable(system)
+            elif "mooring" in system:  # Example check for a mooring system identifier
+                system = self.windfarm.mooring(
+                    system
+                )  # Assumes windfarm.mooring() method exists
             else:
-                system = self.windfarm.system(system)
+                system = self.windfarm.system(system)  # combo
 
         if system.id not in self.invalid_systems and system.servicing.triggered:
             system.servicing_queue = self.env.event()
@@ -532,8 +549,10 @@ class RepairManager(FilterStore):
                 self.systems_waiting_for_tow.index(system.id)
             )
 
+    # def interrupt_system(self, system: System | Cable | Mooring) -> None:
+
     def interrupt_system(
-        self, system: System | Cable, replacement: str | None = None
+        self, system: System | Cable | Mooring, replacement: str | None = None
     ) -> None:
         """Sets the turbine status to be in servicing, and interrupts all the processes
         to turn off operations.
@@ -576,14 +595,14 @@ class RepairManager(FilterStore):
         yield self.in_process_requests.get(lambda x: x is repair)
 
     def enable_requests_for_system(
-        self, system: System | Cable, tow: bool = False
+        self, system: System | Cable | Mooring, tow: bool = False
     ) -> None:
         """Reenables service equipment operations on the provided system.
 
         Parameters
         ----------
-        system_id : System | Cable
-            The ``System`` or ``Cable`` that can be operated on again.
+        system_id : System | Cable | Mooring
+            The ``System``, ``Cable`` or ``Mooring`` that can be operated on again.
         tow : bool, optional
             Set to True if this is for a tow-to-port request.
         """

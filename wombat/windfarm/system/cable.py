@@ -1,4 +1,5 @@
-""""Defines the Cable class and cable simulations."""
+""" "Defines the Cable class and cable simulations."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -75,6 +76,13 @@ class Cable:
         self.start_node = start_node
         self.end_node = end_node
         self.id = f"cable::{start_node}::{end_node}"
+
+        # Check if start_node or end_node are anchors and adjust behavior accordingly
+        if windfarm.is_anchor(start_node) or windfarm.is_anchor(end_node):
+            # Log, raise an error, or adjust logic here to handle anchor nodes
+            print(f"Skipping cable setup for anchor nodes: {start_node}, {end_node}")
+            return  # Early return to skip setting up cable for anchor nodes
+
         self.system = windfarm.system(start_node)
 
         if self.connection_type not in ("array", "export"):
@@ -122,7 +130,7 @@ class Cable:
 
     def finish_setup(self) -> None:
         """Creates the ``upstream_nodes`` and ``upstream_cables`` attributes for use by
-        the cable when triggering usptream failures and resetting them after the repair
+        the cable when triggering upstream failures and resetting them after the repair
         is complete.
         """
         wf_map = self.windfarm.wind_farm_map
@@ -213,7 +221,7 @@ class Cable:
 
         Parameters
         ----------
-        failure : Failre
+        failure : Failure
             The ``Failure`` that is causing a string shutdown.
         """
         shared_logging = {
