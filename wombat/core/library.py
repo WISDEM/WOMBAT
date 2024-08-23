@@ -138,7 +138,8 @@ def create_library_structure(
         "substations",
         "turbines",
         "vessels",
-        "mooring" "weather",
+        "mooring",
+        "weather",
         "results",
     )
     # Make the project/ subfolder structure once and make the rest without parents
