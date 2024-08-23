@@ -1,5 +1,6 @@
 """Creates the utilities objects."""
 
+
 from .time import (
     HOURS_IN_DAY,
     HOURS_IN_YEAR,
@@ -9,4 +10,4 @@ from .time import (
     hours_until_future_hour,
 )
 from .logging import setup_logger, format_events_log_message
-from .utilities import IEC_power_curve, _mean, create_variable_from_string
+from .utilities import IEC_power_curve, _mean, cache, create_variable_from_string

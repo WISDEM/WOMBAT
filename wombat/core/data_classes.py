@@ -1,11 +1,12 @@
-"""Turbine and turbine component shared utilities."""
+"""Turbine and turbine component shared utilities.
+    additionally mooring and mooring componenets"""
 
 
 from __future__ import annotations
 
 import datetime
 from math import fsum
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, Dict, List
 from pathlib import Path
 from functools import partial, update_wrapper
 from collections.abc import Sequence
@@ -648,13 +649,16 @@ class RepairRequest(FromDictMixin):
         validator=attrs.validators.instance_of((Failure, Maintenance))
     )
     cable: bool = field(default=False, converter=bool, kw_only=True)
+    mooring: bool = field(default=False, converter=bool, kw_only=True)
     upstream_turbines: list[str] = field(default=Factory(list), kw_only=True)
     upstream_cables: list[str] = field(default=Factory(list), kw_only=True)
+    connected_systems: list[str] = field(factory=list, kw_only=True) #endities # Identifiers for both turbines and substations connected via mooringlines
+    mooring_lines: list[str] = field(factory=list, kw_only=True)  # Specific mooring lines involved in the request
     prior_operating_level: float = field(
         default=1, kw_only=True, validator=validate_0_1_inclusive
     )
     request_id: str = field(init=False)
-
+    
     def assign_id(self, request_id: str) -> None:
         """Assign a unique identifier to the request.
 
@@ -1589,7 +1593,7 @@ class StrategyMap:
         elif capability == "SCN":
             self.SCN.append(self.SCN.pop(ix))
         elif capability == "MCN":
-            self.LCN.append(self.MCN.pop(ix))
+            self.MCN.append(self.MCN.pop(ix))
         elif capability == "LCN":
             self.LCN.append(self.LCN.pop(ix))
         elif capability == "CAB":
@@ -1605,7 +1609,7 @@ class StrategyMap:
         elif capability == "AHV":
             self.AHV.append(self.AHV.pop(ix))
         elif capability == "VSG":
-            self.VSG.append(self.VSG.pop(ix))
+            self.VSG.append(self.AHV.pop(ix))
         else:
             # This should not even be able to be reached
             raise ValueError(
@@ -2108,3 +2112,170 @@ class WindFarmMap:
         if return_cables:
             return turbines, cables
         return turbines
+
+
+@define(auto_attribs=True)
+class Anchor:
+    """Represents an individual anchor within the wind farm.
+
+    Parameters
+    ----------
+    id : str
+        Unique identifier for the anchor.
+    type : str
+        Type of the anchor (single, shared, substation).
+    coordinates : tuple[float, float]
+         location of the anchor (long, lat).
+    """
+    id: str 
+    type: str 
+    coordinates: tuple[float, float] 
+    connected_to: List[str] = field(factory=list)  # List of connected turbines or substations
+    
+    def add_connection(self, connection_id: str) -> None:
+        self.connected_to.append(connection_id)
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "type": self.type,
+            "coordinates": self.coordinates,
+            "connected_to": self.connected_to
+        }
+
+@define(auto_attribs=True)
+class MooringLine:
+    """Represents a mooring line connecting an anchor to a turbine or substation.
+
+    Parameters
+    ----------
+    id : str
+        Unique identifier for the mooring line.
+    anchor_id : str
+        Identifier of the associated anchor.
+    mooringline_type: str
+        the identifier yaml file
+    connected_to : str
+        Identifier of the turbine or substation the mooring line is connected to.
+
+    """
+    id: str 
+    anchor_id: str 
+    mooringline_type: str
+    connected_to: str 
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "anchor_id": self.anchor_id,
+            "mooringline_type": self.mooringline_type,
+            "connected_to": self.connected_to
+        }
+
+@define(auto_attribs=True)
+class Turbine:
+    id: str
+    location: tuple[float, float]
+    connected_anchors: List[str] = field(factory=list)  # List of connected anchor IDs
+    
+    def add_anchor(self, anchor_id: str) -> None:
+        self.connected_anchors.append(anchor_id)
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "location": self.location,
+            "connected_anchors": self.connected_anchors
+        }
+
+@define(auto_attribs=True)
+class Substation:
+    id: str
+    location: tuple[float, float]
+    connected_anchors: List[str] = field(factory=list)  # List of connected anchor IDs
+    
+    def add_anchor(self, anchor_id: str) -> None:
+        self.connected_anchors.append(anchor_id)
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "location": self.location,
+            "connected_anchors": self.connected_anchors
+        }
+    
+    
+@define(auto_attribs=True)
+class MooringMap:
+    anchors: Dict[str, Anchor] = field(factory=dict)
+    mooring_lines: Dict[str, MooringLine] = field(factory=dict)
+    id_map: Dict[str, tuple] = {}
+    connections: Dict[str, List[str]] = field(factory=dict)
+    
+    
+    def add_anchor(self, anchor: Anchor) -> None:
+        """Adds an anchor to the map."""
+        unified_id = f"A-{anchor.id}"
+        self.anchors[anchor.id] = anchor
+        self.id_map[unified_id] = (anchor, 'anchor')
+
+    def add_mooring_line(self, mooring_line: MooringLine) -> None:
+        """Adds a mooring line, linking an anchor to a turbine or substation.
+        Constructs a unique identifier for the mooring line that includes the connected entities.
+        """
+        connection_id = f"{mooring_line.anchor_id}--{mooring_line.id}--{mooring_line.connected_to}"
+        self.mooring_lines[connection_id] = mooring_line
+        unified_id = f"M-{mooring_line.id}"
+        self.id_map[unified_id] = (mooring_line, 'line')
+        
+        # Track the connections
+        if mooring_line.anchor_id not in self.connections:
+            self.connections[mooring_line.anchor_id] = []
+        self.connections[mooring_line.anchor_id].append(mooring_line.connected_to)
+           
+        if mooring_line.connected_to not in self.connections:
+            self.connections[mooring_line.connected_to] = []
+        self.connections[mooring_line.connected_to].append(mooring_line.anchor_id)
+
+    def get_connected_turbines(self, anchor_id: str) -> List[str]:
+        """Returns a list of turbine IDs connected to the given anchor."""
+        return [
+            connected for connected in self.connections.get(anchor_id, [])
+            if 'WTG' in connected
+        
+        ]
+        
+
+
+    def get_connected_substations(self, anchor_id: str) -> List[str]:
+        """Returns a list of substation IDs connected to the given anchor."""
+        return [
+            connected for connected in self.connections.get(anchor_id, [])
+            if 'SUB' in connected
+        ]
+        
+
+    def get_anchor_connections(self, turbine_or_substation_id: str) -> List[str]:
+        """Returns a list of anchor IDs connected to the given turbine or substation."""
+        return [
+        connected for connected in self.connections.get(turbine_or_substation_id, [])
+        if connected in self.anchors
+        ]
+        
+
+    
+    def get_by_mooring_id(self, mooring_id):
+        """Returns the mooring IDs."""
+        return self.id_map[mooring_id][0] 
+    
+    def to_dict(self):
+        """
+        Converts the stored mooring lines and anchors into a dictionary format
+        that's easier to interact with in other parts of the simulation.
+        """
+        return {
+            "anchors": {anchor_id: anchor.to_dict() for anchor_id, anchor in self.anchors.items()},
+            "mooring_lines": {mooring_line_id: mooring_line.to_dict() for mooring_line_id, mooring_line in self.mooring_lines.items()},
+            "connections": self.connections
+            }
+    

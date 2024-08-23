@@ -1,5 +1,4 @@
 """Provides the O&M Enviroment class; a subclass of simpy.Environment."""
-
 from __future__ import annotations
 
 import io
@@ -435,6 +434,7 @@ class WombatEnvironment(simpy.Environment):
         ix, *_ = self.weather.filter(pl.col("datetime") == date)
         return ix.item()
 
+  
     def _weather_setup(
         self,
         weather_file: str,
@@ -579,7 +579,7 @@ class WombatEnvironment(simpy.Environment):
         column_order.insert(0, column_order.pop(column_order.index("index")))
 
         # Ensure the columns are ordered correctly and re-compute pandas-compatible ix
-        return weather.select(column_order).drop("index").with_row_index()
+        return weather.select(column_order) #.drop("index").with_row_index()
 
     @property
     def weather_now(self) -> pl.DataFrame:

@@ -3,7 +3,6 @@ to the operations of servicing equipment and the `ServiceEquipment` class that p
 the repair and transportation logic for scheduled, unscheduled, and unscheduled towing
 servicing equipment.
 """
-
 # TODO: NEED A SPECIFIC STARTUP METHOD
 from __future__ import annotations
 
@@ -12,7 +11,6 @@ from math import ceil
 from typing import TYPE_CHECKING, Any
 from pathlib import Path
 from datetime import timedelta
-from functools import cache
 from itertools import zip_longest
 from collections.abc import Generator
 
@@ -30,7 +28,7 @@ from wombat.core import (
     ServiceEquipmentData,
 )
 from wombat.windfarm import Windfarm
-from wombat.utilities import HOURS_IN_DAY, hours_until_future_hour
+from wombat.utilities import HOURS_IN_DAY, cache, hours_until_future_hour
 from wombat.core.mixins import RepairsMixin
 from wombat.core.library import load_yaml
 from wombat.windfarm.system import System
@@ -41,7 +39,7 @@ from wombat.core.data_classes import (
 )
 from wombat.windfarm.system.cable import Cable
 from wombat.windfarm.system.subassembly import Subassembly
-
+from wombat.windfarm.system.mooring import Mooring
 
 if TYPE_CHECKING:
     from wombat.core import Port
@@ -461,9 +459,62 @@ class ServiceEquipment(RepairsMixin):
                         cable.downstream_failure.succeed()
                     farm.system(t).cable_failure.succeed()
 
+   
+    def enable_mooring_operations(self, mooring: Mooring) -> None:
+        """
+        Reactivates turbines and substations directly and indirectly connected to the mooring
+        line or anchor after a repair or maintenance operation, resetting operational and
+        mooring-specific failure events.
+        
+        Parameters
+        ----------
+        mooring : Mooring
+            The mooring line or anchor that has been repaired or maintained.
+        """
+        # Reactivate directly connected systems (turbines and substations)
+        directly_affected_systems = set(mooring.connected_systems)
+        for system_id in directly_affected_systems:
+            system = self.windfarm.system(system_id)
+            #system.operating_level = 1.0  # Assuming 1.0 represents full operational capacity
+            #system.servicing.succeed()
+            if hasattr(system, 'mooring_failure') and not system.mooring_failure.triggered:
+                system.mooring_failure.succeed()
+            #print(f"Reactivated directly affected system: {system_id}")
+        
+        # Gather all anchors connected to the directly affected systems
+        anchors_to_check = set()
+        for system_id in directly_affected_systems:
+            anchors_to_check.update(self.windfarm.mooring_map.get_anchor_connections(system_id))
+        
+        #print(f"Anchors to check: {anchors_to_check}")
+    
+        # Gather all systems connected to these anchors
+        indirectly_affected_systems = set()
+        for anchor_id in anchors_to_check:
+            connected_systems = self.windfarm.mooring_map.get_connected_turbines(anchor_id) + self.windfarm.mooring_map.get_connected_substations(anchor_id)
+            #print(f"Connected systems for anchor_id {anchor_id}: {connected_systems}")
+            for connected_system_id in connected_systems:
+                if connected_system_id not in directly_affected_systems:
+                    indirectly_affected_systems.add(connected_system_id)
+             #       print(f"Indirectly affected system added: {connected_system_id}")
+        
+        # Reactivate indirectly affected systems (turbines and substations)
+        for system_id in indirectly_affected_systems:
+            system = self.windfarm.system(system_id)
+            #system.operating_level = 1.0  # Reset operational level for indirect connections
+            #system.servicing.succeed()
+            if hasattr(system, 'mooring_failure') and not system.mooring_failure.triggered:
+                system.mooring_failure.succeed()
+           # print(f"Reactivated indirectly affected system: {system_id}")
+    
+   #     print(f"Final list of indirectly affected systems reactivated: {indirectly_affected_systems}")  
+        
+       
+    
+
     def register_repair_with_subassembly(
         self,
-        subassembly: Subassembly | Cable,
+        subassembly: Subassembly | Cable | Mooring,
         repair: RepairRequest,
         starting_operating_level: float,
     ) -> None:
@@ -481,6 +532,7 @@ class ServiceEquipment(RepairsMixin):
         starting_operating_level : float
             The operating level before a repair was started.
         """
+        #print(f"Registering repair for subassembly: {subassembly.id}, Type: {type(subassembly).__name__}")
         operation_reduction = repair.details.operation_reduction
 
         # Put the subassembly/component back to good as new condition and restart
@@ -495,6 +547,7 @@ class ServiceEquipment(RepairsMixin):
             try:
                 subassembly.broken.succeed()
             except RuntimeError as e:
+                print(subassembly.system.id, repair.details.description)
                 raise e
         elif operation_reduction == 0:
             subassembly.operating_level = starting_operating_level
@@ -508,10 +561,17 @@ class ServiceEquipment(RepairsMixin):
             self.manager.enable_requests_for_system(subassembly)
             if operation_reduction == 1:
                 self.enable_string_operations(subassembly)
+        elif isinstance(subassembly, Mooring):  # Handling Mooring specifically
+            # If the system is mooring, re-enable the directly and indirectly connected systems
+            self.manager.enable_requests_for_system(subassembly)
+            if operation_reduction == 0:
+                #print("Calling enable_mooring_operations")
+                self.enable_mooring_operations(subassembly)  # Use the new mooring-specific function
         else:
-            raise TypeError("`subassembly` was neither a `Cable` nor `Subassembly`.")
+            raise TypeError("`subassembly` was neither a `Cable`, `Subassembly` nor 'Mooring'.")
 
         self.env.process(self.manager.register_repair(repair))
+        #print("Repair registered and processes enabled")
 
     def wait_until_next_operational_period(
         self, *, less_mobilization_hours: int = 0
@@ -1132,7 +1192,7 @@ class ServiceEquipment(RepairsMixin):
 
     def crew_transfer(
         self,
-        system: System | Cable,
+        system: System | Cable | Mooring,
         subassembly: Subassembly,
         request: RepairRequest,
         to_system: bool,
@@ -1142,7 +1202,7 @@ class ServiceEquipment(RepairsMixin):
 
         Parameters
         ----------
-        system : System | Cable
+        system : System | Cable | Mooring 
             The System where the crew needs to be transferred to.
         subassembly : Subassembly
             The Subassembly that is being worked on.
@@ -1395,10 +1455,31 @@ class ServiceEquipment(RepairsMixin):
             system = self.windfarm.cable(request.system_id)
             cable = request.subassembly_id.split("::")[1:]
             subassembly = self.windfarm.graph.edges[cable]["cable"]
+        elif request.mooring:  # Handling requests for mooring specifically
+            system = self.windfarm.mooring(request.system_id)
+            
+            if 'mooringline' in request.subassembly_id:
+               # Extracting the identifier for the mooring line from the subassembly_id
+               mooringline_identifier = request.subassembly_id #.split("mooringline_")[-1]
+               # Using the windfarm's mooring method to fetch the mooring line object
+               subassembly = self.windfarm.mooring(mooringline_identifier)
+            elif 'anchor' in request.subassembly_id:
+               # Similarly extracting the anchor identifier
+               anchor_identifier = request.subassembly_id#.split("anchor_")[-1]
+               # Using the windfarm's mooring method to fetch the anchor object
+               subassembly = self.windfarm.mooring(anchor_identifier)
+                  
+            
+           # mooring = request.subassembly_id.split("mooring")[1:]
+           # subassembly = self.windfarm.mooring_graph[mooring]["mooring"]  # For mooring, the mooring itself can be considered the subassembly
+               
         else:
             system = self.windfarm.system(request.system_id)  # type: ignore
             subassembly = getattr(system, request.subassembly_id)
 
+        if subassembly is None:
+            raise ValueError(f"Subassembly not found for ID {request.subassembly_id}")
+        
         starting_operational_level = max(
             prior_operation_level, subassembly.operating_level
         )
@@ -1695,6 +1776,8 @@ class ServiceEquipment(RepairsMixin):
 
                 if request.cable:
                     system = self.windfarm.cable(request.system_id)
+                elif request.mooring:
+                    system = self.windfarm.mooring(request.system_id)
                 else:
                     system = self.windfarm.system(request.system_id)  # type: ignore
                 yield system.servicing
@@ -1784,6 +1867,8 @@ class ServiceEquipment(RepairsMixin):
         if not hasattr(self, "port"):
             if request.cable:
                 system = self.windfarm.cable(request.system_id)
+            elif request.mooring:
+                system = self.windfarm.mooring(request.system_id)
             else:
                 system = self.windfarm.system(request.system_id)  # type: ignore
             yield system.servicing
@@ -1811,6 +1896,8 @@ class ServiceEquipment(RepairsMixin):
 
                 if request.cable:
                     system = self.windfarm.cable(request.system_id)
+                elif request.mooring:
+                    system = self.windfarm.mooring(request.system_id)
                 else:
                     system = self.windfarm.system(request.system_id)  # type: ignore
 
@@ -1847,6 +1934,8 @@ class ServiceEquipment(RepairsMixin):
             else:
                 if request.cable:
                     system = self.windfarm.cable(request.system_id)
+                elif request.mooring:
+                    system = self.windfarm.mooring(request.system_id)
                 else:
                     system = self.windfarm.system(request.system_id)  # type: ignore
                 yield system.servicing

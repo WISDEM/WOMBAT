@@ -1,13 +1,21 @@
 """Provides various utility functions that don't fit within a common theme."""
 
+
 from __future__ import annotations
 
-from string import digits, punctuation
+import re
 from typing import Callable
-from functools import cache
 
 import numpy as np
 import pandas as pd
+
+
+try:
+    from functools import cache  # type: ignore
+except ImportError:
+    from functools import lru_cache
+
+    cache = lru_cache(None)
 
 
 # Don't repeat the most common inputs that occur when there are no state changes, but
@@ -49,11 +57,11 @@ def create_variable_from_string(string: str) -> str:
     'electrical_system'
 
     """
-    new_string = (
-        string.lstrip(punctuation + digits)
-        .translate(str.maketrans("", "", punctuation.replace("_", " ")))
-        .lower()
-    )
+    new_string = re.sub(
+        "[^0-9a-zA-Z]+",
+        "_",
+        re.sub(r"^\W+", "", re.sub("[^a-zA-Z]+$", "", string)),  # noqa: disable=W605
+    ).lower()
     return new_string
 
 

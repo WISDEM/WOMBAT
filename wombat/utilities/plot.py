@@ -38,36 +38,55 @@ def plot_farm_layout(
     # Set the defaults for plotting
     if figure_kwargs is None:
         figure_kwargs = {}
+   
     if plot_kwargs is None:
         plot_kwargs = {}
     figure_kwargs.setdefault("figsize", (14, 12))
     figure_kwargs.setdefault("dpi", 200)
-    plot_kwargs.setdefault("with_labels", True)
-    plot_kwargs.setdefault("horizontalalignment", "right")
-    plot_kwargs.setdefault("verticalalignment", "bottom")
-    plot_kwargs.setdefault("font_weight", "bold")
-    plot_kwargs.setdefault("font_size", 10)
-    plot_kwargs.setdefault("node_color", "#E37225")
 
-    fig = plt.figure(**figure_kwargs)
-    ax = fig.add_subplot(111)
+   
 
-    # Get the node positions and all related edges, except the self-connected ones
-    positions = {
-        name: np.array([node["longitude"], node["latitude"]])
-        for name, node in windfarm.graph.nodes(data=True)
-    }
-    edges = [el for el in windfarm.graph.edges if el[0] != el[1]]
+    fig, ax = plt.subplots(**figure_kwargs)
 
-    nx.draw(windfarm.graph, pos=positions, edgelist=edges, ax=ax, **plot_kwargs)
+    
+    # Plot turbines and substations
+    positions = {node: (data["longitude"], data["latitude"]) for node, data in windfarm.graph.nodes(data=True)}
+    
+    # Identify anchor nodes and other nodes
+    anchor_nodes = [node for node in windfarm.graph if windfarm.is_anchor(node)]
+    other_nodes = [node for node in windfarm.graph if not windfarm.is_anchor(node)]
+    
+    # Draw non-anchor nodes
+    nx.draw_networkx_nodes(windfarm.graph, pos=positions, nodelist=other_nodes, ax=ax, 
+                           node_color="orange", **plot_kwargs)
+    
+    # Draw anchor nodes as red triangles
+    nx.draw_networkx_nodes(windfarm.graph, pos=positions, nodelist=anchor_nodes, ax=ax, 
+                           node_color="red", node_shape="^", node_size=plot_kwargs["node_size"])
 
-    fig.tight_layout()
+    # Identify mooring line edges
+    mooring_edges = [(u, v) for u, v, data in windfarm.graph.edges(data=True) 
+                     if windfarm.is_anchor(u) or windfarm.is_anchor(v)]
+
+    # Draw non-mooring line edges
+    other_edges = [(u, v) for u, v in windfarm.graph.edges() if (u, v) not in mooring_edges]
+    nx.draw_networkx_edges(windfarm.graph, pos=positions, edgelist=other_edges, ax=ax)
+
+    # Draw mooring line edges as dashed lines
+    nx.draw_networkx_edges(windfarm.graph, pos=positions, edgelist=mooring_edges, ax=ax, 
+                           style='dashed', edge_color='gray')
+
+    # Draw labels
+
+    labels = {node: node for node in other_nodes} #windfarm.graph.nodes()}
+    nx.draw_networkx_labels(windfarm.graph, pos=positions, labels=labels, ax=ax,
+                            font_size=8)
+    
     plt.show()
 
     if return_fig:
         return fig, ax
-    return None
-
+    
 
 def plot_farm_availability(
     sim: Simulation,
