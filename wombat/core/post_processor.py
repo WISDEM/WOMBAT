@@ -369,8 +369,6 @@ class Metrics:
         # Determine the operational capacity of each turbine with substation downtime
         operations_cols = ["year", "month", "day", "windfarm"] + self.turbine_id
         turbine_operations = self.operations[operations_cols].copy()
-        for sub, val in self.substation_turbine_map.items():
-            turbine_operations[val["turbines"]] *= self.operations[[sub]].values
 
         hourly = turbine_operations.loc[:, self.turbine_id]
 

@@ -790,8 +790,7 @@ class WombatEnvironment(simpy.Environment):
         turbines = self.windfarm.turbine_weights[t_id].values * op[t_id]
         total = np.sum(
             [
-                op[[sub]]
-                * np.array(
+                np.array(
                     [
                         [math.fsum(row)]
                         for _, row in turbines[val["turbines"]].iterrows()
@@ -855,6 +854,12 @@ class WombatEnvironment(simpy.Environment):
             .set_index("datetime")
             .sort_values("datetime")
         )
+
+        # Adjust the turbine operational values to account for substation downtime
+        for sub, val in self.windfarm.substation_turbine_map.items():
+            log_df[val["turbines"]] *= log_df[[sub]].values
+
+        # Calculate the wind farm aggregate operational value
         log_df["windfarm"] = self._calculate_windfarm_total(log_df)
         return log_df
 

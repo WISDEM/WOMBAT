@@ -1,3 +1,9 @@
+# CHANGELOG
+
+## Unreleased (TBD)
+
+- Fixes a discrepancy where the wind farm vs turbine availability losses do not match. A slight difference in total availability will be noticeable as a result.
+
 ## 0.9.5 (6 August 2024)
 
 - Fixes a bug that causes delayed mobilizations. The underlying cause was the lack of
