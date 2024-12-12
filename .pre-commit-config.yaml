@@ -6,14 +6,14 @@ repos:
     hooks:
         - id: isort
           name: isort
-          stages: [commit]
+          stages: [pre-commit]
 
 - repo: https://github.com/asottile/pyupgrade
   rev: v3.15.2
   hooks:
   - id: pyupgrade
     args: [--py39-plus]
-    stages: [commit]
+    stages: [pre-commit]
 
 - repo: https://github.com/charliermarsh/ruff-pre-commit
   rev: v0.4.2
