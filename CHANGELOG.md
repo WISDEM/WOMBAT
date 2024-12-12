@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased (TBD)
+## 0.9.6 (11 December 2024)
 
 - Fixes a discrepancy where the wind farm vs turbine availability losses do not match. A slight difference in total availability will be noticeable as a result.
 
