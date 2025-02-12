@@ -1,4 +1,5 @@
 """The main API for the ``wombat``."""
+
 from __future__ import annotations
 
 import datetime
@@ -8,7 +9,7 @@ from pathlib import Path
 import yaml
 import numpy as np
 import pandas as pd
-from attrs import Attribute, field, define
+from attrs import Attribute, field, define, validators
 from simpy.events import Event
 
 from wombat.core import (
@@ -111,11 +112,27 @@ class Configuration(FromDictMixin):
     random_seed : int | None
         The random seed to be passed to a universal NumPy ``default_rng`` object to
         generate Weibull random generators, by default None.
-    random_generator: np.random._generator.Generator | None
+    random_generator : np.random._generator.Generator | None
         An optional numpy random generator that can be provided to seed a simulation
         with the same generator each time, in place of the random seed. If a
         :py:attr:`random_seed` is also provided, this will override the random seed,
         by default None.
+    cables : dict[str, dict] | None
+        A dictionary of cable configurations with the keys aligning with the layout
+        file's :py:attr:`upstream_cable` field, which would replace the need for YAML
+        file defintions, by default None.
+    substations : dict[str, dict] | None
+        A dictionary of substation configurations with the keys aligning with the layout
+        file's :py:attr:`upstream_cable` field, which would replace the need for YAML
+        file defintions, by default None.
+    turbines : dict[str, dict] | None
+        A dictionary of turbine configurations with the keys aligning with the layout
+        file's :py:attr:`upstream_cable` field, which would replace the need for YAML
+        file defintions, by default None.
+    vessels : dict[str, dict] | None
+        A dictionary of servicing equipment configurations with the keys aligning with
+        entries of :py:attr:`service_equipment` field, which would replace the need for
+        YAML file defintions, by default None.
     """
 
     name: str
@@ -138,6 +155,18 @@ class Configuration(FromDictMixin):
     reduced_speed: float = field(default=0.0)
     random_seed: int | None = field(default=None)
     random_generator: np.random._generator.Generator | None = field(default=None)
+    cables: dict[str, dict] | None = field(
+        default=None, validator=validators.instance_of(dict)
+    )
+    substations: dict[str, dict] | None = field(
+        default=None, validator=validators.instance_of(dict)
+    )
+    turbines: dict[str, dict] | None = field(
+        default=None, validator=validators.instance_of(dict)
+    )
+    vessels: dict[str, dict] | None = field(
+        default=None, validator=validators.instance_of(dict)
+    )
 
 
 @define(auto_attribs=True)
