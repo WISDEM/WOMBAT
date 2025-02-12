@@ -33,4 +33,3 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           verbose: True
-          password: ${{ secrets.PYPI_PASSWORD }}

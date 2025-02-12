@@ -4,6 +4,7 @@
 
 - Fixes a new bug where YAML is now sensitive to the implicit closing of files by using
   a context manager to open a YAML file and return the contents.
+- Removes PyPI secret usage now that trusted publishing fails with redundant permissions.
 
 ## 0.9.6 (11 December 2024)
 
