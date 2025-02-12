@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.9.7 (12 February 2025)
+
+- Fixes a new bug where YAML is now sensitive to the implicit closing of files by using
+  a context manager to open a YAML file and return the contents.
+
 ## 0.9.6 (11 December 2024)
 
 - Fixes a discrepancy where the wind farm vs turbine availability losses do not match. A slight difference in total availability will be noticeable as a result.
