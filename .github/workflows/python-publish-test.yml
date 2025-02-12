@@ -11,9 +11,13 @@ on:
 jobs:
   release-test-pypi:
     # Upload to Test PyPI on every pushed tag.
-    environment: release-pypi
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     runs-on: ubuntu-latest
+    environment:
+      name: release-pypi
+      url: https://test.pypi.org/p/wombat
+    permissions:
+      id-token: write
 
     steps:
       - uses: actions/checkout@v4
