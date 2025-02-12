@@ -9,10 +9,14 @@ on:
 
 jobs:
   release-pypi:
-    environment: release-pypi
     # Upload to PyPI on every published release
     if: github.event.action == 'published'
+    environment:
+      name: release-pypi
+      url: https://pypi.org/p/wombat
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
 
     steps:
       - uses: actions/checkout@v4
