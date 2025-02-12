@@ -20,7 +20,6 @@ signifies the user's input library path:
 
 from __future__ import annotations
 
-import os
 import re
 from typing import Any
 from pathlib import Path
@@ -83,7 +82,10 @@ def load_yaml(path: str | Path, fname: str | Path) -> Any:
     Any
         Whatever content is in the YAML file.
     """
-    return yaml.load(open(os.path.join(path, fname)), Loader=custom_loader)
+    if isinstance(path, str):
+        path = Path(path).resolve()
+    with (path / fname).open() as f:
+        return yaml.load(f, Loader=custom_loader)
 
 
 def create_library_structure(
