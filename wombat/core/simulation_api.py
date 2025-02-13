@@ -54,8 +54,9 @@ class Configuration(FromDictMixin):
         Name of the simulation. Used for logging files.
     layout : str
         The windfarm layout file. See ``wombat.Windfarm`` for more details.
-    service_equipment : str | list[str]
-        The equpiment that will be used in the simulation. See
+    service_equipment : str | list[str | list[str, int]]
+        The equpiment that will be used in the simulation. For multiple instances of a
+        single vessel use a list of the file name/id and the number of vessels. See
         ``wombat.core.ServiceEquipment`` for more details.
     weather : str
         The weather profile to be used. See ``wombat.simulation.WombatEnvironment``
@@ -300,6 +301,72 @@ class Simulation(FromDictMixin):
             random_generator=config.random_generator,
         )
 
+    def _setup_servicing_equipment(self, service_equipment: str | list[str | int]):
+        """Initializes the servicing equipment used in the simulation."""
+        self.service_equipment: dict[str, ServiceEquipment] = {}  # type: ignore
+        for service_equipment in self.config.service_equipment:
+            # If a list is provided, it should be of the form [N, name | file name],
+            # then create N of that equipment configuration, otherwise create a single
+            # instance of that equipment configuration
+            if isinstance(service_equipment, list):
+                n, service_equipment = service_equipment
+
+                # Swap the order in case the definition is backwards
+                if isinstance(n, int) and isinstance(service_equipment, str):
+                    n, service_equipment = service_equipment, n
+
+                # If it's a file name, then pass the input directly, otherwise load it
+                # from self.config.vessels after checking that it exists
+                if not service_equipment.endswith((".yml", ".yaml")):
+                    if self.config.vessels is None:
+                        msg = (
+                            "The input to `vessels` must be defined if file names not"
+                            f" provided to `servicing_equipment`. '{service_equipment}'"
+                            "is not a YAML filename."
+                        )
+                        raise ValueError(msg)
+                    service_equipment = self.config.vessels[service_equipment]
+
+                # Create N of the same configuration as 1-indexed names for simplicity
+                for i in range(n):
+                    equipment = ServiceEquipment(
+                        self.env, self.windfarm, self.repair_manager, service_equipment
+                    )
+                    equipment.finish_setup_with_environment_variables()
+                    name = equipment.settings.name
+                    name = f"{name} - {i + 1}"
+                    equipment.settings.name = name
+                    if name in self.service_equipment:
+                        msg = (
+                            f"Servicing equipment `{name}` already exists, please use"
+                            " unique names for all servicing equipment."
+                        )
+                        raise ValueError(msg)
+                    self.service_equipment[name] = equipment  # type: ignore
+            else:
+                # Repeat the above, but for a single configuration
+                if not service_equipment.endswith((".yml", ".yaml")):
+                    if self.config.vessels is None:
+                        msg = (
+                            "The input to `vessels` must be defined if file names not"
+                            f" provided to `servicing_equipment`. '{service_equipment}'"
+                            "is not a YAML filename."
+                        )
+                        raise ValueError(msg)
+                    service_equipment = self.config.vessels[service_equipment]  # type: ignore
+                equipment = ServiceEquipment(
+                    self.env, self.windfarm, self.repair_manager, service_equipment
+                )
+                equipment.finish_setup_with_environment_variables()
+                name = equipment.settings.name
+                if name in self.service_equipment:
+                    msg = (
+                        f"Servicing equipment `{name}` already exists, please use"
+                        " unique names for all servicing equipment."
+                    )
+                    raise ValueError(msg)
+                self.service_equipment[name] = equipment  # type: ignore
+
     def _setup_simulation(self):
         """Initializes the simulation objects."""
         self.env = WombatEnvironment(
@@ -325,17 +392,7 @@ class Simulation(FromDictMixin):
         # Create the servicing equipment and set the necessary environment variables
         self.service_equipment: dict[str, ServiceEquipment] = {}  # type: ignore
         for service_equipment in self.config.service_equipment:
-            equipment = ServiceEquipment(
-                self.env, self.windfarm, self.repair_manager, service_equipment
-            )
-            equipment.finish_setup_with_environment_variables()
-            name = equipment.settings.name
-            if name in self.service_equipment:
-                raise ValueError(
-                    f"Servicing equipment `{name}` already exists, please use unique"
-                    " names for all servicing equipment."
-                )
-            self.service_equipment[name] = equipment  # type: ignore
+            self._setup_servicing_equipment(service_equipment)
 
         # Create the port and add any tugboats to the available servicing equipment list
         if self.config.port is not None:
