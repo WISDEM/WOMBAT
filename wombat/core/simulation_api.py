@@ -312,7 +312,7 @@ class Simulation(FromDictMixin):
                 n, service_equipment = service_equipment
 
                 # Swap the order in case the definition is backwards
-                if isinstance(n, int) and isinstance(service_equipment, str):
+                if isinstance(n, str) and isinstance(service_equipment, int):
                     n, service_equipment = service_equipment, n
 
                 # If it's a file name, then pass the input directly, otherwise load it
@@ -333,9 +333,8 @@ class Simulation(FromDictMixin):
                         self.env, self.windfarm, self.repair_manager, service_equipment
                     )
                     equipment.finish_setup_with_environment_variables()
-                    name = equipment.settings.name
-                    name = f"{name} - {i + 1}"
-                    equipment.settings.name = name
+                    name = f"{equipment.settings.name} - {i + 1}"
+                    object.__setattr__(equipment.settings, "name", name)
                     if name in self.service_equipment:
                         msg = (
                             f"Servicing equipment `{name}` already exists, please use"
@@ -387,7 +386,14 @@ class Simulation(FromDictMixin):
             random_generator=self.random_generator,
         )
         self.repair_manager = RepairManager(self.env)
-        self.windfarm = Windfarm(self.env, self.config.layout, self.repair_manager)
+        self.windfarm = Windfarm(
+            env=self.env,
+            windfarm_layout=self.config.layout,
+            repair_manager=self.repair_manager,
+            substations=self.config.substations,
+            turbines=self.config.turbines,
+            cables=self.config.cables,
+        )
 
         # Create the servicing equipment and set the necessary environment variables
         self.service_equipment: dict[str, ServiceEquipment] = {}  # type: ignore
