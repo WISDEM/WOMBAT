@@ -302,7 +302,7 @@ reset in addition to a higher equipment cost.
 
 In addition to a variety of servicing equipment types, there is support for
 3 different equipment-level dispatch strategies, as described below. For a set of
-example scenarios, please see the [strategy demonstration](strategy_demonstration.ipynb).
+example scenarios, please see the [strategy demonstration](strategy_demonstration.md).
 
 scheduled
 : dispatch servicing equipment for a specified date range each year
@@ -630,7 +630,7 @@ print(f"Run time: {timing / 60:,.2f} minutes")
 
 ## Metric computation
 
-For a more complete view of what metrics can be compiled, please see the [metrics notebook](metrics_demonstration.ipynb), though for the sake of demonstration a few methods will
+For a more complete view of what metrics can be compiled, please see the [metrics notebook](metrics_demonstration.md), though for the sake of demonstration a few methods will
 be shown here
 
 ```{code-cell} ipython3

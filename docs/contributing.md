@@ -242,16 +242,30 @@ All changes must be documented appropriately in CHANGELOG.md in the [Unreleased]
 This section is a reference for WOMBAT's maintainers to keep processes largely consistent
 over time, regardless of who the core developers are.
 
-1. Bump version number and metadata in `WOMBAT/__init__.py`
-2. Bump version numbers of any dependencies in `setup.py`. Be sure to separate to keep dependencies
+1. Rerun tests
+2. Rebuild the documentation locally
+   1. Recreate the example notebooks
+
+     ```bash
+     jupytext --to notebook docs/examples/how_to.md docs/examples/metrics_demonstration.md docs/examples/strategy_demonstration.md
+     ```
+
+   2. Move the notebooks to the examples folder
+
+     ```bash
+     mv docs/examples/*.ipynb examples
+     ```
+
+3. Bump version number and metadata in `WOMBAT/__init__.py`
+4. Bump version numbers of any dependencies in `setup.py`. Be sure to separate to keep dependencies
    separated by what they are required for (see the `project.optional-dependencies` section of
    `pyproject.toml`)
-3. Update the changelog at `WOMBAT/CHANGELOG.md`, changing the "UNRELEASED" section to the new
+5. Update the changelog at `WOMBAT/CHANGELOG.md`, changing the "UNRELEASED" section to the new
    version and the release date (e.g. "[2.3 - 2022-01-18]").
-4. Make a pull request into develop with these updates, and be sure to follow the guide in
+6. Make a pull request into develop with these updates, and be sure to follow the guide in
    [Pull Requests](contributing:pull-request).
 
-5. Merge develop into main through the git command line
+7. Merge develop into main through the git command line
 
   ```bash
    git checkout main
