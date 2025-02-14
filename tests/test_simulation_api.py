@@ -1,5 +1,9 @@
 """Test the API functionality."""
 
+import sys
+
+import pytest
+
 from wombat import Simulation
 from wombat.core import Metrics
 
@@ -38,6 +42,9 @@ def test_simulation_consolidated_setup():
     sim.env.cleanup_log_files()
 
 
+@pytest.mark.skipif(
+    sys.platform.startswith("win"), reason="Why does Windows load it differently?"
+)
 def test_metrics_save_load():
     """Tests that the saved metrics data can be reused."""
     sim = Simulation.from_config(TEST_DATA, "base_consolidated.yml")

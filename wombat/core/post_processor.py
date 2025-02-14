@@ -283,9 +283,10 @@ class Metrics:
                 if isinstance(actual, pd.DataFrame):
                     explanation.extend(
                         [
-                            f"`{name}` is not equal:"
-                            f"Expected shape {expected.shape}, got: {actual.shape}"
-                            f"Expected columns: {expected.columns}, got: {actual.columns}"  # noqa: E501
+                            f"`{name}` is not equal:",
+                            f"Expected shape {expected.shape}, got: {actual.shape}",
+                            f"Expected columns: {expected.columns}, got: {actual.columns}",  # noqa: E501
+                            f"Expected dtypes: {expected.dtypes}, got: {actual.dtypes}",
                         ]
                     )
                 else:
