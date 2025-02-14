@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 
 from wombat.core import FixedCosts
+from wombat.utilities import calculate_windfarm_operational_level
 from wombat.core.library import load_yaml
 
 
@@ -202,6 +203,12 @@ class Metrics:
         if isinstance(operations, str):
             operations = self._read_data(operations)
         self.operations = self._tidy_data(operations)
+        self.operations["windfarm"] = calculate_windfarm_operational_level(
+            operations=self.operations,
+            turbine_id=self.turbine_id,
+            turbine_weights=self.turbine_weights,
+            substation_turbine_map=self.substation_turbine_map,
+        )
 
         if isinstance(potential, str):
             potential = self._read_data(potential)
@@ -210,6 +217,30 @@ class Metrics:
         if isinstance(production, str):
             production = self._read_data(production)
         self.production = self._tidy_data(production)
+
+    def __eq__(self, other):
+        """Check that the essential information is the same."""
+        if isinstance(other, Metrics):
+            return (
+                self.data_dir == other.data_dir
+                and self.events.equals(other.events)
+                # Placement of the column "windfarm" differs depending on initialization
+                and self.operations.sort_index(axis=1).equals(
+                    other.operations.sort_index(axis=1)
+                )
+                and self.inflation_rate == other.inflation_rate
+                and self.project_capacity == other.project_capacity
+                and self.potential.equals(other.potential)
+                and self.production.equals(other.production)
+                and self.service_equipment_names == other.service_equipment_names
+                and self.turbine_id == other.turbine_id
+                and self.substation_id == other.substation_id
+                and self.fixed_costs == other.fixed_costs
+                and self.turbine_capacities == other.turbine_capacities
+                and self.substation_turbine_map == other.substation_turbine_map
+                and self.turbine_weights.equals(other.turbine_weights)
+            )
+        return False
 
     @classmethod
     def from_simulation_outputs(cls, fpath: Path | str, fname: str) -> Metrics:

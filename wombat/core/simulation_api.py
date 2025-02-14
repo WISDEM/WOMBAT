@@ -157,16 +157,16 @@ class Configuration(FromDictMixin):
     random_seed: int | None = field(default=None)
     random_generator: np.random._generator.Generator | None = field(default=None)
     cables: dict[str, dict] | None = field(
-        default=None, validator=validators.instance_of(dict)
+        default=None, validator=validators.instance_of((dict, type(None)))
     )
     substations: dict[str, dict] | None = field(
-        default=None, validator=validators.instance_of(dict)
+        default=None, validator=validators.instance_of((dict, type(None)))
     )
     turbines: dict[str, dict] | None = field(
-        default=None, validator=validators.instance_of(dict)
+        default=None, validator=validators.instance_of((dict, type(None)))
     )
     vessels: dict[str, dict] | None = field(
-        default=None, validator=validators.instance_of(dict)
+        default=None, validator=validators.instance_of((dict, type(None)))
     )
 
 

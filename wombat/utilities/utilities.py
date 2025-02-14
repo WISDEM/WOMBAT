@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from string import digits, punctuation
 from typing import Callable
 from functools import cache
@@ -122,3 +123,47 @@ def IEC_power_curve(
         return P
 
     return pc_iec
+
+
+def calculate_windfarm_operational_level(
+    operations: pd.DataFrame,
+    turbine_id: np.ndarray | list[str],
+    turbine_weights: pd.DataFrame,
+    substation_turbine_map: dict[str, dict[str, np.ndarray]],
+) -> pd.DataFrame:
+    """Calculates the overall wind farm operational level, accounting for substation
+    downtime by multiplying the sum of all downstream turbine operational levels by
+    the substation's operational level.
+
+    Parameters
+    ----------
+    operations : pd.DataFrame
+        The turbine and substation operational level DataFrame.
+    turbine_id : np.ndarray | list[str]
+        The turbine ids that match :py:attr:`Windfarm.turbine_id`.
+    turbine_weights : pd.DataFrame
+        The turbine weights, coming from :py:attr:`Windfarm.turbine_weights`.
+    substation_turbine_map : dict[str, dict[str, np.ndarray]]
+        The :py:attr:`Windfarm.substation_turbine_map`.
+
+    Notes
+    -----
+    This is a crude cap on the operations, and so a smarter way of capping
+    the availability should be added in the future.
+
+    Returns
+    -------
+    pd.DataFrame
+        The aggregate wind farm operational level.
+    """
+    turbines = turbine_weights[turbine_id].values * operations[turbine_id]
+    total = np.sum(
+        [
+            np.array(
+                [[math.fsum(row)] for _, row in turbines[val["turbines"]].iterrows()]
+            ).reshape(-1, 1)
+            for sub, val in substation_turbine_map.items()
+        ],
+        axis=0,
+    )
+    return total
