@@ -48,5 +48,5 @@ For example usage of the Metrics class and its associated methods, please see th
     process_times, component_costs, port_fees, project_fixed_costs, opex, npv
    :member-order: bysource
    :undoc-members:
-   :exclude-members:
+   :exclude-members: _yield_comparisons, _repr_compare
 ```

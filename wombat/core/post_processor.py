@@ -218,29 +218,90 @@ class Metrics:
             production = self._read_data(production)
         self.production = self._tidy_data(production)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         """Check that the essential information is the same."""
         if isinstance(other, Metrics):
-            return (
-                self.data_dir == other.data_dir
-                and self.events.equals(other.events)
-                # Placement of the column "windfarm" differs depending on initialization
-                and self.operations.sort_index(axis=1).equals(
-                    other.operations.sort_index(axis=1)
-                )
-                and self.inflation_rate == other.inflation_rate
-                and self.project_capacity == other.project_capacity
-                and self.potential.equals(other.potential)
-                and self.production.equals(other.production)
-                and self.service_equipment_names == other.service_equipment_names
-                and self.turbine_id == other.turbine_id
-                and self.substation_id == other.substation_id
-                and self.fixed_costs == other.fixed_costs
-                and self.turbine_capacities == other.turbine_capacities
-                and self.substation_turbine_map == other.substation_turbine_map
-                and self.turbine_weights.equals(other.turbine_weights)
+            return all(
+                expected.equals(actual)
+                if isinstance(expected, pd.DataFrame)
+                else expected == actual
+                for _, expected, actual in self._yield_comparisons(other)
             )
         return False
+
+    def __ne__(self, other) -> bool:
+        """Checks for object inequality."""
+        return not (self == other)
+
+    def _yield_comparisons(self, other):
+        """Returns the name and individual class attributes to compare for equality
+        tests.
+        """
+        to_compare = [
+            "data_dir",
+            "events",
+            "operations",
+            "inflation_rate",
+            "project_capacity",
+            "potential",
+            "production",
+            "service_equipment_names",
+            "turbine_id",
+            "substation_id",
+            "fixed_costs",
+            "turbine_capacities",
+            "substation_turbine_map",
+            "turbine_weights",
+        ]
+        dataframes = [
+            "operations",
+            "events",
+            "potential",
+            "production",
+            "turbine_weights",
+        ]
+        for name in to_compare:
+            if name in dataframes:
+                yield (
+                    name,
+                    getattr(self, name).sort_index(axis=1),
+                    getattr(other, name).sort_index(axis=1),
+                )
+            else:
+                yield name, getattr(self, name), getattr(other, name)
+
+    def _repr_compare(self, other) -> list[str]:
+        """Comparison representation."""
+        explanation = []
+        for name, expected, actual in self._yield_comparisons(other):
+            if isinstance(expected, pd.DataFrame):
+                if expected.equals(actual):
+                    continue
+            elif expected == actual:
+                continue
+            if isinstance(expected, pd.DataFrame):
+                if isinstance(actual, pd.DataFrame):
+                    explanation.extend(
+                        [
+                            f"`{name}` is not equal:"
+                            f"Expected shape {expected.shape}, got: {actual.shape}"
+                            f"Expected columns: {expected.columns}, got: {actual.columns}"  # noqa: E501
+                        ]
+                    )
+                else:
+                    explanation.append(
+                        f"Expected a dataframe for `{name}`,"
+                        f" received object of type: {type(actual)}"
+                    )
+            else:
+                explanation.extend(
+                    [
+                        f"Comparing `{name}`",
+                        f"expected: {expected}",
+                        f"     got: {actual}",
+                    ]
+                )
+        return explanation
 
     @classmethod
     def from_simulation_outputs(cls, fpath: Path | str, fname: str) -> Metrics:

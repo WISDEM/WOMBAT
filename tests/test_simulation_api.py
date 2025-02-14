@@ -50,6 +50,9 @@ def test_metrics_save_load():
         fpath=TEST_DATA / "results", fname=sim.env.metrics_input_fname
     )
 
+    from pathlib import Path
+
+    metrics_reloaded.data_dir = Path(__file__).parent
     assert metrics == metrics_reloaded
 
     sim.env.cleanup_log_files()

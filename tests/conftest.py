@@ -6,12 +6,18 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from wombat.core import WombatEnvironment
+from wombat.core import Metrics, WombatEnvironment
 from wombat.utilities import IEC_power_curve
 from wombat.core.library import load_yaml
 
 
 TEST_DATA = Path(__file__).resolve().parent / "library"
+
+
+def pytest_assertrepr_compare(op, left, right):
+    """Custom failure messages."""
+    if isinstance(left, Metrics) and isinstance(right, Metrics) and op == "==":
+        return left._repr_compare(right)
 
 
 @pytest.fixture
