@@ -213,7 +213,6 @@ class Windfarm:
             Raised if the cable model is not specified.
         """
         get_name = "upstream_cable_name" in self.layout_df
-        # bad_data_location_messages = []
 
         # Loop over all the edges in the graph and create cable objects
         for start_node, end_node, data in self.graph.edges(data=True):
@@ -241,18 +240,6 @@ class Windfarm:
                         raise KeyError(f"No configuration provided for 'cables: {name}")
 
                 self.configs["cable"][name] = cable_dict
-
-                # try:
-                # cable_dict = load_yaml(self.env.data_dir / "cables", data["cable"])
-                # except FileNotFoundError:
-                #     cable_dict = load_yaml(
-                #         self.env.data_dir / "windfarm", data["cable"]
-                #     )
-                #     bad_data_location_messages.append(
-                #         "In v0.7, all cable configurations must be located in:"
-                #         " '<library>/cables/"
-                #     )
-                # self.configs["cable"][name] = cable_dict
 
             # Get the lat, lon pairs for the start and end points
             start_coordinates = (
