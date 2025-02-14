@@ -3,20 +3,23 @@
 All members are assumed NREL employees, unless otherwise noted.
 
 ## Software
- - Rob Hammond
- - Alicia Key
+
+- Rob Hammond
 
 ## Methodology
- - Rob Hammond
- - Aubryn Cooperman
- - Aaron Barker
- - Annika Eberle
- - Matt Shields
- - Shawn Sheng
- - Owen Roberts
- - Alicia Key
+
+- Rob Hammond
+- Aubryn Cooperman
+- Owen Roberts
+- Shawn Sheng
 
 ## Leadership
- - Rob Hammond
- - Annika Eberle
- - Matt Shields
+
+- Rob Hammond
+- Annika Eberle
+- Matt Shields
+
+## Former
+
+- Alicia Key
+- Aaron Barker
