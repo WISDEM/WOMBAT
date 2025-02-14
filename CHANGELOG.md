@@ -44,6 +44,12 @@
       ...  # Contents of library/corewind/cables/corewind_export.yaml
   ```
 
+### Updates
+
+- Basic tests added for the Simulation API
+- The wind farm operation level calculation was moved to `wombat/utilities/utilities.py`
+  so it can be reused when `Metrics` loads the operational data.
+
 ## 0.9.7 (12 February 2025)
 
 - Fixes a new bug where YAML is now sensitive to the implicit closing of files by using
