@@ -1,0 +1,8 @@
+﻿id,substation_id,name,longitude,latitude,string,order,distance,subassembly,upstream_cable
+OSS1,OSS1,OSS1,0,0,,,,offshore_substation,export
+S00T1,OSS1,WTG001,0,0,0,0,0,vestas_v90,array_33kv_630mm
+S00T2,OSS1,WTG002,0,0,0,1,0,vestas_v90,array_33kv_240mm
+S00T3,OSS1,WTG003,0,0,0,2,0,vestas_v90,array_33kv_240mm
+S01T4,OSS1,WTG004,0,0,1,0,0,vestas_v90,array_33kv_630mm
+S01T5,OSS1,WTG005,0,0,1,1,0,vestas_v90,array_33kv_240mm
+S01T6,OSS1,WTG006,0,0,1,2,0,vestas_v90,array_33kv_240mm
