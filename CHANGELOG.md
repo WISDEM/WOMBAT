@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- Adds a CI check for code linting (pre-commit) and for the documentation building.
+
 ## 0.9.7 (12 February 2025)
 
 - Fixes a new bug where YAML is now sensitive to the implicit closing of files by using
