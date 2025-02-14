@@ -17,7 +17,8 @@
    :exclude-members: name, library, layout, service_equipment, weather, workday_start,
     workday_end, inflation_rate, fixed_costs, project_capacity, start_year, end_year,
     port, port_distance, non_operational_start, non_operational_end, reduced_speed_start,
-    reduced_speed_end, reduced_speed, random_seed, random_generator
+    reduced_speed_end, reduced_speed, random_seed, random_generator, cables, vessels,
+    turbines, substations
 ```
 
 (simulation-api:interface)=
