@@ -8,8 +8,8 @@ All members are assumed NREL employees, unless otherwise noted.
 
 ## Methodology
 
-- Rob Hammond
 - Aubryn Cooperman
+- Rob Hammond
 - Owen Roberts
 - Shawn Sheng
 
