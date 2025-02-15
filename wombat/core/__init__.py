@@ -1,6 +1,5 @@
 """Initializes the simulation modules, classes, and functions."""
 
-
 from .data_classes import (
     Maintenance,
     Failure,

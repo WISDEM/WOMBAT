@@ -1,6 +1,5 @@
 """Turbine and turbine component shared utilities."""
 
-
 from __future__ import annotations
 
 import datetime
@@ -569,9 +568,10 @@ class SubassemblyData(FromDictMixin):
 
     name: str = field(converter=str)
     maintenance: list[Maintenance | dict[str, float | str]]
-    failures: list[Failure | dict[str, float | str]] | dict[
-        int, Failure | dict[str, float | str]
-    ]
+    failures: (
+        list[Failure | dict[str, float | str]]
+        | dict[int, Failure | dict[str, float | str]]
+    )
     system_value: int | float = field(converter=float)
     rng: np.random._generator.Generator = field(
         validator=attrs.validators.instance_of(np.random._generator.Generator)

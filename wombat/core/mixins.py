@@ -32,7 +32,9 @@ class RepairsMixin:
     """
 
     env: WombatEnvironment
-    settings: PortConfig | ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData  # noqa: E501
+    settings: (
+        PortConfig | ScheduledServiceEquipmentData | UnscheduledServiceEquipmentData
+    )  # noqa: E501
 
     def initialize_cost_calculators(self, which: str) -> None:
         """Creates the cost calculators for each of the subclasses that will need to
@@ -112,7 +114,7 @@ class RepairsMixin:
             return np.ones(hour_ix.shape, dtype=bool)
         return True
 
-    def wait_until_next_shift(self, **kwargs) -> Generator[Timeout, None, None]:
+    def wait_until_next_shift(self, **kwargs) -> Generator[Timeout]:
         """Delays the process until the start of the next shift.
 
         Yields
@@ -144,7 +146,7 @@ class RepairsMixin:
 
     def process_repair(
         self, hours: int | float, request_details: Maintenance | Failure, **kwargs
-    ) -> Generator[Timeout | Process, None, None]:
+    ) -> Generator[Timeout | Process]:
         """The logging and timeout process for performing a repair or doing maintenance.
 
         Parameters

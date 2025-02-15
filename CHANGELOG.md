@@ -46,6 +46,8 @@
 
 ### Updates
 
+- Adds a CI check for code linting (pre-commit) and for the documentation building.
+- Updates the minimum Python version to 3.10.
 - Basic tests added for the Simulation API
 - The wind farm operation level calculation was moved to `wombat/utilities/utilities.py`
   so it can be reused when `Metrics` loads the operational data.
