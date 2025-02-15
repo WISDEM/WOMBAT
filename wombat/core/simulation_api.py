@@ -1,4 +1,5 @@
 """The main API for the ``wombat``."""
+
 from __future__ import annotations
 
 import datetime

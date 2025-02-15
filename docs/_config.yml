@@ -84,18 +84,18 @@ sphinx:
       icon_links: [
         {
             name: GitHub,
-            url: https://github.com/WISDEM/WOMBAT,
+            url: "https://github.com/WISDEM/WOMBAT",
             icon: fa-brands fa-github,
         },
         {
             name: PyPI version,
-            url: https://pypi.org/project/WOMBAT/,
+            url: "https://pypi.org/project/WOMBAT/",
             icon: "https://img.shields.io/pypi/v/WOMBAT",
             type: url,
         },
         {
             name: PyPI downloads,
-            url: https://pypi.org/project/WOMBAT/,
+            url: "https://pypi.org/project/WOMBAT/",
             icon: "https://img.shields.io/pypi/dm/WOMBAT",
             type: url,
         },
