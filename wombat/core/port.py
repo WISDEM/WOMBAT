@@ -182,9 +182,7 @@ class Port(RepairsMixin, FilterStore):
                 equipment_cost=monthly_fee,
             )
 
-    def repair_single(
-        self, request: RepairRequest
-    ) -> Generator[Timeout | Process, None, None]:
+    def repair_single(self, request: RepairRequest) -> Generator[Timeout | Process]:
         """Simulation logic to process a single repair request.
 
         Parameters
@@ -305,6 +303,7 @@ class Port(RepairsMixin, FilterStore):
         request_ids = {el.request_id for el in requests}
         self.manager.request_status_map["pending"].difference_update(request_ids)
         self.manager.request_status_map["processing"].update(request_ids)
+        return None
 
     def run_repairs(self, system_id: str) -> Generator | None:
         """Method that transfers the requests from the repair manager and initiates the
@@ -330,10 +329,11 @@ class Port(RepairsMixin, FilterStore):
             self.requests_serviced.update([request.request_id])
             self.subassembly_resets[system_id].append(request.subassembly_id)
             yield self.env.process(self.repair_single(request))
+        return None
 
     def get_all_requests_for_system(
         self, system_id: str
-    ) -> None | Generator[FilterStoreGet, None, None]:
+    ) -> None | Generator[FilterStoreGet]:
         """Gets all repair requests for a specific ``system_id``.
 
         Parameters
@@ -364,7 +364,7 @@ class Port(RepairsMixin, FilterStore):
 
         return requests
 
-    def run_tow_to_port(self, request: RepairRequest) -> Generator[Process, None, None]:
+    def run_tow_to_port(self, request: RepairRequest) -> Generator[Process]:
         """The method to initiate a tow-to-port repair sequence.
 
         The process follows the following following routine:
@@ -478,7 +478,7 @@ class Port(RepairsMixin, FilterStore):
 
     def run_unscheduled_in_situ(
         self, request: RepairRequest, initial: bool = False
-    ) -> Generator[Process, None, None]:
+    ) -> Generator[Process]:
         """Runs the in-situ repair processes for port-based servicing equipment such as
         tugboats that will always return back to port, but are not necessarily a feature
         of the windfarm itself, such as a crew transfer vessel.

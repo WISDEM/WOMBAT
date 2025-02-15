@@ -1,4 +1,5 @@
-""""Defines the Cable class and cable simulations."""
+"""Defines the Cable class and cable simulations."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

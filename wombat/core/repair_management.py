@@ -1,6 +1,5 @@
 """Creates the necessary repair classes."""
 
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -197,10 +196,10 @@ class RepairManager(FilterStore):
                 yield system.servicing_queue & system.servicing
                 yield self.env.timeout(self.env.get_random_seconds(high=1))
                 if request.system_id in self.systems_in_tow:
-                    return
+                    return None
                 self.invalidate_system(system, tow=True)
                 yield self.env.process(self.port.run_tow_to_port(request))
-            return
+            return None
 
         # Wait for the actual system or cable to be available
         if request.cable:
@@ -242,6 +241,7 @@ class RepairManager(FilterStore):
                     # Move the dispatched capability to the end of list to ensure proper
                     # cycling of available servicing equipment
                     self.downtime_based_equipment.move_equipment_to_end(capability, i)
+        return None
 
     def _run_equipment_requests(self, request: RepairRequest) -> None | Generator:
         """Run the first piece of equipment (if none are onsite) for each equipment
@@ -260,10 +260,10 @@ class RepairManager(FilterStore):
                 yield system.servicing_queue & system.servicing
                 yield self.env.timeout(self.env.get_random_seconds(high=1))
                 if request.system_id in self.systems_in_tow:
-                    return
+                    return None
                 self.invalidate_system(system, tow=True)
                 yield self.env.process(self.port.run_tow_to_port(request))
-            return
+            return None
 
         # Wait for the actual system or cable to be available
         if request.cable:
@@ -321,7 +321,7 @@ class RepairManager(FilterStore):
             or equipment_obj.port_based
             or dispatched not in self.request_map
         ):
-            return
+            return None
         n_requests = self.request_map[dispatched]
         threshold_check = [
             n_requests >= eq.strategy_threshold
@@ -338,6 +338,7 @@ class RepairManager(FilterStore):
             if new_request_check:
                 new_request = self.get(lambda x: x == new_request_check[0]).value
                 yield self.env.process(self._run_equipment_requests(new_request))
+        return None
 
     def register_request(self, request: RepairRequest) -> RepairRequest:
         """The method to submit requests to the repair mananger and adds a unique

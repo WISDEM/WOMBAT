@@ -1,6 +1,5 @@
 """Tests for wombat/utilities/utilities.py, except setup_logger()."""
 
-
 import datetime
 
 import numpy as np

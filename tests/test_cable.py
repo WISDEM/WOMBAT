@@ -1,6 +1,5 @@
 """Test the Cable system and subassembly classes."""
 
-
 from wombat.core import RepairManager
 from wombat.windfarm import Windfarm
 from wombat.windfarm.system import Cable
