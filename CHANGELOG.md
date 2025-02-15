@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Adds a CI check for code linting (pre-commit) and for the documentation building.
+- Updates the minimum Python version to 3.10.
 
 ## 0.9.7 (12 February 2025)
 
