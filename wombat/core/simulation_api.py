@@ -302,73 +302,64 @@ class Simulation(FromDictMixin):
             random_generator=config.random_generator,
         )
 
-    def _setup_servicing_equipment(self, service_equipment: str | list[str | int]):
+    def _initialize_servicing_equipment(self, configuration: str | dict) -> None:
+        """
+        Initializes a single piece of servicing equipment.
+
+        Parameters
+        ----------
+        configuration : str | dict
+            The servicing equipment configuration dictionary or YAML file.
+        """
+        equipment = ServiceEquipment(
+            self.env, self.windfarm, self.repair_manager, configuration
+        )
+        equipment.finish_setup_with_environment_variables()
+        name = equipment.settings.name
+        if name in self.service_equipment:
+            msg = (
+                f"Servicing equipment `{name}` already exists, please use"
+                " unique names for all servicing equipment."
+            )
+            raise ValueError(msg)
+        self.service_equipment[name] = equipment  # type: ignore
+
+    def _setup_servicing_equipment(self):
         """Initializes the servicing equipment used in the simulation."""
-        self.service_equipment: dict[str, ServiceEquipment] = {}  # type: ignore
         for service_equipment in self.config.service_equipment:
-            # If a list is provided, it should be of the form [N, name | file name],
-            # then create N of that equipment configuration, otherwise create a single
-            # instance of that equipment configuration
+            n = 1
             if isinstance(service_equipment, list):
                 n, service_equipment = service_equipment
-
-                # Swap the order in case the definition is backwards
                 if isinstance(n, str) and isinstance(service_equipment, int):
                     n, service_equipment = service_equipment, n
 
-                # If it's a file name, then pass the input directly, otherwise load it
-                # from self.config.vessels after checking that it exists
-                if not service_equipment.endswith((".yml", ".yaml")):
-                    if self.config.vessels is None:
-                        msg = (
-                            "The input to `vessels` must be defined if file names not"
-                            f" provided to `servicing_equipment`. '{service_equipment}'"
-                            "is not a YAML filename."
-                        )
-                        raise ValueError(msg)
-                    service_equipment = self.config.vessels[service_equipment]
-
-                # Create N of the same configuration as 1-indexed names for simplicity
-                for i in range(n):
-                    config = deepcopy(service_equipment)
-                    name = f"{config['name']} {i + 1}"
-                    config["name"] = name
-                    equipment = ServiceEquipment(
-                        self.env, self.windfarm, self.repair_manager, config
-                    )
-                    equipment.finish_setup_with_environment_variables()
-                    # name = f"{equipment.settings.name} - {i + 1}"
-                    # object.__setattr__(equipment.settings, "name", name)
-                    if name in self.service_equipment:
-                        msg = (
-                            f"Servicing equipment `{name}` already exists, please use"
-                            " unique names for all servicing equipment."
-                        )
-                        raise ValueError(msg)
-                    self.service_equipment[name] = equipment  # type: ignore
-            else:
-                # Repeat the above, but for a single configuration
-                if not service_equipment.endswith((".yml", ".yaml")):
-                    if self.config.vessels is None:
-                        msg = (
-                            "The input to `vessels` must be defined if file names not"
-                            f" provided to `servicing_equipment`. '{service_equipment}'"
-                            "is not a YAML filename."
-                        )
-                        raise ValueError(msg)
-                    service_equipment = self.config.vessels[service_equipment]  # type: ignore
-                equipment = ServiceEquipment(
-                    self.env, self.windfarm, self.repair_manager, service_equipment
-                )
-                equipment.finish_setup_with_environment_variables()
-                name = equipment.settings.name
-                if name in self.service_equipment:
+            if not service_equipment.endswith((".yml", ".yaml")):
+                if self.config.vessels is None:
                     msg = (
-                        f"Servicing equipment `{name}` already exists, please use"
-                        " unique names for all servicing equipment."
+                        "The input to `vessels` must be defined if file names not"
+                        f" provided to `servicing_equipment`. '{service_equipment}'"
+                        "is not a YAML filename."
                     )
                     raise ValueError(msg)
-                self.service_equipment[name] = equipment  # type: ignore
+                service_equipment = self.config.vessels[service_equipment]  # type: ignore
+
+            if n == 1:
+                self._initialize_servicing_equipment(service_equipment)
+                continue
+
+            # YAML files must be loaded for repeats so that the naming can be unique
+            if isinstance(service_equipment, str):
+                if service_equipment.endswith((".yaml", ".yml")):
+                    service_equipment = load_yaml(
+                        self.env.data_dir / "vessels", service_equipment
+                    )
+            if TYPE_CHECKING:
+                assert isinstance(service_equipment, dict)
+            for i in range(n):
+                config = deepcopy(service_equipment)
+                name = f"{config['name']} {i + 1}"
+                config["name"] = name
+                self._initialize_servicing_equipment(config)
 
     def _setup_simulation(self):
         """Initializes the simulation objects."""
@@ -398,11 +389,8 @@ class Simulation(FromDictMixin):
             turbines=self.config.turbines,
             cables=self.config.cables,
         )
-
-        # Create the servicing equipment and set the necessary environment variables
         self.service_equipment: dict[str, ServiceEquipment] = {}  # type: ignore
-        for service_equipment in self.config.service_equipment:
-            self._setup_servicing_equipment(service_equipment)
+        self._setup_servicing_equipment()
 
         # Create the port and add any tugboats to the available servicing equipment list
         if self.config.port is not None:
