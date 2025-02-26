@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime
+from copy import deepcopy
 from typing import TYPE_CHECKING
 from pathlib import Path
 
@@ -329,12 +330,15 @@ class Simulation(FromDictMixin):
 
                 # Create N of the same configuration as 1-indexed names for simplicity
                 for i in range(n):
+                    config = deepcopy(service_equipment)
+                    name = f"{config['name']} {i + 1}"
+                    config["name"] = name
                     equipment = ServiceEquipment(
-                        self.env, self.windfarm, self.repair_manager, service_equipment
+                        self.env, self.windfarm, self.repair_manager, config
                     )
                     equipment.finish_setup_with_environment_variables()
-                    name = f"{equipment.settings.name} - {i + 1}"
-                    object.__setattr__(equipment.settings, "name", name)
+                    # name = f"{equipment.settings.name} - {i + 1}"
+                    # object.__setattr__(equipment.settings, "name", name)
                     if name in self.service_equipment:
                         msg = (
                             f"Servicing equipment `{name}` already exists, please use"
