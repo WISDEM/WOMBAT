@@ -477,7 +477,7 @@ turbines:
           # n_technicians: 5
 vessels:
   ctv:
-    name: Crew Transfer Vessel 1
+    name: Crew Transfer Vessel
     equipment_rate: 3500
     capability: CTV
     speed: 37.04  # 20 knots
