@@ -2,8 +2,55 @@
 
 ## Unreleased
 
+### Features
+
+- Multiple instances of a servicing equipment can be created with a list of the name
+  and number of them in the following forms. This creates copies where the equipment's
+  name is suffixed with a 1-indexed indication of which number it is, such as
+  "Crew Transfer Vessel -1" through "Crew Transfer Vessel - 4" for the below example.
+
+  ```yaml
+  ...
+  servicing_equipment:
+    - - ctv.yaml
+      - 4
+    - [hlv.yaml, 2]
+    - dsv.yaml
+  ...
+  ```
+
+- WOMBAT configurations now allow for the embedding of servicing equipment, turbine,
+  substation, cable, and port data within the main configuration. Now, the only files
+  required outside the primary configuration YAML are the weather profile and layout.
+  To utilize this update, data can be included in the following form:
+
+  ```yaml
+  servicing_equipment:
+    - [7, ctv]
+  ...  # Other configuration details
+  vessels:
+    ctv:
+      ...  # Contents of library/corewind/vessels/ctv.yaml
+  turbines:
+    corewind_15MW:
+      ...  # Contents of library/corewind/turbines/corewind_15MW.yaml
+  substations:
+    corewind_substation:
+      ...  # Contents of library/corewind/substations/corewind_substation.yaml
+  cables:
+    corewind_array:
+      ...  # Contents of library/corewind/cables/corewind_array.yaml
+    corewind_export:
+      ...  # Contents of library/corewind/cables/corewind_export.yaml
+  ```
+
+### Updates
+
 - Adds a CI check for code linting (pre-commit) and for the documentation building.
 - Updates the minimum Python version to 3.10.
+- Basic tests added for the Simulation API
+- The wind farm operation level calculation was moved to `wombat/utilities/utilities.py`
+  so it can be reused when `Metrics` loads the operational data.
 
 ## 0.9.7 (12 February 2025)
 

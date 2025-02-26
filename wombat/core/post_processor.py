@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 
 from wombat.core import FixedCosts
+from wombat.utilities import calculate_windfarm_operational_level
 from wombat.core.library import load_yaml
 
 
@@ -202,6 +203,12 @@ class Metrics:
         if isinstance(operations, str):
             operations = self._read_data(operations)
         self.operations = self._tidy_data(operations)
+        self.operations["windfarm"] = calculate_windfarm_operational_level(
+            operations=self.operations,
+            turbine_id=self.turbine_id,
+            turbine_weights=self.turbine_weights,
+            substation_turbine_map=self.substation_turbine_map,
+        )
 
         if isinstance(potential, str):
             potential = self._read_data(potential)
@@ -210,6 +217,92 @@ class Metrics:
         if isinstance(production, str):
             production = self._read_data(production)
         self.production = self._tidy_data(production)
+
+    def __eq__(self, other) -> bool:
+        """Check that the essential information is the same."""
+        if isinstance(other, Metrics):
+            return all(
+                expected.equals(actual)
+                if isinstance(expected, pd.DataFrame)
+                else expected == actual
+                for _, expected, actual in self._yield_comparisons(other)
+            )
+        return False
+
+    def __ne__(self, other) -> bool:
+        """Checks for object inequality."""
+        return not (self == other)
+
+    def _yield_comparisons(self, other):
+        """Returns the name and individual class attributes to compare for equality
+        tests.
+        """
+        to_compare = [
+            "data_dir",
+            "events",
+            "operations",
+            "inflation_rate",
+            "project_capacity",
+            "potential",
+            "production",
+            "service_equipment_names",
+            "turbine_id",
+            "substation_id",
+            "fixed_costs",
+            "turbine_capacities",
+            "substation_turbine_map",
+            "turbine_weights",
+        ]
+        dataframes = [
+            "operations",
+            "events",
+            "potential",
+            "production",
+            "turbine_weights",
+        ]
+        for name in to_compare:
+            if name in dataframes:
+                yield (
+                    name,
+                    getattr(self, name).sort_index(axis=1),
+                    getattr(other, name).sort_index(axis=1),
+                )
+            else:
+                yield name, getattr(self, name), getattr(other, name)
+
+    def _repr_compare(self, other) -> list[str]:
+        """Comparison representation."""
+        explanation = []
+        for name, expected, actual in self._yield_comparisons(other):
+            if isinstance(expected, pd.DataFrame):
+                if expected.equals(actual):
+                    continue
+            elif expected == actual:
+                continue
+            if isinstance(expected, pd.DataFrame):
+                if isinstance(actual, pd.DataFrame):
+                    explanation.extend(
+                        [
+                            f"`{name}` is not equal:",
+                            f"Expected shape {expected.shape}, got: {actual.shape}",
+                            f"Expected columns: {expected.columns}, got: {actual.columns}",  # noqa: E501
+                            f"Expected dtypes: {expected.dtypes}, got: {actual.dtypes}",
+                        ]
+                    )
+                else:
+                    explanation.append(
+                        f"Expected a dataframe for `{name}`,"
+                        f" received object of type: {type(actual)}"
+                    )
+            else:
+                explanation.extend(
+                    [
+                        f"Comparing `{name}`",
+                        f"expected: {expected}",
+                        f"     got: {actual}",
+                    ]
+                )
+        return explanation
 
     @classmethod
     def from_simulation_outputs(cls, fpath: Path | str, fname: str) -> Metrics:

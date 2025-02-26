@@ -30,11 +30,19 @@ class Windfarm:
         env: WombatEnvironment,
         windfarm_layout: str,
         repair_manager: RepairManager,
+        substations: dict[str, dict] | None = None,
+        turbines: dict[str, dict] | None = None,
+        cables: dict[str, dict] | None = None,
     ) -> None:
         self.env = env
         self.repair_manager = repair_manager
 
         # Set up the layout and instantiate all windfarm objects
+        self._inputs: dict[str, dict | None] = {
+            "turbine": turbines,
+            "substation": substations,
+            "cable": cables,
+        }
         self.configs: dict[str, dict] = {"turbine": {}, "substation": {}, "cable": {}}
         self._create_graph_layout(windfarm_layout)
         self._create_turbines_and_substations()
@@ -167,7 +175,21 @@ class Windfarm:
             # Read in unique system configuration files only once, and reference
             # the existing dictionary when possible to reduce I/O
             if (subassembly_dict := self.configs[node_type].get(name)) is None:
-                subassembly_dict = load_yaml(self.env.data_dir / f"{node_type}s", name)
+                if name.endswith((".yml", ".yaml")):
+                    subassembly_dict = load_yaml(
+                        self.env.data_dir / f"{node_type}s", name
+                    )
+                else:
+                    if self._inputs[node_type] is None:
+                        msg = (
+                            f"{node_type} configuration: '{name}' is not a file, and"
+                            f" no input to {node_type}s was provided."
+                        )
+                        raise ValueError(msg)
+                    if (subassembly_dict := self._inputs[node_type].get(name)) is None:  # type: ignore
+                        raise KeyError(
+                            f"No configuration provided for {node_type}: {name}"
+                        )
                 self.configs[node_type][name] = subassembly_dict
 
             # Create the turbine or substation simulation object
@@ -176,7 +198,7 @@ class Windfarm:
                 self.repair_manager,
                 system_id,
                 data["name"],
-                subassembly_dict,
+                self.configs[node_type][name],
                 node_type,
             )
 
@@ -191,7 +213,6 @@ class Windfarm:
             Raised if the cable model is not specified.
         """
         get_name = "upstream_cable_name" in self.layout_df
-        bad_data_location_messages = []
 
         # Loop over all the edges in the graph and create cable objects
         for start_node, end_node, data in self.graph.edges(data=True):
@@ -206,16 +227,18 @@ class Windfarm:
 
             # Read in unique cable configuration files once to reduce I/O
             if (cable_dict := self.configs["cable"].get(name)) is None:
-                try:
-                    cable_dict = load_yaml(self.env.data_dir / "cables", data["cable"])
-                except FileNotFoundError:
-                    cable_dict = load_yaml(
-                        self.env.data_dir / "windfarm", data["cable"]
-                    )
-                    bad_data_location_messages.append(
-                        "In v0.7, all cable configurations must be located in:"
-                        " '<library>/cables/"
-                    )
+                if name.endswith((".yml", ".yaml")):
+                    cable_dict = load_yaml(self.env.data_dir / "cables", name)
+                else:
+                    if self._inputs["cables"] is None:
+                        msg = (
+                            f"cable configuration: '{name}' is not a file, and"
+                            f" no configuration input to 'cables' was provided."
+                        )
+                        raise ValueError(msg)
+                    if (cable_dict := self._inputs["cable"].get(name)) is None:  # type: ignore
+                        raise KeyError(f"No configuration provided for 'cables: {name}")
+
                 self.configs["cable"][name] = cable_dict
 
             # Get the lat, lon pairs for the start and end points

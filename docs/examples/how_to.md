@@ -302,7 +302,7 @@ reset in addition to a higher equipment cost.
 
 In addition to a variety of servicing equipment types, there is support for
 3 different equipment-level dispatch strategies, as described below. For a set of
-example scenarios, please see the [strategy demonstration](strategy_demonstration.ipynb).
+example scenarios, please see the [strategy demonstration](strategy_demonstration.md).
 
 scheduled
 : dispatch servicing equipment for a specified date range each year
@@ -492,10 +492,6 @@ If a custom library is being used, the `library_path` must be the full path name
 location of the folder where the configuration data is contained.
 ```
 
-```{warning}
-In v0.6, a new library structure
-```
-
 ```{code-cell} ipython3
 library_path = DINWOODIE  # or user-defined path for an external data library
 ```
@@ -512,6 +508,11 @@ the primary inputs for a simulation. Below the base configuration is loaded and 
 with comments to show where each of files are located in the library structure. WOMBAT
 will know where to go for these pointers when the simulation is initialized so the data
 is constructed and validated correctly.
+
+```{note}
+As of veraion 0.10, all non-CSV file inputs can be difined in a single configuration
+file. Please see [the configuration API details](simulation-api:config) for details.
+```
 
 ```{code-cell} ipython3
 config = load_yaml(library_path / "project/config", "base.yaml")
@@ -629,7 +630,7 @@ print(f"Run time: {timing / 60:,.2f} minutes")
 
 ## Metric computation
 
-For a more complete view of what metrics can be compiled, please see the [metrics notebook](metrics_demonstration.ipynb), though for the sake of demonstration a few methods will
+For a more complete view of what metrics can be compiled, please see the [metrics notebook](metrics_demonstration.md), though for the sake of demonstration a few methods will
 be shown here
 
 ```{code-cell} ipython3

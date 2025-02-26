@@ -1,0 +1,602 @@
+name: COREWIND Morro Bay In Situ
+weather: central_ca.csv
+service_equipment:
+  - - ctv
+    - 7
+  - cab
+  - dsv
+  - ahv
+  - hlv
+layout: morro_bay_9D_layout.csv
+port_distance: 60  # 20/100 for West of Barra Island; 10 for Gran Canaria Island
+inflation_rate: 0
+workday_start: 6
+workday_end: 22
+start_year: 2002
+end_year: 2021
+project_capacity: 1200
+substations:
+  corewind_substation:
+    capacity_kw: 600
+    capex_kw: 120  # 120,000 EUR/MW; https://guidetoanoffshorewindfarm.com/wind-farm-costs
+    transformer:
+      name: transformer
+      maintenance:
+        -
+          description: oss annual inspection
+          time: 24
+          materials: 500
+          service_equipment: CTV
+          frequency: 365
+          level: 1
+        # n_technicians: 4
+      failures:
+        2:
+          scale: 5
+          shape: 1
+          time: 12
+          materials: 2000
+          service_equipment: CTV
+          operation_reduction: 0
+          level: 2
+          description: oss minor repair
+          # n_technicians: 2
+        4:
+          scale: 100
+          shape: 1
+          time: 60
+          materials: 100000
+          service_equipment: CTV
+          operation_reduction: 0
+          level: 4
+          description: oss major repair
+          # n_technicians: 5
+cables:
+  corewind_export:
+    name: export cable
+    maintenance:
+      -
+        description: export cable subsea inspection
+        time: 12
+        materials: 500
+        service_equipment: DSV
+        frequency: 730
+        level: 1
+        # n_technicians: 5
+    failures:
+      6:
+        scale: 50
+        shape: 1
+        time: 60
+        materials: 30000
+        operation_reduction: 0
+        service_equipment: [CAB]
+        replacement: false
+        level: 4
+        description: export cable major repair
+        # n_technicians: 5
+  corewind_array:
+    name: array cable
+    maintenance:
+      -
+        description: n/a
+        time: 0
+        materials: 0
+        service_equipment: CTV
+        frequency: 0
+    failures:
+      4:
+        scale: 40
+        shape: 1
+        time: 240
+        materials: 30000
+        operation_reduction: 0
+        service_equipment: [CAB]
+        replacement: false
+        level: 4
+        description: array cable major repair
+        # n_technicians: 10
+      6:
+        scale: 62.5
+        shape: 1
+        time: 360
+        materials: 220000
+        operation_reduction: 0
+        service_equipment: [CAB]
+        replacement: true
+        level: 6
+        description: array cable replacement
+        # n_technicians: 10
+turbines:
+  corewind_15MW:
+    capacity_kw: 15000
+    capex_kw: 1300
+    power_curve:
+      file: 2020ATB_NREL_Reference_15MW_240.csv
+      bin_width: 0.5
+    electrical_system:
+      name: electrical_system
+      maintenance:
+      - description: n/a
+        time: 0
+        materials: 0
+        service_equipment: CTV
+        frequency: 0
+      failures:
+        1:
+          scale: 1.859
+          shape: 1
+          time: 14
+          materials: 1000
+          service_equipment: CTV
+          operation_reduction: 0.0
+          level: 1
+          description: power converter minor repair
+          # n_technicians: 2
+        2:
+          scale: 2.793
+          shape: 1
+          time: 10
+          materials: 1000
+          service_equipment: CTV
+          operation_reduction: 0.0
+          level: 2
+          description: power electrical system minor repair
+          # n_technicians: 2
+        3:
+          scale: 2.959
+          shape: 1
+          time: 28
+          materials: 7000
+          service_equipment: LCN
+          operation_reduction: 0.0
+          level: 3
+          description: power converter major repair
+          # n_technicians: 3
+        4:
+          scale: 62.5
+          shape: 1
+          time: 28
+          materials: 5000
+          service_equipment: LCN
+          operation_reduction: 0.0
+          level: 4
+          description: power electrical system major repair
+          # n_technicians: 3
+        5:
+          scale: 12.99
+          shape: 1
+          time: 170
+          materials: 55000
+          service_equipment: LCN
+          operation_reduction: 0
+          replacement: true
+          level: 5
+          description: power converter replacement
+          # n_technicians: 4
+        6:
+          scale: 500
+          shape: 1
+          time: 54
+          materials: 50000
+          service_equipment: LCN
+          operation_reduction: 0
+          replacement: true
+          level: 6
+          description: power electrical system major replacement
+          # n_technicians: 4
+    hydraulic_system:
+      name: hydraulic_system
+      maintenance:
+      - description: n/a
+        time: 0
+        materials: 0
+        service_equipment: CTV
+        frequency: 0
+      failures:
+        1:
+          scale: 1.214
+          shape: 1
+          time: 18
+          materials: 500
+          service_equipment: CTV
+          operation_reduction: 0
+          level: 1
+          description: minor pitch system repair
+          # n_technicians: 2
+        2:
+          scale: 100
+          shape: 1
+          time: 8
+          materials: 1000
+          service_equipment: CTV
+          operation_reduction: 0
+          level: 2
+          description: minor ballast pump repair
+          # n_technicians: 2
+        3:
+          scale: 5.587
+          shape: 1
+          time: 38
+          materials: 1900
+          service_equipment: CTV
+          operation_reduction: 0.0
+          level: 3
+          description: major pitch system repair
+          # n_technicians: 3
+        5:
+          scale: 1000
+          shape: 1
+          time: 75
+          materials: 14000
+          service_equipment: LCN
+          operation_reduction: 0
+          replacement: true
+          level: 5
+          description: major pitch system replacement
+          # n_technicians: 4
+    yaw_system:
+      name: yaw_system
+      maintenance:
+      - description: n/a
+        time: 0
+        materials: 0
+        service_equipment: CTV
+        frequency: 0
+      failures:
+        1:
+          scale: 6.173
+          shape: 1
+          time: 10
+          materials: 500
+          service_equipment: CTV
+          operation_reduction: 0
+          level: 1
+          description: yaw system minor repair
+          # n_technicians: 2
+        3:
+          scale: 166.7
+          shape: 1
+          time: 40
+          materials: 3000
+          service_equipment: LCN
+          operation_reduction: 0.0
+          level: 3
+          description: yaw system major repair
+          # n_technicians: 3
+        5:
+          scale: 1000
+          shape: 1
+          time: 147
+          materials: 12500
+          service_equipment: LCN
+          operation_reduction: 0
+          replacement: true
+          level: 5
+          description: yaw system major replacement
+          # n_technicians: 5
+    rotor_blades:
+      name: rotor_blades
+      maintenance:
+      - description: n/a
+        time: 0
+        materials: 0
+        service_equipment: CTV
+        frequency: 0
+      failures:
+        2:
+          scale: 2.193
+          shape: 1
+          time: 18
+          materials: 6000
+          service_equipment: CTV
+          operation_reduction: 0
+          level: 2
+          description: blades minor repair
+          # n_technicians: 2
+        4:
+          scale: 100
+          shape: 1
+          time: 42
+          materials: 51732
+          service_equipment: LCN
+          operation_reduction: 0.0
+          level: 4
+          description: blades major repair
+          # n_technicians: 3
+        6:
+          scale: 1000
+          shape: 1
+          time: 864
+          materials: 534000
+          service_equipment: LCN
+          operation_reduction: 0
+          replacement: true
+          level: 6
+          description: blades major replacement
+          # n_technicians: 21
+    generator:
+      name: generator
+      maintenance:
+      - description: annual turbine inspection
+        time: 24
+        materials: 1500
+        service_equipment: CTV
+        frequency: 365
+        # n_technicians: 3
+      failures:
+        2:
+          scale: 1.832
+          shape: 1
+          time: 13
+          materials: 1000
+          service_equipment: CTV
+          operation_reduction: 0.0
+          level: 2
+          description: direct drive generator minor repair
+          # n_technicians: 2
+        4:
+          scale: 33.333
+          shape: 1
+          time: 49
+          materials: 14340
+          service_equipment: LCN
+          operation_reduction: 0.0
+          level: 4
+          description: direct drive generator major repair
+          # n_technicians: 3
+        6:
+          scale: 111.1111
+          shape: 1
+          time: 244
+          materials: 236500
+          service_equipment: LCN
+          operation_reduction: 0
+          replacement: true
+          level: 6
+          description: direct drive generator major replacement
+          # n_technicians: 8
+    supporting_structure:
+      name: supporting_structure
+      maintenance:
+      - description: structural annual inspection
+        time: 24
+        materials: 600
+        service_equipment: CTV
+        frequency: 365
+        # n_technicians: 4
+      - description: structural subsea inspection
+        time: 6
+        materials: 500
+        service_equipment: DSV
+        frequency: 730
+        # n_technicians: 5
+      failures:
+        1:
+          scale: 8.33
+          shape: 1
+          time: 40
+          materials: 1500
+          service_equipment: CTV
+          operation_reduction: 0
+          level: 1
+          description: marine growth removal
+          # n_technicians: 5
+        2:
+          scale: 66.67
+          shape: 1
+          time: 240
+          materials: 75000
+          service_equipment: AHV
+          operation_reduction: 0
+          level: 2
+          description: major anchor repair
+          # n_technicians: 10
+        3:
+          scale: 66.67
+          shape: 1
+          time: 240
+          materials: 20000
+          service_equipment: AHV
+          operation_reduction: 0
+          level: 3
+          description: mooring line major repair
+          # n_technicians: 10
+        4:
+          scale: 80
+          shape: 1
+          time: 360
+          materials: 512000
+          service_equipment: AHV
+          operation_reduction: 0
+          replacement: true
+          level: 4
+          description: anchor replacement
+          # n_technicians: 10
+        5:
+          scale: 80
+          shape: 1
+          time: 360
+          materials: 135000
+          service_equipment: AHV
+          operation_reduction: 0
+          replacement: true
+          level: 5
+          description: mooring line replacement
+          # n_technicians: 10
+        6:
+          scale: 30.3
+          shape: 1
+          time: 40
+          materials: 100000
+          service_equipment: CTV
+          operation_reduction: 0
+          replacement: true
+          level: 6
+          description: buoyancy module replacement
+          # n_technicians: 5
+    drive_train:
+      name: drive_train
+      maintenance:
+      - description: n/a
+        time: 0
+        materials: 0
+        service_equipment: CTV
+        frequency: 0
+      failures:
+        2:
+          scale: 4.329
+          shape: 1
+          time: 10
+          materials: 1000
+          service_equipment: CTV
+          operation_reduction: 0
+          level: 2
+          description: main shaft minor repair
+          # n_technicians: 2
+        4:
+          scale: 38.462
+          shape: 1
+          time: 36
+          materials: 14000
+          service_equipment: LCN
+          operation_reduction: 0
+          level: 4
+          description: main shaft major repair
+          # n_technicians: 3
+        6:
+          scale: 111.111
+          shape: 1
+          time: 144
+          materials: 232000
+          service_equipment: LCN
+          operation_reduction: 0
+          replacement: true
+          level: 6
+          description: main shaft replacement
+          # n_technicians: 5
+vessels:
+  ctv:
+    name: Crew Transfer Vessel
+    equipment_rate: 3500
+    capability: CTV
+    speed: 37.04  # 20 knots
+    strategy: scheduled
+    max_windspeed_transport: 99
+    max_windspeed_repair: 99
+    max_waveheight_transport: 2
+    max_waveheight_repair: 2
+    onsite: True
+    mobilization_cost: 0
+    mobilization_days: 0
+    port_distance: 30
+    start_month: 1
+    start_day: 1
+    end_month: 12
+    end_day: 31
+    start_year: 2002
+    end_year: 2021
+    crew_transfer_time: 0.25
+    n_crews: 1
+    crew:
+      day_rate: 219.18  # 80K/yr / 365 days
+      n_day_rate: 3  # Most tasks are 2, but some larger ones are 3, 4, or 5, so averaging
+      hourly_rate: 0
+      n_hourly_rate: 0
+    # capex: 3000000
+  cab:
+    name: Cable Laying Vessel
+    equipment_rate: 75000
+    capability: CAB
+    speed: 25.93  # 14 knots
+    strategy: requests
+    strategy_threshold: 1
+    max_windspeed_transport: 99
+    max_windspeed_repair: 99
+    max_waveheight_transport: 2
+    max_waveheight_repair: 2
+    onsite: false
+    mobilization_cost: 225000
+    mobilization_days: 14
+    workday_start: 0
+    workday_end: 24
+    charter_days: 10
+    crew_transfer_time: 0.25
+    n_crews: 1
+    crew:
+      day_rate: 219.18  # 80K/yr / 365 days
+      n_day_rate: 10  # N technicians for all array cable tasks
+      hourly_rate: 0
+      n_hourly_rate: 0
+  dsv:
+    name: Diving Support Vessel
+    equipment_rate: 75000
+    capability: DSV
+    speed: 29.63  # 16 knots
+    strategy: requests
+    max_windspeed_transport: 99
+    max_windspeed_repair: 99
+    max_waveheight_transport: 2
+    max_waveheight_repair: 2
+    onsite: false
+    mobilization_cost: 225000
+    mobilization_days: 15
+    strategy_threshold: 1
+    charter_days: 4
+    crew_transfer_time: 0.25
+    n_crews: 1
+    crew:
+      day_rate: 219.18  # 80K/yr / 365 days
+      n_day_rate: 10  # N technicians for all DSV tasks
+      hourly_rate: 0
+      n_hourly_rate: 0
+  ahv:
+    name: Anchor Handling Tug
+    charter_days: 3  # needs to be here, but doesn't do anything
+    equipment_rate: 66000  # AHV (55000) + Chartered CTV (11000)
+    strategy: requests
+    strategy_threshold: 1  # needs to be here, but doesn't do anything
+    onsite: false
+    capability: AHV
+    speed: 24.08  # 13 knots
+    tow_speed: 9.26
+    mobilization_cost: 530000  # AHV (500000) + Chartered CTV (30000)
+    mobilization_days: 20
+    max_windspeed_transport: 20
+    max_windspeed_repair: 20
+    max_waveheight_transport: 2.5
+    max_waveheight_repair: 2.5
+    workday_start: 0
+    workday_end: 24
+    crew_transfer_time: 0.25
+    port_distance: 0  # will get automatically set from the port configuration if not provided
+    n_crews: 1
+    crew:
+      day_rate: 219.18  # 80K/yr / 365 days
+      n_day_rate: 10  # N technicians for all AHV jobs
+      hourly_rate: 0
+      n_hourly_rate: 0
+  hlv:
+    name: Heavy Lift Vessel
+    equipment_rate: 290000
+    capability: LCN
+    speed: 20.37  # 11 knots
+    strategy: requests
+    strategy_threshold: 1
+    max_windspeed_transport: 10
+    max_windspeed_repair: 10
+    max_waveheight_transport: 2
+    max_waveheight_repair: 2
+    onsite: false
+    mobilization_cost: 325000
+    mobilization_days: 10
+    workday_start: 0
+    workday_end: 24
+    charter_days: 20
+    crew_transfer_time: 0.25
+    n_crews: 1
+    crew:
+      day_rate: 219.18  # 80K/yr / 365 days
+      n_day_rate: 5  # Most tasks are 3 or 4, but some larger ones are 8, 10, and 21
+      hourly_rate: 0
+      n_hourly_rate: 0
