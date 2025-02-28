@@ -1,0 +1,1346 @@
+
+<!DOCTYPE html>
+
+
+<html lang="python" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>How To Use WOMBAT &#8212; WOMBAT</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=30a733bc"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/how_to';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Servicing Strategies" href="strategy_demonstration.html" />
+    <link rel="prev" title="User Guide" href="index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="python"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">WOMBAT</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WISDEM/WOMBAT" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI version" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/v/WOMBAT" class="icon-link-image" alt="PyPI version"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI downloads" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/dm/WOMBAT" class="icon-link-image" alt="PyPI downloads"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples" title="Launch Binder" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://mybinder.org/badge_logo.svg" class="icon-link-image" alt="Launch Binder"/></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributor's Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../presentations.html">Presentations and Publications</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../workshops/index.html">Workshops</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../workshops/nawea_wind_tech_2023.html">NAWEA WindTech 2023 WOMBAT Tutorial</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../team.html">Team</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Working With the Code Base</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">User Guide</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">How To Use WOMBAT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="strategy_demonstration.html">Servicing Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metrics_demonstration.html">Demonstration of the Available Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples_reference.html">Examples Reference</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../API/index.html">WOMBAT API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../API/simulation_api.html">Simulation API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../API/types.html">Data Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../API/core.html">Simulation Core Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../API/windfarm.html">Wind Farm Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../API/utilities.html">Helpers and Plotting</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Change Log</a></li>
+
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/examples/how_to.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>How To Use WOMBAT</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#imports">Imports</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#defining-the-simulation">Defining the Simulation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-farm-layout">Wind Farm Layout</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#weather-profile">Weather Profile</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#environmental-considerations">Environmental Considerations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fixed-costs">Fixed Costs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#servicing-equipment">Servicing Equipment</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-system-models">The System Models</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#substations">Substations</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#turbines">Turbines</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cables">Cables</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#set-up-the-simulation">Set Up the Simulation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-the-data-library-path">Define the data library path</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-configuration-file">The configuration file</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-a-simulation">Create a simulation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#option-1-simulation-from-config">Option 1: <code class="docutils literal notranslate"><span class="pre">Simulation.from_config()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#option-2-simulation">Option 2: <code class="docutils literal notranslate"><span class="pre">Simulation()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seeding-the-simulation-random-variable">Seeding the simulation random variable</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run-the-analysis">Run the analysis</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#metric-computation">Metric computation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optional-delete-the-logging-files">Optional: Delete the logging files</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="how-to-use-wombat">
+<h1>How To Use WOMBAT<a class="headerlink" href="#how-to-use-wombat" title="Link to this heading">#</a></h1>
+<p><a class="reference external" href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples"><img alt="Binder" src="https://mybinder.org/badge_logo.svg" /></a></p>
+<p>This tutorial will walk through the setup, running, and results stages of a WOMBAT
+simulation while providing background information about how each component is related.</p>
+<p>A Jupyter notebook of this tutorial can be run from <code class="docutils literal notranslate"><span class="pre">examples/how_to.ipynb</span></code> locally, or
+through <a class="reference external" href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples">binder</a>.</p>
+<section id="imports">
+<h2>Imports<a class="headerlink" href="#imports" title="Link to this heading">#</a></h2>
+<p>The following code block demonstrates a typical setup for working with WOMBAT and
+running analyses.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">perf_counter</span>  <span class="c1"># timing purposes only</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">wombat</span><span class="w"> </span><span class="kn">import</span> <span class="n">Simulation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wombat.core.library</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_yaml</span><span class="p">,</span> <span class="n">DINWOODIE</span>
+
+<span class="c1"># Seed the random variable for consistently randomized results</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Improve the legibility of DataFrames</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">&quot;display.float_format&quot;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{:,.2f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">&quot;display.max_rows&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">&quot;display.max_columns&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="defining-the-simulation">
+<h2>Defining the Simulation<a class="headerlink" href="#defining-the-simulation" title="Link to this heading">#</a></h2>
+<p>The following will demonstrate the required information to run a simulation. For the
+purposes of this tutorial, we'll be working with the data under
+<code class="docutils literal notranslate"><span class="pre">library/code_comparison/dinwoodie</span></code> in the Github repository, and specifically the base
+case.</p>
+<p>One important item to note is that the library structure is enforced within the code so all
+data must be placed in the appropriate locations in your analysis' library as follows:</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>As of v0.6, the following structure will be adopted to mirror the format of the
+<a class="reference external" href="https://github.com/WISDEM/ORBIT/blob/master/ORBIT/core/library.py#L7-L24">ORBIT library structure</a>
+to increase compatibility between similar libraries.</p>
+<p>As of v0.9, the library structure shown below is the only one that will work.</p>
+</div>
+<p>To help users convert to the new structure, the following method is provided to create
+the required folder structure for users.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wombat</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_library_structure</span>  <span class="c1"># located in wombat.core.library</span>
+
+<span class="n">new_library</span> <span class="o">=</span> <span class="s2">&quot;library&quot;</span>
+<span class="n">create_library_structure</span><span class="p">(</span><span class="n">new_library</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The above method call will produce the below folder and subfolder structure.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;library&gt;
+  ├── project
+    ├── config     &lt;- Project-level configuration files
+    ├── port       &lt;- Port configuration files
+    ├── plant      &lt;- Wind farm layout files
+  ├── cables       &lt;- Export and Array cable configuration files
+  ├── substations  &lt;- Substation configuration files
+  ├── turbines     &lt;- Turbine configuration and power curve files
+  ├── vessels      &lt;- Land-based and offshore servicing equipment configuration files
+  ├── weather      &lt;- Weather profiles
+  ├── results      &lt;- The analysis log files and any saved output data
+</pre></div>
+</div>
+<p>As a convenience feature you can import the provided validation data libraries as
+<code class="docutils literal notranslate"><span class="pre">DINWOODIE</span></code> or <code class="docutils literal notranslate"><span class="pre">IEA_26</span></code> as is seen in the imports above, and a consistent path will be
+enabled.</p>
+<p>In practice, any folder location can be used so long as it follows the subfolder
+structure provided here.</p>
+<section id="wind-farm-layout">
+<span id="how-to-configure-layout"></span><h3>Wind Farm Layout<a class="headerlink" href="#wind-farm-layout" title="Link to this heading">#</a></h3>
+<p>The wind farm layout is determined by a csv file, <code class="docutils literal notranslate"><span class="pre">dinwoodie/windfarm/layout.csv</span></code> in
+this case. Below is a sample of what information is required and how to use each field,
+followed by a visual example. It should be noted that none of the headings are
+case-sensitive.</p>
+<dl class="simple myst">
+<dt>id (required)</dt><dd><p>Unique identifier for the asset; no spaces allowed.</p>
+</dd>
+<dt>substation_id (required)</dt><dd><p>The id field for the substation that the asset connects to; in the case that this is a
+substation, then this field should be the same as <code class="docutils literal notranslate"><span class="pre">id</span></code>; no spaces allowed.</p>
+</dd>
+<dt>name (required)</dt><dd><p>A descriptive name for the turbine, if desired. This can be the same as <code class="docutils literal notranslate"><span class="pre">id</span></code>.</p>
+</dd>
+<dt>type (optional)</dt><dd><p>One of &quot;turbine&quot; or &quot;substation&quot;. This is required to accurately model a
+multi-substation wind farm. The base assumption is that a substation connects to
+itself as a means to model the export cable connecting to the interconnection point,
+however, this is not always the case, as substations may be connected through their
+export systems. Using this filed allows for that connection to be modeled accurately.</p>
+</dd>
+<dt>longitude (optional)</dt><dd><p>The longitudinal position of the asset, can be in any geospatial reference; optional.</p>
+</dd>
+<dt>latitude (optional)</dt><dd><p>The latitude position of the asset, can be in any geospatial reference; optional.</p>
+</dd>
+<dt>string (required)</dt><dd><p>The integer, zero-indexed, string number for where the turbine will be positioned.</p>
+</dd>
+<dt>order (required)</dt><dd><p>The integer, zero-indexed position on the string for where the turbine will be
+positioned.</p>
+</dd>
+<dt>distance (optional)</dt><dd><p>The distance to the upstream asset; if this is calculated (input = 0), then the
+straight line distance is calculated using the provided coordinates (WGS-84 assumed).</p>
+</dd>
+<dt>subassembly (required)</dt><dd><p>The file that defines the asset's modeling parameters.</p>
+</dd>
+<dt>upstream_cable (required)</dt><dd><p>The file that defines the upstream cable's modeling parameters.</p>
+</dd>
+<dt>upstream_cable_name (optional)</dt><dd><p>The descriptive name to give to the cable that will be used during logging. This
+enables users to use a single cable definition file while maintaining the naming
+conventions used for the wind farm being simulated.</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In the example below, there are a few noteworthy caveats that will set the stage for
+later input reviews:</p>
+<ul class="simple">
+<li><p>The cables are not modeled, which has a couple of implications</p>
+<ul>
+<li><p>There only needs to be one string &quot;0&quot;</p></li>
+<li><p>The cable specifications are required, even if not being modeled (details later)</p></li>
+</ul>
+</li>
+<li><p>longitude, latitude, and distance are all &quot;0&quot; because the spatial locations are not used</p></li>
+<li><p>subassembly is all &quot;vestas_v90.yaml&quot;, but having to input the turbine subassembly model
+means that multiple turbine types can be used on a windfarm.</p>
+<ul>
+<li><p>This same logic applies to the upstream_cable so that multiple cable types can be
+used as appopriate.</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div style="overflow-y:auto;overflow-x:auto">
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>id</p></th>
+<th class="head text-left"><p>substation_id</p></th>
+<th class="head text-left"><p>name</p></th>
+<th class="head text-left"><p>type</p></th>
+<th class="head text-right"><p>longitude</p></th>
+<th class="head text-right"><p>latitude</p></th>
+<th class="head text-right"><p>string</p></th>
+<th class="head text-right"><p>order</p></th>
+<th class="head text-right"><p>distance</p></th>
+<th class="head text-left"><p>subassembly</p></th>
+<th class="head text-left"><p>upstream_cable</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>OSS1</p></td>
+<td class="text-left"><p>OSS1</p></td>
+<td class="text-left"><p>OSS1</p></td>
+<td class="text-left"><p>substation</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-right"><p></p></td>
+<td class="text-right"><p></p></td>
+<td class="text-right"><p></p></td>
+<td class="text-left"><p>offshore_substation.yaml</p></td>
+<td class="text-left"><p>export.yaml</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>S00T1</p></td>
+<td class="text-left"><p>OSS1</p></td>
+<td class="text-left"><p>S00T1</p></td>
+<td class="text-left"><p>turbine</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-left"><p>vestas_v90.yaml</p></td>
+<td class="text-left"><p>array.yaml</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>S00T2</p></td>
+<td class="text-left"><p>OSS1</p></td>
+<td class="text-left"><p>S00T2</p></td>
+<td class="text-left"><p>turbine</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-right"><p>1</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-left"><p>vestas_v90.yaml</p></td>
+<td class="text-left"><p>array.yaml</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>S00T3</p></td>
+<td class="text-left"><p>OSS1</p></td>
+<td class="text-left"><p>S00T3</p></td>
+<td class="text-left"><p>turbine</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-right"><p>2</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-left"><p>vestas_v90.yaml</p></td>
+<td class="text-left"><p>array.yaml</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>...</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-right"><p></p></td>
+<td class="text-right"><p></p></td>
+<td class="text-right"><p></p></td>
+<td class="text-right"><p></p></td>
+<td class="text-right"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>S00T79</p></td>
+<td class="text-left"><p>OSS1</p></td>
+<td class="text-left"><p>S00T79</p></td>
+<td class="text-left"><p>turbine</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-right"><p>78</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-left"><p>vestas_v90.yaml</p></td>
+<td class="text-left"><p>array.yaml</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>S00T80</p></td>
+<td class="text-left"><p>OSS1</p></td>
+<td class="text-left"><p>S00T80</p></td>
+<td class="text-left"><p>turbine</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-right"><p>79</p></td>
+<td class="text-right"><p>0</p></td>
+<td class="text-left"><p>vestas_v90.yaml</p></td>
+<td class="text-left"><p>array.yaml</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="weather-profile">
+<span id="how-to-configure-weather"></span><h3>Weather Profile<a class="headerlink" href="#weather-profile" title="Link to this heading">#</a></h3>
+<p>The weather profile will broadly define the simulation range with its start and stop
+points, though a narrower one can be used when defining the simulation (more later).</p>
+<p>The following columns should exist in the data set with the provided guidelines.</p>
+<dl class="simple myst">
+<dt>datetime (required)</dt><dd><p>A date and time stamp, any format.</p>
+</dd>
+<dt>windspeed (required)</dt><dd><p>The hourly, mean winds peed, in meters per second at the time stamp.</p>
+</dd>
+<dt>waveheight (optional)</dt><dd><p>The hourly, mean wave height, in meters, at the time stamp. If waves are not required,
+this can be filled with zeros, or be left out entirely.</p>
+</dd>
+</dl>
+<p>Below, is a demonstration of what <code class="docutils literal notranslate"><span class="pre">weather/alpha_ventus_weather_2002_2014.csv</span></code> looks like.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>datetime</p></th>
+<th class="head text-right"><p>windspeed</p></th>
+<th class="head text-right"><p>waveheight</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>1/1/02 0:00</p></td>
+<td class="text-right"><p>11.75561096</p></td>
+<td class="text-right"><p>1.281772405</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>1/1/02 1:00</p></td>
+<td class="text-right"><p>10.41321252</p></td>
+<td class="text-right"><p>1.586584315</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>1/1/02 2:00</p></td>
+<td class="text-right"><p>8.959270788</p></td>
+<td class="text-right"><p>1.725690828</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>1/1/02 3:00</p></td>
+<td class="text-right"><p>9.10014808</p></td>
+<td class="text-right"><p>1.680982063</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>...</p></td>
+<td class="text-right"><p></p></td>
+<td class="text-right"><p></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>12/31/14 22:00</p></td>
+<td class="text-right"><p>14.40838803</p></td>
+<td class="text-right"><p>0.869625003</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>12/31/14 23:00</p></td>
+<td class="text-right"><p>14.04563195</p></td>
+<td class="text-right"><p>0.993031445</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="environmental-considerations">
+<span id="how-to-configure-environment"></span><h3>Environmental Considerations<a class="headerlink" href="#environmental-considerations" title="Link to this heading">#</a></h3>
+<p>In addition to using weather conditions for site characteristics, WOMBAT is able to
+model environmental considerations where a port or site cannot be accessed, for example,
+when silt builds up and water depths become too low to tow a turbine into the port.
+There is also a feature for imposing maximum operating speeds, such as when there are
+animal migrations and vessels must slow down to avoid collisions with endangered species.</p>
+<p>Defining the <code class="docutils literal notranslate"><span class="pre">non_operational_start</span></code> and <code class="docutils literal notranslate"><span class="pre">non_operational_end</span></code> at either the servicing
+equipment, environment, or port level allows for the creation of an annualized date
+range spanning the length of the simulation where operations are not allowed to occur.
+When defined at the environment level, all servicing equipment and a port, if defined,
+will have this non-operational period applied, and if it's already existing, the more
+conservative of the date ranges will be applied. When defined at the port level, all
+associated servicing equipment (tugboats) will have the same inuring priority as when
+defined at the environment level.</p>
+<p>The same logic applies when defining the <code class="docutils literal notranslate"><span class="pre">reduced_speed_start</span></code> and <code class="docutils literal notranslate"><span class="pre">reduced_speed_end</span></code>
+for defining when the operating speeds of servicing equipment are capped at the
+<code class="docutils literal notranslate"><span class="pre">reduced_speed</span></code>. As is the case above, these variables can also be defined at the
+servicing equipment level for further customization.</p>
+</section>
+<section id="fixed-costs">
+<span id="how-to-configure-fixed-costs"></span><h3>Fixed Costs<a class="headerlink" href="#fixed-costs" title="Link to this heading">#</a></h3>
+<p>Please see the <a class="reference internal" href="../API/types.html#types-misc-fixed-costs"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">FixedCosts</span></code> API documentation</span></a> for
+details on this optional piece of financial modeling.</p>
+<p>For modeling a tow-to-port strategy that the port rental costs should be included in
+this category, and not in the port configuration.</p>
+</section>
+<section id="servicing-equipment">
+<span id="how-to-configure-servicing-equipment"></span><h3>Servicing Equipment<a class="headerlink" href="#servicing-equipment" title="Link to this heading">#</a></h3>
+<p>The servicing equipment control the actual repairs within a simulation, and as of v0.5,
+there are four different repair strategies that can be used: scheduled, downtime-based
+unscheduled, repair-based unscheduled, and tow-to-port. These are options are controlled
+through the <code class="docutils literal notranslate"><span class="pre">capability</span></code> settings in each equipment's configuration in conjunction with
+the <code class="docutils literal notranslate"><span class="pre">service_equipment</span></code> setting in the maintenance and failure configurations for each
+subassembly.</p>
+<p>For complete documentation of how the servicing equipment parameters are defined, please
+see the <a class="reference internal" href="../API/types.html#types-service-equipment"><span class="std std-ref">ServiceEquipmentData API documentation</span></a></p>
+<p>Below is a definition of the different equipment codes and their designations to show
+the breadth of what can be simulated. These codes do not have separate operating models,
+but instead allow the user to specify the types of operations the servicing equipment
+will be able to operate on. This model should be aligned with the <code class="docutils literal notranslate"><span class="pre">service_equipment</span></code>
+requirements in the subassembly failure and maintenance models.</p>
+<dl class="simple myst">
+<dt>RMT</dt><dd><p>remote (no actual equipment BUT no special implementation), akin to remote resets</p>
+</dd>
+<dt>DRN</dt><dd><p>drone, or potentially even helicopters by changing the costs</p>
+</dd>
+<dt>CTV</dt><dd><p>crew transfer vessel/onsite truck</p>
+</dd>
+<dt>SCN</dt><dd><p>small crane (i.e., field support vessel or cherry picker)</p>
+</dd>
+<dt>MCN</dt><dd><p>medium crane (i.e., anything between a cherry picker and a crawler crane)</p>
+</dd>
+<dt>LCN</dt><dd><p>large crane (i.e., heavy lift vessel or crawler crane)</p>
+</dd>
+<dt>CAB</dt><dd><p>cabling-specific vessel/vehicle</p>
+</dd>
+<dt>DSV</dt><dd><p>diving support vessel</p>
+</dd>
+<dt>TOW</dt><dd><p>tugboat/towing (a failure with this setting will trigger a tow-to-port scenario where
+the simulation's <code class="docutils literal notranslate"><span class="pre">Port</span></code> will dispatch the tugboats as needed)</p>
+</dd>
+<dt>AHV</dt><dd><p>anchor handling vessel (this is a variation on the tugboat for mooring repairs that
+will not tow anything between port and site, but operate at the site)</p>
+</dd>
+<dt>VSG</dt><dd><p>vessel support group (used as a means for modeling a grouping of vessels used for a
+sing repair operation)</p>
+</dd>
+</dl>
+<p>Aside from the TOW and AHV capabilities there are no operations specific to each
+capability. The remaining configurations of a servicing equipment such as equipment
+rates, mobilization, labor, and operating limits will define the nature of its operation
+in tandem with a failure's <code class="docutils literal notranslate"><span class="pre">time</span></code> field. So for a remote reset (RMT), there will be a
+trivial equipment rate, if any, associated with it to account for the specific operations
+or resetting the subassembly remotely. Similarly, a drone repair or inspection (DRN)
+will not require any onboard crew, so labor will 0, or low if assuming an operator that
+is unaccounted for in the site <code class="docutils literal notranslate"><span class="pre">FixedCosts</span></code>, but will require more time than a remote
+reset in addition to a higher equipment cost.</p>
+<p>In addition to a variety of servicing equipment types, there is support for
+3 different equipment-level dispatch strategies, as described below. For a set of
+example scenarios, please see the <a class="reference internal" href="#strategy_demonstration.ipynb"><span class="xref myst">strategy demonstration</span></a>.</p>
+<dl class="simple myst">
+<dt>scheduled</dt><dd><p>dispatch servicing equipment for a specified date range each year</p>
+</dd>
+<dt>requests</dt><dd><p>dispatch the servicing equipment once a <code class="docutils literal notranslate"><span class="pre">strategy_threshold</span></code> number of requests
+that the equipment can service has been reached</p>
+</dd>
+<dt>downtime</dt><dd><p>dispatch the servicing equipment once the wind farm's operating level reaches the
+<code class="docutils literal notranslate"><span class="pre">strategy_threshold</span></code> percent downtime.</p>
+</dd>
+</dl>
+</section>
+<section id="the-system-models">
+<h3>The System Models<a class="headerlink" href="#the-system-models" title="Link to this heading">#</a></h3>
+<p>The actual assets on the windfarm such as cables, turbines, and substations, are
+referred to as systems in WOMBAT, and each has their own individual model. Within each
+of these systems, there are user-defined subassemblies (or components) that rely on
+two types of repair models:</p>
+<ul class="simple">
+<li><p>maintenance: scheduled, fixed time interval-based maintenance tasks</p></li>
+<li><p>failures: unscheduled, Weibull distribution-based modeled, maintenance tasks</p></li>
+</ul>
+<p>The subassemblies keys in the system YAML definition can be user-defined
+to accommodate the varying language among industry groups and generations of wind
+technologies. The only restrictions are the YAML keys must not contain any special
+characters, and cannot be repeated</p>
+<p>In the example below we show a <code class="docutils literal notranslate"><span class="pre">generator</span></code> subassembly with an annual service task and
+frequent manual reset. For a thorough definition, please read the API
+documentation of the <a class="reference internal" href="../API/types.html#types-maintenance-scheduled"><span class="std std-ref">Maintenance</span></a> and
+<a class="reference internal" href="../API/types.html#types-maintenance-unscheduled"><span class="std std-ref">Failure</span></a> data classes. Note that the yaml definition below
+specifies that maintenance tasks are in a bulleted list format and that failure
+defintions require a dictionary-style input with keys to match the severity level of a
+given failure. For more details on the complete subassembly definition, please visit the
+<a class="reference internal" href="../API/types.html#types-windfarm-subassembly"><span class="std std-ref">Subassembly API documentation</span></a>.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">generator</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generator</span><span class="w">  </span><span class="c1"># doesn&#39;t need to match the subassembly key that becomes System.id</span>
+<span class="w">  </span><span class="nt">maintenance</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">annual service</span>
+<span class="w">    </span><span class="nt">time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">60</span>
+<span class="w">    </span><span class="nt">materials</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">18500</span>
+<span class="w">    </span><span class="nt">service_equipment</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CTV</span>
+<span class="w">    </span><span class="nt">frequency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">365</span>
+<span class="w">    </span><span class="nt">operation_reduction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w">  </span><span class="c1"># default value</span>
+<span class="w">  </span><span class="nt">failures</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">1</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">scale</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.1333</span>
+<span class="w">      </span><span class="nt">shape</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">      </span><span class="nt">time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">      </span><span class="nt">materials</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">      </span><span class="nt">service_equipment</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CTV</span>
+<span class="w">      </span><span class="nt">operation_reduction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<span class="w">      </span><span class="nt">replacement</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w">  </span><span class="c1"># default value</span>
+<span class="w">      </span><span class="nt">level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">  </span><span class="c1"># Note that the &quot;level&quot; value matches the key &quot;1&quot;</span>
+<span class="w">      </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">manual reset</span>
+</pre></div>
+</div>
+<section id="substations">
+<h4>Substations<a class="headerlink" href="#substations" title="Link to this heading">#</a></h4>
+<p>The substation model relies on two specific inputs, and one subassembly input (transformer).</p>
+<dl class="simple myst">
+<dt>capacity_kw</dt><dd><p>The capacity of all turbines in the wind farm, neglecting any losses. Only needed if
+a $/kw cost basis is being used.</p>
+</dd>
+<dt>capex_kw</dt><dd><p>The $/kw cost of the machine, if not providing absolute costs.</p>
+</dd>
+</dl>
+<p>Additional keys can be added to represent subassemblies, such as a transformer, in the
+same format as the generator example above. Similarly, a user can define as man or as
+few of the subassemblies as desired with their preferred naming conventions</p>
+<p>The following is an example of substation YAML definition with no modeled subassemblies.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">capacity_kw</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">670000</span>
+<span class="nt">capex_kw</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">140</span>
+<span class="nt">transformer</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transformer</span>
+<span class="w">  </span><span class="nt">maintenance</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span>
+<span class="w">      </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">n/a</span>
+<span class="w">      </span><span class="nt">time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">      </span><span class="nt">materials</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">      </span><span class="nt">service_equipment</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CTV</span>
+<span class="w">      </span><span class="nt">frequency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">  </span><span class="nt">failures</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">1</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">scale</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">      </span><span class="nt">shape</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">      </span><span class="nt">time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">      </span><span class="nt">materials</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">      </span><span class="nt">service_equipment</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">CTV</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">operation_reduction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">      </span><span class="nt">level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">      </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">n/a</span>
+</pre></div>
+</div>
+</section>
+<section id="turbines">
+<h4>Turbines<a class="headerlink" href="#turbines" title="Link to this heading">#</a></h4>
+<p>The turbine has the most to define out of the three systems in the wind farm model.
+Similar to the substation, it relies mainly on the subassembly model with a few extra
+parameters, as defined here:</p>
+<dl class="simple myst">
+<dt>capacity_kw</dt><dd><p>The capacity of the system. Only needed if a $/kw cost basis is being used.</p>
+</dd>
+<dt>capex_kw</dt><dd><p>The $/kw cost of the machine, if not providing absolute costs.</p>
+</dd>
+<dt>power_curve: file</dt><dd><p>File that provides the power curve definition.</p>
+</dd>
+</dl>
+<p>power_curve: bin_width
+The desired interval, in m/s, between adjacent points on the power curve to be used for
+power calculations.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">windfarm/vestas_v90.yaml</span></code> data file provides the following definition in addition
+to the maintenance and failure definitions that were shown previously.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">capacity_kw</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3000</span>
+<span class="nt">capex_kw</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1300</span>
+<span class="nt">power_curve</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">vestas_v90_power_curve.csv</span>
+<span class="w">  </span><span class="nt">bin_width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span>
+</pre></div>
+</div>
+<p>The power curve input CSV requires the following two columns: <code class="docutils literal notranslate"><span class="pre">windspeed_ms</span></code> and
+<code class="docutils literal notranslate"><span class="pre">power_kw</span></code> that should be defined using the wind speed for a bin, in m/s and the power
+produced at that wind speed, in kW. The current method available for generating the
+power curve is the IEC 61400-12-1-2 method for a wind-speed binned power curve. If there
+is a need/desire for additional power curve methodologies, then
+<a class="reference external" href="https://github.com/WISDEM/WOMBAT/issues">please submit an issue on the GitHub</a>!</p>
+<p>For an open source listing of a variety of land-based, offshore, and distributed wind
+turbine power curves, please visit the
+<a class="reference external" href="https://github.com/NREL/turbine-models">NREL Turbine Models repository</a>.</p>
+</section>
+<section id="cables">
+<h4>Cables<a class="headerlink" href="#cables" title="Link to this heading">#</a></h4>
+<p>The array cable is the simplest format in that you only define a descriptive name,
+and the maintenance and failure events as below. It should be noted that the scheme
+is a combination of both the system and subassembly configuration.</p>
+<p>For export cables that connect substations, as opposed to an interconnection, they will
+not create dependencies because it is assumed they bypass the substation altogether,
+and connect directly with the export system. This means that if there is a failure at a
+downstream substation, the connecting export cable and its upstream turbine, substation,
+and cable connections will continue to operate normally.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">array cable</span>
+<span class="nt">maintenance</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">n/a</span>
+<span class="w">    </span><span class="nt">time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">    </span><span class="nt">materials</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">    </span><span class="nt">service_equipment</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CTV</span>
+<span class="w">    </span><span class="nt">frequency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="nt">failures</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">1</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">scale</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">    </span><span class="nt">shape</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">    </span><span class="nt">time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">    </span><span class="nt">materials</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">    </span><span class="nt">operation_reduction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">    </span><span class="nt">service_equipment</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CAB</span>
+<span class="w">    </span><span class="nt">level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">n/a</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="set-up-the-simulation">
+<h2>Set Up the Simulation<a class="headerlink" href="#set-up-the-simulation" title="Link to this heading">#</a></h2>
+<p>In the remaining sections of the tutorial, we will work towards setting up and running
+a simulation.</p>
+<section id="define-the-data-library-path">
+<h3>Define the data library path<a class="headerlink" href="#define-the-data-library-path" title="Link to this heading">#</a></h3>
+<p>The set library enables WOMBAT to easily access and store data files consistently. Here,
+the <code class="docutils literal notranslate"><span class="pre">DINWOODIE</span></code> reference is going to be used again.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If a custom library is being used, the <code class="docutils literal notranslate"><span class="pre">library_path</span></code> must be the full path name to the
+location of the folder where the configuration data is contained.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>In v0.6, a new library structure</p>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">library_path</span> <span class="o">=</span> <span class="n">DINWOODIE</span>  <span class="c1"># or user-defined path for an external data library</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="the-configuration-file">
+<h3>The configuration file<a class="headerlink" href="#the-configuration-file" title="Link to this heading">#</a></h3>
+<p>In the configuration below, there are a number of data points that will define our
+wind farm layout, weather conditions, working hours, customized start and completion
+years, project size, financials, and the servicing equipment to be used. Note that there
+can be as many or as few of the servicing equipment units as desired.</p>
+<p>The purpose of an overarching configuration file is to provide a single place to define
+the primary inputs for a simulation. Below the base configuration is loaded and displayed
+with comments to show where each of files are located in the library structure. WOMBAT
+will know where to go for these pointers when the simulation is initialized so the data
+is constructed and validated correctly.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="n">load_yaml</span><span class="p">(</span><span class="n">library_path</span> <span class="o">/</span> <span class="s2">&quot;project/config&quot;</span><span class="p">,</span> <span class="s2">&quot;base.yaml&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Contents of: dinwoodie / config / base.yaml</span>
+<span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dinwoodie_base</span>
+<span class="nt">weather</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">alpha_ventus_weather_2002_2014.csv</span><span class="w">  </span><span class="c1"># located in: dinwoodie / weather</span>
+<span class="nt">service_equipment</span><span class="p">:</span>
+<span class="c1"># YAML-encoded list, but could also be created in standard Python list notation with</span>
+<span class="c1"># square brackets: [ctv1.yaml, ctv2.yaml, ..., hlv_requests.yaml]</span>
+<span class="c1"># All below equipment configurations are located in: dinwoodie / vessels</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ctv1.yaml</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ctv2.yaml</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ctv3.yaml</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fsv_requests.yaml</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hlv_requests.yaml</span>
+<span class="nt">layout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">layout.csv</span><span class="w">  </span><span class="c1"># located in: dinwoodie / windfarm</span>
+<span class="nt">inflation_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="nt">fixed_costs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fixed_costs.yaml</span><span class="w">  </span><span class="c1"># located in: dinwoodie / project / config</span>
+<span class="nt">workday_start</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">7</span>
+<span class="nt">workday_end</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">19</span>
+<span class="nt">start_year</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2003</span>
+<span class="nt">end_year</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2012</span>
+<span class="nt">project_capacity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">240</span>
+<span class="c1"># port: base_port.yaml  &lt;- When running a tow-to-port simulation the port configuration</span>
+<span class="c1">#                          pointer is provided here and located in: dinwoodie / project / port</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="create-a-simulation">
+<h2>Create a simulation<a class="headerlink" href="#create-a-simulation" title="Link to this heading">#</a></h2>
+<p>There are two ways that this could be done, the first is to use the classmethod
+<code class="docutils literal notranslate"><span class="pre">Simulation.from_config()</span></code>, which allows for the full path string, a dictionary, or
+<code class="docutils literal notranslate"><span class="pre">Configuration</span></code> object to passed as an input, and the second is through a standard
+class initialization.</p>
+<section id="option-1-simulation-from-config">
+<h3>Option 1: <code class="docutils literal notranslate"><span class="pre">Simulation.from_config()</span></code><a class="headerlink" href="#option-1-simulation-from-config" title="Link to this heading">#</a></h3>
+<p>Load the file from the <code class="docutils literal notranslate"><span class="pre">Configuration</span></code> object that was created in the prior code black</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">library_path</span><span class="o">=</span><span class="n">library_path</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+<span class="c1"># Delete any files that get initialized through the simulation environment</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">cleanup_log_files</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="option-2-simulation">
+<h3>Option 2: <code class="docutils literal notranslate"><span class="pre">Simulation()</span></code><a class="headerlink" href="#option-2-simulation" title="Link to this heading">#</a></h3>
+<p>Load the configuration file automatically given a library path and configuration file name.</p>
+<p>In this usage, the string &quot;DINWOODIE&quot; can be used because the <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> class knows
+to look for this library mapping, as well as the &quot;IEA_26&quot; mapping for the two validation
+cases that we demonstrate in the examples folder.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In Option 2, the config parameter can also be set with a dictionary.</p>
+<p>The library path in the configuration file should match the one provided, or the
+setup steps will fail in the simulation.</p>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span>
+    <span class="n">library_path</span><span class="o">=</span><span class="s2">&quot;DINWOODIE&quot;</span><span class="p">,</span>  <span class="c1"># automatically directs to the provided library</span>
+    <span class="n">config</span><span class="o">=</span><span class="s2">&quot;base.yaml&quot;</span>
+<span class="p">)</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">cleanup_log_files</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="seeding-the-simulation-random-variable">
+<h3>Seeding the simulation random variable<a class="headerlink" href="#seeding-the-simulation-random-variable" title="Link to this heading">#</a></h3>
+<p>Using <code class="docutils literal notranslate"><span class="pre">random_seed</span></code> a simulation can be seeded to produce the same results every single
+time, or a <code class="docutils literal notranslate"><span class="pre">random_generator</span></code> can be provided to use the same generator for a batch of
+identical simulations to better understand the variations in results.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span>
+    <span class="n">library_path</span><span class="o">=</span><span class="s2">&quot;DINWOODIE&quot;</span><span class="p">,</span>  <span class="c1"># automatically directs to the provided library</span>
+    <span class="n">config</span><span class="o">=</span><span class="s2">&quot;base.yaml&quot;</span><span class="p">,</span>
+    <span class="n">random_seed</span><span class="o">=</span><span class="mi">2023</span><span class="p">,</span>  <span class="c1"># integer value indicating how to seed the internally-created generator</span>
+<span class="p">)</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">cleanup_log_files</span><span class="p">()</span>
+
+<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">2023</span><span class="p">)</span>  <span class="c1"># create the generator</span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span>
+    <span class="n">library_path</span><span class="o">=</span><span class="s2">&quot;DINWOODIE&quot;</span><span class="p">,</span>  <span class="c1"># automatically directs to the provided library</span>
+    <span class="n">config</span><span class="o">=</span><span class="s2">&quot;base.yaml&quot;</span><span class="p">,</span>
+    <span class="n">random_generator</span><span class="o">=</span><span class="n">rng</span><span class="p">,</span>  <span class="c1"># generator that can be shared among all processes</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="run-the-analysis">
+<h2>Run the analysis<a class="headerlink" href="#run-the-analysis" title="Link to this heading">#</a></h2>
+<p>When the run method is called, the default run time is for the full length of the
+simulation, however, if a shorter run than was previously designed is required for
+debugging, or something similar, we can use <code class="docutils literal notranslate"><span class="pre">sum.run(until=&lt;your-time&gt;)</span></code> to do this. In
+the <code class="docutils literal notranslate"><span class="pre">run</span></code> method, not only is the simulation run, but the metrics class is loaded at the
+end to quickly transition to results aggregation without any further code.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Timing for a demonstration of performance</span>
+<span class="n">start</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span>
+
+<span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+<span class="n">end</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span>
+
+<span class="n">timing</span> <span class="o">=</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Run time: </span><span class="si">{</span><span class="n">timing</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">60</span><span class="si">:</span><span class="s2">,.2f</span><span class="si">}</span><span class="s2"> minutes&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Run time: 0.62 minutes
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="metric-computation">
+<h2>Metric computation<a class="headerlink" href="#metric-computation" title="Link to this heading">#</a></h2>
+<p>For a more complete view of what metrics can be compiled, please see the <a class="reference internal" href="#metrics_demonstration.ipynb"><span class="xref myst">metrics notebook</span></a>, though for the sake of demonstration a few methods will
+be shown here</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">net_cf</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">capacity_factor</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;net&quot;</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">&quot;windfarm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">gross_cf</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">capacity_factor</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;gross&quot;</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">&quot;windfarm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Net Capacity Factor: </span><span class="si">{</span><span class="n">net_cf</span><span class="si">:</span><span class="s2">2.1%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gross Capacity Factor: </span><span class="si">{</span><span class="n">gross_cf</span><span class="si">:</span><span class="s2">2.1%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Net Capacity Factor: 46.3%
+Gross Capacity Factor: 47.7%
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Report back a subset of the metrics</span>
+<span class="n">total</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">time_based_availability</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">&quot;windfarm&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Project time-based availability: </span><span class="si">{</span><span class="n">total</span><span class="o">.</span><span class="n">windfarm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">total</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">production_based_availability</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">&quot;windfarm&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Project energy-based availability: </span><span class="si">{</span><span class="n">total</span><span class="o">.</span><span class="n">windfarm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">total</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">equipment_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by_equipment</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;          Project equipment costs: $</span><span class="si">{</span><span class="n">total</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">sim</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">project_capacity</span><span class="si">:</span><span class="s2">,.2f</span><span class="si">}</span><span class="s2">/MW&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Project time-based availability: 97.0%
+Project energy-based availability: 97.1%
+          Project equipment costs: $446,586.89/MW
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="optional-delete-the-logging-files">
+<h2>Optional: Delete the logging files<a class="headerlink" href="#optional-delete-the-logging-files" title="Link to this heading">#</a></h2>
+<p>In the case that a lot of simulations are going to be run, and the processed outputs
+are all that is required, then there is a convenience method to clean up these files
+automatically once you are done.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">cleanup_log_files</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./examples"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">User Guide</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="strategy_demonstration.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Servicing Strategies</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#imports">Imports</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#defining-the-simulation">Defining the Simulation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-farm-layout">Wind Farm Layout</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#weather-profile">Weather Profile</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#environmental-considerations">Environmental Considerations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fixed-costs">Fixed Costs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#servicing-equipment">Servicing Equipment</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-system-models">The System Models</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#substations">Substations</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#turbines">Turbines</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cables">Cables</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#set-up-the-simulation">Set Up the Simulation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-the-data-library-path">Define the data library path</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-configuration-file">The configuration file</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-a-simulation">Create a simulation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#option-1-simulation-from-config">Option 1: <code class="docutils literal notranslate"><span class="pre">Simulation.from_config()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#option-2-simulation">Option 2: <code class="docutils literal notranslate"><span class="pre">Simulation()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seeding-the-simulation-random-variable">Seeding the simulation random variable</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run-the-analysis">Run the analysis</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#metric-computation">Metric computation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optional-delete-the-logging-files">Optional: Delete the logging files</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Rob Hammond
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2021 Alliance for Sustainable Energy, LLC.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

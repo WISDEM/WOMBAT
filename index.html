@@ -1,0 +1,660 @@
+
+<!DOCTYPE html>
+
+
+<html lang="python" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>WOMBAT - Windfarm Operations and Maintenance cost-Benefit Analysis Tool &#8212; WOMBAT</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=30a733bc"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'index';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="install.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="python"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="#">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">WOMBAT</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WISDEM/WOMBAT" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI version" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/v/WOMBAT" class="icon-link-image" alt="PyPI version"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI downloads" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/dm/WOMBAT" class="icon-link-image" alt="PyPI downloads"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples" title="Launch Binder" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://mybinder.org/badge_logo.svg" class="icon-link-image" alt="Launch Binder"/></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributor's Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="presentations.html">Presentations and Publications</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="workshops/index.html">Workshops</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="workshops/nawea_wind_tech_2023.html">NAWEA WindTech 2023 WOMBAT Tutorial</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="team.html">Team</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Working With the Code Base</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="examples/index.html">User Guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/how_to.html">How To Use WOMBAT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/strategy_demonstration.html">Servicing Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/metrics_demonstration.html">Demonstration of the Available Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/examples_reference.html">Examples Reference</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="API/index.html">WOMBAT API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="API/simulation_api.html">Simulation API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API/types.html">Data Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API/core.html">Simulation Core Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API/windfarm.html">Wind Farm Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API/utilities.html">Helpers and Plotting</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Change Log</a></li>
+
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/index.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>WOMBAT - Windfarm Operations and Maintenance cost-Benefit Analysis Tool</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#latest-changes">Latest Changes?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-model-in-30-seconds-or-less">The Model in 30 Seconds Or Less</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#high-level-architecture">High Level Architecture</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#simulation-architecture">Simulation Architecture</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#license">License</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="wombat-windfarm-operations-and-maintenance-cost-benefit-analysis-tool">
+<h1>WOMBAT - Windfarm Operations and Maintenance cost-Benefit Analysis Tool<a class="headerlink" href="#wombat-windfarm-operations-and-maintenance-cost-benefit-analysis-tool" title="Link to this heading">#</a></h1>
+<p><a class="reference external" href="https://www.osti.gov/biblio/1894867"><img alt="DOI" src="https://img.shields.io/badge/DOI-10.2172%2F1894867-brightgreen?link=https://doi.org/10.2172/1894867" /></a>
+<a class="reference external" href="https://opensource.org/licenses/Apache-2.0"><img alt="License" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" /></a>
+<a class="reference external" href="https://badge.fury.io/py/wombat"><img alt="PyPI Version" src="https://badge.fury.io/py/wombat.svg" /></a>
+<a class="reference external" href="https://pypi.org/project/WOMBAT/"><img alt="PyPI downloads" src="https://img.shields.io/pypi/dm/wombat?link=https%3A%2F%2Fpypi.org%2Fproject%2FWOMBAT%2F" /></a></p>
+<p><a class="reference external" href="https://codecov.io/gh/WISDEM/WOMBAT"><img alt="codecov" src="https://codecov.io/gh/WISDEM/WOMBAT/branch/main/graph/badge.svg?token=SK9M10BZXY" /></a>
+<a class="reference external" href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples"><img alt="Binder" src="https://mybinder.org/badge_logo.svg" /></a>
+<a class="reference external" href="https://wisdem.github.io/WOMBAT"><img alt="Documentation site" src="https://jupyterbook.org/badge.svg" /></a></p>
+<p><a class="reference external" href="https://github.com/pre-commit/pre-commit"><img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&amp;logoColor=white" /></a>
+<a class="reference external" href="https://github.com/psf/black"><img alt="Black formatter" src="https://img.shields.io/badge/code%20style-black-000000.svg" /></a>
+<a class="reference external" href="https://pycqa.github.io/isort/"><img alt="isort import formatter" src="https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&amp;labelColor=ef8336" /></a></p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<p>The WOMBAT framework is designed to provide an open source tool adhering to FLOSS principles
+for the wind farm lifecycle research community. Specifically, WOMBAT is meant to serve as
+a what-if, or scenario-based, simulation tool, so that you can model the trade-offs in
+decision-making for the operations and maintenance phase of a wind farm.</p>
+<p>As a supplement to this documentation site, there is also an NREL Technical Report that
+goes through much of the design and implementation details available at:
+<a class="reference external" href="https://www.osti.gov/biblio/1894867">https://www.osti.gov/biblio/1894867</a>. If you use this software, please cite it using the
+following BibTeX information, or in commonly used citation formats
+<a class="reference external" href="https://www.osti.gov/biblio/1894867">here</a>.</p>
+<div class="highlight-bibtex notranslate"><div class="highlight"><pre><span></span><span class="w">   </span><span class="nc">@techreport</span><span class="p">{</span><span class="nl">hammond2022wombat</span><span class="p">,</span>
+<span class="w">      </span><span class="na">title</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{Windfarm Operations and Maintenance cost-Benefit Analysis Tool (WOMBAT)}</span><span class="p">,</span>
+<span class="w">      </span><span class="na">author</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{Hammond, Rob and Cooperman, Aubryn}</span><span class="p">,</span>
+<span class="w">      </span><span class="na">doi</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{10.2172/1894867}</span><span class="p">,</span>
+<span class="w">      </span><span class="na">url</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{https://www.osti.gov/biblio/1894867}</span><span class="p">,</span>
+<span class="w">      </span><span class="na">place</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{United States}</span><span class="p">,</span>
+<span class="w">      </span><span class="na">year</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{2022}</span><span class="p">,</span>
+<span class="w">      </span><span class="na">month</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{10}</span><span class="p">,</span>
+<span class="w">      </span><span class="na">institution</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{National Renewable Energy Lab. (NREL)}</span><span class="p">,</span>
+<span class="w">   </span><span class="p">}</span>
+</pre></div>
+</div>
+<p>For any questions, feel free to open up an issue in the repository or email:
+<a class="reference external" href="mailto:rob&#46;hammond&#37;&#52;&#48;nrel&#46;gov">rob<span>&#46;</span>hammond<span>&#64;</span>nrel<span>&#46;</span>gov</a>.</p>
+</section>
+<section id="latest-changes">
+<h2>Latest Changes?<a class="headerlink" href="#latest-changes" title="Link to this heading">#</a></h2>
+<p>As of v0.8, a series of bug fixes in the cable, subassembly, repair management, and
+servicing equipment models that ensure repairs can't happen twice under limited
+circumstances or that more than one repair can occur simultaneously. New features include
+an emissions metric and random seeding of simulations, with significant simulation
+speedups across the board due to using Polars for managing the weather and datetime
+functionality.</p>
+<p>Please see the CHANGELOG for details!</p>
+<ul class="simple">
+<li><p>On this site: <a class="reference external" href="https://wisdem.github.io/WOMBAT/changelog.html">https://wisdem.github.io/WOMBAT/changelog.html</a></p></li>
+<li><p>On GitHub: <a class="github reference external" href="https://github.com/WISDEM/WOMBAT/blob/main/CHANGELOG.md">WISDEM/WOMBAT</a></p></li>
+</ul>
+</section>
+<section id="the-model-in-30-seconds-or-less">
+<h2>The Model in 30 Seconds Or Less<a class="headerlink" href="#the-model-in-30-seconds-or-less" title="Link to this heading">#</a></h2>
+<p>In general, the model has 2 overarching branches: the wind farm itself (the technology
+strategy), and the simulation environment (the maintenance strategy). For the wind farm
+model we can control the varying assets (system in the code)--substations, turbines, and
+cables--as well as the components that comprise each asset (subassemblies in the code).
+This separation allows for each turbine, cable, or substation component to have its own
+unique failure and maintenance models.</p>
+<p>As for the environment, this is where the discrete event simulation itself happens, in
+addition to logging, repair logic, and other necessary modeling pieces. The image
+below provides a more visual representation of this description.</p>
+<section id="high-level-architecture">
+<h3>High Level Architecture<a class="headerlink" href="#high-level-architecture" title="Link to this heading">#</a></h3>
+<p>The code is largely broken up into two categories: the wind farm and objects contained
+within it, and the simulation and simulation environment components. The wind farm is
+composed of systems: substation(s), cables, and turbines, and each of those systems is
+composed of subassemblies (a conglomerate of components). For the simulation environment,
+we consider all the pieces that allow the simulation to happen such as the API,
+servicing equipment, repair manager to hold and pass on tasks, and results post-processing.</p>
+<img alt="_images/high_level_diagram.svg" src="_images/high_level_diagram.svg" />
+</section>
+<section id="simulation-architecture">
+<h3>Simulation Architecture<a class="headerlink" href="#simulation-architecture" title="Link to this heading">#</a></h3>
+<p>In the diagram below, we demonstrate the lifecycle of the simulation through the
+lifecycle of a single failure.</p>
+<ol class="arabic simple">
+<li><p>The maximum length of the simulation is defined by the amount of wind and wave
+time series data is provided for the simulation.</p></li>
+<li><p>Each subassembly failure model is a random sampling from a Weibull distribution, so
+for the sake of clarity we'll consider this to be a catastrophic drivetrain failure.
+When the timeout (time to failure) is reached in the simulation, the subassembly's operating level is
+reduced to 0%, and a message is passed to the turbine level (the overarching system
+model).</p></li>
+<li><p>From there, the turbine will shut off, and signal to all other subassembly models to
+not accrue time for their respective maintenance and failure timeouts. Then, the
+turbine creates a repair request and passes that to the repair manager.</p></li>
+<li><p>The repair manager will store the submitted task and depending on the servicing
+equipment's maintenance strategy, a crane or vessel will be called to site.</p></li>
+<li><p>The vessel (or crane) will mobilize and accrue time there, all the while, the turbine
+and wind power plant will accrue downtime. When the servicing equipment arrives at
+the site it will operate according to its operation limits, current weather
+conditions, and site/equipment-specific working hours and continue to log costs and
+downtime.</p></li>
+<li><p>When the servicing is complete, the subassembly will be placed back to good-as-new
+condition and the turbine will be reset to operating. From there all the turbine's
+and drivetrain's failure and maintenance models be turned back on, and the simulation
+will continue on in the same manner until it reaches its user- or weather-defined
+ending point.</p></li>
+</ol>
+<img alt="_images/simulation_diagram.svg" src="_images/simulation_diagram.svg" />
+</section>
+</section>
+<section id="license">
+<h2>License<a class="headerlink" href="#license" title="Link to this heading">#</a></h2>
+<p>Notice on the NREL application of the Apache-2 license, also found on the
+<a class="reference external" href="https://github.com/WISDEM/WOMBAT/blob/main/NOTICE">GitHub</a>, along with the
+complete <a class="reference external" href="https://github.com/WISDEM/WOMBAT/blob/main/LICENSE">license</a> details.</p>
+<p>Copyright 2021 Alliance for Sustainable Energy, LLC
+Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+      
+      <a class="reference external" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></p>
+<p>Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</p>
+</section>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="right-next"
+       href="install.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Installation</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#latest-changes">Latest Changes?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-model-in-30-seconds-or-less">The Model in 30 Seconds Or Less</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#high-level-architecture">High Level Architecture</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#simulation-architecture">Simulation Architecture</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#license">License</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Rob Hammond
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2021 Alliance for Sustainable Energy, LLC.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

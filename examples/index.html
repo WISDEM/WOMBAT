@@ -1,0 +1,738 @@
+
+<!DOCTYPE html>
+
+
+<html lang="python" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>User Guide &#8212; WOMBAT</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=30a733bc"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/index';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="How To Use WOMBAT" href="how_to.html" />
+    <link rel="prev" title="Team" href="../team.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="python"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">WOMBAT</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WISDEM/WOMBAT" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI version" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/v/WOMBAT" class="icon-link-image" alt="PyPI version"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI downloads" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/dm/WOMBAT" class="icon-link-image" alt="PyPI downloads"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples" title="Launch Binder" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://mybinder.org/badge_logo.svg" class="icon-link-image" alt="Launch Binder"/></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributor's Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../presentations.html">Presentations and Publications</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../workshops/index.html">Workshops</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../workshops/nawea_wind_tech_2023.html">NAWEA WindTech 2023 WOMBAT Tutorial</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../team.html">Team</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Working With the Code Base</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">User Guide</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="how_to.html">How To Use WOMBAT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="strategy_demonstration.html">Servicing Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metrics_demonstration.html">Demonstration of the Available Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples_reference.html">Examples Reference</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../API/index.html">WOMBAT API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../API/simulation_api.html">Simulation API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../API/types.html">Data Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../API/core.html">Simulation Core Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../API/windfarm.html">Wind Farm Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../API/utilities.html">Helpers and Plotting</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Change Log</a></li>
+
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/examples/index.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>User Guide</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#feature-overview">Feature Overview</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#post-processing-and-the-simulation-api">Post Processing and the Simulation API</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#environmental-considerations">Environmental Considerations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#system-and-subassembly-modeling">System and Subassembly Modeling</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#repair-modeling">Repair Modeling</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-and-validation-work">Examples and Validation Work</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="user-guide">
+<h1>User Guide<a class="headerlink" href="#user-guide" title="Link to this heading">#</a></h1>
+<p>This page provides an overview of what WOMBAT is currently able to model, broken down by
+general category. Following this, there are separate pages for how this is done as
+demonstrated through example notebooks. To fully follow the particulars of each example,
+it is recommended to see how each model's configuration files are composed.</p>
+<p>For thorough explanations of the design and implementation ethos of the model, please
+see our NREL Technical Report: <a class="reference external" href="https://www.osti.gov/biblio/1894867">https://www.osti.gov/biblio/1894867</a>, which was published
+alongside v0.5.1, so some functionality has been updated.</p>
+<section id="feature-overview">
+<h2>Feature Overview<a class="headerlink" href="#feature-overview" title="Link to this heading">#</a></h2>
+<p>For a complete and detailed description of the functionality provided in WOMBAT, it is
+recommended to read the API documentation. However, that is quite a task, so below is
+a shortlist of the core functionality that WOMBAT can provide.</p>
+<section id="post-processing-and-the-simulation-api">
+<h3>Post Processing and the Simulation API<a class="headerlink" href="#post-processing-and-the-simulation-api" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>The <a class="reference internal" href="../API/simulation_api.html#simulation-api"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">Simulation</span></code> class</span></a> and its
+<a class="reference internal" href="../API/simulation_api.html#simulation-api-config"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">Configuration</span></code></span></a> allow users unfamiliar with
+Python to run the simulation library with minimal code. This was the primary design
+choice for the model: to create a configuration-based model to enable users with nearly
+any level of Python exposure.</p></li>
+<li><p>The <a class="reference internal" href="../API/simulation_api.html#simulation-api-metrics"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">Metrics</span></code></span></a> class provides a straightforward interface for
+computing a wide variety of operational summary statistics from performance to wind
+power plant financials.</p></li>
+</ul>
+</section>
+<section id="environmental-considerations">
+<h3>Environmental Considerations<a class="headerlink" href="#environmental-considerations" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Wind speed (m/s) and wave height (m) for the duration of a simulation (user-provided,
+hourly profile)</p></li>
+<li><p>Reduced speed periods for animal migrations. This is primarily an offshore-focused
+feature, but can be defined at the simulation, port, or servicing equipment level
+using the following three variables: <code class="docutils literal notranslate"><span class="pre">reduced_speed_start</span></code>, <code class="docutils literal notranslate"><span class="pre">reduced_speed_end</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">reduced_speed</span></code> (km/hr). This translates to a maximum speed of <code class="docutils literal notranslate"><span class="pre">reduced_speed</span></code> being
+enforced between the starting and ending dates each year of the simulation. For more
+details, see the documentation pages for the
+<a class="reference internal" href="../API/core.html#core-environment"><span class="std std-ref">environment</span></a>, <a class="reference internal" href="../API/core.html#core-port"><span class="std std-ref">port</span></a>,
+<a class="reference internal" href="../API/types.html#types-service-equipment-unscheduled"><span class="std std-ref">unscheduled servicing equipment</span></a>, or
+<a class="reference internal" href="../API/types.html#types-service-equipment-scheduled"><span class="std std-ref">scheduled servicing equipment</span></a>.</p></li>
+<li><p>Prohibited operation periods. This dictates periods of time when a site or port may
+be inaccessible, or when a piece of servicing equipment should not be allowed to be
+mobilized/dispatched. Similar to the speed reduction periods, <code class="docutils literal notranslate"><span class="pre">non_operational_start</span></code>
+and <code class="docutils literal notranslate"><span class="pre">non_operational_end</span></code> dictate an annual date range for when servicing equipment
+can't be active, or a port or the whole site is inaccessible. The same documentation
+pages as above can be referenced for more details.</p></li>
+</ul>
+</section>
+<section id="system-and-subassembly-modeling">
+<h3>System and Subassembly Modeling<a class="headerlink" href="#system-and-subassembly-modeling" title="Link to this heading">#</a></h3>
+<p>Each substation, turbine, and cable operate with the same core logic of
+<a class="reference internal" href="../API/types.html#types-maintenance-scheduled"><span class="std std-ref">maintenance</span></a> and <a class="reference internal" href="../API/types.html#types-maintenance-unscheduled"><span class="std std-ref">failure</span></a>
+events. The following will break down the differences between each of these systems'
+modeling assumptions as well as the basic operations of the maintenance and failure models.</p>
+<ul class="simple">
+<li><p>Maintenance</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">frequency</span></code>: based on a fixed number of days between an event</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">operation_reduction</span></code>: the percentage of degradation the triggering of this event
+cause</p></li>
+</ul>
+</li>
+<li><p>Failure</p>
+<ul>
+<li><p>Randomly samples from a Weibull distribution to determine the time to the next
+failure</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">operation_reduction</span></code>: the percentage of degradation the triggering of this event
+will cause</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">replacement</span></code>: if <code class="docutils literal notranslate"><span class="pre">True</span></code>, then all preceding failures and maintenance tasks are
+cancelled and the time until the next event is reset because a replacement is
+required, otherwise, each successive failure is added to the repair queue</p></li>
+</ul>
+</li>
+<li><p>Commonalities between Substations, Turbines, and Cables</p>
+<ul>
+<li><p>Maintenance and Failures compose the actual &quot;model&quot;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">operating_level</span></code> provides the real degradation of a model, including if it is turned
+off for servicing</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">operating_level_wo_servicing</span></code> provides the operating level as if there were no
+ongoing operations</p></li>
+</ul>
+</li>
+<li><p>Substations</p>
+<ul>
+<li><p>Any failure or maintenance with an <code class="docutils literal notranslate"><span class="pre">operation_reduction</span></code> of 1 will turn off every
+upstream connected (and modeled) cable and turbine</p></li>
+<li><p>For substations that are connected by an export cable this, the upstream connections
+made from the export cable will not be considered upstream connections and therefore
+shutdown when a downstream substation has a failure</p></li>
+</ul>
+</li>
+<li><p>Array cables</p>
+<ul>
+<li><p>Similar to substations, any failure or maintenance with an <code class="docutils literal notranslate"><span class="pre">operation_reduction</span></code> of
+1 will turn off every connected upstream cable and turbine on the same string</p></li>
+</ul>
+</li>
+<li><p>Export Cables</p>
+<ul>
+<li><p>Similar to array cables, any failure or maintenance with an <code class="docutils literal notranslate"><span class="pre">operation_reduction</span></code> of
+1 will turn off every connected upstream substation and string of cable(s) and
+turbine(s)</p></li>
+<li><p>As noted in the substation section, export cables connecting substations act
+independently and not as a string of connected systems</p></li>
+<li><p>The final export cable connecting a substation to the interconnection point can
+however shut down the entire wind farm</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="repair-modeling">
+<h3>Repair Modeling<a class="headerlink" href="#repair-modeling" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Repair Management: see <a class="reference internal" href="../API/core.html#core-repair-manager"><span class="std std-ref">here</span></a> for complete details</p>
+<ul>
+<li><p>Generally, repairs and maintenance tasks operate on a first-in, first-out basis with
+higher severity level <code class="docutils literal notranslate"><span class="pre">Maintenance.level</span></code> and <code class="docutils literal notranslate"><span class="pre">Failure.level</span></code> being addressed first.</p></li>
+<li><p>Servicing equipment, however, can specify if they operate on a &quot;severity&quot; or &quot;turbine&quot;
+basis that prioritizes focusing on either the highest severity level first, or
+a single system first, respectively.</p></li>
+</ul>
+</li>
+<li><p>Servicing Equipment: see <a class="reference internal" href="../API/core.html#core-service-equipment"><span class="std std-ref">here</span></a> for complete details</p>
+<ul>
+<li><p>Can either be modeled on a scheduled basis, such as a year-round schedule for onsite
+equipment or equipment with an annual visit schedule during safe weather, or on
+an unscheduled basis with a threshold for number of submitted repair requests or
+farm operating level.</p></li>
+<li><p>Mobilizations can be modeled with a fixed number of days to get to site and a flat
+cost for both scheduled and unscheduled servicing equipment. For scheduled equipment,
+the mobilization is scheduled so that the equipment arrives at the site for the
+start of it's first scheduled day.</p></li>
+<li><p>A wide range of generalized capabilities can be specified for various modeling
+scenarios. It's important to note that outside of the &quot;TOW&quot; designation, there are
+no specific implementations of functionality.</p>
+<ul>
+<li><p>CTV: crew transfer vessel/vehicle</p></li>
+<li><p>SCN: small crane (i.e., field support vessel)</p></li>
+<li><p>MCN: medium crane</p></li>
+<li><p>LCN: large crane (i.e., heavy lift vessel)</p></li>
+<li><p>CAB: cabling vessel/vehicle</p></li>
+<li><p>RMT: remote reset (no actual equipment BUT no special implementation)</p></li>
+<li><p>DRN: drone</p></li>
+<li><p>DSV: diving support vessel</p></li>
+<li><p>VSG: vessel support group</p></li>
+<li><p>TOW: tugboat and support vessel (triggers the tow-to-port model)</p></li>
+<li><p>AHV: anchor handling vessel (special case that can be modeled from the port or
+main simulation configuration)</p></li>
+</ul>
+</li>
+<li><p>Operating limits can be applied for both transiting and repair logic to ensure site
+safety is considered in the model.</p></li>
+</ul>
+</li>
+<li><p>Ports</p>
+<ul>
+<li><p>Currently only used for tow-to-port repairs or tugboat based repairs, which adds the
+following additional capabilities:</p>
+<ul>
+<li><p>TOW: tugboat or towing equipment</p></li>
+<li><p>AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)</p></li>
+</ul>
+</li>
+<li><p>There are a few limitations to the tow-to-port model as follows:</p>
+<ul>
+<li><p>Port usage fees are only modeled by the single monthly access fee <code class="docutils literal notranslate"><span class="pre">equipment_rate</span></code>.</p></li>
+<li><p>Tugboats are not formally mobilized, so cost and vessel wait times are not
+applied when a tow-to-port simulation is kicked off.</p></li>
+<li><p>Tugboats are called out on the first request from the requesting system,
+regardless of the user encoding.</p></li>
+<li><p>All subsequent repair and maintenance requests following a &quot;TOW&quot; request will not
+be addressed until the system is at the port. This can create a significant
+backlog of repairs if there are not enough tugboats, crews, or active turbine
+slots encoded at the port.</p></li>
+</ul>
+</li>
+<li><p>See the <a class="reference internal" href="../API/core.html#core-port"><span class="std std-ref">API docs</span></a> for more details</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<section id="examples-and-validation-work">
+<h2>Examples and Validation Work<a class="headerlink" href="#examples-and-validation-work" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples"><img alt="Binder" src="https://mybinder.org/badge_logo.svg" /></a></p>
+<p>Below are a few examples to get started, for users interested in the validation work in
+the <a class="reference internal" href="../presentations.html#presentations-code-comparison"><span class="std std-ref">code-to-code comparison presentations</span></a>,
+the notebooks generating <a class="reference external" href="https://github.com/WISDEM/WOMBAT/examples/">the most up-to-date results can be found in the main repository</a>, where there is a separate analysis
+for the
+<a class="reference external" href="https://github.com/WISDEM/WOMBAT/blob/main/examples/dinwoodie_validation.ipynb">Dinwoodie, et al., 2015 comparison</a>,
+and for the <a class="reference external" href="https://github.com/WISDEM/blob/main/WOMBAT/examples/iea_26_validation.ipynb">IEA Task 26, 2016 comparison</a>.</p>
+</section>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./examples"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../team.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Team</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="how_to.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">How To Use WOMBAT</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#feature-overview">Feature Overview</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#post-processing-and-the-simulation-api">Post Processing and the Simulation API</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#environmental-considerations">Environmental Considerations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#system-and-subassembly-modeling">System and Subassembly Modeling</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#repair-modeling">Repair Modeling</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-and-validation-work">Examples and Validation Work</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Rob Hammond
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2021 Alliance for Sustainable Energy, LLC.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

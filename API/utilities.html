@@ -1,0 +1,928 @@
+
+<!DOCTYPE html>
+
+
+<html lang="python" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Helpers and Plotting &#8212; WOMBAT</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=30a733bc"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'API/utilities';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Change Log" href="../changelog.html" />
+    <link rel="prev" title="Wind Farm Classes" href="windfarm.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="python"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">WOMBAT</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WISDEM/WOMBAT" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI version" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/v/WOMBAT" class="icon-link-image" alt="PyPI version"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI downloads" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/dm/WOMBAT" class="icon-link-image" alt="PyPI downloads"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples" title="Launch Binder" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://mybinder.org/badge_logo.svg" class="icon-link-image" alt="Launch Binder"/></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributor's Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../presentations.html">Presentations and Publications</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../workshops/index.html">Workshops</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../workshops/nawea_wind_tech_2023.html">NAWEA WindTech 2023 WOMBAT Tutorial</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../team.html">Team</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Working With the Code Base</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">User Guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/how_to.html">How To Use WOMBAT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/strategy_demonstration.html">Servicing Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/metrics_demonstration.html">Demonstration of the Available Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/examples_reference.html">Examples Reference</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">WOMBAT API</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="simulation_api.html">Simulation API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="types.html">Data Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">Simulation Core Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="windfarm.html">Wind Farm Classes</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Helpers and Plotting</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Change Log</a></li>
+
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/API/utilities.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Helpers and Plotting</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plotting">Plotting</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.plot.plot_farm_layout"><code class="docutils literal notranslate"><span class="pre">plot_farm_layout()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.plot.plot_farm_availability"><code class="docutils literal notranslate"><span class="pre">plot_farm_availability()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.plot.plot_operational_levels"><code class="docutils literal notranslate"><span class="pre">plot_operational_levels()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-wombat.utilities.logging">Logging functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.logging.setup_logger"><code class="docutils literal notranslate"><span class="pre">setup_logger()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.logging.format_events_log_message"><code class="docutils literal notranslate"><span class="pre">format_events_log_message()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-wombat.utilities.time">Time Calculations</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.time.parse_date"><code class="docutils literal notranslate"><span class="pre">parse_date()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.time.convert_dt_to_hours"><code class="docutils literal notranslate"><span class="pre">convert_dt_to_hours()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.time.hours_until_future_hour"><code class="docutils literal notranslate"><span class="pre">hours_until_future_hour()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.time.check_working_hours"><code class="docutils literal notranslate"><span class="pre">check_working_hours()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.time.calculate_cost"><code class="docutils literal notranslate"><span class="pre">calculate_cost()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-wombat.utilities.utilities">Miscellaneous</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.utilities._mean"><code class="docutils literal notranslate"><span class="pre">_mean()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.utilities.create_variable_from_string"><code class="docutils literal notranslate"><span class="pre">create_variable_from_string()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.utilities.IEC_power_curve"><code class="docutils literal notranslate"><span class="pre">IEC_power_curve()</span></code></a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="helpers-and-plotting">
+<h1>Helpers and Plotting<a class="headerlink" href="#helpers-and-plotting" title="Link to this heading">#</a></h1>
+<section id="plotting">
+<span id="id1"></span><h2>Plotting<a class="headerlink" href="#plotting" title="Link to this heading">#</a></h2>
+<p id="module-wombat.utilities.plot">Provides expoerimental plotting routines to help with simulation diagnostics.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wombat.utilities.plot.plot_farm_layout">
+<span class="sig-prename descclassname"><span class="pre">wombat.utilities.plot.</span></span><span class="sig-name descname"><span class="pre">plot_farm_layout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windfarm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_fig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/utilities/plot.html#plot_farm_layout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.utilities.plot.plot_farm_layout" title="Link to this definition">#</a></dt>
+<dd><p>Plot the graph representation of the windfarm as represented through WOMBAT.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>figure_kwargs<span class="classifier">dict, optional</span></dt><dd><p>Customized keyword arguments for matplotlib figure instantiation that
+will passed as <code class="docutils literal notranslate"><span class="pre">plt.figure(**figure_kwargs).</span> <span class="pre">Defaults</span> <span class="pre">to</span> <span class="pre">{}.</span></code></p>
+</dd>
+<dt>plot_kwargs<span class="classifier">dict, optional</span></dt><dd><p>Customized parameters for <code class="docutils literal notranslate"><span class="pre">networkx.draw()</span></code> that can will passed as
+<code class="docutils literal notranslate"><span class="pre">nx.draw(**figure_kwargs)</span></code>. Defaults to <code class="docutils literal notranslate"><span class="pre">with_labels=True</span></code>,
+<code class="docutils literal notranslate"><span class="pre">horizontalalignment=right</span></code>, <code class="docutils literal notranslate"><span class="pre">verticalalignment=bottom</span></code>,
+<code class="docutils literal notranslate"><span class="pre">font_weight=bold</span></code>, <code class="docutils literal notranslate"><span class="pre">font_size=10</span></code>, and <code class="docutils literal notranslate"><span class="pre">node_color=#E37225</span></code>.</p>
+</dd>
+<dt>return_fig<span class="classifier">bool, optional</span></dt><dd><p>Whether or not to return the figure and axes objects for further editing
+and/or saving. Defaults to False.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">figure</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">axes</span></code>]</span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None | tuple[plt.figure, plt.axes]: _description_</p>
+</dd>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>windfarm</strong> (<a class="reference internal" href="windfarm.html#wombat.windfarm.windfarm.Windfarm" title="wombat.windfarm.windfarm.Windfarm"><em>Windfarm</em></a>)</p></li>
+<li><p><strong>figure_kwargs</strong> (<em>dict</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>plot_kwargs</strong> (<em>dict</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>return_fig</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wombat.utilities.plot.plot_farm_availability">
+<span class="sig-prename descclassname"><span class="pre">wombat.utilities.plot.</span></span><span class="sig-name descname"><span class="pre">plot_farm_availability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'energy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">individual_turbines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">farm_95_CI</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tick_fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_fig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/utilities/plot.html#plot_farm_availability"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.utilities.plot.plot_farm_availability" title="Link to this definition">#</a></dt>
+<dd><p>Plots a line chart of the monthly availability at the wind farm level.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sim</strong> (<a class="reference internal" href="simulation_api.html#wombat.core.simulation_api.Simulation" title="wombat.core.simulation_api.Simulation"><em>Simulation</em></a>) -- A <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> object that has been run.</p></li>
+<li><p><strong>which</strong> (<em>str</em>) -- One of &quot;time&quot; or &quot;energy&quot;, to indicate the basis for the availability
+calculation, by default &quot;energy&quot;.</p></li>
+<li><p><strong>individual_turbines</strong> (<em>bool</em><em>, </em><em>optional</em>) -- Indicates if faint gray lines should be added in the background for the
+availability of each turbine, by default False.</p></li>
+<li><p><strong>farm_95_CI</strong> (<em>bool</em><em>, </em><em>optional</em>) -- Indicates if the 95% CI area fill should be added in the background.</p></li>
+<li><p><strong>figure_kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) -- Custom parameters for <code class="docutils literal notranslate"><span class="pre">plt.figure()</span></code>, by default <code class="docutils literal notranslate"><span class="pre">figsize=(15,</span> <span class="pre">7)</span></code> and
+<code class="docutils literal notranslate"><span class="pre">dpi=300</span></code>.</p></li>
+<li><p><strong>plot_kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) -- Custom parameters to be passed to <code class="docutils literal notranslate"><span class="pre">ax.plot()</span></code>, by default a label consisting
+of the simulation name and project-level availability.</p></li>
+<li><p><strong>legend_kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) -- Custom parameters to be passed to <code class="docutils literal notranslate"><span class="pre">ax.legend()</span></code>, by default <code class="docutils literal notranslate"><span class="pre">fontsize=14</span></code>.</p></li>
+<li><p><strong>tick_fontsize</strong> (<em>int</em><em>, </em><em>optional</em>) -- The x- and y-axis tick label fontsize, by default 12.</p></li>
+<li><p><strong>label_fontsize</strong> (<em>int</em><em>, </em><em>optional</em>) -- The x- and y-axis label fontsize, by default 16.</p></li>
+<li><p><strong>return_fig</strong> (<em>bool</em><em>, </em><em>optional</em>) -- If <code class="docutils literal notranslate"><span class="pre">True</span></code>, return the figure and Axes object, otherwise don't, by default
+False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">Axes</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>tuple[plt.Figure, plt.Axes] | None</em> -- See <code class="xref py py-attr docutils literal notranslate"><span class="pre">return_fig</span></code> for details.
+_description_</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wombat.utilities.plot.plot_operational_levels">
+<span class="sig-prename descclassname"><span class="pre">wombat.utilities.plot.</span></span><span class="sig-name descname"><span class="pre">plot_operational_levels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_label_fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_fig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/utilities/plot.html#plot_operational_levels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.utilities.plot.plot_operational_levels" title="Link to this definition">#</a></dt>
+<dd><p>Plots an hourly view of the operational levels of the wind farm and individual
+turbines as a heatmap.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sim</strong> (<a class="reference internal" href="simulation_api.html#wombat.core.simulation_api.Simulation" title="wombat.core.simulation_api.Simulation"><em>Simulation</em></a>) -- A <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> object that has been run.</p></li>
+<li><p><strong>figure_kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) -- Custom settings for <code class="docutils literal notranslate"><span class="pre">plt.figure()</span></code>, by default <code class="docutils literal notranslate"><span class="pre">figsize=(15,</span> <span class="pre">10)</span></code>
+and <code class="docutils literal notranslate"><span class="pre">dpi=300</span></code>.</p></li>
+<li><p><strong>cbar_label_fontsize</strong> (<em>int</em><em>, </em><em>optional</em>) -- The default fontsize used in the color bar legend for the axis label, by default
+14.</p></li>
+<li><p><strong>return_fig</strong> (<em>bool</em><em>, </em><em>optional</em>) -- If <code class="docutils literal notranslate"><span class="pre">True</span></code>, return the figure and Axes object, otherwise don't, by default
+False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>tuple[plt.Figure, plt.Axes] | None</em> -- See <code class="xref py py-attr docutils literal notranslate"><span class="pre">return_fig</span></code> for details.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-wombat.utilities.logging">
+<span id="logging-functions"></span><h2>Logging functions<a class="headerlink" href="#module-wombat.utilities.logging" title="Link to this heading">#</a></h2>
+<p>General logging methods.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wombat.utilities.logging.setup_logger">
+<span class="sig-prename descclassname"><span class="pre">wombat.utilities.logging.</span></span><span class="sig-name descname"><span class="pre">setup_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logger_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/utilities/logging.html#setup_logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.utilities.logging.setup_logger" title="Link to this definition">#</a></dt>
+<dd><p>Creates the logging infrastructure for a given logging category.</p>
+<p>TODO: Figure out how to type check <code class="docutils literal notranslate"><span class="pre">logging.INFO</span></code>; <code class="docutils literal notranslate"><span class="pre">Callable</span></code>?</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>logger_name</strong> (<em>str</em>) -- Name to assign to the logger.</p></li>
+<li><p><strong>log_file</strong> (<em>Path</em>) -- File name and path for where the log data should be saved.</p></li>
+<li><p><strong>level</strong> (<em>Any</em><em>, </em><em>optional</em>) -- Logging level, by default logging.INFO.</p></li>
+<li><p><strong>capacity</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wombat.utilities.logging.format_events_log_message">
+<span class="sig-prename descclassname"><span class="pre">wombat.utilities.logging.</span></span><span class="sig-name descname"><span class="pre">format_events_log_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">part_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">part_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_ol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">part_ol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'na'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">materials_cost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hourly_labor_cost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">salary_labor_cost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">equipment_cost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/utilities/logging.html#format_events_log_message"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.utilities.logging.format_events_log_message" title="Link to this definition">#</a></dt>
+<dd><p>Formats the logging messages into the expected format for logging.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>simulation_time</strong> (<em>datetime64</em>) -- Timestamp within the simulation time.</p></li>
+<li><p><strong>env_time</strong> (<em>float</em>) -- Environment simulation time (<code class="docutils literal notranslate"><span class="pre">Environment.now</span></code>).</p></li>
+<li><p><strong>system_id</strong> (<em>str</em>) -- Turbine ID, <code class="docutils literal notranslate"><span class="pre">System.id</span></code>.</p></li>
+<li><p><strong>system_name</strong> (<em>str</em>) -- Turbine name, <code class="docutils literal notranslate"><span class="pre">System.name</span></code>.</p></li>
+<li><p><strong>part_id</strong> (<em>str</em>) -- Subassembly, component, or cable ID, <code class="docutils literal notranslate"><span class="pre">_.id</span></code>.</p></li>
+<li><p><strong>part_name</strong> (<em>str</em>) -- Subassembly, component, or cable name, <code class="docutils literal notranslate"><span class="pre">_.name</span></code>.</p></li>
+<li><p><strong>system_ol</strong> (<em>int</em><em> | </em><em>float</em>) -- System operating level, <code class="docutils literal notranslate"><span class="pre">System.operating_level</span></code>. Use an empty string for n/a.</p></li>
+<li><p><strong>part_ol</strong> (<em>int</em><em> | </em><em>float</em>) -- Subassembly, component, or cable operating level, <code class="docutils literal notranslate"><span class="pre">_.operating_level</span></code>. Use an
+empty string for n/a.</p></li>
+<li><p><strong>agent</strong> (<em>str</em>) -- Agent performin the action.</p></li>
+<li><p><strong>action</strong> (<em>str</em>) -- Action that was taken.</p></li>
+<li><p><strong>reason</strong> (<em>str</em>) -- Reason an action was taken.</p></li>
+<li><p><strong>additional</strong> (<em>str</em>) -- Any additional information that needs to be logged.</p></li>
+<li><p><strong>duration</strong> (<em>float</em>) -- Length of time the action lasted.</p></li>
+<li><p><strong>request_id</strong> (<em>str</em>) -- The <code class="docutils literal notranslate"><span class="pre">RepairRequest.request_id</span></code> or &quot;na&quot;.</p></li>
+<li><p><strong>location</strong> (<em>str</em>) -- The location of where the event ocurred: should be one of site, port,
+enroute, or system, by default &quot;na&quot;.</p></li>
+<li><p><strong>materials_cost</strong> (<em>int</em><em> | </em><em>float</em><em>, </em><em>optional</em>) -- Total cost of materials for action, in USD, by default 0.</p></li>
+<li><p><strong>hourly_labor_cost</strong> (<em>int</em><em> | </em><em>float</em><em>, </em><em>optional</em>) -- Total cost of hourly labor for action, in USD, by default 0.</p></li>
+<li><p><strong>salary_labor_cost</strong> (<em>int</em><em> | </em><em>float</em><em>, </em><em>optional</em>) -- Total cost of salaried labor for action, in USD, by default 0.</p></li>
+<li><p><strong>equipment_cost</strong> (<em>int</em><em> | </em><em>float</em><em>, </em><em>optional</em>) -- Total cost of equipment for action, in USD, by default 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>str</em> -- Formatted message for consistent logging.[summary]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-wombat.utilities.time">
+<span id="time-calculations"></span><h2>Time Calculations<a class="headerlink" href="#module-wombat.utilities.time" title="Link to this heading">#</a></h2>
+<p>General methods for time-based calculations.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wombat.utilities.time.parse_date">
+<span class="sig-prename descclassname"><span class="pre">wombat.utilities.time.</span></span><span class="sig-name descname"><span class="pre">parse_date</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/utilities/time.html#parse_date"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.utilities.time.parse_date" title="Link to this definition">#</a></dt>
+<dd><p>Thin wrapper for <code class="docutils literal notranslate"><span class="pre">dateutil.parser.parse</span></code> that converts string dates and returns
+back None or the original value if it's None or a <code class="docutils literal notranslate"><span class="pre">datetime.datetime</span></code> object,
+respectively.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> (<em>str</em><em> | </em><em>None</em><em> | </em><em>datetime.datetime</em>) -- A month/date or month-date formatted string to be converted to a
+<code class="docutils literal notranslate"><span class="pre">datetime.datetime</span></code> object, or <code class="docutils literal notranslate"><span class="pre">datetime.datetime</span></code> object, or None.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>datetime.datetime | None</em> -- A converted <code class="docutils literal notranslate"><span class="pre">datetime.datetime</span></code> object or None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wombat.utilities.time.convert_dt_to_hours">
+<span class="sig-prename descclassname"><span class="pre">wombat.utilities.time.</span></span><span class="sig-name descname"><span class="pre">convert_dt_to_hours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diff</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/utilities/time.html#convert_dt_to_hours"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.utilities.time.convert_dt_to_hours" title="Link to this definition">#</a></dt>
+<dd><p>Convert a <code class="docutils literal notranslate"><span class="pre">datetime.timedelta</span></code> object to number of hours at the seconds
+resolution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>diff</strong> (<em>datetime.timedelta</em>) -- The difference between two <code class="docutils literal notranslate"><span class="pre">datetime.datetime</span></code> objects.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>float</em> -- Number of hours between to <code class="docutils literal notranslate"><span class="pre">datetime.datetime</span></code> objects.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wombat.utilities.time.hours_until_future_hour">
+<span class="sig-prename descclassname"><span class="pre">wombat.utilities.time.</span></span><span class="sig-name descname"><span class="pre">hours_until_future_hour</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hour</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/utilities/time.html#hours_until_future_hour"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.utilities.time.hours_until_future_hour" title="Link to this definition">#</a></dt>
+<dd><p>Number of hours until a future hour in the same day for <code class="docutils literal notranslate"><span class="pre">hour</span></code> &lt;= 24,
+otherwise, it is the number of hours until a time in the proceeding days.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dt</strong> (<em>datetime.datetime</em>) -- Focal datetime.</p></li>
+<li><p><strong>hour</strong> (<em>int</em>) -- Hour that is later in the day, in 24 hour time.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>float</em> -- Number of hours between the two times.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wombat.utilities.time.check_working_hours">
+<span class="sig-prename descclassname"><span class="pre">wombat.utilities.time.</span></span><span class="sig-name descname"><span class="pre">check_working_hours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workday_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workday_end</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/utilities/time.html#check_working_hours"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.utilities.time.check_working_hours" title="Link to this definition">#</a></dt>
+<dd><p>Checks the working hours of a port or servicing equipment, and overrides a
+default (-1) to the environment's settings, otherwise returns back the input hours.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env_start</strong> (<em>int</em>) -- The starting hour for the environment's shift</p></li>
+<li><p><strong>env_end</strong> (<em>int</em>) -- The ending hour for the environment's shift</p></li>
+<li><p><strong>workday_start</strong> (<em>int</em>) -- The starting hour to be checked.</p></li>
+<li><p><strong>workday_end</strong> (<em>int</em>) -- The ending hour to be checked.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>tuple[int, int]</em> -- The starting and ending hour to be applied back to the port or servicing
+equipment.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wombat.utilities.time.calculate_cost">
+<span class="sig-prename descclassname"><span class="pre">wombat.utilities.time.</span></span><span class="sig-name descname"><span class="pre">calculate_cost</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">daily_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/utilities/time.html#calculate_cost"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.utilities.time.calculate_cost" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the equipment cost, or labor cost for either salaried or hourly
+employees.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>duration</strong> (<em>int</em><em> | </em><em>float</em>) -- Length of time, in hours.</p></li>
+<li><p><strong>rate</strong> (<em>float</em>) -- The labor or equipment rate, in $USD/hour.</p></li>
+<li><p><strong>n_rate</strong> (<em>int</em>) -- Total number of of the rate to be applied, more than one if``rate`` is broken
+down by number of individual laborers (if rate is a labor rate), by default 1.</p></li>
+<li><p><strong>daily_rate</strong> (<em>bool</em><em>, </em><em>optional</em>) -- Indicator for if the <code class="docutils literal notranslate"><span class="pre">rate</span></code> is a daily rate (True), or hourly rate (False), by
+default False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>float</em> -- The total cost of the labor performed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-wombat.utilities.utilities">
+<span id="miscellaneous"></span><h2>Miscellaneous<a class="headerlink" href="#module-wombat.utilities.utilities" title="Link to this heading">#</a></h2>
+<p>Provides various utility functions that don't fit within a common theme.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wombat.utilities.utilities._mean">
+<span class="sig-prename descclassname"><span class="pre">wombat.utilities.utilities.</span></span><span class="sig-name descname"><span class="pre">_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/utilities/utilities.html#_mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.utilities.utilities._mean" title="Link to this definition">#</a></dt>
+<dd><p>Multiplies two numbers. Used for a reduce operation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>args</strong> (<em>int</em><em> | </em><em>float</em>) -- The values to compute the mean over</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>float</em> -- The average of the values provided</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wombat.utilities.utilities.create_variable_from_string">
+<span class="sig-prename descclassname"><span class="pre">wombat.utilities.utilities.</span></span><span class="sig-name descname"><span class="pre">create_variable_from_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/utilities/utilities.html#create_variable_from_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.utilities.utilities.create_variable_from_string" title="Link to this definition">#</a></dt>
+<dd><p>Creates a valid Python variable style string from a passed string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>string</strong> (<em>str</em>) -- The string to convert into a Python-friendly variable name.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>str</em> -- A Python-valid variable name.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">example_string</span> <span class="o">=</span> <span class="s2">&quot;*Electrical!*_ _System$*_&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">create_variable_from_string</span><span class="p">(</span><span class="n">example_string</span><span class="p">))</span>
+<span class="go">&#39;electrical_system&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wombat.utilities.utilities.IEC_power_curve">
+<span class="sig-prename descclassname"><span class="pre">wombat.utilities.utilities.</span></span><span class="sig-name descname"><span class="pre">IEC_power_curve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windspeed_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">windspeed_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">windspeed_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/utilities/utilities.html#IEC_power_curve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.utilities.utilities.IEC_power_curve" title="Link to this definition">#</a></dt>
+<dd><p>Direct copyfrom OpenOA:
+<a class="github reference external" href="https://github.com/NREL/OpenOA/blob/main/operational_analysis/toolkits/power_curve/functions.py#L16-L57">NREL/OpenOA</a>
+Use IEC 61400-12-1-2 method for creating wind-speed binned power curve.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>windspeed_column</strong> (<em>np.ndarray</em><em> | </em><em>pandas.Series</em>) -- The power curve's windspeed values, in m/s.</p></li>
+<li><p><strong>power_column</strong> (<em>np.ndarray</em><em> | </em><em>pandas.Series</em>) -- The power curve's output power values, in kW.</p></li>
+<li><p><strong>bin_width</strong> (<em>float</em>) -- Width of windspeed bin, default is 0.5 m/s according to standard, by default
+0.5.</p></li>
+<li><p><strong>windspeed_start</strong> (<em>float</em>) -- Left edge of first windspeed bin, where all proceeding values will be 0.0,
+by default 0.0.</p></li>
+<li><p><strong>windspeed_end</strong> (<em>float</em>) -- Right edge of last windspeed bin, where all following values will be 0.0, by
+default 30.0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>Callable</dt><dd><p>Python function of the power curve, of type (Array[float] -&gt; Array[float]),
+that maps input windspeed value(s) to ouptut power value(s).</p>
+</dd>
+</dl>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./API"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="windfarm.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Wind Farm Classes</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../changelog.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Change Log</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plotting">Plotting</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.plot.plot_farm_layout"><code class="docutils literal notranslate"><span class="pre">plot_farm_layout()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.plot.plot_farm_availability"><code class="docutils literal notranslate"><span class="pre">plot_farm_availability()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.plot.plot_operational_levels"><code class="docutils literal notranslate"><span class="pre">plot_operational_levels()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-wombat.utilities.logging">Logging functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.logging.setup_logger"><code class="docutils literal notranslate"><span class="pre">setup_logger()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.logging.format_events_log_message"><code class="docutils literal notranslate"><span class="pre">format_events_log_message()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-wombat.utilities.time">Time Calculations</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.time.parse_date"><code class="docutils literal notranslate"><span class="pre">parse_date()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.time.convert_dt_to_hours"><code class="docutils literal notranslate"><span class="pre">convert_dt_to_hours()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.time.hours_until_future_hour"><code class="docutils literal notranslate"><span class="pre">hours_until_future_hour()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.time.check_working_hours"><code class="docutils literal notranslate"><span class="pre">check_working_hours()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.time.calculate_cost"><code class="docutils literal notranslate"><span class="pre">calculate_cost()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-wombat.utilities.utilities">Miscellaneous</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.utilities._mean"><code class="docutils literal notranslate"><span class="pre">_mean()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.utilities.create_variable_from_string"><code class="docutils literal notranslate"><span class="pre">create_variable_from_string()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.utilities.utilities.IEC_power_curve"><code class="docutils literal notranslate"><span class="pre">IEC_power_curve()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Rob Hammond
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2021 Alliance for Sustainable Energy, LLC.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

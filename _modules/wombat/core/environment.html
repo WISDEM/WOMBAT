@@ -1,0 +1,1447 @@
+
+<!DOCTYPE html>
+
+
+<html lang="python" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wombat.core.environment &#8212; WOMBAT</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../_static/documentation_options.js?v=30a733bc"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/wombat/core/environment';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="python"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">WOMBAT</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WISDEM/WOMBAT" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI version" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/v/WOMBAT" class="icon-link-image" alt="PyPI version"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI downloads" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/dm/WOMBAT" class="icon-link-image" alt="PyPI downloads"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples" title="Launch Binder" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://mybinder.org/badge_logo.svg" class="icon-link-image" alt="Launch Binder"/></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributor's Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../presentations.html">Presentations and Publications</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../workshops/index.html">Workshops</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../workshops/nawea_wind_tech_2023.html">NAWEA WindTech 2023 WOMBAT Tutorial</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../team.html">Team</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Working With the Code Base</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples/index.html">User Guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/how_to.html">How To Use WOMBAT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/strategy_demonstration.html">Servicing Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/metrics_demonstration.html">Demonstration of the Available Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/examples_reference.html">Examples Reference</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../API/index.html">WOMBAT API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../API/simulation_api.html">Simulation API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../API/types.html">Data Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../API/core.html">Simulation Core Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../API/windfarm.html">Wind Farm Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../API/utilities.html">Helpers and Plotting</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Change Log</a></li>
+
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for wombat.core.environment</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Provides the O&amp;M Enviroment class; a subclass of simpy.Environment.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">simpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pa</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow.csv</span>  <span class="c1"># pylint: disable=W0611</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">simpy.events</span><span class="w"> </span><span class="kn">import</span> <span class="n">Event</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">wombat</span>  <span class="c1"># pylint: disable=W0611</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wombat.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">hours_until_future_hour</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wombat.core.data_classes</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_date</span>
+
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">wombat.windfarm</span><span class="w"> </span><span class="kn">import</span> <span class="n">Windfarm</span>
+
+
+<span class="n">EVENTS_COLUMNS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;datetime&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;env_datetime&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;env_time&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;agent&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;action&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;reason&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;additional&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;system_id&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;system_name&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;part_id&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;part_name&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;system_operating_level&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;part_operating_level&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;duration&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;distance_km&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;request_id&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;location&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;materials_cost&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hourly_labor_cost&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;salary_labor_cost&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;total_labor_cost&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;equipment_cost&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;total_cost&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="WombatEnvironment">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.environment.WombatEnvironment">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WombatEnvironment</span><span class="p">(</span><span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The primary mechanism for powering an O&amp;M simulation. This object has insight</span>
+<span class="sd">    into all other simulation objects, and controls the timing, date/time stamps, and</span>
+<span class="sd">    weather conditions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data_dir : pathlib.Path | str</span>
+<span class="sd">        Directory where the inputs are stored and where to save outputs.</span>
+<span class="sd">    weather_file : str</span>
+<span class="sd">        Name of the weather file. Should be contained within ``data_dir``/weather/, with</span>
+<span class="sd">        columns &quot;datetime&quot;, &quot;windspeed&quot;, and, optionally, &quot;waveheight&quot;. The datetime</span>
+<span class="sd">        column should adhere to the following format: &quot;MM/DD/YY HH:MM&quot;, in 24-hour time.</span>
+<span class="sd">    workday_start : int</span>
+<span class="sd">        Starting time for the repair crew, in 24 hour local time. This can be overridden</span>
+<span class="sd">        by an ``ServiceEquipmentData`` object that operates outside of the &quot;typical&quot;</span>
+<span class="sd">        working hours.</span>
+<span class="sd">    workday_end : int</span>
+<span class="sd">        Ending time for the repair crew, in 24 hour local time. This can be overridden</span>
+<span class="sd">        by an ``ServiceEquipmentData`` object that operates outside of the &quot;typical&quot;</span>
+<span class="sd">        working hours.</span>
+<span class="sd">    simulation_name : str | None, optional</span>
+<span class="sd">        Name of the simulation; will be used for naming the log file, by default None.</span>
+<span class="sd">        If ``None``, then the current time will be used. Will always save to</span>
+<span class="sd">        ``data_dir``/outputs/logs/``simulation_name``.log.</span>
+
+<span class="sd">        .. note: spaces (&quot; &quot;) will be replaced with underscores (&quot;_&quot;), for example:</span>
+<span class="sd">            &quot;my example analysis&quot; becomes &quot;my_example_analysis&quot;.</span>
+
+<span class="sd">    start_year : int | None, optional</span>
+<span class="sd">        Custom starting year for the weather profile, by default None. If ``None`` or</span>
+<span class="sd">        less than the first year of the weather profile, this will be ignored.</span>
+<span class="sd">    end_year : int | None, optional</span>
+<span class="sd">        Custom ending year for the weather profile, by default None. If ``None`` or</span>
+<span class="sd">        greater than the last year of the weather profile, this will be ignored.</span>
+<span class="sd">    port_distance : int | float</span>
+<span class="sd">        The simulation-wide daily travel distance for servicing equipment. This</span>
+<span class="sd">        should be used as a base setting when multiple or all servicing equipment</span>
+<span class="sd">        will be operating out of the same base location, but can be individually</span>
+<span class="sd">        modified.</span>
+<span class="sd">    non_operational_start : str | datetime.datetime | None</span>
+<span class="sd">        The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized</span>
+<span class="sd">        period of prohibited operations. When defined at the environment level,</span>
+<span class="sd">        an undefined or later starting date will be overridden for all servicing</span>
+<span class="sd">        equipment and any modeled port, by default None.</span>
+<span class="sd">    non_operational_end : str | datetime.datetime | None</span>
+<span class="sd">        The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized</span>
+<span class="sd">        period of prohibited operations. When defined at the environment level,</span>
+<span class="sd">        an undefined or earlier ending date will be overridden for all servicing</span>
+<span class="sd">        equipment and any modeled port, by default None.</span>
+<span class="sd">    reduced_speed_start : str | datetime.datetime | None</span>
+<span class="sd">        The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized</span>
+<span class="sd">        period of reduced speed operations. When defined at the environment level,</span>
+<span class="sd">        an undefined or later starting date will be overridden for all servicing</span>
+<span class="sd">        equipment and any modeled port, by default None.</span>
+<span class="sd">    reduced_speed_end : str | datetime.datetime | None</span>
+<span class="sd">        The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized</span>
+<span class="sd">        period of reduced speed operations. When defined at the environment level,</span>
+<span class="sd">        an undefined or earlier ending date will be overridden for all servicing</span>
+<span class="sd">        equipment and any modeled port, by default None.</span>
+<span class="sd">    reduced_speed : float</span>
+<span class="sd">        The maximum operating speed during the annualized reduced speed operations.</span>
+<span class="sd">        When defined at the environment level, an undefined or faster value will be</span>
+<span class="sd">        overridden for all servicing equipment and any modeled port, by default 0.0.</span>
+<span class="sd">    random_seed : int | None</span>
+<span class="sd">        The random seed to be passed to a universal NumPy ``default_rng`` object to</span>
+<span class="sd">        generate Weibull random generators, by default None.</span>
+<span class="sd">    random_generator: np.random._generator.Generator | None</span>
+<span class="sd">        An optional numpy random generator that can be provided to seed a simulation</span>
+<span class="sd">        with the same generator each time, in place of the random seed. If a</span>
+<span class="sd">        :py:attr:`random_seed` is also provided, this will override the random seed,</span>
+<span class="sd">        by default None.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    FileNotFoundError</span>
+<span class="sd">        Raised if ``data_dir`` cannot be found.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">weather_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">workday_start</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">workday_end</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">simulation_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">start_year</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">end_year</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">port_distance</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">non_operational_start</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">non_operational_end</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">reduced_speed_start</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">reduced_speed_end</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">reduced_speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">random_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">random_generator</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">_generator</span><span class="o">.</span><span class="n">Generator</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialization.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span><span class="si">}</span><span class="s2"> does not exist&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">workday_start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">workday_start</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">workday_end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">workday_end</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workday_start</span> <span class="o">&lt;=</span> <span class="mi">24</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;workday_start must be a valid 24hr time before midnight.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workday_end</span> <span class="o">&lt;=</span> <span class="mi">24</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;workday_end must be a valid 24hr time.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">workday_end</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workday_start</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Work shifts must end after they start (</span><span class="si">{self.workday_start}</span><span class="s2">hrs).&quot;</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">port_distance</span> <span class="o">=</span> <span class="n">port_distance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weather</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_weather_setup</span><span class="p">(</span><span class="n">weather_file</span><span class="p">,</span> <span class="n">start_year</span><span class="p">,</span> <span class="n">end_year</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weather_dates</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">weather</span><span class="o">.</span><span class="n">get_column</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">to_pydatetime</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_run_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weather</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shift_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workday_end</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">workday_start</span>
+
+        <span class="c1"># Set the environmental consideration parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">non_operational_start</span> <span class="o">=</span> <span class="n">parse_date</span><span class="p">(</span><span class="n">non_operational_start</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">non_operational_end</span> <span class="o">=</span> <span class="n">parse_date</span><span class="p">(</span><span class="n">non_operational_end</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reduced_speed_start</span> <span class="o">=</span> <span class="n">parse_date</span><span class="p">(</span><span class="n">reduced_speed_start</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reduced_speed_end</span> <span class="o">=</span> <span class="n">parse_date</span><span class="p">(</span><span class="n">reduced_speed_end</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reduced_speed</span> <span class="o">=</span> <span class="n">reduced_speed</span>
+
+        <span class="k">if</span> <span class="n">random_generator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">random_generator</span> <span class="o">=</span> <span class="n">random_generator</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="n">random_seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">random_seed</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">random_generator</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="n">random_seed</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">random_generator</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">simulation_name</span> <span class="o">=</span> <span class="n">simulation_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logging_setup</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_actions</span><span class="p">())</span>
+
+<div class="viewcode-block" id="WombatEnvironment._register_windfarm">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.environment.WombatEnvironment._register_windfarm">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_register_windfarm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">windfarm</span><span class="p">:</span> <span class="n">Windfarm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds the simulation windfarm to the class attributes.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span> <span class="o">=</span> <span class="n">windfarm</span></div>
+
+
+<div class="viewcode-block" id="WombatEnvironment.run">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.environment.WombatEnvironment.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">until</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Event</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extends the ``simpy.Environment.run`` method to change the default behavior</span>
+<span class="sd">        if no argument is passed to ``until``, which will now run a simulation until the</span>
+<span class="sd">        end of the weather profile is reached.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        until : Optional[Union[int, float, Event]], optional</span>
+<span class="sd">            When to stop the simulation, by default None. See documentation on</span>
+<span class="sd">            ``simpy.Environment.run`` for more details.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># If running a paused simulation, then reopen the file and append, but only if</span>
+        <span class="c1"># the simulation time is lower than the upper bound</span>
+        <span class="n">time_check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">now</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_run_time</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_events_csv</span><span class="o">.</span><span class="n">closed</span> <span class="ow">and</span> <span class="n">time_check</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_events_csv</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events_log_fname</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_events_writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictWriter</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_events_csv</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;|&quot;</span><span class="p">,</span> <span class="n">fieldnames</span><span class="o">=</span><span class="n">EVENTS_COLUMNS</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;windfarm&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operations_csv</span><span class="o">.</span><span class="n">closed</span> <span class="ow">and</span> <span class="n">time_check</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_operations_csv</span><span class="p">:</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">operations_log_fname</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">_setup_logger</span><span class="p">(</span><span class="n">initial</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">until</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">until</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_run_time</span>
+        <span class="k">elif</span> <span class="n">until</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_run_time</span><span class="p">:</span>
+            <span class="n">until</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_run_time</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="n">until</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># Flush the logs to so the simulation up to the point of failure is logged</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_events_writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_events_buffer</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_events_buffer</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_events_csv</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_operations_writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_operations_buffer</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_operations_buffer</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_operations_csv</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Simulation failed at hour </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">now</span><span class="si">:</span><span class="s2">,.6f</span><span class="si">}</span><span class="s2">,&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot; simulation time: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">simulation_time</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">e</span>
+
+        <span class="c1"># Ensure all logged events make it to their target file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_events_writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_events_buffer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_events_buffer</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_events_csv</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_operations_writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_operations_buffer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_operations_buffer</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_operations_csv</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="WombatEnvironment._logging_setup">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.environment.WombatEnvironment._logging_setup">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_logging_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Completes the setup for logging data.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">simulation_name</span> <span class="o">=</span> <span class="n">simulation</span> <span class="o">=</span> <span class="s2">&quot;wombat&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">simulation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+        <span class="n">dt_stamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">_%H-%M-%S&quot;</span><span class="p">)</span>
+
+        <span class="n">events_log_fname</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dt_stamp</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">simulation</span><span class="si">}</span><span class="s2">_events.csv&quot;</span>
+        <span class="n">operations_log_fname</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dt_stamp</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">simulation</span><span class="si">}</span><span class="s2">_operations.csv&quot;</span>
+        <span class="n">power_potential_fname</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dt_stamp</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">simulation</span><span class="si">}</span><span class="s2">_power_potential.csv&quot;</span>
+        <span class="n">power_production_fname</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dt_stamp</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">simulation</span><span class="si">}</span><span class="s2">_power_production.csv&quot;</span>
+        <span class="n">metrics_input_fname</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dt_stamp</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">simulation</span><span class="si">}</span><span class="s2">_metrics_inputs.yaml&quot;</span>
+
+        <span class="n">log_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">/</span> <span class="s2">&quot;results&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">log_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">log_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">events_log_fname</span> <span class="o">=</span> <span class="n">log_path</span> <span class="o">/</span> <span class="n">events_log_fname</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">operations_log_fname</span> <span class="o">=</span> <span class="n">log_path</span> <span class="o">/</span> <span class="n">operations_log_fname</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">power_potential_fname</span> <span class="o">=</span> <span class="n">log_path</span> <span class="o">/</span> <span class="n">power_potential_fname</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">power_production_fname</span> <span class="o">=</span> <span class="n">log_path</span> <span class="o">/</span> <span class="n">power_production_fname</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metrics_input_fname</span> <span class="o">=</span> <span class="n">log_path</span> <span class="o">/</span> <span class="n">metrics_input_fname</span>
+
+        <span class="n">_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">/</span> <span class="s2">&quot;results&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_dir</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="n">_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_events_csv</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events_log_fname</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_operations_csv</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">operations_log_fname</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_events_writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictWriter</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_events_csv</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;|&quot;</span><span class="p">,</span> <span class="n">fieldnames</span><span class="o">=</span><span class="n">EVENTS_COLUMNS</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_events_writer</span><span class="o">.</span><span class="n">writeheader</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_events_buffer</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_operations_buffer</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span></div>
+
+
+<div class="viewcode-block" id="WombatEnvironment.get_random_seconds">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.environment.WombatEnvironment.get_random_seconds">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_random_seconds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">low</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate a random number of seconds to wait, between :py:attr:`low` and</span>
+<span class="sd">        :py:attr:`high`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        low : int, optional</span>
+<span class="sd">            Minimum number of seconds to wait, by default 0.</span>
+<span class="sd">        high : int, optional</span>
+<span class="sd">            Maximum number of seconds to wait, by default 10.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Number of seconds to wait.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">seconds_to_wait</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">random_generator</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="n">high</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">3600.0</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">seconds_to_wait</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">simulation_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Current time within the simulation (&quot;datetime&quot; column within weather).&quot;&quot;&quot;</span>
+        <span class="n">now</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">now</span>
+        <span class="n">minutes</span> <span class="o">=</span> <span class="n">now</span> <span class="o">%</span> <span class="mi">1</span> <span class="o">*</span> <span class="mi">60</span>
+        <span class="k">if</span> <span class="n">now</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_run_time</span><span class="p">:</span>
+            <span class="n">_dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weather_dates</span><span class="p">[</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">now</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
+            <span class="n">_dt</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weather_dates</span><span class="p">[</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">now</span><span class="p">)]</span>
+
+        <span class="n">minutes</span><span class="p">,</span> <span class="n">seconds</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">minutes</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">minutes</span> <span class="o">%</span> <span class="mi">1</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_dt</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="n">minutes</span><span class="p">,</span> <span class="n">seconds</span><span class="o">=</span><span class="n">seconds</span><span class="p">)</span>
+
+<div class="viewcode-block" id="WombatEnvironment.is_workshift">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.environment.WombatEnvironment.is_workshift">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_workshift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workday_start</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">workday_end</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if the current simulation time is within the windfarm&#39;s working hours.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        workday_start : int</span>
+<span class="sd">            A valid hour in 24 hour time, by default -1. This should only be provided</span>
+<span class="sd">            from an ``ServiceEquipmentData`` object. ``workday_end`` must also be</span>
+<span class="sd">            provided in order to be used.</span>
+<span class="sd">        workday_end : int</span>
+<span class="sd">            A valid hour in 24 hour time, by default -1. This should only be provided</span>
+<span class="sd">            from an ``ServiceEquipmentData`` object. ``workday_start`` must also be</span>
+<span class="sd">            provided in order to be used.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if it&#39;s valid working hours, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">in</span> <span class="p">(</span><span class="n">workday_start</span><span class="p">,</span> <span class="n">workday_end</span><span class="p">):</span>
+            <span class="c1"># Return True if the shift is around the clock</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">workday_start</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">workday_end</span> <span class="o">==</span> <span class="mi">24</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">workday_start</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation_time</span><span class="o">.</span><span class="n">hour</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">workday_end</span>
+
+        <span class="c1"># Return true if the shift is around the clock</span>
+        <span class="k">if</span> <span class="n">workday_start</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">workday_end</span> <span class="o">==</span> <span class="mi">24</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="k">return</span> <span class="n">workday_start</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation_time</span><span class="o">.</span><span class="n">hour</span> <span class="o">&lt;</span> <span class="n">workday_end</span></div>
+
+
+<div class="viewcode-block" id="WombatEnvironment.hour_in_shift">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.environment.WombatEnvironment.hour_in_shift">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">hour_in_shift</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">hour</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">workday_start</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">workday_end</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks whether an ``hour`` is within the working hours.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        hour : int</span>
+<span class="sd">            Hour of the day.</span>
+<span class="sd">        workday_start : int</span>
+<span class="sd">            A valid hour in 24 hour time, by default -1. This should only be provided</span>
+<span class="sd">            from an ``ServiceEquipmentData`` object. ``workday_end`` must also be</span>
+<span class="sd">            provided in order to be used.</span>
+<span class="sd">        workday_end : int</span>
+<span class="sd">            A valid hour in 24 hour time, by default -1. This should only be provided</span>
+<span class="sd">            from an ``ServiceEquipmentData`` object. ``workday_start`` must also be</span>
+<span class="sd">            provided in order to be used.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if ``hour`` is during working hours, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">in</span> <span class="p">(</span><span class="n">workday_start</span><span class="p">,</span> <span class="n">workday_end</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">workday_start</span> <span class="o">&lt;=</span> <span class="n">hour</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">workday_end</span>
+        <span class="k">return</span> <span class="n">workday_start</span> <span class="o">&lt;=</span> <span class="n">hour</span> <span class="o">&lt;</span> <span class="n">workday_end</span></div>
+
+
+<div class="viewcode-block" id="WombatEnvironment.hours_to_next_shift">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.environment.WombatEnvironment.hours_to_next_shift">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">hours_to_next_shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workday_start</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Time until the next work shift starts, in hours.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        workday_start : int</span>
+<span class="sd">            A valid hour in 24 hour time, by default -1. This should only be provided</span>
+<span class="sd">            from an ``ServiceEquipmentData`` object.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Hours until the next shift starts.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">current</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation_time</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workday_start</span> <span class="k">if</span> <span class="n">workday_start</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="k">else</span> <span class="n">workday_start</span>
+        <span class="k">if</span> <span class="n">current</span><span class="o">.</span><span class="n">hour</span> <span class="o">&lt;</span> <span class="n">start</span><span class="p">:</span>
+            <span class="c1"># difference between now and workday start</span>
+            <span class="k">return</span> <span class="n">hours_until_future_hour</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">current</span><span class="o">.</span><span class="n">hour</span> <span class="o">==</span> <span class="n">start</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Need to manually move forward one whole day to avoid an infinite loop</span>
+            <span class="k">return</span> <span class="n">hours_until_future_hour</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># time to midnight + hour of workday start</span>
+            <span class="k">return</span> <span class="n">start</span> <span class="o">+</span> <span class="n">hours_until_future_hour</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">current_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Timestamp for the current time as a datetime.datetime.strftime.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S.</span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="WombatEnvironment.date_ix">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.environment.WombatEnvironment.date_ix">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">date_ix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">date</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span> <span class="o">|</span> <span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The first index of a future date. This corresponds to the number of hours</span>
+<span class="sd">        until this dates from the very beginning of the simulation.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        date : datetime.datetime | datetime.date</span>
+<span class="sd">            A date within the environment&#39;s simulation range.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Index of the weather profile corresponds to the first hour of ``date``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span><span class="p">):</span>
+            <span class="n">date</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">date</span><span class="p">()</span>
+        <span class="n">ix</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weather</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">date</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ix</span><span class="o">.</span><span class="n">item</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="WombatEnvironment._weather_setup">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.environment.WombatEnvironment._weather_setup">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_weather_setup</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">weather_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">start_year</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">end_year</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reads the weather data from the &quot;&lt;inputs&gt;/weather&quot; directory, and creates the</span>
+<span class="sd">        ``start_date`` and ``end_date`` time stamps for the simulation.</span>
+
+<span class="sd">        This also fills any missing data with zeros and interpolates the values of any</span>
+<span class="sd">        missing datetime entries.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        weather_file : str</span>
+<span class="sd">            Name of the weather file to be used by the environment. Should be contained</span>
+<span class="sd">            within ``data_dir/weather``.</span>
+<span class="sd">        start_year : Optional[int], optional</span>
+<span class="sd">            Custom starting year for the weather profile, by default None. If ``None``</span>
+<span class="sd">            or less than the first year of the weather profile, this will be ignored.</span>
+<span class="sd">        end_year : Optional[int], optional</span>
+<span class="sd">            Custom ending year for the weather profile, by default None. If ``None`` or</span>
+<span class="sd">            greater than the last year of the weather profile, this will be ignored.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            The wind (and  wave) timeseries.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">REQUIRED</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;windspeed&quot;</span><span class="p">,</span> <span class="s2">&quot;waveheight&quot;</span><span class="p">]</span>
+
+        <span class="c1"># PyArrow datetime conversion setup</span>
+        <span class="n">convert_options</span> <span class="o">=</span> <span class="n">pa</span><span class="o">.</span><span class="n">csv</span><span class="o">.</span><span class="n">ConvertOptions</span><span class="p">(</span>
+            <span class="n">timestamp_parsers</span><span class="o">=</span><span class="p">[</span>
+                <span class="s2">&quot;%m/</span><span class="si">%d</span><span class="s2">/%y %H:%M&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;%m/</span><span class="si">%d</span><span class="s2">/%y %I:%M&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;%m/</span><span class="si">%d</span><span class="s2">/%y %H:%M:%S&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;%m/</span><span class="si">%d</span><span class="s2">/%y %I:%M:%S&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;%m/</span><span class="si">%d</span><span class="s2">/%Y %H:%M&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;%m/</span><span class="si">%d</span><span class="s2">/%Y %I:%M&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;%m/</span><span class="si">%d</span><span class="s2">/%Y %H:%M:%S&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;%m/</span><span class="si">%d</span><span class="s2">/%Y %I:%M:%S&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;%m-</span><span class="si">%d</span><span class="s2">-%y %H:%M&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;%m-</span><span class="si">%d</span><span class="s2">-%y %I:%M&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;%m-</span><span class="si">%d</span><span class="s2">-%y %H:%M:%S&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;%m-</span><span class="si">%d</span><span class="s2">-%y %I:%M:%S&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;%m-</span><span class="si">%d</span><span class="s2">-%Y %H:%M&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;%m-</span><span class="si">%d</span><span class="s2">-%Y %I:%M&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;%m-</span><span class="si">%d</span><span class="s2">-%Y %H:%M:%S&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;%m-</span><span class="si">%d</span><span class="s2">-%Y %I:%M:%S&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %I:%M&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %I:%M:%S&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">weather</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">pl</span><span class="o">.</span><span class="n">from_pandas</span><span class="p">(</span>
+                <span class="n">pa</span><span class="o">.</span><span class="n">csv</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">/</span> <span class="s2">&quot;weather&quot;</span> <span class="o">/</span> <span class="n">weather_file</span><span class="p">,</span>
+                    <span class="n">convert_options</span><span class="o">=</span><span class="n">convert_options</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span>
+                <span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+                <span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">&quot;h&quot;</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">limit_direction</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">)</span>  <span class="c1"># , limit=5)</span>
+                <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">with_row_index</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">with_columns</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">Datetime</span><span class="p">)</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">cast_time_unit</span><span class="p">(</span><span class="s2">&quot;ns&quot;</span><span class="p">),</span>
+                    <span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">hour</span><span class="p">())</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;hour&quot;</span><span class="p">),</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">missing</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">REQUIRED</span><span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">weather</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="s2">&quot;The weather data are missing the following required columns:&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Create the start and end points</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_datetime</span> <span class="o">=</span> <span class="n">weather</span><span class="o">.</span><span class="n">get_column</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end_datetime</span> <span class="o">=</span> <span class="n">weather</span><span class="o">.</span><span class="n">get_column</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_year</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_datetime</span><span class="o">.</span><span class="n">year</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end_year</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_datetime</span><span class="o">.</span><span class="n">year</span>
+
+        <span class="k">if</span> <span class="n">start_year</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">end_year</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">weather</span>
+
+        <span class="k">if</span> <span class="n">start_year</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="n">start_year</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_year</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;&#39;start_year&#39; (</span><span class="si">{</span><span class="n">start_year</span><span class="si">}</span><span class="s2">) occurs after the last available year&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot; in the weather data (range: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">end_year</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Filter for the provided, validated starting year and update the attribute</span>
+            <span class="n">weather</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">weather</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">year</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">start_year</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;index&quot;</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">with_row_index</span><span class="p">()</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">start_datetime</span> <span class="o">=</span> <span class="n">weather</span><span class="o">.</span><span class="n">get_column</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+            <span class="n">start_year</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_year</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_datetime</span><span class="o">.</span><span class="n">year</span>
+
+        <span class="k">if</span> <span class="n">end_year</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="n">start_year</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">end_year</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_year</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The provided &#39;end_year&#39; (</span><span class="si">{</span><span class="n">end_year</span><span class="si">}</span><span class="s2">) is before the start_year&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot; (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">start_year</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">start_year</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">end_year</span> <span class="o">&lt;</span> <span class="n">start_year</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The provided &#39;end_year&#39; (</span><span class="si">{</span><span class="n">end_year</span><span class="si">}</span><span class="s2">) is before the start_year&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot; (</span><span class="si">{</span><span class="n">start_year</span><span class="si">}</span><span class="s2">)&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Filter for the provided, validated ending year and update</span>
+                <span class="n">weather</span> <span class="o">=</span> <span class="n">weather</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">year</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="n">end_year</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">end_datetime</span> <span class="o">=</span> <span class="n">weather</span><span class="o">.</span><span class="n">get_column</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">end_year</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_datetime</span><span class="o">.</span><span class="n">year</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Filter for the provided, validated ending year and update the attribute</span>
+            <span class="n">weather</span> <span class="o">=</span> <span class="n">weather</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">year</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="n">end_year</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">end_datetime</span> <span class="o">=</span> <span class="n">weather</span><span class="o">.</span><span class="n">get_column</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">end_year</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_datetime</span><span class="o">.</span><span class="n">year</span>
+
+        <span class="n">column_order</span> <span class="o">=</span> <span class="n">weather</span><span class="o">.</span><span class="n">columns</span>
+        <span class="n">column_order</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">column_order</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">column_order</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;hour&quot;</span><span class="p">)))</span>
+        <span class="n">column_order</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">column_order</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">column_order</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;waveheight&quot;</span><span class="p">)))</span>
+        <span class="n">column_order</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">column_order</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">column_order</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;windspeed&quot;</span><span class="p">)))</span>
+        <span class="n">column_order</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">column_order</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">column_order</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)))</span>
+        <span class="n">column_order</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">column_order</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">column_order</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;index&quot;</span><span class="p">)))</span>
+
+        <span class="c1"># Ensure the columns are ordered correctly and re-compute pandas-compatible ix</span>
+        <span class="k">return</span> <span class="n">weather</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">column_order</span><span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;index&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">with_row_index</span><span class="p">()</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">weather_now</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The current weather.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pl.DataFrame</span>
+<span class="sd">            A length 1 slice from the weather profile at the current ``int()`` rounded</span>
+<span class="sd">            hour, in simulation time.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Rounds down because we won&#39;t arrive at the next weather event until that hour</span>
+        <span class="n">now</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">now</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">weather</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">now</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<div class="viewcode-block" id="WombatEnvironment.weather_forecast">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.environment.WombatEnvironment.weather_forecast">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">weather_forecast</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">hours</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pl</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">Series</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the datetime, wind, wave, and hour data for the next ``hours`` hours,</span>
+<span class="sd">        starting from the current hour&#39;s weather.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        hours : Union[int, float]</span>
+<span class="sd">            Number of hours to look ahead, rounds up to the nearest hour.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[pl.Series, pl.Series, pl.Series, pl.Series]</span>
+<span class="sd">            Each of the relevant columns (datetime, wind, wave, hour) from the weather</span>
+<span class="sd">            profile.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># If it&#39;s not on the hour, ensure we&#39;re looking ``hours`` hours into the future</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">now</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">ix</span><span class="p">,</span> <span class="n">wind</span><span class="p">,</span> <span class="n">wave</span><span class="p">,</span> <span class="n">hour</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weather</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span>
+            <span class="n">start</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">hours</span><span class="p">)</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">now</span> <span class="o">%</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">ix</span><span class="p">,</span> <span class="n">hour</span><span class="p">,</span> <span class="n">wind</span><span class="p">,</span> <span class="n">wave</span></div>
+
+
+<div class="viewcode-block" id="WombatEnvironment.log_action">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.environment.WombatEnvironment.log_action">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log_action</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">agent</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">action</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">reason</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">additional</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">system_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">system_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">part_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">part_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">system_ol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">part_ol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">distance_km</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">request_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;na&quot;</span><span class="p">,</span>
+        <span class="n">location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;na&quot;</span><span class="p">,</span>
+        <span class="n">materials_cost</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">hourly_labor_cost</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">salary_labor_cost</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">equipment_cost</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Formats the logging messages into the expected format for logging.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        agent : str</span>
+<span class="sd">            Agent performing the action.</span>
+<span class="sd">        action : str</span>
+<span class="sd">            Action that was taken.</span>
+<span class="sd">        reason : str</span>
+<span class="sd">            Reason an action was taken.</span>
+<span class="sd">        additional : str</span>
+<span class="sd">            Any additional information that needs to be logged.</span>
+<span class="sd">        system_id : str</span>
+<span class="sd">            Turbine ID, ``System.id``, by default &quot;&quot;.</span>
+<span class="sd">        system_name : str</span>
+<span class="sd">            Turbine name, ``System.name``, by default &quot;&quot;.</span>
+<span class="sd">        part_id : str</span>
+<span class="sd">            Subassembly, component, or cable ID, ``_.id``, by default &quot;&quot;.</span>
+<span class="sd">        part_name : str</span>
+<span class="sd">            Subassembly, component, or cable name, ``_.name``, by default &quot;&quot;.</span>
+<span class="sd">        system_ol : float | int</span>
+<span class="sd">            Turbine operating level, ``System.operating_level``. Use an empty string</span>
+<span class="sd">            for n/a, by default 0.</span>
+<span class="sd">        part_ol : float | int</span>
+<span class="sd">            Subassembly, component, or cable operating level, ``_.operating_level``. Use</span>
+<span class="sd">            an empty string for n/a, by default 0.</span>
+<span class="sd">        request_id : str</span>
+<span class="sd">            The ``RepairManager`` assigned request_id found in</span>
+<span class="sd">            ``RepairRequest.request_id``, by default &quot;na&quot;.</span>
+<span class="sd">        location : str</span>
+<span class="sd">            The location of where the event ocurred: should be one of site, port,</span>
+<span class="sd">            enroute, or system, by default &quot;na&quot;.</span>
+<span class="sd">        duration : float</span>
+<span class="sd">            Length of time the action lasted, by default 0.</span>
+<span class="sd">        distance : float</span>
+<span class="sd">            Distance traveled, in km, if applicable, by default 0.</span>
+<span class="sd">        materials_cost : Union[int, float], optional</span>
+<span class="sd">            Total cost of materials for action, in USD, by default 0.</span>
+<span class="sd">        hourly_labor_cost : Union[int, float], optional</span>
+<span class="sd">            Total cost of hourly labor for action, in USD, by default 0.</span>
+<span class="sd">        salary_labor_cost : Union[int, float], optional</span>
+<span class="sd">            Total cost of salaried labor for action, in USD, by default 0.</span>
+<span class="sd">        equipment_cost : Union[int, float], optional</span>
+<span class="sd">            Total cost of equipment for action, in USD, by default 0.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">valid_locations</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;port&quot;</span><span class="p">,</span> <span class="s2">&quot;enroute&quot;</span><span class="p">,</span> <span class="s2">&quot;na&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">location</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_locations</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Event logging `location` must be one of: </span><span class="si">{</span><span class="n">valid_locations</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="n">total_labor_cost</span> <span class="o">=</span> <span class="n">hourly_labor_cost</span> <span class="o">+</span> <span class="n">salary_labor_cost</span>
+        <span class="n">total_cost</span> <span class="o">=</span> <span class="n">total_labor_cost</span> <span class="o">+</span> <span class="n">equipment_cost</span> <span class="o">+</span> <span class="n">materials_cost</span>
+        <span class="n">now</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation_time</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;datetime&quot;</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span>
+            <span class="s2">&quot;env_datetime&quot;</span><span class="p">:</span> <span class="n">now</span><span class="p">,</span>
+            <span class="s2">&quot;env_time&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">now</span><span class="p">,</span>
+            <span class="s2">&quot;system_id&quot;</span><span class="p">:</span> <span class="n">system_id</span><span class="p">,</span>
+            <span class="s2">&quot;system_name&quot;</span><span class="p">:</span> <span class="n">system_name</span><span class="p">,</span>
+            <span class="s2">&quot;part_id&quot;</span><span class="p">:</span> <span class="n">part_id</span><span class="p">,</span>
+            <span class="s2">&quot;part_name&quot;</span><span class="p">:</span> <span class="n">part_name</span><span class="p">,</span>
+            <span class="s2">&quot;system_operating_level&quot;</span><span class="p">:</span> <span class="n">system_ol</span><span class="p">,</span>
+            <span class="s2">&quot;part_operating_level&quot;</span><span class="p">:</span> <span class="n">part_ol</span><span class="p">,</span>
+            <span class="s2">&quot;agent&quot;</span><span class="p">:</span> <span class="n">agent</span><span class="p">,</span>
+            <span class="s2">&quot;action&quot;</span><span class="p">:</span> <span class="n">action</span><span class="p">,</span>
+            <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="n">reason</span><span class="p">,</span>
+            <span class="s2">&quot;additional&quot;</span><span class="p">:</span> <span class="n">additional</span><span class="p">,</span>
+            <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="n">duration</span><span class="p">,</span>
+            <span class="s2">&quot;distance_km&quot;</span><span class="p">:</span> <span class="n">distance_km</span><span class="p">,</span>
+            <span class="s2">&quot;request_id&quot;</span><span class="p">:</span> <span class="n">request_id</span><span class="p">,</span>
+            <span class="s2">&quot;location&quot;</span><span class="p">:</span> <span class="n">location</span><span class="p">,</span>
+            <span class="s2">&quot;materials_cost&quot;</span><span class="p">:</span> <span class="n">materials_cost</span><span class="p">,</span>
+            <span class="s2">&quot;hourly_labor_cost&quot;</span><span class="p">:</span> <span class="n">hourly_labor_cost</span><span class="p">,</span>
+            <span class="s2">&quot;salary_labor_cost&quot;</span><span class="p">:</span> <span class="n">salary_labor_cost</span><span class="p">,</span>
+            <span class="s2">&quot;equipment_cost&quot;</span><span class="p">:</span> <span class="n">equipment_cost</span><span class="p">,</span>
+            <span class="s2">&quot;total_labor_cost&quot;</span><span class="p">:</span> <span class="n">total_labor_cost</span><span class="p">,</span>
+            <span class="s2">&quot;total_cost&quot;</span><span class="p">:</span> <span class="n">total_cost</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="c1"># Don&#39;t log the initiation of a crew transfer that can forced at the end of an</span>
+        <span class="c1"># operation but happens to be after the end of the simulation</span>
+        <span class="k">if</span> <span class="n">now</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_datetime</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_events_buffer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WombatEnvironment._log_actions">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.environment.WombatEnvironment._log_actions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_log_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Writes the action log items every 8000 hours.&quot;&quot;&quot;</span>
+        <span class="n">HOURS</span> <span class="o">=</span> <span class="mi">8000</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">HOURS</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_events_writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_events_buffer</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_events_buffer</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="WombatEnvironment.load_events_log_dataframe">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.environment.WombatEnvironment.load_events_log_dataframe">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_events_log_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Imports the logging file created in ``run`` and returns it as a formatted</span>
+<span class="sd">        ``pandas.DataFrame``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            The formatted logging data from a simulation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log_df</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">events_log_fname</span><span class="p">,</span>
+                <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;|&quot;</span><span class="p">,</span>
+                <span class="n">engine</span><span class="o">=</span><span class="s2">&quot;pyarrow&quot;</span><span class="p">,</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s2">&quot;agent&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;action&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;additional&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;system_id&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;system_name&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;part_id&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;part_name&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;request_id&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;location&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">log_df</span></div>
+
+
+<div class="viewcode-block" id="WombatEnvironment._calculate_windfarm_total">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.environment.WombatEnvironment._calculate_windfarm_total">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_windfarm_total</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">op</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">prod</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculates the overall wind farm operational level, accounting for substation</span>
+<span class="sd">        downtime by multiplying the sum of all downstream turbine operational levels by</span>
+<span class="sd">        the substation&#39;s operational level.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        op : pd.DataFrame</span>
+<span class="sd">            The turbine and substation operational level DataFrame.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This is a crude cap on the operations, and so a smarter way of capping</span>
+<span class="sd">        the availability should be added in the future.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            The aggregate wind farm operational level.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">t_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">turbine_id</span>
+        <span class="n">turbines</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">turbine_weights</span><span class="p">[</span><span class="n">t_id</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">*</span> <span class="n">op</span><span class="p">[</span><span class="n">t_id</span><span class="p">]</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="p">[</span><span class="n">math</span><span class="o">.</span><span class="n">fsum</span><span class="p">(</span><span class="n">row</span><span class="p">)]</span>
+                        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">turbines</span><span class="p">[</span><span class="n">val</span><span class="p">[</span><span class="s2">&quot;turbines&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()</span>
+                    <span class="p">]</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">sub</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">substation_turbine_map</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">],</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">total</span></div>
+
+
+<div class="viewcode-block" id="WombatEnvironment._calculate_adjusted_production">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.environment.WombatEnvironment._calculate_adjusted_production">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_adjusted_production</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">op</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">prod</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculates the overall wind farm power production and adjusts individual</span>
+<span class="sd">        turbine production by accounting for substation downtime. This is done by</span>
+<span class="sd">        multiplying the all downstream turbine operational levels by the substation&#39;s</span>
+<span class="sd">        operational level.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        op : pd.DataFrame</span>
+<span class="sd">            The operational level DataFrame with turbine, substation, and windfarm</span>
+<span class="sd">            columns.</span>
+<span class="sd">        prod : pd.DataFrame</span>
+<span class="sd">            The turbine energy production DataFrame.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This is a crude cap on the operations, and so a smarter way of capping</span>
+<span class="sd">        the availability should be added in the future.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            Either the aggregate wind farm operational level or the total wind farm</span>
+<span class="sd">            energy production if the :py:attr:`prod` is provided.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Adjust individual turbine production for substation downtime</span>
+        <span class="n">prod</span> <span class="o">=</span> <span class="n">prod</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">sub</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">substation_turbine_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">prod</span><span class="p">[</span><span class="n">val</span><span class="p">[</span><span class="s2">&quot;turbines&quot;</span><span class="p">]]</span> <span class="o">*=</span> <span class="n">op</span><span class="p">[[</span><span class="n">sub</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">prod</span><span class="o">.</span><span class="n">windfarm</span> <span class="o">=</span> <span class="n">prod</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">turbine_id</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">prod</span><span class="p">[[</span><span class="s2">&quot;windfarm&quot;</span><span class="p">]]</span></div>
+
+
+<div class="viewcode-block" id="WombatEnvironment.load_operations_log_dataframe">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.environment.WombatEnvironment.load_operations_log_dataframe">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_operations_log_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Imports the logging file created in ``run`` and returns it as a formatted</span>
+<span class="sd">        ``pandas.DataFrame``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            The formatted logging data from a simulation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log_df</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">operations_log_fname</span><span class="p">,</span>
+                <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;|&quot;</span><span class="p">,</span>
+                <span class="n">engine</span><span class="o">=</span><span class="s2">&quot;pyarrow&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Adjust the turbine operational values to account for substation downtime</span>
+        <span class="k">for</span> <span class="n">sub</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">substation_turbine_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">log_df</span><span class="p">[</span><span class="n">val</span><span class="p">[</span><span class="s2">&quot;turbines&quot;</span><span class="p">]]</span> <span class="o">*=</span> <span class="n">log_df</span><span class="p">[[</span><span class="n">sub</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>
+
+        <span class="c1"># Calculate the wind farm aggregate operational value</span>
+        <span class="n">log_df</span><span class="p">[</span><span class="s2">&quot;windfarm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_windfarm_total</span><span class="p">(</span><span class="n">log_df</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">log_df</span></div>
+
+
+<div class="viewcode-block" id="WombatEnvironment.power_production_potential_to_csv">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.environment.WombatEnvironment.power_production_potential_to_csv">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">power_production_potential_to_csv</span><span class="p">(</span>  <span class="c1"># type: ignore</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">windfarm</span><span class="p">:</span> <span class="n">wombat</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">Windfarm</span><span class="p">,</span>
+        <span class="n">operations</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">return_df</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates the power production ``DataFrame`` and optionally returns it.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        windfarm : wombat.windfarm.Windfarm</span>
+<span class="sd">            The simulation&#39;s windfarm object.</span>
+<span class="sd">        operations : Optional[pd.DataFrame], optional</span>
+<span class="sd">            The operations log ``DataFrame`` if readily available, by default None. If</span>
+<span class="sd">            ``None``, then it will be created through</span>
+<span class="sd">            ``load_operations_log_dataframe()``.</span>
+<span class="sd">        return_df : bool, optional</span>
+<span class="sd">            Indicator to return the power production for further usage, by default True.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Tuple[pd.DataFrame, pd.DataFrame]</span>
+<span class="sd">            The power potential and production timeseries data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">write_options</span> <span class="o">=</span> <span class="n">pa</span><span class="o">.</span><span class="n">csv</span><span class="o">.</span><span class="n">WriteOptions</span><span class="p">(</span><span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;|&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">operations</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">operations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_operations_log_dataframe</span><span class="p">()</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;env_time&quot;</span><span class="p">)</span>
+
+        <span class="n">turbines</span> <span class="o">=</span> <span class="n">windfarm</span><span class="o">.</span><span class="n">turbine_id</span>
+        <span class="n">windspeed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weather</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">windspeed</span>
+        <span class="n">windspeed</span> <span class="o">=</span> <span class="n">windspeed</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">operations</span><span class="o">.</span><span class="n">env_datetime</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">potential_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="p">[],</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">operations</span><span class="o">.</span><span class="n">env_datetime</span><span class="p">,</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;env_time&quot;</span><span class="p">,</span> <span class="s2">&quot;env_datetime&quot;</span><span class="p">,</span> <span class="s2">&quot;windspeed&quot;</span><span class="p">,</span> <span class="s2">&quot;windfarm&quot;</span><span class="p">]</span>
+            <span class="o">+</span> <span class="n">turbines</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+        <span class="p">)</span>
+        <span class="n">potential_df</span><span class="p">[</span><span class="n">turbines</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">windfarm</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">t_id</span><span class="p">)</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">windspeed</span><span class="p">)</span> <span class="k">for</span> <span class="n">t_id</span> <span class="ow">in</span> <span class="n">turbines</span><span class="p">]</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">potential_df</span> <span class="o">=</span> <span class="n">potential_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+            <span class="n">windspeed</span><span class="o">=</span><span class="n">windspeed</span><span class="p">,</span>
+            <span class="n">windfarm</span><span class="o">=</span><span class="n">potential_df</span><span class="p">[</span><span class="n">turbines</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">env_time</span><span class="o">=</span><span class="n">operations</span><span class="o">.</span><span class="n">env_time</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+            <span class="n">env_datetime</span><span class="o">=</span><span class="n">operations</span><span class="o">.</span><span class="n">env_datetime</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">pa</span><span class="o">.</span><span class="n">csv</span><span class="o">.</span><span class="n">write_csv</span><span class="p">(</span>
+            <span class="n">pa</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">from_pandas</span><span class="p">(</span><span class="n">potential_df</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">power_potential_fname</span><span class="p">,</span>
+            <span class="n">write_options</span><span class="o">=</span><span class="n">write_options</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># TODO: The actual windfarm production needs to be clipped at each subgraph to</span>
+        <span class="c1"># the max of the substation&#39;s operating capacity and then summed.</span>
+        <span class="n">production_df</span> <span class="o">=</span> <span class="n">potential_df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">production_df</span><span class="p">[</span><span class="n">turbines</span><span class="p">]</span> <span class="o">*=</span> <span class="n">operations</span><span class="p">[</span><span class="n">turbines</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">production_df</span><span class="o">.</span><span class="n">windfarm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_adjusted_production</span><span class="p">(</span>
+            <span class="n">operations</span><span class="p">,</span> <span class="n">production_df</span>
+        <span class="p">)</span>
+        <span class="n">pa</span><span class="o">.</span><span class="n">csv</span><span class="o">.</span><span class="n">write_csv</span><span class="p">(</span>
+            <span class="n">pa</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">from_pandas</span><span class="p">(</span><span class="n">production_df</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">power_production_fname</span><span class="p">,</span>
+            <span class="n">write_options</span><span class="o">=</span><span class="n">write_options</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">return_df</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">potential_df</span><span class="p">,</span> <span class="n">production_df</span></div>
+
+
+<div class="viewcode-block" id="WombatEnvironment.cleanup_log_files">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.environment.WombatEnvironment.cleanup_log_files">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cleanup_log_files</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convenience method to clear the output log files in case a large</span>
+<span class="sd">        batch of simulations is being run and there are space limitations.</span>
+
+<span class="sd">        ... warning:: This shuts down the loggers, so no more logging will be able</span>
+<span class="sd">            to be performed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># NOTE: Everything is wrapped in a try/except clause to protect against failure</span>
+        <span class="c1"># when inevitably a file has already been deleted on accident, or if in the</span>
+        <span class="c1"># dataframe generation step, the original logs were deleted</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_events_csv</span><span class="o">.</span><span class="n">closed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_events_csv</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operations_csv</span><span class="o">.</span><span class="n">closed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_operations_csv</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">events_log_fname</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">operations_log_fname</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">power_potential_fname</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">power_production_fname</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metrics_input_fname</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+</div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Rob Hammond
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2021 Alliance for Sustainable Energy, LLC.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

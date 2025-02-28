@@ -1,0 +1,1701 @@
+
+<!DOCTYPE html>
+
+
+<html lang="python" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Data Classes &#8212; WOMBAT</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=30a733bc"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'API/types';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Simulation Core Classes" href="core.html" />
+    <link rel="prev" title="Simulation API" href="simulation_api.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="python"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">WOMBAT</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WISDEM/WOMBAT" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI version" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/v/WOMBAT" class="icon-link-image" alt="PyPI version"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI downloads" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/dm/WOMBAT" class="icon-link-image" alt="PyPI downloads"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples" title="Launch Binder" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://mybinder.org/badge_logo.svg" class="icon-link-image" alt="Launch Binder"/></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributor's Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../presentations.html">Presentations and Publications</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../workshops/index.html">Workshops</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../workshops/nawea_wind_tech_2023.html">NAWEA WindTech 2023 WOMBAT Tutorial</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../team.html">Team</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Working With the Code Base</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">User Guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/how_to.html">How To Use WOMBAT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/strategy_demonstration.html">Servicing Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/metrics_demonstration.html">Demonstration of the Available Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/examples_reference.html">Examples Reference</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">WOMBAT API</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="simulation_api.html">Simulation API</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Data Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">Simulation Core Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="windfarm.html">Wind Farm Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html">Helpers and Plotting</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Change Log</a></li>
+
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/API/types.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Data Classes</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-this-fromdictmixin-i-keep-seeing-in-the-code-diagrams">What is this <code class="docutils literal notranslate"><span class="pre">FromDictMixin</span></code> I keep seeing in the code diagrams?</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.FromDictMixin"><code class="docutils literal notranslate"><span class="pre">FromDictMixin</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.FromDictMixin.from_dict"><code class="docutils literal notranslate"><span class="pre">FromDictMixin.from_dict()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scheduled-and-unscheduled-maintenance">Scheduled and Unscheduled Maintenance</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#maintenance-tasks">Maintenance Tasks</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.Maintenance"><code class="docutils literal notranslate"><span class="pre">Maintenance</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.Maintenance.request_id"><code class="docutils literal notranslate"><span class="pre">Maintenance.request_id</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.Maintenance.assign_id"><code class="docutils literal notranslate"><span class="pre">Maintenance.assign_id()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#failures">Failures</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.Failure"><code class="docutils literal notranslate"><span class="pre">Failure</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.Failure.request_id"><code class="docutils literal notranslate"><span class="pre">Failure.request_id</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.Failure.hours_to_next_failure"><code class="docutils literal notranslate"><span class="pre">Failure.hours_to_next_failure()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.Failure.assign_id"><code class="docutils literal notranslate"><span class="pre">Failure.assign_id()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#repair-requests">Repair Requests</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.RepairRequest"><code class="docutils literal notranslate"><span class="pre">RepairRequest</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.RepairRequest.prior_operating_level"><code class="docutils literal notranslate"><span class="pre">RepairRequest.prior_operating_level</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.RepairRequest.request_id"><code class="docutils literal notranslate"><span class="pre">RepairRequest.request_id</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.RepairRequest.assign_id"><code class="docutils literal notranslate"><span class="pre">RepairRequest.assign_id()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#servicing-equipment-and-crews">Servicing Equipment and Crews</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#service-equipment">Service Equipment</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.ServiceEquipmentData"><code class="docutils literal notranslate"><span class="pre">ServiceEquipmentData</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.ServiceEquipmentData.determine_type"><code class="docutils literal notranslate"><span class="pre">ServiceEquipmentData.determine_type()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#servicecrew">ServiceCrew</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.ServiceCrew"><code class="docutils literal notranslate"><span class="pre">ServiceCrew</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scheduled-service-equipment">Scheduled Service Equipment</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.ScheduledServiceEquipmentData"><code class="docutils literal notranslate"><span class="pre">ScheduledServiceEquipmentData</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.ScheduledServiceEquipmentData.operating_dates_set"><code class="docutils literal notranslate"><span class="pre">ScheduledServiceEquipmentData.operating_dates_set</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.ScheduledServiceEquipmentData.non_operational_dates"><code class="docutils literal notranslate"><span class="pre">ScheduledServiceEquipmentData.non_operational_dates</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.ScheduledServiceEquipmentData.non_operational_dates_set"><code class="docutils literal notranslate"><span class="pre">ScheduledServiceEquipmentData.non_operational_dates_set</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.ScheduledServiceEquipmentData.reduced_speed_dates"><code class="docutils literal notranslate"><span class="pre">ScheduledServiceEquipmentData.reduced_speed_dates</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.ScheduledServiceEquipmentData.non_stop_shift"><code class="docutils literal notranslate"><span class="pre">ScheduledServiceEquipmentData.non_stop_shift</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#unscheduled-service-equipment">Unscheduled Service Equipment</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.UnscheduledServiceEquipmentData"><code class="docutils literal notranslate"><span class="pre">UnscheduledServiceEquipmentData</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.UnscheduledServiceEquipmentData.non_operational_dates"><code class="docutils literal notranslate"><span class="pre">UnscheduledServiceEquipmentData.non_operational_dates</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.UnscheduledServiceEquipmentData.non_operational_dates_set"><code class="docutils literal notranslate"><span class="pre">UnscheduledServiceEquipmentData.non_operational_dates_set</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.UnscheduledServiceEquipmentData.reduced_speed_dates"><code class="docutils literal notranslate"><span class="pre">UnscheduledServiceEquipmentData.reduced_speed_dates</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.UnscheduledServiceEquipmentData.non_stop_shift"><code class="docutils literal notranslate"><span class="pre">UnscheduledServiceEquipmentData.non_stop_shift</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.UnscheduledServiceEquipmentData._validate_threshold"><code class="docutils literal notranslate"><span class="pre">UnscheduledServiceEquipmentData._validate_threshold()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#port-configuration">Port Configuration</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.PortConfig"><code class="docutils literal notranslate"><span class="pre">PortConfig</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.PortConfig.non_operational_dates"><code class="docutils literal notranslate"><span class="pre">PortConfig.non_operational_dates</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.PortConfig.reduced_speed_dates"><code class="docutils literal notranslate"><span class="pre">PortConfig.reduced_speed_dates</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-farm-support">Wind Farm Support</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#subassembly-model">Subassembly Model</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.SubassemblyData"><code class="docutils literal notranslate"><span class="pre">SubassemblyData</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-farm-map">Wind Farm Map</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.WindFarmMap"><code class="docutils literal notranslate"><span class="pre">WindFarmMap</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.WindFarmMap.get_upstream_connections"><code class="docutils literal notranslate"><span class="pre">WindFarmMap.get_upstream_connections()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.WindFarmMap.get_upstream_connections_from_substation"><code class="docutils literal notranslate"><span class="pre">WindFarmMap.get_upstream_connections_from_substation()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#substation-map">Substation Map</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.SubstationMap"><code class="docutils literal notranslate"><span class="pre">SubstationMap</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#string">String</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.String"><code class="docutils literal notranslate"><span class="pre">String</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sub-string">Sub String</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.SubString"><code class="docutils literal notranslate"><span class="pre">SubString</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#miscellaneous">Miscellaneous</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fixed-cost-model">Fixed Cost Model</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.FixedCosts"><code class="docutils literal notranslate"><span class="pre">FixedCosts</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="data-classes">
+<span id="types"></span><h1>Data Classes<a class="headerlink" href="#data-classes" title="Link to this heading">#</a></h1>
+<p>The WOMBAT architecture relies heavily on a base set of data classes to process most of
+the model's inputs. This enables a rigid, yet robust data model to properly define a
+simulation.</p>
+<a class="reference internal image-reference" href="../_images/data_classes.svg"><img alt="" class="align-center" src="../_images/data_classes.svg" style="width: 2400px;" />
+</a>
+<section id="what-is-this-fromdictmixin-i-keep-seeing-in-the-code-diagrams">
+<h2>What is this <code class="docutils literal notranslate"><span class="pre">FromDictMixin</span></code> I keep seeing in the code diagrams?<a class="headerlink" href="#what-is-this-fromdictmixin-i-keep-seeing-in-the-code-diagrams" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">FromDictMixin</span></code> class provides a standard method for providing dictionary definitions
+to <code class="docutils literal notranslate"><span class="pre">attrs</span></code> dataclasses without worrying about overloading the definition. Plus, you get
+the convenience of writing <code class="docutils literal notranslate"><span class="pre">cls.from_dict(data_dict)</span></code> instead of cls(**data_dict), and
+hoping for the best.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.core.data_classes.FromDictMixin">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.core.data_classes.</span></span><span class="sig-name descname"><span class="pre">FromDictMixin</span></span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#FromDictMixin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.FromDictMixin" title="Link to this definition">#</a></dt>
+<dd><p>A Mixin class to allow for kwargs overloading when a data class doesn't
+have a specific parameter definied. This allows passing of larger dictionaries
+to a data class without throwing an error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>AttributeError</strong> -- Raised if the required class inputs are not provided.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.data_classes.FromDictMixin.from_dict">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#FromDictMixin.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.FromDictMixin.from_dict" title="Link to this definition">#</a></dt>
+<dd><p>Map a data dictionary to an <cite>attrs</cite>-defined class.</p>
+<p>TODO: Add an error to ensure that either none or all the parameters are passed</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>dict</em>) -- The data dictionary to be mapped.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>cls<span class="classifier">Any</span></dt><dd><p>The <cite>attrs</cite>-defined class.</p>
+</dd>
+</dl>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="scheduled-and-unscheduled-maintenance">
+<span id="types-maintenance"></span><h2>Scheduled and Unscheduled Maintenance<a class="headerlink" href="#scheduled-and-unscheduled-maintenance" title="Link to this heading">#</a></h2>
+<section id="maintenance-tasks">
+<span id="types-maintenance-scheduled"></span><h3>Maintenance Tasks<a class="headerlink" href="#maintenance-tasks" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.core.data_classes.Maintenance">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.core.data_classes.</span></span><span class="sig-name descname"><span class="pre">Maintenance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">materials</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">service_equipment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'routine</span> <span class="pre">maintenance'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operation_reduction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#Maintenance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.Maintenance" title="Link to this definition">#</a></dt>
+<dd><p>Data class to store maintenance data used in subassembly and cable modeling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> (<em>float</em>) -- Amount of time required to perform maintenance, in hours.</p></li>
+<li><p><strong>materials</strong> (<em>float</em>) -- Cost of materials required to perform maintenance, in USD.</p></li>
+<li><p><strong>frequency</strong> (<em>float</em>) -- Optimal number of days between performing maintenance, in days.</p></li>
+<li><p><strong>service_equipment</strong> (<em>list</em><em>[</em><em>str</em><em>] </em><em>| </em><em>str</em>) -- <p>Any combination of th following <code class="docutils literal notranslate"><span class="pre">Equipment.capability</span></code> options.</p>
+<ul>
+<li><p>RMT: remote (no actual equipment BUT no special implementation)</p></li>
+<li><p>DRN: drone</p></li>
+<li><p>CTV: crew transfer vessel/vehicle</p></li>
+<li><p>SCN: small crane (i.e., cherry picker)</p></li>
+<li><p>MCN: medium crane (i.e., field support vessel)</p></li>
+<li><p>LCN: large crane (i.e., heavy lift vessel)</p></li>
+<li><p>CAB: cabling vessel/vehicle</p></li>
+<li><p>DSV: diving support vessel</p></li>
+<li><p>TOW: tugboat or towing equipment</p></li>
+<li><p>AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)</p></li>
+<li><p>VSG: vessel support group (group of vessels required for single operation)</p></li>
+</ul>
+</p></li>
+<li><p><strong>system_value</strong> (<em>Union</em><em>[</em><em>int</em><em>, </em><em>float</em><em>]</em>) -- Turbine replacement value. Used if the materials cost is a proportional cost.</p></li>
+<li><p><strong>description</strong> (<em>str</em>) -- A short text description to be used for logging.</p></li>
+<li><p><strong>operation_reduction</strong> (<em>float</em>) -- <p>Performance reduction caused by the failure, between (0, 1]. Defaults to 0.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>As of v0.7, availability is very sensitive to the usage of this
+parameter, and so it should be used carefully.</p>
+</div>
+</p></li>
+<li><p><strong>level</strong> (<em>int</em><em>, </em><em>optional</em>) -- Severity level of the maintenance. Defaults to 0.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.data_classes.Maintenance.request_id">
+<span class="sig-name descname"><span class="pre">request_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#wombat.core.data_classes.Maintenance.request_id" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.data_classes.Maintenance.assign_id">
+<span class="sig-name descname"><span class="pre">assign_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#Maintenance.assign_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.Maintenance.assign_id" title="Link to this definition">#</a></dt>
+<dd><p>Assign a unique identifier to the request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>request_id</strong> (<em>str</em>) -- The <code class="docutils literal notranslate"><span class="pre">wombat.core.RepairManager</span></code> generated identifier.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="failures">
+<span id="types-maintenance-unscheduled"></span><h3>Failures<a class="headerlink" href="#failures" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.core.data_classes.Failure">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.core.data_classes.</span></span><span class="sig-name descname"><span class="pre">Failure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">materials</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operation_reduction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">service_equipment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replacement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'failure'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#Failure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.Failure" title="Link to this definition">#</a></dt>
+<dd><p>Data class to store failure data used in subassembly and cable modeling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scale</strong> (<em>float</em>) -- Weibull scale parameter for a failure classification.</p></li>
+<li><p><strong>shape</strong> (<em>float</em>) -- Weibull shape parameter for a failure classification.</p></li>
+<li><p><strong>time</strong> (<em>float</em>) -- Amount of time required to complete the repair, in hours.</p></li>
+<li><p><strong>materials</strong> (<em>float</em>) -- Cost of the materials required to complete the repair, in $USD.</p></li>
+<li><p><strong>operation_reduction</strong> (<em>float</em>) -- <p>Performance reduction caused by the failure, between (0, 1].</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>As of v0.7, availability is very sensitive to the usage of this
+parameter, and so it should be used carefully.</p>
+</div>
+</p></li>
+<li><p><strong>level</strong> (<em>int</em><em>, </em><em>optional</em>) -- Level of severity, will be generated in the <code class="docutils literal notranslate"><span class="pre">ComponentData.create_severities</span></code>
+method.</p></li>
+<li><p><strong>service_equipment</strong> (<em>list</em><em>[</em><em>str</em><em>] </em><em>| </em><em>str</em>) -- <p>Any combination of the following <code class="docutils literal notranslate"><span class="pre">Equipment.capability</span></code> options:</p>
+<ul>
+<li><p>RMT: remote (no actual equipment BUT no special implementation)</p></li>
+<li><p>DRN: drone</p></li>
+<li><p>CTV: crew transfer vessel/vehicle</p></li>
+<li><p>SCN: small crane (i.e., cherry picker)</p></li>
+<li><p>MCN: medium crane (i.e., field support vessel)</p></li>
+<li><p>LCN: large crane (i.e., heavy lift vessel)</p></li>
+<li><p>CAB: cabling vessel/vehicle</p></li>
+<li><p>DSV: diving support vessel</p></li>
+<li><p>TOW: tugboat or towing equipment</p></li>
+<li><p>AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)</p></li>
+<li><p>VSG: vessel support group (group of vessels required for single operation)</p></li>
+</ul>
+</p></li>
+<li><p><strong>system_value</strong> (<em>Union</em><em>[</em><em>int</em><em>, </em><em>float</em><em>]</em>) -- Turbine replacement value. Used if the materials cost is a proportional cost.</p></li>
+<li><p><strong>replacement</strong> (<em>bool</em>) -- True if triggering the failure requires a subassembly replacement, False, if
+only a repair is necessary. Defaults to False</p></li>
+<li><p><strong>description</strong> (<em>str</em>) -- A short text description to be used for logging.</p></li>
+<li><p><strong>rng</strong> (<em>np.random._generator.Generator</em>) -- <div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Do not provide this, it comes from
+<a class="reference internal" href="core.html#wombat.core.environment.WombatEnvironment" title="wombat.core.environment.WombatEnvironment"><code class="xref py py-class docutils literal notranslate"><span class="pre">wombat.core.environment.WombatEnvironment</span></code></a></p>
+</div>
+<p>The shared random generator used for the Weibull sampling. This is fed through
+the simulation environment to ensure consistent seeding between simulations.</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.data_classes.Failure.request_id">
+<span class="sig-name descname"><span class="pre">request_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#wombat.core.data_classes.Failure.request_id" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.data_classes.Failure.hours_to_next_failure">
+<span class="sig-name descname"><span class="pre">hours_to_next_failure</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#Failure.hours_to_next_failure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.Failure.hours_to_next_failure" title="Link to this definition">#</a></dt>
+<dd><p>Sample the next time to failure in a Weibull distribution. If the <code class="docutils literal notranslate"><span class="pre">scale</span></code>
+and <code class="docutils literal notranslate"><span class="pre">shape</span></code> parameters are set to 0, then the model will return <code class="docutils literal notranslate"><span class="pre">None</span></code> to
+cause the subassembly to timeout to the end of the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>float | None</em> -- Returns <code class="docutils literal notranslate"><span class="pre">None</span></code> for a non-modelled failure, or the time until the next
+simulated failure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.data_classes.Failure.assign_id">
+<span class="sig-name descname"><span class="pre">assign_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#Failure.assign_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.Failure.assign_id" title="Link to this definition">#</a></dt>
+<dd><p>Assign a unique identifier to the request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>request_id</strong> (<em>str</em>) -- The <code class="docutils literal notranslate"><span class="pre">wombat.core.RepairManager</span></code> generated identifier.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="repair-requests">
+<span id="types-maintenance-requests"></span><h3>Repair Requests<a class="headerlink" href="#repair-requests" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.core.data_classes.RepairRequest">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.core.data_classes.</span></span><span class="sig-name descname"><span class="pre">RepairRequest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">system_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subassembly_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subassembly_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity_level</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">details</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upstream_turbines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">NOTHING</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upstream_cables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">NOTHING</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prior_operating_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#RepairRequest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.RepairRequest" title="Link to this definition">#</a></dt>
+<dd><p>Repair/Maintenance request data class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>system_id</strong> (<em>str</em>) -- <code class="docutils literal notranslate"><span class="pre">System.id</span></code>.</p></li>
+<li><p><strong>system_name</strong> (<em>str</em>) -- <code class="docutils literal notranslate"><span class="pre">System.name</span></code>.</p></li>
+<li><p><strong>subassembly_id</strong> (<em>str</em>) -- <code class="docutils literal notranslate"><span class="pre">Subassembly.id</span></code>.</p></li>
+<li><p><strong>subassembly_name</strong> (<em>str</em>) -- <code class="docutils literal notranslate"><span class="pre">Subassembly.name</span></code>.</p></li>
+<li><p><strong>severity_level</strong> (<em>int</em>) -- <code class="docutils literal notranslate"><span class="pre">Maintenance.level</span></code> or <code class="docutils literal notranslate"><span class="pre">Failure.level</span></code>.</p></li>
+<li><p><strong>details</strong> (<a class="reference internal" href="#wombat.core.data_classes.Failure" title="wombat.core.data_classes.Failure"><em>Failure</em></a><em> | </em><a class="reference internal" href="#wombat.core.data_classes.Maintenance" title="wombat.core.data_classes.Maintenance"><em>Maintenance</em></a>) -- The actual data class.</p></li>
+<li><p><strong>cable</strong> (<em>bool</em>) -- Indicator that the request is for a cable, by default False.</p></li>
+<li><p><strong>upstream_turbines</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) -- The cable's upstream turbines, by default []. No need to use this if
+<code class="docutils literal notranslate"><span class="pre">cable</span></code> == False.</p></li>
+<li><p><strong>upstream_cables</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) -- The cable's upstream cables, by default []. No need to use this if
+<code class="docutils literal notranslate"><span class="pre">cable</span></code> == False.</p></li>
+<li><p><strong>prior_operating_level</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.data_classes.RepairRequest.prior_operating_level">
+<span class="sig-name descname"><span class="pre">prior_operating_level</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#wombat.core.data_classes.RepairRequest.prior_operating_level" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.data_classes.RepairRequest.request_id">
+<span class="sig-name descname"><span class="pre">request_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#wombat.core.data_classes.RepairRequest.request_id" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.data_classes.RepairRequest.assign_id">
+<span class="sig-name descname"><span class="pre">assign_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#RepairRequest.assign_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.RepairRequest.assign_id" title="Link to this definition">#</a></dt>
+<dd><p>Assign a unique identifier to the request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>request_id</strong> (<em>str</em>) -- The <code class="docutils literal notranslate"><span class="pre">wombat.core.RepairManager</span></code> generated identifier.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+<section id="servicing-equipment-and-crews">
+<span id="types-service-equipment"></span><h2>Servicing Equipment and Crews<a class="headerlink" href="#servicing-equipment-and-crews" title="Link to this heading">#</a></h2>
+<section id="service-equipment">
+<h3>Service Equipment<a class="headerlink" href="#service-equipment" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.core.data_classes.ServiceEquipmentData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.core.data_classes.</span></span><span class="sig-name descname"><span class="pre">ServiceEquipmentData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dict</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#ServiceEquipmentData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.ServiceEquipmentData" title="Link to this definition">#</a></dt>
+<dd><p>Helps to determine the type ServiceEquipment that should be used, based on the
+repair strategy for its operation. See
+<code class="xref py py-class docutils literal notranslate"><span class="pre">ScheduledServiceEquipmentData</span></code> or
+<code class="xref py py-class docutils literal notranslate"><span class="pre">UnscheduledServiceEquipmentData</span></code> for more details on each
+classifcation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_dict</strong> (<em>dict</em>) -- The dictionary that will be used to create the appropriate ServiceEquipmentData.
+This should contain a field called 'strategy' with either &quot;scheduled&quot; or
+&quot;unscheduled&quot; as a value if strategy is not provided as a keyword argument.</p></li>
+<li><p><strong>strategy</strong> (<em>str</em><em>, </em><em>optional</em>) -- Should be one of &quot;scheduled&quot;, &quot;requests&quot;, &quot;downtime&quot;. If nothing is provided,
+the equipment configuration will be checked.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> -- Raised if <code class="docutils literal notranslate"><span class="pre">strategy</span></code> is not one of &quot;scheduled&quot; or &quot;unscheduled&quot;.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>The below workflow is how a new data
+<code class="xref py py-class docutils literal notranslate"><span class="pre">ScheduledServiceEquipmentData</span></code> object could be created via
+a generic/routinized creation method, and is how the
+<code class="xref py py-class docutils literal notranslate"><span class="pre">ServiceEquipment</span></code>'s <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method creates the
+settings data.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">wombat.core.data_classes</span><span class="w"> </span><span class="kn">import</span>  <span class="n">ServiceEquipmentData</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Crew Transfer Vessel 1&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;equipment_rate&quot;</span><span class="p">:</span> <span class="mi">1750</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;start_month&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;start_day&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;end_month&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;end_day&quot;</span><span class="p">:</span> <span class="mi">31</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;start_year&quot;</span><span class="p">:</span> <span class="mi">2002</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;end_year&quot;</span><span class="p">:</span> <span class="mi">2014</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;onsite&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;capability&quot;</span><span class="p">:</span> <span class="s2">&quot;CTV&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;max_severity&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;mobilization_cost&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;mobilization_days&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;speed&quot;</span><span class="p">:</span> <span class="mf">37.04</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;max_windspeed_transport&quot;</span><span class="p">:</span> <span class="mi">99</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;max_windspeed_repair&quot;</span><span class="p">:</span> <span class="mi">99</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;max_waveheight_transport&quot;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;max_waveheight_repair&quot;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;strategy&quot;</span><span class="p">:</span> <span class="n">scheduled</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;crew_transfer_time&quot;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;n_crews&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s2">&quot;crew&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="s2">&quot;day_rate&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="s2">&quot;n_day_rate&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="s2">&quot;hourly_rate&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="s2">&quot;n_hourly_rate&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">},</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">equipment</span> <span class="o">=</span> <span class="n">ServiceEquipmentData</span><span class="p">(</span><span class="n">data_dict</span><span class="p">)</span><span class="o">.</span><span class="n">determine_type</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">equipment</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.data_classes.ServiceEquipmentData.determine_type">
+<span class="sig-name descname"><span class="pre">determine_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#ServiceEquipmentData.determine_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.ServiceEquipmentData.determine_type" title="Link to this definition">#</a></dt>
+<dd><p>Generate the appropriate ServiceEquipmentData variation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#wombat.core.data_classes.ScheduledServiceEquipmentData" title="wombat.core.data_classes.ScheduledServiceEquipmentData"><code class="xref py py-class docutils literal notranslate"><span class="pre">ScheduledServiceEquipmentData</span></code></a> | <a class="reference internal" href="#wombat.core.data_classes.UnscheduledServiceEquipmentData" title="wombat.core.data_classes.UnscheduledServiceEquipmentData"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnscheduledServiceEquipmentData</span></code></a></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Union[ScheduledServiceEquipmentData, UnscheduledServiceEquipmentData]</em> -- The appropriate <code class="docutils literal notranslate"><span class="pre">xxServiceEquipmentData</span></code> schema depending on the strategy
+the <code class="docutils literal notranslate"><span class="pre">ServiceEquipment</span></code> will use.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="servicecrew">
+<h3>ServiceCrew<a class="headerlink" href="#servicecrew" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.core.data_classes.ServiceCrew">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.core.data_classes.</span></span><span class="sig-name descname"><span class="pre">ServiceCrew</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_day_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">day_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_hourly_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hourly_rate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#ServiceCrew"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.ServiceCrew" title="Link to this definition">#</a></dt>
+<dd><p>An internal data class for the indivdual crew units that are on the servicing
+equipment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_day_rate</strong> (<em>int</em>) -- Number of salaried workers.</p></li>
+<li><p><strong>day_rate</strong> (<em>float</em>) -- Day rate for salaried workers, in USD.</p></li>
+<li><p><strong>n_hourly_rate</strong> (<em>int</em>) -- Number of hourly/subcontractor workers.</p></li>
+<li><p><strong>hourly_rate</strong> (<em>float</em>) -- Hourly labor rate for subcontractors, in USD.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="scheduled-service-equipment">
+<span id="types-service-equipment-scheduled"></span><h3>Scheduled Service Equipment<a class="headerlink" href="#scheduled-service-equipment" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.core.data_classes.ScheduledServiceEquipmentData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.core.data_classes.</span></span><span class="sig-name descname"><span class="pre">ScheduledServiceEquipmentData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">equipment_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_crews</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crew</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capability</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_windspeed_transport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_windspeed_repair</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mobilization_cost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mobilization_days</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_waveheight_transport</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_waveheight_repair</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workday_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workday_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crew_transfer_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed_reduction_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">onsite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'severity'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_month</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_day</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_year</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_month</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_day</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_year</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scheduled'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">non_operational_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">non_operational_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduced_speed_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduced_speed_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduced_speed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#ScheduledServiceEquipmentData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.ScheduledServiceEquipmentData" title="Link to this definition">#</a></dt>
+<dd><p>The data class specification for servicing equipment that will use a
+pre-scheduled basis for returning to site.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) -- Name of the piece of servicing equipment.</p></li>
+<li><p><strong>equipment_rate</strong> (<em>float</em>) -- Day rate for the equipment/vessel, in USD.</p></li>
+<li><p><strong>n_crews</strong> (<em>int</em>) -- <p>Number of crew units for the equipment.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The input to this does not matter yet, as multi-crew functionality
+is not yet implemented.</p>
+</div>
+</p></li>
+<li><p><strong>crew</strong> (<a class="reference internal" href="#wombat.core.data_classes.ServiceCrew" title="wombat.core.data_classes.ServiceCrew"><em>ServiceCrew</em></a>) -- The crew details, see <a class="reference internal" href="#wombat.core.data_classes.ServiceCrew" title="wombat.core.data_classes.ServiceCrew"><code class="xref py py-class docutils literal notranslate"><span class="pre">ServiceCrew</span></code></a> for more information. Dictionary
+of labor costs with the following: <code class="docutils literal notranslate"><span class="pre">n_day_rate</span></code>, <code class="docutils literal notranslate"><span class="pre">day_rate</span></code>,
+<code class="docutils literal notranslate"><span class="pre">n_hourly_rate</span></code>, and <code class="docutils literal notranslate"><span class="pre">hourly_rate</span></code>.</p></li>
+<li><p><strong>start_month</strong> (<em>int</em>) -- The day to start operations for the rig and crew.</p></li>
+<li><p><strong>start_day</strong> (<em>int</em>) -- The month to start operations for the rig and crew.</p></li>
+<li><p><strong>start_year</strong> (<em>int</em>) -- The year to start operations for the rig and crew.</p></li>
+<li><p><strong>end_month</strong> (<em>int</em>) -- The month to end operations for the rig and crew.</p></li>
+<li><p><strong>end_day</strong> (<em>int</em>) -- The day to end operations for the rig and crew.</p></li>
+<li><p><strong>end_year</strong> (<em>int</em>) -- <p>The year to end operations for the rig and crew.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>if the rig comes annually, then the enter the year for the last year
+that the rig and crew will be available.</p>
+</div>
+</p></li>
+<li><p><strong>capability</strong> (<em>str</em>) -- <p>The type of capabilities the equipment contains. Must be one of:</p>
+<ul>
+<li><p>RMT: remote (no actual equipment BUT no special implementation)</p></li>
+<li><p>DRN: drone</p></li>
+<li><p>CTV: crew transfer vessel/vehicle</p></li>
+<li><p>SCN: small crane (i.e., cherry picker)</p></li>
+<li><p>MCN: medium crane (i.e., field support vessel)</p></li>
+<li><p>LCN: large crane (i.e., heavy lift vessel)</p></li>
+<li><p>CAB: cabling vessel/vehicle</p></li>
+<li><p>DSV: diving support vessel</p></li>
+<li><p>AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)</p></li>
+<li><p>VSG: vessel support group (group of vessels required for single operation)</p></li>
+</ul>
+<p>Please note that &quot;TOW&quot; is unavailable for scheduled servicing equipment</p>
+</p></li>
+<li><p><strong>mobilization_cost</strong> (<em>float</em>) -- Cost to mobilize the rig and crew.</p></li>
+<li><p><strong>mobilization_days</strong> (<em>int</em>) -- Number of days it takes to mobilize the equipment.</p></li>
+<li><p><strong>speed</strong> (<em>float</em>) -- Maximum transit speed, km/hr.</p></li>
+<li><p><strong>speed_reduction_factor</strong> (<em>flaot</em>) -- Reduction factor for traveling in inclement weather, default 0. When 0, travel
+is stopped when either <cite>max_windspeed_transport</cite> or <cite>max_waveheight_transport</cite>
+is reached, and when 1, <cite>speed</cite> is used.</p></li>
+<li><p><strong>max_windspeed_transport</strong> (<em>float</em>) -- Maximum windspeed for safe transport, m/s.</p></li>
+<li><p><strong>max_windspeed_repair</strong> (<em>float</em>) -- Maximum windspeed for safe operations, m/s.</p></li>
+<li><p><strong>max_waveheight_transport</strong> (<em>float</em>) -- Maximum waveheight for safe transport, m, default 1000 (land-based).</p></li>
+<li><p><strong>max_waveheight_repair</strong> (<em>float</em>) -- Maximum waveheight for safe operations, m, default 1000 (land-based).</p></li>
+<li><p><strong>workday_start</strong> (<em>int</em>) -- The starting hour of a workshift, in 24 hour time.</p></li>
+<li><p><strong>workday_end</strong> (<em>int</em>) -- The ending hour of a workshift, in 24 hour time.</p></li>
+<li><p><strong>crew_transfer_time</strong> (<em>float</em>) -- The number of hours it takes to transfer the crew from the equipment to the
+system, e.g. how long does it take to transfer the crew from the CTV to the
+turbine, default 0.</p></li>
+<li><p><strong>onsite</strong> (<em>bool</em>) -- <p>Indicator for if the servicing equipment and crew are based onsite.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If based onsite, be sure that the start and end dates represent the
+first and last day/month of the year, respectively, and the start and end
+years represent the fist and last year in the weather file.</p>
+</div>
+</p></li>
+<li><p><strong>method</strong> (<em>str</em>) -- Determines if the equipment will do all maximum severity repairs first or do all
+the repairs at one turbine before going to the next, by default severity. Must
+be one of &quot;severity&quot; or &quot;turbine&quot;.</p></li>
+<li><p><strong>port_distance</strong> (<em>int</em><em> | </em><em>float</em>) -- The distance, in km, the equipment must travel to go between port and site, by
+default 0.</p></li>
+<li><p><strong>non_operational_start</strong> (<em>str</em><em> | </em><em>datetime.datetime</em><em> | </em><em>None</em>) -- The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+period of prohibited operations. When defined at the environment level, an
+undefined or later starting date will be overridden, by default None.</p></li>
+<li><p><strong>non_operational_end</strong> (<em>str</em><em> | </em><em>datetime.datetime</em><em> | </em><em>None</em>) -- The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+period of prohibited operations. When defined at the environment level, an
+undefined or earlier ending date will be overridden, by default None.</p></li>
+<li><p><strong>reduced_speed_start</strong> (<em>str</em><em> | </em><em>datetime.datetime</em><em> | </em><em>None</em>) -- The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+period of reduced speed operations. When defined at the environment level, an
+undefined or later starting date will be overridden, by default None.</p></li>
+<li><p><strong>reduced_speed_end</strong> (<em>str</em><em> | </em><em>datetime.datetime</em><em> | </em><em>None</em>) -- The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+period of reduced speed operations. When defined at the environment level, an
+undefined or earlier ending date will be overridden, by default None.</p></li>
+<li><p><strong>reduced_speed</strong> (<em>float</em>) -- The maximum operating speed during the annualized reduced speed operations.
+When defined at the environment level, an undefined or faster value will be
+overridden, by default 0.0.</p></li>
+<li><p><strong>strategy</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.data_classes.ScheduledServiceEquipmentData.operating_dates_set">
+<span class="sig-name descname"><span class="pre">operating_dates_set</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></em><a class="headerlink" href="#wombat.core.data_classes.ScheduledServiceEquipmentData.operating_dates_set" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.data_classes.ScheduledServiceEquipmentData.non_operational_dates">
+<span class="sig-name descname"><span class="pre">non_operational_dates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">DatetimeIndex</span></code></em><a class="headerlink" href="#wombat.core.data_classes.ScheduledServiceEquipmentData.non_operational_dates" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.data_classes.ScheduledServiceEquipmentData.non_operational_dates_set">
+<span class="sig-name descname"><span class="pre">non_operational_dates_set</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">DatetimeIndex</span></code></em><a class="headerlink" href="#wombat.core.data_classes.ScheduledServiceEquipmentData.non_operational_dates_set" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.data_classes.ScheduledServiceEquipmentData.reduced_speed_dates">
+<span class="sig-name descname"><span class="pre">reduced_speed_dates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">DatetimeIndex</span></code></em><a class="headerlink" href="#wombat.core.data_classes.ScheduledServiceEquipmentData.reduced_speed_dates" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.data_classes.ScheduledServiceEquipmentData.non_stop_shift">
+<span class="sig-name descname"><span class="pre">non_stop_shift</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></em><a class="headerlink" href="#wombat.core.data_classes.ScheduledServiceEquipmentData.non_stop_shift" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="unscheduled-service-equipment">
+<span id="types-service-equipment-unscheduled"></span><h3>Unscheduled Service Equipment<a class="headerlink" href="#unscheduled-service-equipment" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.core.data_classes.UnscheduledServiceEquipmentData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.core.data_classes.</span></span><span class="sig-name descname"><span class="pre">UnscheduledServiceEquipmentData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">equipment_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_crews</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crew</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capability</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_windspeed_transport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_windspeed_repair</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mobilization_cost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mobilization_days</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_waveheight_transport</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_waveheight_repair</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workday_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workday_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crew_transfer_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed_reduction_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">onsite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'severity'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'unscheduled'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charter_days</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tow_speed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unmoor_hours</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reconnection_hours</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">non_operational_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">non_operational_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduced_speed_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduced_speed_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduced_speed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#UnscheduledServiceEquipmentData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.UnscheduledServiceEquipmentData" title="Link to this definition">#</a></dt>
+<dd><p>The data class specification for servicing equipment that will use either a
+basis of windfarm downtime or total number of requests serviceable by the equipment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) -- Name of the piece of servicing equipment.</p></li>
+<li><p><strong>equipment_rate</strong> (<em>float</em>) -- Day rate for the equipment/vessel, in USD.</p></li>
+<li><p><strong>n_crews</strong> (<em>int</em>) -- <p>Number of crew units for the equipment.</p>
+</p></li>
+<li><p><strong>crew</strong> (<a class="reference internal" href="#wombat.core.data_classes.ServiceCrew" title="wombat.core.data_classes.ServiceCrew"><em>ServiceCrew</em></a>) -- The crew details, see <a class="reference internal" href="#wombat.core.data_classes.ServiceCrew" title="wombat.core.data_classes.ServiceCrew"><code class="xref py py-class docutils literal notranslate"><span class="pre">ServiceCrew</span></code></a> for more information. Dictionary
+of labor costs with the following: <code class="docutils literal notranslate"><span class="pre">n_day_rate</span></code>, <code class="docutils literal notranslate"><span class="pre">day_rate</span></code>,
+<code class="docutils literal notranslate"><span class="pre">n_hourly_rate</span></code>, and <code class="docutils literal notranslate"><span class="pre">hourly_rate</span></code>.</p></li>
+<li><p><strong>charter_days</strong> (<em>int</em>) -- The number of days the servicing equipment can be chartered for.</p></li>
+<li><p><strong>capability</strong> (<em>str</em>) -- <p>The type of capabilities the equipment contains. Must be one of:</p>
+<ul>
+<li><p>RMT: remote (no actual equipment BUT no special implementation)</p></li>
+<li><p>DRN: drone</p></li>
+<li><p>CTV: crew transfer vessel/vehicle</p></li>
+<li><p>SCN: small crane (i.e., cherry picker)</p></li>
+<li><p>MCN: medium crane (i.e., field support vessel)</p></li>
+<li><p>LCN: large crane (i.e., heavy lift vessel)</p></li>
+<li><p>CAB: cabling vessel/vehicle</p></li>
+<li><p>DSV: diving support vessel</p></li>
+<li><p>TOW: tugboat or towing equipment</p></li>
+<li><p>AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)</p></li>
+<li><p>VSG: vessel support group (group of vessels required for single operation)</p></li>
+</ul>
+</p></li>
+<li><p><strong>speed</strong> (<em>float</em>) -- Maximum transit speed, km/hr.</p></li>
+<li><p><strong>tow_speed</strong> (<em>float</em>) -- <p>The maximum transit speed when towing, km/hr.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is only required for when the servicing equipment is tugboat
+enabled for a tow-to-port scenario (capability = &quot;TOW&quot;)</p>
+</div>
+</p></li>
+<li><p><strong>speed_reduction_factor</strong> (<em>flaot</em>) -- Reduction factor for traveling in inclement weather, default 0. When 0, travel
+is stopped when either <cite>max_windspeed_transport</cite> or <cite>max_waveheight_transport</cite>
+is reached, and when 1, <cite>speed</cite> is used.</p></li>
+<li><p><strong>max_windspeed_transport</strong> (<em>float</em>) -- Maximum windspeed for safe transport, m/s.</p></li>
+<li><p><strong>max_windspeed_repair</strong> (<em>float</em>) -- Maximum windspeed for safe operations, m/s.</p></li>
+<li><p><strong>max_waveheight_transport</strong> (<em>float</em>) -- Maximum waveheight for safe transport, m, default 1000 (land-based).</p></li>
+<li><p><strong>max_waveheight_repair</strong> (<em>float</em>) -- Maximum waveheight for safe operations, m, default 1000 (land-based).</p></li>
+<li><p><strong>mobilization_cost</strong> (<em>float</em>) -- Cost to mobilize the rig and crew, default 0.</p></li>
+<li><p><strong>mobilization_days</strong> (<em>int</em>) -- Number of days it takes to mobilize the equipment, default 0.</p></li>
+<li><p><strong>strategy</strong> (<em>str</em>) -- For any unscheduled maintenance servicing equipment, this determines the
+strategy for dispatching. Should be on of &quot;downtime&quot; or &quot;requests&quot;.</p></li>
+<li><p><strong>strategy_threshold</strong> (<em>str</em>) -- For downtime-based scenarios, this is based on the operating level, and should
+be in the range (0, 1). For reqest-based scenarios, this is the maximum number
+of requests that are allowed to build up for any given type of unscheduled
+servicing equipment, should be an integer &gt;= 1.</p></li>
+<li><p><strong>workday_start</strong> (<em>int</em>) -- The starting hour of a workshift, in 24 hour time.</p></li>
+<li><p><strong>workday_end</strong> (<em>int</em>) -- The ending hour of a workshift, in 24 hour time.</p></li>
+<li><p><strong>crew_transfer_time</strong> (<em>float</em>) -- The number of hours it takes to transfer the crew from the equipment to the
+system, e.g. how long does it take to transfer the crew from the CTV to the
+turbine, default 0.</p></li>
+<li><p><strong>onsite</strong> (<em>bool</em>) -- <p>Indicator for if the rig and crew are based onsite.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>if the rig and crew are onsite be sure that the start and end dates
+represent the first and last day/month of the year, respectively, and the
+start and end years represent the fist and last year in the weather file.</p>
+</div>
+</p></li>
+<li><p><strong>method</strong> (<em>str</em>) -- Determines if the ship will do all maximum severity repairs first or do all
+the repairs at one turbine before going to the next, by default severity.
+Should by one of &quot;severity&quot; or &quot;turbine&quot;.</p></li>
+<li><p><strong>unmoor_hours</strong> (<em>int</em><em> | </em><em>float</em>) -- <p>The number of hours required to unmoor a floating offshore wind turbine in order
+to tow it to port, by default 0.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Required for the tugboat/towing capability, otherwise unused.</p>
+</div>
+</p></li>
+<li><p><strong>reconnection_hours</strong> (<em>int</em><em> | </em><em>float</em>) -- <p>The number of hours required to reconnect a floating offshore wind turbine after
+being towed back to site, by default 0.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Required for the tugboat/towing capability, otherwise unused.</p>
+</div>
+</p></li>
+<li><p><strong>port_distance</strong> (<em>int</em><em> | </em><em>float</em>) -- The distance, in km, the equipment must travel to go between port and site, by
+default 0.</p></li>
+<li><p><strong>non_operational_start</strong> (<em>str</em><em> | </em><em>datetime.datetime</em><em> | </em><em>None</em>) -- The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+period of prohibited operations. When defined at the environment level or the
+port level, if a tugboat, an undefined or later starting date will be
+overridden, by default None.</p></li>
+<li><p><strong>non_operational_end</strong> (<em>str</em><em> | </em><em>datetime.datetime</em><em> | </em><em>None</em>) -- The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+period of prohibited operations. When defined at the environment level or the
+port level, if a tugboat, an undefined or earlier ending date will be
+overridden, by default None.</p></li>
+<li><p><strong>reduced_speed_start</strong> (<em>str</em><em> | </em><em>datetime.datetime</em><em> | </em><em>None</em>) -- The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+period of reduced speed operations. When defined at the environment level or the
+port level, if a tugboat, an undefined or later starting date will be
+overridden, by default None.</p></li>
+<li><p><strong>reduced_speed_end</strong> (<em>str</em><em> | </em><em>datetime.datetime</em><em> | </em><em>None</em>) -- The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+period of reduced speed operations. When defined at the environment level or the
+port level, if a tugboat, an undefined or earlier ending date will be
+overridden, by default None.</p></li>
+<li><p><strong>reduced_speed</strong> (<em>float</em>) -- The maximum operating speed during the annualized reduced speed operations.
+When defined at the environment level, an undefined or faster value will be
+overridden, by default 0.0.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.data_classes.UnscheduledServiceEquipmentData.non_operational_dates">
+<span class="sig-name descname"><span class="pre">non_operational_dates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">DatetimeIndex</span></code></em><a class="headerlink" href="#wombat.core.data_classes.UnscheduledServiceEquipmentData.non_operational_dates" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.data_classes.UnscheduledServiceEquipmentData.non_operational_dates_set">
+<span class="sig-name descname"><span class="pre">non_operational_dates_set</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">DatetimeIndex</span></code></em><a class="headerlink" href="#wombat.core.data_classes.UnscheduledServiceEquipmentData.non_operational_dates_set" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.data_classes.UnscheduledServiceEquipmentData.reduced_speed_dates">
+<span class="sig-name descname"><span class="pre">reduced_speed_dates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">DatetimeIndex</span></code></em><a class="headerlink" href="#wombat.core.data_classes.UnscheduledServiceEquipmentData.reduced_speed_dates" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.data_classes.UnscheduledServiceEquipmentData.non_stop_shift">
+<span class="sig-name descname"><span class="pre">non_stop_shift</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></em><a class="headerlink" href="#wombat.core.data_classes.UnscheduledServiceEquipmentData.non_stop_shift" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.data_classes.UnscheduledServiceEquipmentData._validate_threshold">
+<span class="sig-name descname"><span class="pre">_validate_threshold</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#UnscheduledServiceEquipmentData._validate_threshold"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.UnscheduledServiceEquipmentData._validate_threshold" title="Link to this definition">#</a></dt>
+<dd><p>Ensure a valid threshold is provided for a given <code class="docutils literal notranslate"><span class="pre">strategy</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>attribute</strong> (<em>Attribute</em>)</p></li>
+<li><p><strong>value</strong> (<em>int</em><em> | </em><em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="port-configuration">
+<span id="types-service-equipment-ports"></span><h3>Port Configuration<a class="headerlink" href="#port-configuration" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.core.data_classes.PortConfig">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.core.data_classes.</span></span><span class="sig-name descname"><span class="pre">PortConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tugboats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crew</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_crews</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_operations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workday_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workday_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annual_fee</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">non_operational_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">non_operational_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduced_speed_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduced_speed_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduced_speed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#PortConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.PortConfig" title="Link to this definition">#</a></dt>
+<dd><p>Port configurations for offshore wind power plant scenarios.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) -- The name of the port, if multiple are used, then be sure this is unique.</p></li>
+<li><p><strong>tugboats</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) -- <p>file, or list of files to create the port's tugboats.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Each tugboat is considered to be a tugboat + supporting vessels as
+the primary purpose to tow turbines between a repair port and site.</p>
+</div>
+</p></li>
+<li><p><strong>n_crews</strong> (<em>int</em>) -- The number of service crews available to be working on repairs simultaneously;
+each crew is able to service exactly one repair.</p></li>
+<li><p><strong>crew</strong> (<a class="reference internal" href="#wombat.core.data_classes.ServiceCrew" title="wombat.core.data_classes.ServiceCrew"><em>ServiceCrew</em></a>) -- The crew details, see <a class="reference internal" href="#wombat.core.data_classes.ServiceCrew" title="wombat.core.data_classes.ServiceCrew"><code class="xref py py-class docutils literal notranslate"><span class="pre">ServiceCrew</span></code></a> for more information. Dictionary
+of labor costs with the following: <code class="docutils literal notranslate"><span class="pre">n_day_rate</span></code>, <code class="docutils literal notranslate"><span class="pre">day_rate</span></code>,
+<code class="docutils literal notranslate"><span class="pre">n_hourly_rate</span></code>, and <code class="docutils literal notranslate"><span class="pre">hourly_rate</span></code>.</p></li>
+<li><p><strong>max_operations</strong> (<em>int</em>) -- Total number of turbines the port can handle simultaneously.</p></li>
+<li><p><strong>workday_start</strong> (<em>int</em>) -- The starting hour of a workshift, in 24 hour time.</p></li>
+<li><p><strong>workday_end</strong> (<em>int</em>) -- The ending hour of a workshift, in 24 hour time.</p></li>
+<li><p><strong>site_distance</strong> (<em>int</em><em> | </em><em>float</em>) -- Distance, in km, a tugboat has to travel to get between site and port.</p></li>
+<li><p><strong>annual_fee</strong> (<em>int</em><em> | </em><em>float</em>) -- <p>The annualized fee for access to the repair port that will be distributed
+monthly in the simulation and accounted for on the first of the month from the
+start of the simulation to the end of the simulation.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Don't include this cost in both this category and either the
+<code class="docutils literal notranslate"><span class="pre">FixedCosts.operations_management_administration</span></code> bucket or
+<code class="docutils literal notranslate"><span class="pre">FixedCosts.marine_management</span></code> category.</p>
+</div>
+</p></li>
+<li><p><strong>non_operational_start</strong> (<em>str</em><em> | </em><em>datetime.datetime</em><em> | </em><em>None</em>) -- The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+period of prohibited operations. When defined at the port level, an undefined or
+later starting date will be overridden by the environment, and any associated
+tubboats will have this value overridden using the same logic, by default None.</p></li>
+<li><p><strong>non_operational_end</strong> (<em>str</em><em> | </em><em>datetime.datetime</em><em> | </em><em>None</em>) -- The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+period of prohibited operations. When defined at the port level, an undefined
+or earlier ending date will be overridden by the environment, and any associated
+tubboats will have this value overridden using the same logic, by default None.</p></li>
+<li><p><strong>reduced_speed_start</strong> (<em>str</em><em> | </em><em>datetime.datetime</em><em> | </em><em>None</em>) -- The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+period of reduced speed operations. When defined at the port level, an undefined
+or later starting date will be overridden by the environment, and any associated
+tubboats will have this value overridden using the same logic, by default None.</p></li>
+<li><p><strong>reduced_speed_end</strong> (<em>str</em><em> | </em><em>datetime.datetime</em><em> | </em><em>None</em>) -- The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+period of reduced speed operations. When defined at the port level, an undefined
+or earlier ending date will be overridden by the environment, and any associated
+tubboats will have this value overridden using the same logic, by default None.</p></li>
+<li><p><strong>reduced_speed</strong> (<em>float</em>) -- The maximum operating speed during the annualized reduced speed operations.
+When defined at the port level, an undefined or faster value will be overridden
+by the environment, and any associated tubboats will have this value overridden
+using the same logic, by default 0.0.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.data_classes.PortConfig.non_operational_dates">
+<span class="sig-name descname"><span class="pre">non_operational_dates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">DatetimeIndex</span></code></em><a class="headerlink" href="#wombat.core.data_classes.PortConfig.non_operational_dates" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.data_classes.PortConfig.reduced_speed_dates">
+<span class="sig-name descname"><span class="pre">reduced_speed_dates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">DatetimeIndex</span></code></em><a class="headerlink" href="#wombat.core.data_classes.PortConfig.reduced_speed_dates" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+<section id="wind-farm-support">
+<h2>Wind Farm Support<a class="headerlink" href="#wind-farm-support" title="Link to this heading">#</a></h2>
+<section id="subassembly-model">
+<span id="types-windfarm-subassembly"></span><h3>Subassembly Model<a class="headerlink" href="#subassembly-model" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.core.data_classes.SubassemblyData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.core.data_classes.</span></span><span class="sig-name descname"><span class="pre">SubassemblyData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maintenance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failures</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#SubassemblyData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.SubassemblyData" title="Link to this definition">#</a></dt>
+<dd><p>Data storage and validation class for the subassemblies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) -- Name of the component/subassembly.</p></li>
+<li><p><strong>maintenance</strong> (<em>list</em><em>[</em><em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em> | </em><em>str</em><em>]</em><em>]</em>) -- List of the maintenance classification dictionaries. This will be converted
+to a list of <code class="docutils literal notranslate"><span class="pre">Maintenance</span></code> objects in the post initialization hook.</p></li>
+<li><p><strong>failures</strong> (<em>dict</em><em>[</em><em>int</em><em>, </em><em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em> | </em><em>str</em><em>]</em><em>]</em>) -- Dictionary of failure classifications in a numerical (ordinal) categorization
+order. This will be converted to a dictionary of <code class="docutils literal notranslate"><span class="pre">Failure</span></code> objects in the
+post initialization hook.</p></li>
+<li><p><strong>system_value</strong> (<em>int</em><em> | </em><em>float</em>) -- Turbine's cost of replacement. Used in case percentages of turbine cost are used
+in place of an absolute cost.</p></li>
+<li><p><strong>rng</strong> (<em>Generator</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="wind-farm-map">
+<h3>Wind Farm Map<a class="headerlink" href="#wind-farm-map" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.core.data_classes.WindFarmMap">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.core.data_classes.</span></span><span class="sig-name descname"><span class="pre">WindFarmMap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">substation_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_cables</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#WindFarmMap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.WindFarmMap" title="Link to this definition">#</a></dt>
+<dd><p>A list of the upstream connections for a turbine and its downstream connector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>substation_map</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) -- A dictionary mapping of each substation and its <code class="docutils literal notranslate"><span class="pre">SubstationMap</span></code>.</p></li>
+<li><p><strong>export_cables</strong> (<em>list</em><em>[</em><em>tuple</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em><em>]</em>) -- A list of the export cable connections.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.data_classes.WindFarmMap.get_upstream_connections">
+<span class="sig-name descname"><span class="pre">get_upstream_connections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">substation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">string_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_cables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#WindFarmMap.get_upstream_connections"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.WindFarmMap.get_upstream_connections" title="Link to this definition">#</a></dt>
+<dd><p>Retrieve the upstream turbines (and optionally cables) within the wind farm
+graph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>substation</strong> (<em>str</em>) -- The substation's <code class="docutils literal notranslate"><span class="pre">System.id</span></code>.</p></li>
+<li><p><strong>string_start</strong> (<em>str</em>) -- The <code class="docutils literal notranslate"><span class="pre">System.id</span></code> of the first turbine in the string.</p></li>
+<li><p><strong>node</strong> (<em>str</em>) -- The <code class="docutils literal notranslate"><span class="pre">System.id</span></code> of the ending node for a cable connection.</p></li>
+<li><p><strong>return_cables</strong> (<em>bool</em>) -- Indicates if the <code class="docutils literal notranslate"><span class="pre">Cable.id</span></code> should be generated for each of the turbines,
+by default True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>] | <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>list[str] | tuple[list[str], list[str]]</em> -- A list of <code class="docutils literal notranslate"><span class="pre">System.id</span></code> for all of the upstream turbines of <code class="docutils literal notranslate"><span class="pre">node</span></code> if
+<code class="docutils literal notranslate"><span class="pre">cables=False</span></code>, otherwise the upstream turbine and the <code class="docutils literal notranslate"><span class="pre">Cable.id</span></code> lists
+are returned.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.data_classes.WindFarmMap.get_upstream_connections_from_substation">
+<span class="sig-name descname"><span class="pre">get_upstream_connections_from_substation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">substation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_cables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_string</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#WindFarmMap.get_upstream_connections_from_substation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.WindFarmMap.get_upstream_connections_from_substation" title="Link to this definition">#</a></dt>
+<dd><p>Retrieve the upstream turbines (and optionally, cables) connected to a
+py:attr:<cite>substation</cite> in the wind farm graph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>substation</strong> (<em>str</em>) -- The py:attr:<cite>System.id</cite> for the substation.</p></li>
+<li><p><strong>return_cables</strong> (<em>bool</em><em>, </em><em>optional</em>) -- Indicates if the <code class="docutils literal notranslate"><span class="pre">Cable.id</span></code> should be generated for each of the turbines,
+by default True</p></li>
+<li><p><strong>by_string</strong> (<em>bool</em><em>, </em><em>optional</em>) -- Indicates if the list of turbines (and cables) should be a nested list for
+each string (py:obj:<cite>True</cite>), or as 1-D list (py:obj:<cite>False</cite>), by default
+True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>] | <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]] | <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]] | <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]], <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>list[str] | tuple[list[str], list[str]]</em> -- A list of <code class="docutils literal notranslate"><span class="pre">System.id</span></code> for all of the upstream turbines of <code class="docutils literal notranslate"><span class="pre">node</span></code> if
+<code class="docutils literal notranslate"><span class="pre">return_cables=False</span></code>, otherwise the upstream turbine and the <code class="docutils literal notranslate"><span class="pre">Cable.id</span></code>
+lists are returned. These are bifurcated in lists of lists for each string
+if <code class="docutils literal notranslate"><span class="pre">by_string=True</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="substation-map">
+<h3>Substation Map<a class="headerlink" href="#substation-map" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.core.data_classes.SubstationMap">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.core.data_classes.</span></span><span class="sig-name descname"><span class="pre">SubstationMap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string_starts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">string_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downstream</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#SubstationMap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.SubstationMap" title="Link to this definition">#</a></dt>
+<dd><p>A mapping of every <code class="docutils literal notranslate"><span class="pre">String</span></code> connected to a substation, excluding export
+connections to other substations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>string_starts</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) -- A list of every first turbine's <code class="docutils literal notranslate"><span class="pre">System.id</span></code> in a string connected to the
+substation.</p></li>
+<li><p><strong>string_map</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="#wombat.core.data_classes.String" title="wombat.core.data_classes.String"><em>String</em></a><em>]</em>) -- A dictionary mapping each string starting turbine to its <code class="docutils literal notranslate"><span class="pre">String</span></code> data.</p></li>
+<li><p><strong>downstream</strong> (<em>str</em>) -- The <code class="docutils literal notranslate"><span class="pre">System.id</span></code> of where the export cable leads. This should be the same
+<code class="docutils literal notranslate"><span class="pre">System.id</span></code> as the substation for an interconnection point, or another
+connecting substation.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="string">
+<h3>String<a class="headerlink" href="#string" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.core.data_classes.String">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.core.data_classes.</span></span><span class="sig-name descname"><span class="pre">String</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upstream_map</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#String"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.String" title="Link to this definition">#</a></dt>
+<dd><p>All of the connection information for a complete string in a wind farm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start</strong> (<em>str</em>) -- The substation's ID (<code class="docutils literal notranslate"><span class="pre">System.id</span></code>)</p></li>
+<li><p><strong>upstream_map</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="#wombat.core.data_classes.SubString" title="wombat.core.data_classes.SubString"><em>SubString</em></a><em>]</em>) -- The dictionary of each turbine ID in the string and it's upstream <code class="docutils literal notranslate"><span class="pre">SubString</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="sub-string">
+<h3>Sub String<a class="headerlink" href="#sub-string" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.core.data_classes.SubString">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.core.data_classes.</span></span><span class="sig-name descname"><span class="pre">SubString</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">downstream</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upstream</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#SubString"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.SubString" title="Link to this definition">#</a></dt>
+<dd><p>A list of the upstream connections for a turbine and its downstream connector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>downstream</strong> (<em>str</em>) -- The downstream turbine/substation connection id.</p></li>
+<li><p><strong>upstream</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) -- A list of the upstream turbine connections.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="miscellaneous">
+<h2>Miscellaneous<a class="headerlink" href="#miscellaneous" title="Link to this heading">#</a></h2>
+<section id="fixed-cost-model">
+<span id="types-misc-fixed-costs"></span><h3>Fixed Cost Model<a class="headerlink" href="#fixed-cost-model" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.core.data_classes.FixedCosts">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.core.data_classes.</span></span><span class="sig-name descname"><span class="pre">FixedCosts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operations_management_administration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_management_administration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marine_management</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weather_forecasting</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condition_monitoring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operating_facilities</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">environmental_health_safety_monitoring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">insurance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">brokers_fee</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operations_all_risk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">business_interruption</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">third_party_liability</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">storm_coverage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annual_leases_fees</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">submerge_land_lease_costs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transmission_charges_rights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">onshore_electrical_maintenance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/data_classes.html#FixedCosts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.data_classes.FixedCosts" title="Link to this definition">#</a></dt>
+<dd><p>Fixed costs for operating a windfarm. All values are assumed to be in $/kW/yr.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>operations</strong> (<em>float</em>) -- Non-maintenance costs of operating the project. If a value is provided for this
+attribute, then it will zero out all other values, otherwise it will be set to
+the sum of the remaining values.</p></li>
+<li><p><strong>operations_management_administration</strong> (<em>float</em>) -- <p>Activities necessary to forecast, dispatch, sell, and manage the production of
+power from the plant. Includes both the onsite and offsite personnel, software,
+and equipment to coordinate high voltage equipment, switching, port activities,
+and marine activities.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This should only be used when not breaking down the cost into the
+following categories: <code class="docutils literal notranslate"><span class="pre">project_management_administration</span></code>,
+<code class="docutils literal notranslate"><span class="pre">operation_management_administration</span></code>, <code class="docutils literal notranslate"><span class="pre">marine_management</span></code>, and/or
+<code class="docutils literal notranslate"><span class="pre">weather_forecasting</span></code></p>
+</div>
+</p></li>
+<li><p><strong>project_management_administration</strong> (<em>float</em>) -- Financial reporting, public relations, procurement, parts and stock management,
+H&amp;SE management, training, subcontracts, and general administration.</p></li>
+<li><p><strong>marine_management</strong> (<em>float</em>) -- Coordination of port equipment, vessels, and personnel to carry out inspections
+and maintenance of generation and transmission equipment.</p></li>
+<li><p><strong>weather_forecasting</strong> (<em>float</em>) -- Daily forecast of metocean conditions used to plan maintenance visits and
+estimate project power production.</p></li>
+<li><p><strong>condition_monitoring</strong> (<em>float</em>) -- Monitoring of SCADA data from wind turbine components to optimize performance
+and identify component faults.</p></li>
+<li><p><strong>operating_facilities</strong> (<em>float</em>) -- Co-located offices, parts store, quayside facilities, helipad, refueling
+facilities, hanger (if necesssary), etc.</p></li>
+<li><p><strong>environmental_health_safety_monitoring</strong> (<em>float</em>) -- Coordination and monitoring to ensure compliance with HSE requirements during
+operations.</p></li>
+<li><p><strong>insurance</strong> (<em>float</em>) -- <p>Insurance policies during operational period including All Risk Property,
+Buisness Interuption, Third Party Liability, and Brokers Fee, and Storm
+Coverage.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This should only be used when not breaking down the cost into the
+following categories: <code class="docutils literal notranslate"><span class="pre">brokers_fee</span></code>, <code class="docutils literal notranslate"><span class="pre">operations_all_risk</span></code>,
+<code class="docutils literal notranslate"><span class="pre">business_interruption</span></code>, <code class="docutils literal notranslate"><span class="pre">third_party_liability</span></code>, and/or
+<code class="docutils literal notranslate"><span class="pre">storm_coverage</span></code></p>
+</div>
+</p></li>
+<li><p><strong>brokers_fee</strong> (<em>float</em>) -- Fees for arranging the insurance package.</p></li>
+<li><p><strong>operations_all_risk</strong> (<em>float</em>) -- All Risk Property (physical damage). Sudden and unforseen physical loss or
+physical damage to teh plant/assets during the operational phase of a project.</p></li>
+<li><p><strong>business_interruption</strong> (<em>float</em>) -- Sudden and unforseen loss or physical damage to the plant/assets during the
+operational phase of a project causing an interruption.</p></li>
+<li><p><strong>third_party_liability</strong> (<em>float</em>) -- Liability imposed by law, and/or Express Contractual Liability, for bodily
+injury or property damage.</p></li>
+<li><p><strong>storm_coverage</strong> (<em>float</em>) -- Coverage from huricane and tropical storm events (tyipcally for Atlantic Coast
+projects).</p></li>
+<li><p><strong>annual_leases_fees</strong> (<em>float</em>) -- <p>Ongoing payments, including but not limited to: payments to regulatory body for
+permission to operate at project site (terms defined within lease); payments to
+Transmission Systems Operators or Transmission Asseet Owners for rights to
+transport generated power.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This should only be used when not breaking down the cost into the
+following categories: <code class="docutils literal notranslate"><span class="pre">submerge_land_lease_costs</span></code> and/or
+<code class="docutils literal notranslate"><span class="pre">transmission_charges_rights</span></code></p>
+</div>
+</p></li>
+<li><p><strong>submerge_land_lease_costs</strong> (<em>float</em>) -- Payments to submerged land owners for rights to build project during operations.</p></li>
+<li><p><strong>transmission_charges_rights</strong> (<em>float</em>) -- Any payments to Transmissions Systems Operators or Transmission Asset Owners for
+rights to transport generated power.</p></li>
+<li><p><strong>onshore_electrical_maintenance</strong> (<em>float</em>) -- <p>Inspections of cables, transformer, switch gears, power compensation equipment,
+etc. and infrequent repairs</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This should only be used if not modeling these as processes within
+the model. Currently, onshore modeling is not included.</p>
+</div>
+</p></li>
+<li><p><strong>labor</strong> (<em>float</em>) -- The costs associated with labor, if not being modeled through the simulated
+processes.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./API"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="simulation_api.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Simulation API</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="core.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Simulation Core Classes</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-this-fromdictmixin-i-keep-seeing-in-the-code-diagrams">What is this <code class="docutils literal notranslate"><span class="pre">FromDictMixin</span></code> I keep seeing in the code diagrams?</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.FromDictMixin"><code class="docutils literal notranslate"><span class="pre">FromDictMixin</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.FromDictMixin.from_dict"><code class="docutils literal notranslate"><span class="pre">FromDictMixin.from_dict()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scheduled-and-unscheduled-maintenance">Scheduled and Unscheduled Maintenance</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#maintenance-tasks">Maintenance Tasks</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.Maintenance"><code class="docutils literal notranslate"><span class="pre">Maintenance</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.Maintenance.request_id"><code class="docutils literal notranslate"><span class="pre">Maintenance.request_id</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.Maintenance.assign_id"><code class="docutils literal notranslate"><span class="pre">Maintenance.assign_id()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#failures">Failures</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.Failure"><code class="docutils literal notranslate"><span class="pre">Failure</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.Failure.request_id"><code class="docutils literal notranslate"><span class="pre">Failure.request_id</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.Failure.hours_to_next_failure"><code class="docutils literal notranslate"><span class="pre">Failure.hours_to_next_failure()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.Failure.assign_id"><code class="docutils literal notranslate"><span class="pre">Failure.assign_id()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#repair-requests">Repair Requests</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.RepairRequest"><code class="docutils literal notranslate"><span class="pre">RepairRequest</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.RepairRequest.prior_operating_level"><code class="docutils literal notranslate"><span class="pre">RepairRequest.prior_operating_level</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.RepairRequest.request_id"><code class="docutils literal notranslate"><span class="pre">RepairRequest.request_id</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.RepairRequest.assign_id"><code class="docutils literal notranslate"><span class="pre">RepairRequest.assign_id()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#servicing-equipment-and-crews">Servicing Equipment and Crews</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#service-equipment">Service Equipment</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.ServiceEquipmentData"><code class="docutils literal notranslate"><span class="pre">ServiceEquipmentData</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.ServiceEquipmentData.determine_type"><code class="docutils literal notranslate"><span class="pre">ServiceEquipmentData.determine_type()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#servicecrew">ServiceCrew</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.ServiceCrew"><code class="docutils literal notranslate"><span class="pre">ServiceCrew</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scheduled-service-equipment">Scheduled Service Equipment</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.ScheduledServiceEquipmentData"><code class="docutils literal notranslate"><span class="pre">ScheduledServiceEquipmentData</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.ScheduledServiceEquipmentData.operating_dates_set"><code class="docutils literal notranslate"><span class="pre">ScheduledServiceEquipmentData.operating_dates_set</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.ScheduledServiceEquipmentData.non_operational_dates"><code class="docutils literal notranslate"><span class="pre">ScheduledServiceEquipmentData.non_operational_dates</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.ScheduledServiceEquipmentData.non_operational_dates_set"><code class="docutils literal notranslate"><span class="pre">ScheduledServiceEquipmentData.non_operational_dates_set</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.ScheduledServiceEquipmentData.reduced_speed_dates"><code class="docutils literal notranslate"><span class="pre">ScheduledServiceEquipmentData.reduced_speed_dates</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.ScheduledServiceEquipmentData.non_stop_shift"><code class="docutils literal notranslate"><span class="pre">ScheduledServiceEquipmentData.non_stop_shift</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#unscheduled-service-equipment">Unscheduled Service Equipment</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.UnscheduledServiceEquipmentData"><code class="docutils literal notranslate"><span class="pre">UnscheduledServiceEquipmentData</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.UnscheduledServiceEquipmentData.non_operational_dates"><code class="docutils literal notranslate"><span class="pre">UnscheduledServiceEquipmentData.non_operational_dates</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.UnscheduledServiceEquipmentData.non_operational_dates_set"><code class="docutils literal notranslate"><span class="pre">UnscheduledServiceEquipmentData.non_operational_dates_set</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.UnscheduledServiceEquipmentData.reduced_speed_dates"><code class="docutils literal notranslate"><span class="pre">UnscheduledServiceEquipmentData.reduced_speed_dates</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.UnscheduledServiceEquipmentData.non_stop_shift"><code class="docutils literal notranslate"><span class="pre">UnscheduledServiceEquipmentData.non_stop_shift</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.UnscheduledServiceEquipmentData._validate_threshold"><code class="docutils literal notranslate"><span class="pre">UnscheduledServiceEquipmentData._validate_threshold()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#port-configuration">Port Configuration</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.PortConfig"><code class="docutils literal notranslate"><span class="pre">PortConfig</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.PortConfig.non_operational_dates"><code class="docutils literal notranslate"><span class="pre">PortConfig.non_operational_dates</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.PortConfig.reduced_speed_dates"><code class="docutils literal notranslate"><span class="pre">PortConfig.reduced_speed_dates</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-farm-support">Wind Farm Support</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#subassembly-model">Subassembly Model</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.SubassemblyData"><code class="docutils literal notranslate"><span class="pre">SubassemblyData</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-farm-map">Wind Farm Map</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.WindFarmMap"><code class="docutils literal notranslate"><span class="pre">WindFarmMap</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.WindFarmMap.get_upstream_connections"><code class="docutils literal notranslate"><span class="pre">WindFarmMap.get_upstream_connections()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.WindFarmMap.get_upstream_connections_from_substation"><code class="docutils literal notranslate"><span class="pre">WindFarmMap.get_upstream_connections_from_substation()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#substation-map">Substation Map</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.SubstationMap"><code class="docutils literal notranslate"><span class="pre">SubstationMap</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#string">String</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.String"><code class="docutils literal notranslate"><span class="pre">String</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sub-string">Sub String</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.SubString"><code class="docutils literal notranslate"><span class="pre">SubString</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#miscellaneous">Miscellaneous</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fixed-cost-model">Fixed Cost Model</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.data_classes.FixedCosts"><code class="docutils literal notranslate"><span class="pre">FixedCosts</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Rob Hammond
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2021 Alliance for Sustainable Energy, LLC.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

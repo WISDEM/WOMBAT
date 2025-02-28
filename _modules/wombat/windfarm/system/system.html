@@ -1,0 +1,659 @@
+
+<!DOCTYPE html>
+
+
+<html lang="python" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wombat.windfarm.system.system &#8212; WOMBAT</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../../_static/documentation_options.js?v=30a733bc"></script>
+    <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../../../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/wombat/windfarm/system/system';</script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="python"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">WOMBAT</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WISDEM/WOMBAT" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI version" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/v/WOMBAT" class="icon-link-image" alt="PyPI version"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI downloads" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/dm/WOMBAT" class="icon-link-image" alt="PyPI downloads"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples" title="Launch Binder" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://mybinder.org/badge_logo.svg" class="icon-link-image" alt="Launch Binder"/></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../contributing.html">Contributor's Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../presentations.html">Presentations and Publications</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../workshops/index.html">Workshops</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../workshops/nawea_wind_tech_2023.html">NAWEA WindTech 2023 WOMBAT Tutorial</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../team.html">Team</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Working With the Code Base</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../examples/index.html">User Guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../examples/how_to.html">How To Use WOMBAT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../examples/strategy_demonstration.html">Servicing Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../examples/metrics_demonstration.html">Demonstration of the Available Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../examples/examples_reference.html">Examples Reference</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../API/index.html">WOMBAT API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/simulation_api.html">Simulation API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/types.html">Data Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/core.html">Simulation Core Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/windfarm.html">Wind Farm Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/utilities.html">Helpers and Plotting</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Change Log</a></li>
+
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for wombat.windfarm.system.system</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Creates the Turbine class.&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">mul</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">reduce</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">wombat.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">RepairManager</span><span class="p">,</span> <span class="n">WombatEnvironment</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wombat.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">IEC_power_curve</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wombat.windfarm.system</span><span class="w"> </span><span class="kn">import</span> <span class="n">Subassembly</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wombat.utilities.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_variable_from_string</span>
+
+
+<div class="viewcode-block" id="System">
+<a class="viewcode-back" href="../../../../API/windfarm.html#wombat.windfarm.system.system.System">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">System</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Can either be a turbine or substation, but is meant to be something that consists</span>
+<span class="sd">    of &#39;Subassembly&#39; pieces.</span>
+
+<span class="sd">    See `here &lt;https://www.sciencedirect.com/science/article/pii/S1364032117308985&gt;`_</span>
+<span class="sd">    for more information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">env</span><span class="p">:</span> <span class="n">WombatEnvironment</span><span class="p">,</span>
+        <span class="n">repair_manager</span><span class="p">:</span> <span class="n">RepairManager</span><span class="p">,</span>
+        <span class="n">t_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">subassemblies</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">system</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes an individual windfarm asset.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        env : WombatEnvironment</span>
+<span class="sd">            The simulation environment.</span>
+<span class="sd">        repair_manager : RepairManager</span>
+<span class="sd">            The simulation repair and maintenance task manager.</span>
+<span class="sd">        t_id : str</span>
+<span class="sd">            The unique identifier for the asset.</span>
+<span class="sd">        name : str</span>
+<span class="sd">            The long form name/descriptor for the system/asset.</span>
+<span class="sd">        subassemblies : dict</span>
+<span class="sd">            The dictionary of subassemblies required for the system/asset.</span>
+<span class="sd">        system : str</span>
+<span class="sd">            The identifier should be one of &quot;turbine&quot; or &quot;substation&quot; to indicate the</span>
+<span class="sd">            type of system this will be.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            [description]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="n">env</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">repair_manager</span> <span class="o">=</span> <span class="n">repair_manager</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">t_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="n">subassemblies</span><span class="p">[</span><span class="s2">&quot;capacity_kw&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subassemblies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Subassembly</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">servicing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">event</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">servicing_queue</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">event</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cable_failure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">event</span><span class="p">()</span>
+
+        <span class="c1"># Ensure servicing statuses starts as processed and inactive</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">servicing</span><span class="o">.</span><span class="n">succeed</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">servicing_queue</span><span class="o">.</span><span class="n">succeed</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cable_failure</span><span class="o">.</span><span class="n">succeed</span><span class="p">()</span>
+
+        <span class="n">system</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_system_value</span><span class="p">(</span><span class="n">subassemblies</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">system</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;turbine&quot;</span><span class="p">,</span> <span class="s2">&quot;substation&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;system&#39; must be one of &#39;turbine&#39; or &#39;substation&#39;!&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_subassemblies</span><span class="p">(</span><span class="n">subassemblies</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
+
+<div class="viewcode-block" id="System._calculate_system_value">
+<a class="viewcode-back" href="../../../../API/windfarm.html#wombat.windfarm.system.system.System._calculate_system_value">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_system_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subassemblies</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculates the turbine&#39;s value based its capex_kw and capacity.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        system : str</span>
+<span class="sd">            One of &quot;turbine&quot; or &quot;substation&quot;.</span>
+<span class="sd">        subassemblies : dict</span>
+<span class="sd">            Dictionary of subassemblies.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">subassemblies</span><span class="p">[</span><span class="s2">&quot;capacity_kw&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">subassemblies</span><span class="p">[</span><span class="s2">&quot;capex_kw&quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="System._create_subassemblies">
+<a class="viewcode-back" href="../../../../API/windfarm.html#wombat.windfarm.system.system.System._create_subassemblies">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_subassemblies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subassembly_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">system</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates each subassembly as a separate attribute and also a list for quick</span>
+<span class="sd">        access.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        subassembly_data : dict</span>
+<span class="sd">            Dictionary providing the maintenance and failure definitions for at least</span>
+<span class="sd">            one subassembly named</span>
+<span class="sd">        system : str</span>
+<span class="sd">            One of &quot;turbine&quot; or &quot;substation&quot; to indicate if the power curves should also</span>
+<span class="sd">            be created, or not.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Set the subassembly data variables from the remainder of the keys in the</span>
+        <span class="c1"># system configuration file/dictionary</span>
+        <span class="n">exclude_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;capacity_kw&quot;</span><span class="p">,</span> <span class="s2">&quot;capex_kw&quot;</span><span class="p">,</span> <span class="s2">&quot;power_curve&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">subassembly_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">exclude_keys</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">create_variable_from_string</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="n">subassembly</span> <span class="o">=</span> <span class="n">Subassembly</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">subassembly</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">subassemblies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">subassemblies</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;At least one subassembly definition requred for &quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;ID: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">, Name: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">log_action</span><span class="p">(</span>
+            <span class="n">agent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">action</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;subassemblies created: </span><span class="si">{</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">id</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">subassemblies</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;windfarm initialization&quot;</span><span class="p">,</span>
+            <span class="n">system_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="n">system_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">system_ol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">operating_level</span><span class="p">,</span>
+            <span class="n">part_ol</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">additional</span><span class="o">=</span><span class="s2">&quot;initialization&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># If the system is a turbine, create the power curve, if available</span>
+        <span class="k">if</span> <span class="n">system</span> <span class="o">==</span> <span class="s2">&quot;turbine&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_power_curve</span><span class="p">(</span><span class="n">subassembly_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;power_curve&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="System._initialize_power_curve">
+<a class="viewcode-back" href="../../../../API/windfarm.html#wombat.windfarm.system.system.System._initialize_power_curve">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_initialize_power_curve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">power_curve_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates the power curve function based on the ``power_curve`` input in the</span>
+<span class="sd">        ``subassembly_data`` dictionary. If there is no valid input, then 0 will always</span>
+<span class="sd">        be reutrned.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        power_curve_dict : dict</span>
+<span class="sd">            The turbine definition dictionary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">power_curve</span><span class="p">:</span> <span class="n">Callable</span>
+        <span class="k">if</span> <span class="n">power_curve_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">power_curve</span> <span class="o">=</span> <span class="n">IEC_power_curve</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">0</span><span class="p">]),</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">power_curve_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">/</span> <span class="s2">&quot;turbines&quot;</span> <span class="o">/</span> <span class="n">power_curve_dict</span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">]</span>
+            <span class="n">power_curve</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">power_curve_file</span><span class="p">)</span>
+            <span class="n">power_curve</span> <span class="o">=</span> <span class="n">power_curve</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">power_curve</span><span class="o">.</span><span class="n">power_kw</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span>
+                <span class="n">drop</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+            <span class="n">bin_width</span> <span class="o">=</span> <span class="n">power_curve_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bin_width&quot;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">power_curve</span> <span class="o">=</span> <span class="n">IEC_power_curve</span><span class="p">(</span>
+                <span class="n">power_curve</span><span class="o">.</span><span class="n">windspeed_ms</span><span class="p">,</span>
+                <span class="n">power_curve</span><span class="o">.</span><span class="n">power_kw</span><span class="p">,</span>
+                <span class="n">windspeed_start</span><span class="o">=</span><span class="n">power_curve</span><span class="o">.</span><span class="n">windspeed_ms</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
+                <span class="n">windspeed_end</span><span class="o">=</span><span class="n">power_curve</span><span class="o">.</span><span class="n">windspeed_ms</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span>
+                <span class="n">bin_width</span><span class="o">=</span><span class="n">bin_width</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="System.interrupt_all_subassembly_processes">
+<a class="viewcode-back" href="../../../../API/windfarm.html#wombat.windfarm.system.system.System.interrupt_all_subassembly_processes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">interrupt_all_subassembly_processes</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">origin</span><span class="p">:</span> <span class="n">Subassembly</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">replacement</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Interrupts the running processes in all of the system&#39;s subassemblies.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        origin : Subassembly</span>
+<span class="sd">            The subassembly that triggered the request, if the method call is coming</span>
+<span class="sd">            from a subassembly shutdown event.</span>
+<span class="sd">        replacement: bool, optional</span>
+<span class="sd">            If a subassebly `id` is provided, this indicates the interruption is caused</span>
+<span class="sd">            by its replacement event. Defaults to None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">[</span>
+            <span class="n">subassembly</span><span class="o">.</span><span class="n">interrupt_processes</span><span class="p">(</span><span class="n">origin</span><span class="o">=</span><span class="n">origin</span><span class="p">,</span> <span class="n">replacement</span><span class="o">=</span><span class="n">replacement</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+            <span class="k">for</span> <span class="n">subassembly</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subassemblies</span>
+        <span class="p">]</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">operating_level</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The turbine&#39;s operating level, based on subassembly and cable performance.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Operating level of the turbine.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cable_failure</span><span class="o">.</span><span class="n">triggered</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">servicing</span><span class="o">.</span><span class="n">triggered</span><span class="p">:</span>
+            <span class="n">ol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span><span class="n">mul</span><span class="p">,</span> <span class="p">[</span><span class="n">sub</span><span class="o">.</span><span class="n">operating_level</span> <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subassemblies</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">ol</span>  <span class="c1"># type: ignore</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">operating_level_wo_servicing</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The turbine&#39;s operating level, based on subassembly and cable performance,</span>
+<span class="sd">        without accounting for servicing status.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Operating level of the turbine.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cable_failure</span><span class="o">.</span><span class="n">triggered</span><span class="p">:</span>
+            <span class="n">ol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span><span class="n">mul</span><span class="p">,</span> <span class="p">[</span><span class="n">sub</span><span class="o">.</span><span class="n">operating_level</span> <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subassemblies</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">ol</span>  <span class="c1"># type: ignore</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+
+<div class="viewcode-block" id="System.power">
+<a class="viewcode-back" href="../../../../API/windfarm.html#wombat.windfarm.system.system.System.power">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">windspeed</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates the power output for an iterable of windspeed values.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        windspeed : list[float] | np.ndarrays</span>
+<span class="sd">            Windspeed values, in m/s.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            Power production, in kW.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_curve</span><span class="p">(</span><span class="n">windspeed</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Rob Hammond
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2021 Alliance for Sustainable Energy, LLC.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

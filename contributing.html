@@ -1,0 +1,831 @@
+
+<!DOCTYPE html>
+
+
+<html lang="python" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Contributor&#39;s Guide &#8212; WOMBAT</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=30a733bc"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'contributing';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Presentations and Publications" href="presentations.html" />
+    <link rel="prev" title="Installation" href="install.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="python"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">WOMBAT</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WISDEM/WOMBAT" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI version" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/v/WOMBAT" class="icon-link-image" alt="PyPI version"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI downloads" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/dm/WOMBAT" class="icon-link-image" alt="PyPI downloads"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples" title="Launch Binder" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://mybinder.org/badge_logo.svg" class="icon-link-image" alt="Launch Binder"/></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Contributor's Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="presentations.html">Presentations and Publications</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="workshops/index.html">Workshops</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="workshops/nawea_wind_tech_2023.html">NAWEA WindTech 2023 WOMBAT Tutorial</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="team.html">Team</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Working With the Code Base</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="examples/index.html">User Guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/how_to.html">How To Use WOMBAT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/strategy_demonstration.html">Servicing Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/metrics_demonstration.html">Demonstration of the Available Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/examples_reference.html">Examples Reference</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="API/index.html">WOMBAT API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="API/simulation_api.html">Simulation API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API/types.html">Data Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API/core.html">Simulation Core Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API/windfarm.html">Wind Farm Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API/utilities.html">Helpers and Plotting</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Change Log</a></li>
+
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/contributing.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Contributor's Guide</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#getting-started">Getting Started</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#keeping-your-fork-in-sync-with-wisdem-wombat">Keeping your fork in sync with WISDEM/WOMBAT</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#issue-tracking">Issue Tracking</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#issue-submission-checklist">Issue Submission Checklist</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#repository">Repository</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-style">Coding Style</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation">Documentation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#testing">Testing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pull-request">Pull Request</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scope">Scope</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tests">Tests</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#test-coverage">Test Coverage</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Documentation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#changelog">Changelog</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#release-process">Release Process</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="contributor-s-guide">
+<h1>Contributor's Guide<a class="headerlink" href="#contributor-s-guide" title="Link to this heading">#</a></h1>
+<section id="getting-started">
+<span id="contributing-getting-started"></span><h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">#</a></h2>
+<p>These contributing guidelines should be read by software developers wishing to contribute code or
+documentation changes into WOMBAT, or to push changes upstream to the main WISDEM/WOMBAT repository.</p>
+<ol class="arabic">
+<li><p>Create a fork of WOMBAT on GitHub</p></li>
+<li><p>Clone your fork of the repository</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>-b<span class="w"> </span>develop<span class="w"> </span>https://github.com/&lt;your-GitHub-username&gt;/WOMBAT.git
+</pre></div>
+</div>
+</li>
+<li><p>Move into the WOMBAT source code directory</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>WOMBAT/
+</pre></div>
+</div>
+</li>
+<li><p>Install WOMBAT in editable mode with the appropriate developer tools</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;.[dev]&quot;</span></code> is for the linting, autoformatting, testing, and code checking tools</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;.[docs]&quot;</span></code> is for the documentation building tools. Ideally, developers should also be
+contributing to the documentation, and therefore checking that the documentation builds locally.</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev,docs]&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p>Turn on the automated linting and code checking tools. Pre-commit runs at the commit level, and
+will only check files that have been modified and staged (e.g., <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">add</span> <span class="pre">&lt;your-changed-file&gt;</span></code>).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pre-commit<span class="w"> </span>install
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="keeping-your-fork-in-sync-with-wisdem-wombat">
+<h2>Keeping your fork in sync with WISDEM/WOMBAT<a class="headerlink" href="#keeping-your-fork-in-sync-with-wisdem-wombat" title="Link to this heading">#</a></h2>
+<p>The &quot;main&quot; WOMBAT repository is regularly updated with ongoing research at NREL and beyond. After
+creating and cloning your fork from the previous section, you might be wondering how to keep it
+up to date with the latest improvements.</p>
+<p>Please note that the below process may introduce merge conflicts with your work, and this does not
+provide guidance about how to deal with those conflicts. Here is a good resource for working on
+<a class="reference external" href="https://www.atlassian.com/git/tutorials/using-branches/merge-conflicts">merge conflicts</a> that will
+inevitably arise in development work.</p>
+<ol class="arabic">
+<li><p>Ensure you're in the WOMBAT folder. This may look different depending on your operating system.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>/your/path/to/WOMBAT/
+</pre></div>
+</div>
+</li>
+<li><p>If you haven't already, add WISDEM/WOMBAT as the &quot;upstream&quot; location (or whichever naming
+convention you prefer).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>remote<span class="w"> </span>add<span class="w"> </span>upstream<span class="w"> </span>https://github.com/WISDEM/WOMBAT.git
+</pre></div>
+</div>
+<p>To find the name you've given WISDEM/WOMBAT again, you can simply run the following to display
+all the remote sources you're tracking.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>remote<span class="w"> </span>-v
+</pre></div>
+</div>
+</li>
+<li><p>Fetch all the remote changes</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>fetch<span class="w"> </span>--all
+</pre></div>
+</div>
+</li>
+<li><p>Sync the upstream (WISDEM) changes</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># If there was a new release this will need to be updated</span>
+git<span class="w"> </span>checkout<span class="w"> </span>main
+git<span class="w"> </span>pull<span class="w"> </span>upstream<span class="w"> </span>main
+
+<span class="c1"># Most common branch to bring up to speed</span>
+git<span class="w"> </span>checkout<span class="w"> </span>develop
+git<span class="w"> </span>pull<span class="w"> </span>upstream<span class="w"> </span>develop
+</pre></div>
+</div>
+</li>
+<li><p>Bring your feature branch up to date with the latest changes, assuming you started from the
+develop branch.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>checkout<span class="w"> </span>feature/your_contribution
+git<span class="w"> </span>merge<span class="w"> </span>develop
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="issue-tracking">
+<h2>Issue Tracking<a class="headerlink" href="#issue-tracking" title="Link to this heading">#</a></h2>
+<p>New feature requests, changes, enhancements, non-methodology features, and bug reports can be filed
+as new issues in the <a class="reference external" href="https://github.com/WISDEM/WOMBAT/issues">Github.com issue tracker</a> at any time.
+Please be sure to fully describe the issue.</p>
+<p>For other issues, please email <a class="reference external" href="mailto:rob&#46;hammond&#37;&#52;&#48;nrel&#46;gov">rob<span>&#46;</span>hammond<span>&#64;</span>nrel<span>&#46;</span>gov</a>.</p>
+<section id="issue-submission-checklist">
+<h3>Issue Submission Checklist<a class="headerlink" href="#issue-submission-checklist" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>Does the issue already exist?
+Yes: If you find your issue already exists, make relevant comments and add your
+<a class="reference external" href="https://github.com/blog/2119-add-reactions-to-pull-requests-issues-and-comments">reaction</a>.
+Use a reaction in place of a &quot;+1&quot; comment:</p>
+<ul class="simple">
+<li><p>👍 - upvote</p></li>
+<li><p>👎 - downvote</p></li>
+</ul>
+</li>
+<li><p>Is this an individual bug report or feature request?</p></li>
+<li><p>Can the bug be easily reproduced?</p>
+<ol class="arabic simple">
+<li><p>Be sure to include enough details about your setup and the issue you've encountered</p></li>
+<li><p>Simplify as much of the code as possible to better isolate the problem</p></li>
+</ol>
+</li>
+<li><p>Will someone else understand the issue or change requested given the information provided?</p></li>
+</ol>
+</section>
+</section>
+<section id="repository">
+<h2>Repository<a class="headerlink" href="#repository" title="Link to this heading">#</a></h2>
+<p>The WOMBAT repository is hosted on Github, and located here: <a class="github reference external" href="http://github.com/WISDEM/WOMBAT">WISDEM/WOMBAT</a></p>
+<p>This repository is organized using a modified git-flow system. Branches are organized as follows:</p>
+<ul class="simple">
+<li><p>main: Stable release version. Must have good test coverage and may not have all the newest features.</p></li>
+<li><p>develop: Development branch which contains the newest features. Tests must pass, but code may be
+unstable.</p></li>
+<li><p>feature/xxx: Feature ranch from develop, should reference a GitHub issue number.</p></li>
+<li><p>fix/xxx: Bug fix branch from develop, should reference a GitHub issue number. Can be based off
+main if this is a necessary patch.</p></li>
+</ul>
+<p>To work on a feature, please fork WOMBAT first and then create a feature branch in your own fork.
+Work out of this feature branch before submitting a pull request.</p>
+<p>Be sure to periodically synchronize the upstream develop branch into your feature branch to avoid
+conflicts in the pull request.</p>
+<p>When your branch is ready, make a pull request to WISDEM/WOMBAT through the
+<a class="reference external" href="https://github.com/WISDEM/WOMBATpulls">GitHub web interface</a>.</p>
+</section>
+<section id="coding-style">
+<h2>Coding Style<a class="headerlink" href="#coding-style" title="Link to this heading">#</a></h2>
+<p>This code uses a <code class="docutils literal notranslate"><span class="pre">pre-commit</span></code> workflow where code styling and linting is taken care of when a user
+commits their code. Specifically, this code utilizes <code class="docutils literal notranslate"><span class="pre">black</span></code> for automatic formatting (line
+length, quotation usage, hanging lines, etc.), <code class="docutils literal notranslate"><span class="pre">isort</span></code> for automatic import sorting, <code class="docutils literal notranslate"><span class="pre">mypy</span></code>
+for typing, and <code class="docutils literal notranslate"><span class="pre">ruff</span></code> for linting.</p>
+<p>To activate the <code class="docutils literal notranslate"><span class="pre">pre-commit</span></code> workflow, the user must install the developer version as outlined in
+the <a class="reference internal" href="#contributing-getting-started"><span class="std std-ref">getting started section</span></a>, and run the following line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pre-commit<span class="w"> </span>install
+</pre></div>
+</div>
+</section>
+<section id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Link to this heading">#</a></h2>
+<p>Documentation is written primarily using Markdown, with some components written in
+ReStructured Text, and is located in the <code class="docutils literal notranslate"><span class="pre">WOMBAT/docs/</span></code> directory. Additionally, all method and class
+documentation is written as NumPy-style docstrings in the code itself, with some aspects documented
+inline as needed.</p>
+<p>If the <code class="docutils literal notranslate"><span class="pre">docs</span></code> extras haven't already been installed, be sure to do so before you attempt to build
+the documentation site.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Navigate to the top level directory of the repository</span>
+<span class="nb">cd</span><span class="w"> </span>WOMBAT/
+
+<span class="c1"># Install the additional dependencies</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[docs]&quot;</span>
+</pre></div>
+</div>
+<p>Now, run the build command as follows.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Build the docs</span>
+jupyter-book<span class="w"> </span>build<span class="w"> </span>docs
+</pre></div>
+</div>
+</section>
+<section id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Link to this heading">#</a></h2>
+<p>All code should be paired with a corresponding unit, regression, or integration test written with
+the pytest framework.</p>
+<p>To run the tests you can use any of the following commands, depending on your needs.</p>
+<ol class="arabic">
+<li><p>All the tests and check for test coverage:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>--cov<span class="o">=</span>WOMBAT
+</pre></div>
+</div>
+</li>
+<li><p>All the tests:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="pull-request">
+<span id="contributing-pull-request"></span><h2>Pull Request<a class="headerlink" href="#pull-request" title="Link to this heading">#</a></h2>
+<p>Pull requests must be made for all changes. Most pull requests should be made against the develop
+branch unless patching a bug that needs to be addressed immediately, and only core developers should
+make pull requests to the main branch.</p>
+<p>All pull requests, regardless of the base branch, must include updated documentation and pass all
+tests. In addition, code coverage should not be significantly negatively affected.</p>
+<section id="scope">
+<h3>Scope<a class="headerlink" href="#scope" title="Link to this heading">#</a></h3>
+<p>Encapsulate the changes of one issue, or multiple if they are highly related. Three small pull
+requests is greatly preferred over one large pull request. Not only will the review process be
+shorter, but the review will be more focused and of higher quality, benefitting the author and code
+base. Be sure to write a complete description of these changes in the pull request body.</p>
+</section>
+<section id="tests">
+<h3>Tests<a class="headerlink" href="#tests" title="Link to this heading">#</a></h3>
+<p>All tests must pass. Pull requests will be rejected or have changes requested if tests do not pass,
+or cannot pass with changes. Tests are automatically run through Github Actions for any pull request
+or push to the main or develop branches, but should also be run locally before submission.</p>
+<section id="test-coverage">
+<h4>Test Coverage<a class="headerlink" href="#test-coverage" title="Link to this heading">#</a></h4>
+<p>The testing framework described below will generate a coverage report from the tests run through
+GitHub Actions. Please ensure that your work is fully covered by running them locally with the
+coverage report enabled.</p>
+</section>
+</section>
+<section id="id1">
+<h3>Documentation<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
+<p>Include any relevant changes to inline documentation, docstrings, and any of the documentation files
+located in <code class="docutils literal notranslate"><span class="pre">WOMBAT/docs/</span></code>. Pull requests will not be accepted until these changes are complete.</p>
+<p>Be sure to build the documentation and run the examples in the CLI locally prior to submission.</p>
+</section>
+<section id="changelog">
+<h3>Changelog<a class="headerlink" href="#changelog" title="Link to this heading">#</a></h3>
+<p>All changes must be documented appropriately in <a class="reference external" href="http://CHANGELOG.md">CHANGELOG.md</a> in the [Unreleased] section.</p>
+</section>
+</section>
+<section id="release-process">
+<h2>Release Process<a class="headerlink" href="#release-process" title="Link to this heading">#</a></h2>
+<p>This section is a reference for WOMBAT's maintainers to keep processes largely consistent
+over time, regardless of who the core developers are.</p>
+<ol class="arabic simple">
+<li><p>Bump version number and metadata in <code class="docutils literal notranslate"><span class="pre">WOMBAT/__init__.py</span></code></p></li>
+<li><p>Bump version numbers of any dependencies in <code class="docutils literal notranslate"><span class="pre">setup.py</span></code>. Be sure to separate to keep dependencies
+separated by what they are required for (see the <code class="docutils literal notranslate"><span class="pre">project.optional-dependencies</span></code> section of
+<code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>)</p></li>
+<li><p>Update the changelog at <code class="docutils literal notranslate"><span class="pre">WOMBAT/CHANGELOG.md</span></code>, changing the &quot;UNRELEASED&quot; section to the new
+version and the release date (e.g. &quot;[2.3 - 2022-01-18]&quot;).</p></li>
+<li><p>Make a pull request into develop with these updates, and be sure to follow the guide in
+<a class="reference internal" href="#contributing-pull-request"><span class="std std-ref">Pull Requests</span></a>.</p></li>
+<li><p>Merge develop into main through the git command line</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="w"> </span>git<span class="w"> </span>checkout<span class="w"> </span>main
+<span class="w"> </span>git<span class="w"> </span>merge<span class="w"> </span>develop
+<span class="w"> </span>git<span class="w"> </span>push
+</pre></div>
+</div>
+<ul>
+<li><p>Tag the new release version:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="w"> </span>git<span class="w"> </span>tag<span class="w"> </span>-a<span class="w"> </span>v1.2.3<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Tag message for v1.2.3&quot;</span>
+<span class="w"> </span>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>v1.2.3
+</pre></div>
+</div>
+<p>The above process will trigger the <code class="docutils literal notranslate"><span class="pre">.github/workflows/python-publish-test.yml</span></code> GitHub Action
+that builds the package and pushes it to Test PyPI. If this is successful, you can move to the
+next step, otherwise the errors from the action should be addressed, and the tag should be
+deleted, then recreated after the fix is published.</p>
+</li>
+<li><p>Deploying a Package to PyPi</p>
+<ul class="simple">
+<li><p>The repository is equipped with a GitHub Action to build and publish new versions to PyPI. A
+maintainer can invoke this workflow by creating a new release on GitHub that corresponds to the
+created tag in the previous step.</p></li>
+<li><p>The action is defined in <code class="docutils literal notranslate"><span class="pre">.github/workflows/python-publish.yml</span></code>.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="install.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Installation</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="presentations.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Presentations and Publications</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#getting-started">Getting Started</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#keeping-your-fork-in-sync-with-wisdem-wombat">Keeping your fork in sync with WISDEM/WOMBAT</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#issue-tracking">Issue Tracking</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#issue-submission-checklist">Issue Submission Checklist</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#repository">Repository</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-style">Coding Style</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation">Documentation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#testing">Testing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pull-request">Pull Request</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scope">Scope</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tests">Tests</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#test-coverage">Test Coverage</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Documentation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#changelog">Changelog</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#release-process">Release Process</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Rob Hammond
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2021 Alliance for Sustainable Energy, LLC.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

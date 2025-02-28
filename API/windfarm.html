@@ -1,0 +1,1295 @@
+
+<!DOCTYPE html>
+
+
+<html lang="python" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Wind Farm Classes &#8212; WOMBAT</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=30a733bc"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'API/windfarm';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Helpers and Plotting" href="utilities.html" />
+    <link rel="prev" title="Simulation Core Classes" href="core.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="python"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">WOMBAT</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WISDEM/WOMBAT" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI version" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/v/WOMBAT" class="icon-link-image" alt="PyPI version"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI downloads" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/dm/WOMBAT" class="icon-link-image" alt="PyPI downloads"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples" title="Launch Binder" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://mybinder.org/badge_logo.svg" class="icon-link-image" alt="Launch Binder"/></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributor's Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../presentations.html">Presentations and Publications</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../workshops/index.html">Workshops</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../workshops/nawea_wind_tech_2023.html">NAWEA WindTech 2023 WOMBAT Tutorial</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../team.html">Team</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Working With the Code Base</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">User Guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/how_to.html">How To Use WOMBAT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/strategy_demonstration.html">Servicing Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/metrics_demonstration.html">Demonstration of the Available Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/examples_reference.html">Examples Reference</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">WOMBAT API</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="simulation_api.html">Simulation API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="types.html">Data Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">Simulation Core Classes</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Wind Farm Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html">Helpers and Plotting</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Change Log</a></li>
+
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/API/windfarm.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Wind Farm Classes</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-wombat.windfarm.windfarm">Wind Farm</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm"><code class="docutils literal notranslate"><span class="pre">Windfarm</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm._create_graph_layout"><code class="docutils literal notranslate"><span class="pre">Windfarm._create_graph_layout()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm._create_turbines_and_substations"><code class="docutils literal notranslate"><span class="pre">Windfarm._create_turbines_and_substations()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm._create_cables"><code class="docutils literal notranslate"><span class="pre">Windfarm._create_cables()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm.calculate_distance_matrix"><code class="docutils literal notranslate"><span class="pre">Windfarm.calculate_distance_matrix()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm._create_substation_turbine_map"><code class="docutils literal notranslate"><span class="pre">Windfarm._create_substation_turbine_map()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm._create_wind_farm_map"><code class="docutils literal notranslate"><span class="pre">Windfarm._create_wind_farm_map()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm.finish_setup"><code class="docutils literal notranslate"><span class="pre">Windfarm.finish_setup()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm._setup_logger"><code class="docutils literal notranslate"><span class="pre">Windfarm._setup_logger()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm._log_operations"><code class="docutils literal notranslate"><span class="pre">Windfarm._log_operations()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm.system"><code class="docutils literal notranslate"><span class="pre">Windfarm.system()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm.cable"><code class="docutils literal notranslate"><span class="pre">Windfarm.cable()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm.current_availability"><code class="docutils literal notranslate"><span class="pre">Windfarm.current_availability</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm.current_availability_wo_servicing"><code class="docutils literal notranslate"><span class="pre">Windfarm.current_availability_wo_servicing</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-wombat.windfarm.system.system">System: Wind turbine or substation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.system.System"><code class="docutils literal notranslate"><span class="pre">System</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.system.System._calculate_system_value"><code class="docutils literal notranslate"><span class="pre">System._calculate_system_value()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.system.System._create_subassemblies"><code class="docutils literal notranslate"><span class="pre">System._create_subassemblies()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.system.System._initialize_power_curve"><code class="docutils literal notranslate"><span class="pre">System._initialize_power_curve()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.system.System.interrupt_all_subassembly_processes"><code class="docutils literal notranslate"><span class="pre">System.interrupt_all_subassembly_processes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.system.System.operating_level"><code class="docutils literal notranslate"><span class="pre">System.operating_level</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.system.System.operating_level_wo_servicing"><code class="docutils literal notranslate"><span class="pre">System.operating_level_wo_servicing</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.system.System.power"><code class="docutils literal notranslate"><span class="pre">System.power()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-wombat.windfarm.system.subassembly">Subassembly: The modeled components of a system</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.subassembly.Subassembly"><code class="docutils literal notranslate"><span class="pre">Subassembly</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.subassembly.Subassembly._create_processes"><code class="docutils literal notranslate"><span class="pre">Subassembly._create_processes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.subassembly.Subassembly.recreate_processes"><code class="docutils literal notranslate"><span class="pre">Subassembly.recreate_processes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.subassembly.Subassembly.interrupt_processes"><code class="docutils literal notranslate"><span class="pre">Subassembly.interrupt_processes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.subassembly.Subassembly.interrupt_all_subassembly_processes"><code class="docutils literal notranslate"><span class="pre">Subassembly.interrupt_all_subassembly_processes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.subassembly.Subassembly.trigger_request"><code class="docutils literal notranslate"><span class="pre">Subassembly.trigger_request()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.subassembly.Subassembly.run_single_maintenance"><code class="docutils literal notranslate"><span class="pre">Subassembly.run_single_maintenance()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.subassembly.Subassembly.run_single_failure"><code class="docutils literal notranslate"><span class="pre">Subassembly.run_single_failure()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-wombat.windfarm.system.cable">Cable: Hybrid system and subassembly model</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable"><code class="docutils literal notranslate"><span class="pre">Cable</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable.set_string_details"><code class="docutils literal notranslate"><span class="pre">Cable.set_string_details()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable.finish_setup"><code class="docutils literal notranslate"><span class="pre">Cable.finish_setup()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable._create_processes"><code class="docutils literal notranslate"><span class="pre">Cable._create_processes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable.recreate_processes"><code class="docutils literal notranslate"><span class="pre">Cable.recreate_processes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable.interrupt_processes"><code class="docutils literal notranslate"><span class="pre">Cable.interrupt_processes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable.interrupt_all_subassembly_processes"><code class="docutils literal notranslate"><span class="pre">Cable.interrupt_all_subassembly_processes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable.stop_all_upstream_processes"><code class="docutils literal notranslate"><span class="pre">Cable.stop_all_upstream_processes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable.trigger_request"><code class="docutils literal notranslate"><span class="pre">Cable.trigger_request()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable.run_single_maintenance"><code class="docutils literal notranslate"><span class="pre">Cable.run_single_maintenance()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable.run_single_failure"><code class="docutils literal notranslate"><span class="pre">Cable.run_single_failure()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="wind-farm-classes">
+<h1>Wind Farm Classes<a class="headerlink" href="#wind-farm-classes" title="Link to this heading">#</a></h1>
+<p>The wind farm classes define how the wind farm's graph model are created, and power the
+timing out of the failures and maintenance events within the simulation for the cables,
+substations, and turbines.</p>
+<section id="module-wombat.windfarm.windfarm">
+<span id="wind-farm"></span><h2>Wind Farm<a class="headerlink" href="#module-wombat.windfarm.windfarm" title="Link to this heading">#</a></h2>
+<p>Creates the Windfarm class/model.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.windfarm.windfarm.Windfarm">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.windfarm.windfarm.</span></span><span class="sig-name descname"><span class="pre">Windfarm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">windfarm_layout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repair_manager</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/windfarm.html#Windfarm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.windfarm.Windfarm" title="Link to this definition">#</a></dt>
+<dd><p>The primary class for operating on objects within a windfarm. The substations,
+cables, and turbines are created as a network object to be more appropriately
+accessed and controlled.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env</strong> (<a class="reference internal" href="core.html#wombat.core.environment.WombatEnvironment" title="wombat.core.environment.WombatEnvironment"><em>WombatEnvironment</em></a>)</p></li>
+<li><p><strong>windfarm_layout</strong> (<em>str</em>)</p></li>
+<li><p><strong>repair_manager</strong> (<a class="reference internal" href="core.html#wombat.core.repair_management.RepairManager" title="wombat.core.repair_management.RepairManager"><em>RepairManager</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.windfarm.Windfarm._create_graph_layout">
+<span class="sig-name descname"><span class="pre">_create_graph_layout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windfarm_layout</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/windfarm.html#Windfarm._create_graph_layout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.windfarm.Windfarm._create_graph_layout" title="Link to this definition">#</a></dt>
+<dd><p>Creates a network layout of the windfarm start from the substation(s) to
+be able to capture downstream turbines that can be cut off in the event of a
+cable failure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>windfarm_layout</strong> (<em>str</em>) -- Filename to use for reading in the windfarm layout; must be a csv file.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.windfarm.Windfarm._create_turbines_and_substations">
+<span class="sig-name descname"><span class="pre">_create_turbines_and_substations</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/windfarm.html#Windfarm._create_turbines_and_substations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.windfarm.Windfarm._create_turbines_and_substations" title="Link to this definition">#</a></dt>
+<dd><p>Instantiates the turbine and substation models as defined in the
+user-provided layout file, and connects these models to the appropriate graph
+nodes to create a fully representative windfarm network model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> -- Raised if the subassembly data is not provided in the layout file.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.windfarm.Windfarm._create_cables">
+<span class="sig-name descname"><span class="pre">_create_cables</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/windfarm.html#Windfarm._create_cables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.windfarm.Windfarm._create_cables" title="Link to this definition">#</a></dt>
+<dd><p>Instantiates the cable models as defined in the user-provided layout file,
+and connects these models to the appropriate graph edges to create a fully
+representative windfarm network model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> -- Raised if the cable model is not specified.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.windfarm.Windfarm.calculate_distance_matrix">
+<span class="sig-name descname"><span class="pre">calculate_distance_matrix</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/windfarm.html#Windfarm.calculate_distance_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.windfarm.Windfarm.calculate_distance_matrix" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the geodesic distance, in km, between all of the windfarm's nodes,
+e.g., substations and turbines, and cables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.windfarm.Windfarm._create_substation_turbine_map">
+<span class="sig-name descname"><span class="pre">_create_substation_turbine_map</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/windfarm.html#Windfarm._create_substation_turbine_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.windfarm.Windfarm._create_substation_turbine_map" title="Link to this definition">#</a></dt>
+<dd><p>Creates <code class="docutils literal notranslate"><span class="pre">substation_turbine_map</span></code>, a dictionary, that maps substation(s) to
+the dependent turbines in the windfarm, and the weighting of each turbine in the
+windfarm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.windfarm.Windfarm._create_wind_farm_map">
+<span class="sig-name descname"><span class="pre">_create_wind_farm_map</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/windfarm.html#Windfarm._create_wind_farm_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.windfarm.Windfarm._create_wind_farm_map" title="Link to this definition">#</a></dt>
+<dd><p>Creates a secondary graph object strictly for traversing the windfarm to turn
+on/off the appropriate turbines, substations, and cables more easily.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.windfarm.Windfarm.finish_setup">
+<span class="sig-name descname"><span class="pre">finish_setup</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/windfarm.html#Windfarm.finish_setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.windfarm.Windfarm.finish_setup" title="Link to this definition">#</a></dt>
+<dd><p>Final initialization hook for any substations, turbines, or cables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.windfarm.Windfarm._setup_logger">
+<span class="sig-name descname"><span class="pre">_setup_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/windfarm.html#Windfarm._setup_logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.windfarm.Windfarm._setup_logger" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>initial</strong> (<em>bool</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.windfarm.Windfarm._log_operations">
+<span class="sig-name descname"><span class="pre">_log_operations</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/windfarm.html#Windfarm._log_operations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.windfarm.Windfarm._log_operations" title="Link to this definition">#</a></dt>
+<dd><p>Logs the operational data for a simulation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.windfarm.Windfarm.system">
+<span class="sig-name descname"><span class="pre">system</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">system_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/windfarm.html#Windfarm.system"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.windfarm.Windfarm.system" title="Link to this definition">#</a></dt>
+<dd><p>Convenience function to returns the desired <cite>System</cite> object for a turbine or
+substation in the windfarm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>system_id</strong> (<em>str</em>) -- The system's unique identifier, <code class="docutils literal notranslate"><span class="pre">wombat.windfarm.System.id</span></code>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#wombat.windfarm.system.system.System" title="wombat.windfarm.system.system.System"><code class="xref py py-class docutils literal notranslate"><span class="pre">System</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>System</em> -- The <code class="docutils literal notranslate"><span class="pre">System</span></code> object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.windfarm.Windfarm.cable">
+<span class="sig-name descname"><span class="pre">cable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cable_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/windfarm.html#Windfarm.cable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.windfarm.Windfarm.cable" title="Link to this definition">#</a></dt>
+<dd><p>Convenience function to returns the desired <cite>Cable</cite> object for a cable in the
+windfarm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cable_id</strong> (<em>tuple</em><em>[</em><em>str</em><em>, </em><em>str</em><em>] </em><em>| </em><em>str</em>) -- The cable's unique identifier, of the form: (<code class="docutils literal notranslate"><span class="pre">wombat.windfarm.System.id</span></code>,
+<code class="docutils literal notranslate"><span class="pre">wombat.windfarm.System.id</span></code>), for the (downstream node id, upstream node
+id), or the <code class="docutils literal notranslate"><span class="pre">Cable.id</span></code>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#wombat.windfarm.system.cable.Cable" title="wombat.windfarm.system.cable.Cable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cable</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Cable</em> -- The <code class="docutils literal notranslate"><span class="pre">Cable</span></code> object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wombat.windfarm.windfarm.Windfarm.current_availability">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">current_availability</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#wombat.windfarm.windfarm.Windfarm.current_availability" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the product of all system <code class="docutils literal notranslate"><span class="pre">operating_level</span></code> variables across
+the windfarm using the following forumation.</p>
+<div class="math notranslate nohighlight">
+\[\sum{
+    OperatingLevel_{substation_{i}} *
+    \sum{OperatingLevel_{turbine_{j}} * Weight_{turbine_{j}}}
+}\]</div>
+<p>where the :math:<code class="docutils literal notranslate"><span class="pre">{OperatingLevel}</span></code> is the product of the operating level
+of each subassembly on a given system (substation or turbine), and the
+:math:<code class="docutils literal notranslate"><span class="pre">{Weight}</span></code> is the proportion of one turbine's capacity relative to
+the whole windfarm.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wombat.windfarm.windfarm.Windfarm.current_availability_wo_servicing">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">current_availability_wo_servicing</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#wombat.windfarm.windfarm.Windfarm.current_availability_wo_servicing" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the product of all system <code class="docutils literal notranslate"><span class="pre">operating_level</span></code> variables across
+the windfarm using the following forumation, ignoring 0 operating level due to
+ongoing servicing.</p>
+<div class="math notranslate nohighlight">
+\[\sum{
+    OperatingLevel_{substation_{i}} *
+    \sum{OperatingLevel_{turbine_{j}} * Weight_{turbine_{j}}}
+}\]</div>
+<p>where the :math:<code class="docutils literal notranslate"><span class="pre">{OperatingLevel}</span></code> is the product of the operating level
+of each subassembly on a given system (substation or turbine), and the
+:math:<code class="docutils literal notranslate"><span class="pre">{Weight}</span></code> is the proportion of one turbine's capacity relative to
+the whole windfarm.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-wombat.windfarm.system.system">
+<span id="system-wind-turbine-or-substation"></span><h2>System: Wind turbine or substation<a class="headerlink" href="#module-wombat.windfarm.system.system" title="Link to this heading">#</a></h2>
+<p>Creates the Turbine class.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.windfarm.system.system.System">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.windfarm.system.system.</span></span><span class="sig-name descname"><span class="pre">System</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repair_manager</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subassemblies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/system.html#System"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.system.System" title="Link to this definition">#</a></dt>
+<dd><p>Can either be a turbine or substation, but is meant to be something that consists
+of 'Subassembly' pieces.</p>
+<p>See <a class="reference external" href="https://www.sciencedirect.com/science/article/pii/S1364032117308985">here</a>
+for more information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env</strong> (<a class="reference internal" href="core.html#wombat.core.environment.WombatEnvironment" title="wombat.core.environment.WombatEnvironment"><em>WombatEnvironment</em></a>)</p></li>
+<li><p><strong>repair_manager</strong> (<a class="reference internal" href="core.html#wombat.core.repair_management.RepairManager" title="wombat.core.repair_management.RepairManager"><em>RepairManager</em></a>)</p></li>
+<li><p><strong>t_id</strong> (<em>str</em>)</p></li>
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>subassemblies</strong> (<em>dict</em>)</p></li>
+<li><p><strong>system</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.system.System._calculate_system_value">
+<span class="sig-name descname"><span class="pre">_calculate_system_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subassemblies</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/system.html#System._calculate_system_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.system.System._calculate_system_value" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the turbine's value based its capex_kw and capacity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>system</strong> (<em>str</em>) -- One of &quot;turbine&quot; or &quot;substation&quot;.</p></li>
+<li><p><strong>subassemblies</strong> (<em>dict</em>) -- Dictionary of subassemblies.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.system.System._create_subassemblies">
+<span class="sig-name descname"><span class="pre">_create_subassemblies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subassembly_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/system.html#System._create_subassemblies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.system.System._create_subassemblies" title="Link to this definition">#</a></dt>
+<dd><p>Creates each subassembly as a separate attribute and also a list for quick
+access.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>subassembly_data</strong> (<em>dict</em>) -- Dictionary providing the maintenance and failure definitions for at least
+one subassembly named</p></li>
+<li><p><strong>system</strong> (<em>str</em>) -- One of &quot;turbine&quot; or &quot;substation&quot; to indicate if the power curves should also
+be created, or not.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.system.System._initialize_power_curve">
+<span class="sig-name descname"><span class="pre">_initialize_power_curve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">power_curve_dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/system.html#System._initialize_power_curve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.system.System._initialize_power_curve" title="Link to this definition">#</a></dt>
+<dd><p>Creates the power curve function based on the <code class="docutils literal notranslate"><span class="pre">power_curve</span></code> input in the
+<code class="docutils literal notranslate"><span class="pre">subassembly_data</span></code> dictionary. If there is no valid input, then 0 will always
+be reutrned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>power_curve_dict</strong> (<em>dict</em>) -- The turbine definition dictionary.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.system.System.interrupt_all_subassembly_processes">
+<span class="sig-name descname"><span class="pre">interrupt_all_subassembly_processes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replacement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/system.html#System.interrupt_all_subassembly_processes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.system.System.interrupt_all_subassembly_processes" title="Link to this definition">#</a></dt>
+<dd><p>Interrupts the running processes in all of the system's subassemblies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>origin</strong> (<a class="reference internal" href="#wombat.windfarm.system.subassembly.Subassembly" title="wombat.windfarm.system.subassembly.Subassembly"><em>Subassembly</em></a>) -- The subassembly that triggered the request, if the method call is coming
+from a subassembly shutdown event.</p></li>
+<li><p><strong>replacement</strong> (<em>bool</em><em>, </em><em>optional</em>) -- If a subassebly <cite>id</cite> is provided, this indicates the interruption is caused
+by its replacement event. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wombat.windfarm.system.system.System.operating_level">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">operating_level</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#wombat.windfarm.system.system.System.operating_level" title="Link to this definition">#</a></dt>
+<dd><p>The turbine's operating level, based on subassembly and cable performance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>float</em> -- Operating level of the turbine.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wombat.windfarm.system.system.System.operating_level_wo_servicing">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">operating_level_wo_servicing</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#wombat.windfarm.system.system.System.operating_level_wo_servicing" title="Link to this definition">#</a></dt>
+<dd><p>The turbine's operating level, based on subassembly and cable performance,
+without accounting for servicing status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>float</em> -- Operating level of the turbine.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.system.System.power">
+<span class="sig-name descname"><span class="pre">power</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windspeed</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/system.html#System.power"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.system.System.power" title="Link to this definition">#</a></dt>
+<dd><p>Generates the power output for an iterable of windspeed values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>windspeed</strong> (<em>list</em><em>[</em><em>float</em><em>] </em><em>| </em><em>np.ndarrays</em>) -- Windspeed values, in m/s.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>np.ndarray</em> -- Power production, in kW.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-wombat.windfarm.system.subassembly">
+<span id="subassembly-the-modeled-components-of-a-system"></span><h2>Subassembly: The modeled components of a system<a class="headerlink" href="#module-wombat.windfarm.system.subassembly" title="Link to this heading">#</a></h2>
+<p>Provides the Subassembly class.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.windfarm.system.subassembly.Subassembly">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.windfarm.system.subassembly.</span></span><span class="sig-name descname"><span class="pre">Subassembly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subassembly_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/subassembly.html#Subassembly"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.subassembly.Subassembly" title="Link to this definition">#</a></dt>
+<dd><p>A major system composes the turbine or substation objects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env</strong> (<a class="reference internal" href="core.html#wombat.core.environment.WombatEnvironment" title="wombat.core.environment.WombatEnvironment"><em>WombatEnvironment</em></a>)</p></li>
+<li><p><strong>s_id</strong> (<em>str</em>)</p></li>
+<li><p><strong>subassembly_data</strong> (<em>dict</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.subassembly.Subassembly._create_processes">
+<span class="sig-name descname"><span class="pre">_create_processes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/subassembly.html#Subassembly._create_processes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.subassembly.Subassembly._create_processes" title="Link to this definition">#</a></dt>
+<dd><p>Creates the processes for each of the failure and maintenance types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Yields<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Tuple[Union[str, int], simpy.events.Process]</em> -- Creates a dictionary to keep track of the running processes within the
+subassembly.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.subassembly.Subassembly.recreate_processes">
+<span class="sig-name descname"><span class="pre">recreate_processes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/subassembly.html#Subassembly.recreate_processes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.subassembly.Subassembly.recreate_processes" title="Link to this definition">#</a></dt>
+<dd><p>If a turbine is being reset after a tow-to-port repair or replacement, then
+all processes are assumed to be reset to 0, and not pick back up where they left
+off.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.subassembly.Subassembly.interrupt_processes">
+<span class="sig-name descname"><span class="pre">interrupt_processes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replacement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/subassembly.html#Subassembly.interrupt_processes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.subassembly.Subassembly.interrupt_processes" title="Link to this definition">#</a></dt>
+<dd><p>Interrupts all of the running processes within the subassembly except for the
+process associated with failure that triggers the catastrophic failure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>origin</strong> (<a class="reference internal" href="#wombat.windfarm.system.subassembly.Subassembly" title="wombat.windfarm.system.subassembly.Subassembly"><em>Subassembly</em></a>) -- The subassembly that triggered the request, if the method call is coming
+from a subassembly shutdown event. If provided, and it is the same as the
+current subassembly, then a try/except flow is used to ensure the process
+that initiated the shutdown is not interrupting itself.</p></li>
+<li><p><strong>replacement</strong> (<em>bool</em><em>, </em><em>optional</em>) -- If a subassebly <cite>id</cite> is provided, this indicates the interruption is caused
+by its replacement event. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.subassembly.Subassembly.interrupt_all_subassembly_processes">
+<span class="sig-name descname"><span class="pre">interrupt_all_subassembly_processes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/subassembly.html#Subassembly.interrupt_all_subassembly_processes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.subassembly.Subassembly.interrupt_all_subassembly_processes" title="Link to this definition">#</a></dt>
+<dd><p>Thin wrapper for <code class="docutils literal notranslate"><span class="pre">system.interrupt_all_subassembly_processes</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.subassembly.Subassembly.trigger_request">
+<span class="sig-name descname"><span class="pre">trigger_request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/subassembly.html#Subassembly.trigger_request"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.subassembly.Subassembly.trigger_request" title="Link to this definition">#</a></dt>
+<dd><p>Triggers the actual repair or maintenance logic for a failure or maintenance
+event, respectively.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>action</strong> (<a class="reference internal" href="types.html#wombat.core.data_classes.Maintenance" title="wombat.core.data_classes.Maintenance"><em>Maintenance</em></a><em> | </em><a class="reference internal" href="types.html#wombat.core.data_classes.Failure" title="wombat.core.data_classes.Failure"><em>Failure</em></a>) -- The maintenance or failure event that triggers a <code class="docutils literal notranslate"><span class="pre">RepairRequest</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.subassembly.Subassembly.run_single_maintenance">
+<span class="sig-name descname"><span class="pre">run_single_maintenance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maintenance</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/subassembly.html#Subassembly.run_single_maintenance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.subassembly.Subassembly.run_single_maintenance" title="Link to this definition">#</a></dt>
+<dd><p>Runs a process to trigger one type of maintenance request throughout the
+simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>maintenance</strong> (<a class="reference internal" href="types.html#wombat.core.data_classes.Maintenance" title="wombat.core.data_classes.Maintenance"><em>Maintenance</em></a>) -- A maintenance category.</p>
+</dd>
+<dt class="field-even">Yields<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>simpy.events. HOURS_IN_DAY</em> -- Time between maintenance requests.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.subassembly.Subassembly.run_single_failure">
+<span class="sig-name descname"><span class="pre">run_single_failure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">failure</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/subassembly.html#Subassembly.run_single_failure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.subassembly.Subassembly.run_single_failure" title="Link to this definition">#</a></dt>
+<dd><p>Runs a process to trigger one type of failure repair request throughout the
+simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>failure</strong> (<a class="reference internal" href="types.html#wombat.core.data_classes.Failure" title="wombat.core.data_classes.Failure"><em>Failure</em></a>) -- A failure classification.</p>
+</dd>
+<dt class="field-even">Yields<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>simpy.events. HOURS_IN_DAY</em> -- Time between failure events that need to request a repair.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-wombat.windfarm.system.cable">
+<span id="cable-hybrid-system-and-subassembly-model"></span><h2>Cable: Hybrid system and subassembly model<a class="headerlink" href="#module-wombat.windfarm.system.cable" title="Link to this heading">#</a></h2>
+<p>&quot;Defines the Cable class and cable simulations.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.windfarm.system.cable.Cable">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.windfarm.system.cable.</span></span><span class="sig-name descname"><span class="pre">Cable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windfarm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cable_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/cable.html#Cable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.cable.Cable" title="Link to this definition">#</a></dt>
+<dd><p>The cable system/asset class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>windfarm</strong> (<code class="docutils literal notranslate"><span class="pre">wombat.windfarm.Windfarm</span></code>) -- The <code class="docutils literal notranslate"><span class="pre">Windfarm</span></code> object.</p></li>
+<li><p><strong>env</strong> (<a class="reference internal" href="core.html#wombat.core.environment.WombatEnvironment" title="wombat.core.environment.WombatEnvironment"><em>WombatEnvironment</em></a>) -- The simulation environment.</p></li>
+<li><p><strong>cable_id</strong> (<em>str</em>) -- The unique identifier for the cable.</p></li>
+<li><p><strong>connection_type</strong> (<em>str</em>) -- The type of cable. Must be one of &quot;array&quot; or &quot;export&quot;.</p></li>
+<li><p><strong>start_node</strong> (<em>str</em>) -- The starting point (<code class="docutils literal notranslate"><span class="pre">system.id</span></code>) (turbine or substation) of the cable segment.</p></li>
+<li><p><strong>cable_data</strong> (<em>dict</em>) -- The dictionary defining the cable segment.</p></li>
+<li><p><strong>end_node</strong> (<em>str</em>)</p></li>
+<li><p><strong>name</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.cable.Cable.set_string_details">
+<span class="sig-name descname"><span class="pre">set_string_details</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">substation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/cable.html#Cable.set_string_details"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.cable.Cable.set_string_details" title="Link to this definition">#</a></dt>
+<dd><p>Sets the starting turbine for the string to be used for traversing the
+correct upstream connections when resetting after a failure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start_node</strong> (<em>str</em>) -- The <code class="docutils literal notranslate"><span class="pre">System.id</span></code> for the starting turbine on a string.</p></li>
+<li><p><strong>substation</strong> (<em>str</em>) -- The <code class="docutils literal notranslate"><span class="pre">System.id</span></code> for the string's connecting substation.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.cable.Cable.finish_setup">
+<span class="sig-name descname"><span class="pre">finish_setup</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/cable.html#Cable.finish_setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.cable.Cable.finish_setup" title="Link to this definition">#</a></dt>
+<dd><p>Creates the <code class="docutils literal notranslate"><span class="pre">upstream_nodes</span></code> and <code class="docutils literal notranslate"><span class="pre">upstream_cables</span></code> attributes for use by
+the cable when triggering usptream failures and resetting them after the repair
+is complete.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.cable.Cable._create_processes">
+<span class="sig-name descname"><span class="pre">_create_processes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/cable.html#Cable._create_processes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.cable.Cable._create_processes" title="Link to this definition">#</a></dt>
+<dd><p>Creates the processes for each of the failure and maintenance types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Yields<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Tuple[Union[str, int], simpy.events.Process]</em> -- Creates a dictionary to keep track of the running processes within the
+subassembly.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.cable.Cable.recreate_processes">
+<span class="sig-name descname"><span class="pre">recreate_processes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/cable.html#Cable.recreate_processes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.cable.Cable.recreate_processes" title="Link to this definition">#</a></dt>
+<dd><p>If a cable is being reset after a replacement, then all processes are
+assumed to be reset to 0, and not pick back up where they left off.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.cable.Cable.interrupt_processes">
+<span class="sig-name descname"><span class="pre">interrupt_processes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">replacement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/cable.html#Cable.interrupt_processes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.cable.Cable.interrupt_processes" title="Link to this definition">#</a></dt>
+<dd><p>Interrupts all of the running processes within the subassembly except for the
+process associated with failure that triggers the catastrophic failure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>subassembly</strong> (<a class="reference internal" href="#wombat.windfarm.system.subassembly.Subassembly" title="wombat.windfarm.system.subassembly.Subassembly"><em>Subassembly</em></a>) -- The subassembly that should have all processes interrupted.</p></li>
+<li><p><strong>replacement</strong> (<em>bool</em><em>, </em><em>optional</em>) -- If a subassebly <cite>id</cite> is provided, this indicates the interruption is caused
+by its replacement event. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.cable.Cable.interrupt_all_subassembly_processes">
+<span class="sig-name descname"><span class="pre">interrupt_all_subassembly_processes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">replacement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/cable.html#Cable.interrupt_all_subassembly_processes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.cable.Cable.interrupt_all_subassembly_processes" title="Link to this definition">#</a></dt>
+<dd><p>Thin wrapper for <code class="docutils literal notranslate"><span class="pre">interrupt_processes</span></code> for consistent usage with system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>replacement</strong> (<em>bool</em><em>, </em><em>optional</em>) -- If a subassebly <cite>id</cite> is provided, this indicates the interruption is caused
+by its replacement event. Defaults to None.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.cable.Cable.stop_all_upstream_processes">
+<span class="sig-name descname"><span class="pre">stop_all_upstream_processes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">failure</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/cable.html#Cable.stop_all_upstream_processes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.cable.Cable.stop_all_upstream_processes" title="Link to this definition">#</a></dt>
+<dd><p>Stops all upstream turbines and cables from producing power by creating a
+<code class="docutils literal notranslate"><span class="pre">env.event()</span></code> for each <code class="docutils literal notranslate"><span class="pre">System.cable_failure</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Cable.downstream_failure</span></code>, respectively. In the case of an export cable, each
+string is traversed to stop the substation and upstream turbines and cables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>failure</strong> (<em>Failre</em>) -- The <code class="docutils literal notranslate"><span class="pre">Failure</span></code> that is causing a string shutdown.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.cable.Cable.trigger_request">
+<span class="sig-name descname"><span class="pre">trigger_request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/cable.html#Cable.trigger_request"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.cable.Cable.trigger_request" title="Link to this definition">#</a></dt>
+<dd><p>Triggers the actual repair or maintenance logic for a failure or maintenance
+event, respectively.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>action</strong> (<a class="reference internal" href="types.html#wombat.core.data_classes.Maintenance" title="wombat.core.data_classes.Maintenance"><em>Maintenance</em></a><em> | </em><a class="reference internal" href="types.html#wombat.core.data_classes.Failure" title="wombat.core.data_classes.Failure"><em>Failure</em></a>) -- The maintenance or failure event that triggers a <code class="docutils literal notranslate"><span class="pre">RepairRequest</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.cable.Cable.run_single_maintenance">
+<span class="sig-name descname"><span class="pre">run_single_maintenance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maintenance</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/cable.html#Cable.run_single_maintenance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.cable.Cable.run_single_maintenance" title="Link to this definition">#</a></dt>
+<dd><p>Runs a process to trigger one type of maintenance request throughout the
+simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>maintenance</strong> (<a class="reference internal" href="types.html#wombat.core.data_classes.Maintenance" title="wombat.core.data_classes.Maintenance"><em>Maintenance</em></a>) -- A maintenance category.</p>
+</dd>
+<dt class="field-even">Yields<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>simpy.events.Timeout</em> -- Time between maintenance requests.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.windfarm.system.cable.Cable.run_single_failure">
+<span class="sig-name descname"><span class="pre">run_single_failure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">failure</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/windfarm/system/cable.html#Cable.run_single_failure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.windfarm.system.cable.Cable.run_single_failure" title="Link to this definition">#</a></dt>
+<dd><p>Runs a process to trigger one type of failure repair request throughout the
+simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>failure</strong> (<a class="reference internal" href="types.html#wombat.core.data_classes.Failure" title="wombat.core.data_classes.Failure"><em>Failure</em></a>) -- A failure classification.</p>
+</dd>
+<dt class="field-even">Yields<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>simpy.events.Timeout</em> -- Time between failure events that need to request a repair.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./API"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="core.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Simulation Core Classes</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="utilities.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Helpers and Plotting</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-wombat.windfarm.windfarm">Wind Farm</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm"><code class="docutils literal notranslate"><span class="pre">Windfarm</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm._create_graph_layout"><code class="docutils literal notranslate"><span class="pre">Windfarm._create_graph_layout()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm._create_turbines_and_substations"><code class="docutils literal notranslate"><span class="pre">Windfarm._create_turbines_and_substations()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm._create_cables"><code class="docutils literal notranslate"><span class="pre">Windfarm._create_cables()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm.calculate_distance_matrix"><code class="docutils literal notranslate"><span class="pre">Windfarm.calculate_distance_matrix()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm._create_substation_turbine_map"><code class="docutils literal notranslate"><span class="pre">Windfarm._create_substation_turbine_map()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm._create_wind_farm_map"><code class="docutils literal notranslate"><span class="pre">Windfarm._create_wind_farm_map()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm.finish_setup"><code class="docutils literal notranslate"><span class="pre">Windfarm.finish_setup()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm._setup_logger"><code class="docutils literal notranslate"><span class="pre">Windfarm._setup_logger()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm._log_operations"><code class="docutils literal notranslate"><span class="pre">Windfarm._log_operations()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm.system"><code class="docutils literal notranslate"><span class="pre">Windfarm.system()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm.cable"><code class="docutils literal notranslate"><span class="pre">Windfarm.cable()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm.current_availability"><code class="docutils literal notranslate"><span class="pre">Windfarm.current_availability</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.windfarm.Windfarm.current_availability_wo_servicing"><code class="docutils literal notranslate"><span class="pre">Windfarm.current_availability_wo_servicing</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-wombat.windfarm.system.system">System: Wind turbine or substation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.system.System"><code class="docutils literal notranslate"><span class="pre">System</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.system.System._calculate_system_value"><code class="docutils literal notranslate"><span class="pre">System._calculate_system_value()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.system.System._create_subassemblies"><code class="docutils literal notranslate"><span class="pre">System._create_subassemblies()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.system.System._initialize_power_curve"><code class="docutils literal notranslate"><span class="pre">System._initialize_power_curve()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.system.System.interrupt_all_subassembly_processes"><code class="docutils literal notranslate"><span class="pre">System.interrupt_all_subassembly_processes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.system.System.operating_level"><code class="docutils literal notranslate"><span class="pre">System.operating_level</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.system.System.operating_level_wo_servicing"><code class="docutils literal notranslate"><span class="pre">System.operating_level_wo_servicing</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.system.System.power"><code class="docutils literal notranslate"><span class="pre">System.power()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-wombat.windfarm.system.subassembly">Subassembly: The modeled components of a system</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.subassembly.Subassembly"><code class="docutils literal notranslate"><span class="pre">Subassembly</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.subassembly.Subassembly._create_processes"><code class="docutils literal notranslate"><span class="pre">Subassembly._create_processes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.subassembly.Subassembly.recreate_processes"><code class="docutils literal notranslate"><span class="pre">Subassembly.recreate_processes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.subassembly.Subassembly.interrupt_processes"><code class="docutils literal notranslate"><span class="pre">Subassembly.interrupt_processes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.subassembly.Subassembly.interrupt_all_subassembly_processes"><code class="docutils literal notranslate"><span class="pre">Subassembly.interrupt_all_subassembly_processes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.subassembly.Subassembly.trigger_request"><code class="docutils literal notranslate"><span class="pre">Subassembly.trigger_request()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.subassembly.Subassembly.run_single_maintenance"><code class="docutils literal notranslate"><span class="pre">Subassembly.run_single_maintenance()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.subassembly.Subassembly.run_single_failure"><code class="docutils literal notranslate"><span class="pre">Subassembly.run_single_failure()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-wombat.windfarm.system.cable">Cable: Hybrid system and subassembly model</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable"><code class="docutils literal notranslate"><span class="pre">Cable</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable.set_string_details"><code class="docutils literal notranslate"><span class="pre">Cable.set_string_details()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable.finish_setup"><code class="docutils literal notranslate"><span class="pre">Cable.finish_setup()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable._create_processes"><code class="docutils literal notranslate"><span class="pre">Cable._create_processes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable.recreate_processes"><code class="docutils literal notranslate"><span class="pre">Cable.recreate_processes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable.interrupt_processes"><code class="docutils literal notranslate"><span class="pre">Cable.interrupt_processes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable.interrupt_all_subassembly_processes"><code class="docutils literal notranslate"><span class="pre">Cable.interrupt_all_subassembly_processes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable.stop_all_upstream_processes"><code class="docutils literal notranslate"><span class="pre">Cable.stop_all_upstream_processes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable.trigger_request"><code class="docutils literal notranslate"><span class="pre">Cable.trigger_request()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable.run_single_maintenance"><code class="docutils literal notranslate"><span class="pre">Cable.run_single_maintenance()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.windfarm.system.cable.Cable.run_single_failure"><code class="docutils literal notranslate"><span class="pre">Cable.run_single_failure()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Rob Hammond
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2021 Alliance for Sustainable Energy, LLC.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

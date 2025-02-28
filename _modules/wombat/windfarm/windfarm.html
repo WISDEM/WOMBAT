@@ -1,0 +1,994 @@
+
+<!DOCTYPE html>
+
+
+<html lang="python" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wombat.windfarm.windfarm &#8212; WOMBAT</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../_static/documentation_options.js?v=30a733bc"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/wombat/windfarm/windfarm';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="python"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">WOMBAT</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WISDEM/WOMBAT" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI version" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/v/WOMBAT" class="icon-link-image" alt="PyPI version"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI downloads" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/dm/WOMBAT" class="icon-link-image" alt="PyPI downloads"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples" title="Launch Binder" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://mybinder.org/badge_logo.svg" class="icon-link-image" alt="Launch Binder"/></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributor's Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../presentations.html">Presentations and Publications</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../workshops/index.html">Workshops</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../workshops/nawea_wind_tech_2023.html">NAWEA WindTech 2023 WOMBAT Tutorial</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../team.html">Team</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Working With the Code Base</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples/index.html">User Guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/how_to.html">How To Use WOMBAT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/strategy_demonstration.html">Servicing Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/metrics_demonstration.html">Demonstration of the Available Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/examples_reference.html">Examples Reference</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../API/index.html">WOMBAT API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../API/simulation_api.html">Simulation API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../API/types.html">Data Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../API/core.html">Simulation Core Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../API/windfarm.html">Wind Farm Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../API/utilities.html">Helpers and Plotting</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Change Log</a></li>
+
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for wombat.windfarm.windfarm</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Creates the Windfarm class/model.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">math</span><span class="w"> </span><span class="kn">import</span> <span class="n">fsum</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">cache</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">networkx</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nx</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">geopy</span><span class="w"> </span><span class="kn">import</span> <span class="n">distance</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">wombat.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">RepairManager</span><span class="p">,</span> <span class="n">WombatEnvironment</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wombat.core.library</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_yaml</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wombat.windfarm.system</span><span class="w"> </span><span class="kn">import</span> <span class="n">Cable</span><span class="p">,</span> <span class="n">System</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wombat.core.data_classes</span><span class="w"> </span><span class="kn">import</span> <span class="n">String</span><span class="p">,</span> <span class="n">SubString</span><span class="p">,</span> <span class="n">WindFarmMap</span><span class="p">,</span> <span class="n">SubstationMap</span>
+
+
+<div class="viewcode-block" id="Windfarm">
+<a class="viewcode-back" href="../../../API/windfarm.html#wombat.windfarm.windfarm.Windfarm">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Windfarm</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The primary class for operating on objects within a windfarm. The substations,</span>
+<span class="sd">    cables, and turbines are created as a network object to be more appropriately</span>
+<span class="sd">    accessed and controlled.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">env</span><span class="p">:</span> <span class="n">WombatEnvironment</span><span class="p">,</span>
+        <span class="n">windfarm_layout</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">repair_manager</span><span class="p">:</span> <span class="n">RepairManager</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="n">env</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">repair_manager</span> <span class="o">=</span> <span class="n">repair_manager</span>
+
+        <span class="c1"># Set up the layout and instantiate all windfarm objects</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">configs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;turbine&quot;</span><span class="p">:</span> <span class="p">{},</span> <span class="s2">&quot;substation&quot;</span><span class="p">:</span> <span class="p">{},</span> <span class="s2">&quot;cable&quot;</span><span class="p">:</span> <span class="p">{}}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_graph_layout</span><span class="p">(</span><span class="n">windfarm_layout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_turbines_and_substations</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_cables</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">turb</span><span class="p">)</span><span class="o">.</span><span class="n">capacity</span> <span class="k">for</span> <span class="n">turb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">turbine_id</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_substation_turbine_map</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_wind_farm_map</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finish_setup</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calculate_distance_matrix</span><span class="p">()</span>
+
+        <span class="c1"># Create the logging items</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_logger</span><span class="p">()</span>
+
+        <span class="c1"># Register the windfarm and start the logger</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">repair_manager</span><span class="o">.</span><span class="n">_register_windfarm</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">_register_windfarm</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_operations</span><span class="p">())</span>
+
+<div class="viewcode-block" id="Windfarm._create_graph_layout">
+<a class="viewcode-back" href="../../../API/windfarm.html#wombat.windfarm.windfarm.Windfarm._create_graph_layout">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_graph_layout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">windfarm_layout</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a network layout of the windfarm start from the substation(s) to</span>
+<span class="sd">        be able to capture downstream turbines that can be cut off in the event of a</span>
+<span class="sd">        cable failure.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        windfarm_layout : str</span>
+<span class="sd">            Filename to use for reading in the windfarm layout; must be a csv file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Read in the layout CSV file, then sort it by string, then order to ensure</span>
+        <span class="c1"># it can be traversed in sequential order later</span>
+        <span class="n">layout_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">/</span> <span class="s2">&quot;project/plant&quot;</span> <span class="o">/</span> <span class="n">windfarm_layout</span><span class="p">)</span>
+        <span class="n">layout</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">layout_path</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;order&quot;</span><span class="p">])</span>
+            <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">subassembly</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">subassembly</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">upstream_cable</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">upstream_cable</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="n">windfarm</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
+        <span class="n">windfarm</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">layout</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+        <span class="c1"># Assign the data attributes to the graph nodes</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;latitude&quot;</span><span class="p">,</span> <span class="s2">&quot;longitude&quot;</span><span class="p">,</span> <span class="s2">&quot;subassembly&quot;</span><span class="p">):</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">windfarm</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">layout</span><span class="p">[[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="n">col</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="n">col</span><span class="p">)</span>
+
+        <span class="c1"># Determine which nodes are substations and which are turbines</span>
+        <span class="k">if</span> <span class="s2">&quot;type&quot;</span> <span class="ow">in</span> <span class="n">layout</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="c1"># Extract the type directly from the layout file</span>
+            <span class="k">if</span> <span class="n">layout</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">layout</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">isin</span><span class="p">((</span><span class="s2">&quot;substation&quot;</span><span class="p">,</span> <span class="s2">&quot;turbine&quot;</span><span class="p">))]</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;At least one value in the &#39;type&#39; column are not one of:&quot;</span>
+                    <span class="s2">&quot; &#39;substation&#39; or &#39;turbine&#39;.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">substation_filter</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;substation&quot;</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span>
+                <span class="n">windfarm</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">layout</span><span class="p">[[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;type&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Deduce substations by their self-connected setting for interconnection</span>
+            <span class="n">substation_filter</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">layout</span><span class="o">.</span><span class="n">substation_id</span>
+            <span class="n">_type</span> <span class="o">=</span> <span class="p">{</span><span class="kc">True</span><span class="p">:</span> <span class="s2">&quot;substation&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">:</span> <span class="s2">&quot;turbine&quot;</span><span class="p">}</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">_type</span><span class="p">[</span><span class="n">val</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">layout</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">substation_filter</span><span class="o">.</span><span class="n">values</span><span class="p">)}</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">windfarm</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;type&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">turbine_id</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">substation_filter</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">substation_id</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">substation_filter</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">for</span> <span class="n">substation</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">substation_id</span><span class="p">:</span>
+            <span class="n">windfarm</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">substation</span><span class="p">][</span><span class="s2">&quot;connection&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
+                <span class="n">layout</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">substation</span><span class="p">,</span> <span class="s2">&quot;substation_id&quot;</span>
+            <span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Create a mapping for each substation to all connected turbines (subgraphs)</span>
+        <span class="n">substations</span> <span class="o">=</span> <span class="n">layout</span><span class="p">[</span><span class="n">substation_filter</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">turbines</span> <span class="o">=</span> <span class="n">layout</span><span class="p">[</span><span class="o">~</span><span class="n">substation_filter</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">substation_sections</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">turbines</span><span class="p">[</span><span class="n">turbines</span><span class="o">.</span><span class="n">substation_id</span> <span class="o">==</span> <span class="n">substation</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">substation</span> <span class="ow">in</span> <span class="n">substations</span><span class="o">.</span><span class="n">id</span>
+        <span class="p">]</span>
+
+        <span class="c1"># For each subgraph, create the edge connections between substations and</span>
+        <span class="c1"># turbines. Note: these are pre-sorted in the layout creation step.</span>
+        <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">substation_sections</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">section</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">row</span><span class="o">.</span><span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">start</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">substation_id</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">start</span> <span class="o">=</span> <span class="n">current</span>  <span class="c1"># noqa: F821</span>
+                <span class="n">current</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">id</span>
+                <span class="n">windfarm</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span>
+                    <span class="n">start</span><span class="p">,</span> <span class="n">current</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">distance</span><span class="p">,</span> <span class="n">cable</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">upstream_cable</span>
+                <span class="p">)</span>
+        <span class="c1"># Create the substation to substation and substation to self connections</span>
+        <span class="k">for</span> <span class="n">substation</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">substation_id</span><span class="p">:</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">layout</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">substation</span><span class="p">]</span>
+            <span class="n">windfarm</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span>
+                <span class="n">row</span><span class="o">.</span><span class="n">substation_id</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">substation</span><span class="p">,</span>
+                <span class="n">length</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">distance</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">cable</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">upstream_cable</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span> <span class="o">=</span> <span class="n">windfarm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layout_df</span> <span class="o">=</span> <span class="n">layout</span></div>
+
+
+<div class="viewcode-block" id="Windfarm._create_turbines_and_substations">
+<a class="viewcode-back" href="../../../API/windfarm.html#wombat.windfarm.windfarm.Windfarm._create_turbines_and_substations">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_turbines_and_substations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Instantiates the turbine and substation models as defined in the</span>
+<span class="sd">        user-provided layout file, and connects these models to the appropriate graph</span>
+<span class="sd">        nodes to create a fully representative windfarm network model.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            Raised if the subassembly data is not provided in the layout file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Loop through all nodes in the graph, and create the actual simulation objects</span>
+        <span class="k">for</span> <span class="n">system_id</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;subassembly&quot;</span><span class="p">]</span>
+            <span class="n">node_type</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;A &#39;subassembly&#39; file must be specified for all nodes in the&quot;</span>
+                    <span class="s2">&quot; windfarm layout!&quot;</span>
+                <span class="p">)</span>
+
+            <span class="c1"># Read in unique system configuration files only once, and reference</span>
+            <span class="c1"># the existing dictionary when possible to reduce I/O</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">subassembly_dict</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">configs</span><span class="p">[</span><span class="n">node_type</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">subassembly_dict</span> <span class="o">=</span> <span class="n">load_yaml</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">node_type</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">configs</span><span class="p">[</span><span class="n">node_type</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">subassembly_dict</span>
+
+            <span class="c1"># Create the turbine or substation simulation object</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">system_id</span><span class="p">][</span><span class="s2">&quot;system&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">System</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">repair_manager</span><span class="p">,</span>
+                <span class="n">system_id</span><span class="p">,</span>
+                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span>
+                <span class="n">subassembly_dict</span><span class="p">,</span>
+                <span class="n">node_type</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Windfarm._create_cables">
+<a class="viewcode-back" href="../../../API/windfarm.html#wombat.windfarm.windfarm.Windfarm._create_cables">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_cables</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Instantiates the cable models as defined in the user-provided layout file,</span>
+<span class="sd">        and connects these models to the appropriate graph edges to create a fully</span>
+<span class="sd">        representative windfarm network model.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            Raised if the cable model is not specified.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">get_name</span> <span class="o">=</span> <span class="s2">&quot;upstream_cable_name&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layout_df</span>
+        <span class="n">bad_data_location_messages</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Loop over all the edges in the graph and create cable objects</span>
+        <span class="k">for</span> <span class="n">start_node</span><span class="p">,</span> <span class="n">end_node</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;cable&quot;</span><span class="p">]</span>
+
+            <span class="c1"># Check that the cable data is provided</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;An &#39;upstream_cable&#39; file must be specified for all nodes in the&quot;</span>
+                    <span class="s2">&quot; windfarm layout!&quot;</span>
+                <span class="p">)</span>
+
+            <span class="c1"># Read in unique cable configuration files once to reduce I/O</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">cable_dict</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">configs</span><span class="p">[</span><span class="s2">&quot;cable&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">cable_dict</span> <span class="o">=</span> <span class="n">load_yaml</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">/</span> <span class="s2">&quot;cables&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;cable&quot;</span><span class="p">])</span>
+                <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+                    <span class="n">cable_dict</span> <span class="o">=</span> <span class="n">load_yaml</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">/</span> <span class="s2">&quot;windfarm&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;cable&quot;</span><span class="p">]</span>
+                    <span class="p">)</span>
+                    <span class="n">bad_data_location_messages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="s2">&quot;In v0.7, all cable configurations must be located in:&quot;</span>
+                        <span class="s2">&quot; &#39;&lt;library&gt;/cables/&quot;</span>
+                    <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">configs</span><span class="p">[</span><span class="s2">&quot;cable&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cable_dict</span>
+
+            <span class="c1"># Get the lat, lon pairs for the start and end points</span>
+            <span class="n">start_coordinates</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">start_node</span><span class="p">][</span><span class="s2">&quot;latitude&quot;</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">start_node</span><span class="p">][</span><span class="s2">&quot;longitude&quot;</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="n">end_coordinates</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">end_node</span><span class="p">][</span><span class="s2">&quot;latitude&quot;</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">end_node</span><span class="p">][</span><span class="s2">&quot;longitude&quot;</span><span class="p">],</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Get the unique naming of the cable connection if it&#39;s configured</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">get_name</span><span class="p">:</span>
+                <span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layout_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">layout_df</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">end_node</span><span class="p">,</span> <span class="s2">&quot;upstream_cable_name&quot;</span>
+                <span class="p">]</span>
+
+            <span class="c1"># If the real distance/cable length is not input, then the geodesic distance</span>
+            <span class="c1"># is calculated</span>
+            <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;length&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;length&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">distance</span><span class="o">.</span><span class="n">geodesic</span><span class="p">(</span>
+                    <span class="n">start_coordinates</span><span class="p">,</span> <span class="n">end_coordinates</span><span class="p">,</span> <span class="n">ellipsoid</span><span class="o">=</span><span class="s2">&quot;WGS-84&quot;</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">km</span>
+
+            <span class="c1"># Encode whether it is an array cable or an export cable</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">end_node</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;substation&quot;</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;export&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;array&quot;</span>
+
+            <span class="c1"># Create the Cable simulation object</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;cable&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Cable</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span> <span class="n">start_node</span><span class="p">,</span> <span class="n">end_node</span><span class="p">,</span> <span class="n">cable_dict</span><span class="p">,</span> <span class="n">name</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Calaculate the geometric center point of the cable for later</span>
+            <span class="c1"># determining travel distances to cables</span>
+            <span class="n">end_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">start_coordinates</span><span class="p">,</span> <span class="n">end_coordinates</span><span class="p">))</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;latitude&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;longitude&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">end_points</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Windfarm.calculate_distance_matrix">
+<a class="viewcode-back" href="../../../API/windfarm.html#wombat.windfarm.windfarm.Windfarm.calculate_distance_matrix">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_distance_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculates the geodesic distance, in km, between all of the windfarm&#39;s nodes,</span>
+<span class="sd">        e.g., substations and turbines, and cables.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span>
+        <span class="n">ids</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;cable&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="o">*</span><span class="n">_</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">)])</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;latitude&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;longitude&quot;</span><span class="p">])</span>
+            <span class="k">for</span> <span class="o">*</span><span class="n">_</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="p">]</span>
+
+        <span class="n">dist</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">distance</span><span class="o">.</span><span class="n">geodesic</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">)</span><span class="o">.</span><span class="n">km</span> <span class="k">for</span> <span class="n">c1</span><span class="p">,</span> <span class="n">c2</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">dist_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)))</span>
+        <span class="n">triangle_ix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">triu_indices_from</span><span class="p">(</span><span class="n">dist_arr</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">dist_arr</span><span class="p">[</span><span class="n">triangle_ix</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist_arr</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">triangle_ix</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span>
+
+        <span class="c1"># Set the self distance to infinity, so that only one crew can be dropped off</span>
+        <span class="c1"># at a single point</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">dist_arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">distance_matrix</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">dist_arr</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">ids</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">ids</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Windfarm._create_substation_turbine_map">
+<a class="viewcode-back" href="../../../API/windfarm.html#wombat.windfarm.windfarm.Windfarm._create_substation_turbine_map">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_substation_turbine_map</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates ``substation_turbine_map``, a dictionary, that maps substation(s) to</span>
+<span class="sd">        the dependent turbines in the windfarm, and the weighting of each turbine in the</span>
+<span class="sd">        windfarm.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get all turbines connected to each substation, excepting any connected via</span>
+        <span class="c1"># export cables that connect substations as these operate independently</span>
+        <span class="n">s_t_map</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;turbines&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;weights&quot;</span><span class="p">:</span> <span class="p">[]}</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">substation_id</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">substation_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">substation_id</span><span class="p">:</span>
+            <span class="n">nodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span>
+                <span class="n">nx</span><span class="o">.</span><span class="n">bfs_tree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">substation_id</span><span class="p">,</span> <span class="n">depth_limit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">nodes</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">substation_id</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">nodes</span><span class="p">):</span>
+                <span class="n">nodes</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                    <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="n">nx</span><span class="o">.</span><span class="n">dfs_successors</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+                <span class="p">)</span>
+            <span class="n">s_t_map</span><span class="p">[</span><span class="n">substation_id</span><span class="p">][</span><span class="s2">&quot;turbines&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">nodes</span><span class="p">))</span>
+
+        <span class="c1"># Reorient the mapping to have the turbine list and the capacity-based weighting</span>
+        <span class="c1"># of each turbine</span>
+        <span class="k">for</span> <span class="n">s_id</span> <span class="ow">in</span> <span class="n">s_t_map</span><span class="p">:</span>
+            <span class="n">s_t_map</span><span class="p">[</span><span class="n">s_id</span><span class="p">][</span><span class="s2">&quot;weights&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">capacity</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">s_t_map</span><span class="p">[</span><span class="n">s_id</span><span class="p">][</span><span class="s2">&quot;turbines&quot;</span><span class="p">]])</span>
+                <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">substation_turbine_map</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]</span> <span class="o">=</span> <span class="n">s_t_map</span>
+
+        <span class="c1"># Calculate the turbine weights</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">turbine_weights</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">s_t_map</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+            <span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;turbines&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">T</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Windfarm._create_wind_farm_map">
+<a class="viewcode-back" href="../../../API/windfarm.html#wombat.windfarm.windfarm.Windfarm._create_wind_farm_map">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_wind_farm_map</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a secondary graph object strictly for traversing the windfarm to turn</span>
+<span class="sd">        on/off the appropriate turbines, substations, and cables more easily.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">substations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">substation_id</span>
+        <span class="n">graph</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span>
+        <span class="n">wind_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">substations</span><span class="p">,</span> <span class="n">itertools</span><span class="o">.</span><span class="n">repeat</span><span class="p">({})))</span>
+
+        <span class="n">export</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">edges</span> <span class="k">if</span> <span class="n">el</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">substations</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">cable_tuple</span> <span class="ow">in</span> <span class="n">export</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cable</span><span class="p">(</span><span class="n">cable_tuple</span><span class="p">)</span><span class="o">.</span><span class="n">set_string_details</span><span class="p">(</span><span class="o">*</span><span class="n">cable_tuple</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">s_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">substation_id</span><span class="p">:</span>
+            <span class="n">start_nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                <span class="nb">set</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">bfs_tree</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">s_id</span><span class="p">,</span> <span class="n">depth_limit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span>
+                    <span class="n">substations</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">wind_map</span><span class="p">[</span><span class="n">s_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;strings&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">start_nodes</span><span class="p">,</span> <span class="n">itertools</span><span class="o">.</span><span class="n">repeat</span><span class="p">({})))}</span>
+
+            <span class="k">for</span> <span class="n">start_node</span> <span class="ow">in</span> <span class="n">start_nodes</span><span class="p">:</span>
+                <span class="n">upstream</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                    <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="n">nx</span><span class="o">.</span><span class="n">dfs_successors</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">start_node</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+                <span class="p">)</span>
+                <span class="n">wind_map</span><span class="p">[</span><span class="n">s_id</span><span class="p">][</span><span class="s2">&quot;strings&quot;</span><span class="p">][</span><span class="n">start_node</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="n">start_node</span><span class="p">:</span> <span class="n">SubString</span><span class="p">(</span>
+                        <span class="n">downstream</span><span class="o">=</span><span class="n">s_id</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+                        <span class="n">upstream</span><span class="o">=</span><span class="n">upstream</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+                    <span class="p">)</span>
+                <span class="p">}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cable</span><span class="p">((</span><span class="n">s_id</span><span class="p">,</span> <span class="n">start_node</span><span class="p">))</span><span class="o">.</span><span class="n">set_string_details</span><span class="p">(</span><span class="n">start_node</span><span class="p">,</span> <span class="n">s_id</span><span class="p">)</span>
+
+                <span class="n">downstream</span> <span class="o">=</span> <span class="n">start_node</span>
+                <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">upstream</span><span class="p">:</span>
+                    <span class="n">wind_map</span><span class="p">[</span><span class="n">s_id</span><span class="p">][</span><span class="s2">&quot;strings&quot;</span><span class="p">][</span><span class="n">start_node</span><span class="p">][</span><span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="n">SubString</span><span class="p">(</span>
+                        <span class="n">downstream</span><span class="o">=</span><span class="n">downstream</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+                        <span class="n">upstream</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span>  <span class="c1"># tye: ignore</span>
+                            <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="n">nx</span><span class="o">.</span><span class="n">dfs_successors</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+                        <span class="p">),</span>
+                    <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cable</span><span class="p">((</span><span class="n">downstream</span><span class="p">,</span> <span class="n">node</span><span class="p">))</span><span class="o">.</span><span class="n">set_string_details</span><span class="p">(</span><span class="n">start_node</span><span class="p">,</span> <span class="n">s_id</span><span class="p">)</span>
+                    <span class="n">downstream</span> <span class="o">=</span> <span class="n">node</span>
+
+                <span class="n">wind_map</span><span class="p">[</span><span class="n">s_id</span><span class="p">][</span><span class="s2">&quot;strings&quot;</span><span class="p">][</span><span class="n">start_node</span><span class="p">]</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span>  <span class="c1"># type: ignore</span>
+                    <span class="n">start</span><span class="o">=</span><span class="n">start_node</span><span class="p">,</span> <span class="n">upstream_map</span><span class="o">=</span><span class="n">wind_map</span><span class="p">[</span><span class="n">s_id</span><span class="p">][</span><span class="s2">&quot;strings&quot;</span><span class="p">][</span><span class="n">start_node</span><span class="p">]</span>
+                <span class="p">)</span>
+            <span class="n">wind_map</span><span class="p">[</span><span class="n">s_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">SubstationMap</span><span class="p">(</span>  <span class="c1"># type: ignore</span>
+                <span class="n">string_starts</span><span class="o">=</span><span class="n">start_nodes</span><span class="p">,</span>
+                <span class="n">string_map</span><span class="o">=</span><span class="n">wind_map</span><span class="p">[</span><span class="n">s_id</span><span class="p">][</span><span class="s2">&quot;strings&quot;</span><span class="p">],</span>
+                <span class="n">downstream</span><span class="o">=</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">s_id</span><span class="p">][</span><span class="s2">&quot;connection&quot;</span><span class="p">],</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wind_farm_map</span> <span class="o">=</span> <span class="n">WindFarmMap</span><span class="p">(</span>
+            <span class="n">substation_map</span><span class="o">=</span><span class="n">wind_map</span><span class="p">,</span>
+            <span class="n">export_cables</span><span class="o">=</span><span class="n">export</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Windfarm.finish_setup">
+<a class="viewcode-back" href="../../../API/windfarm.html#wombat.windfarm.windfarm.Windfarm.finish_setup">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">finish_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Final initialization hook for any substations, turbines, or cables.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">start_node</span><span class="p">,</span> <span class="n">end_node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cable</span><span class="p">((</span><span class="n">start_node</span><span class="p">,</span> <span class="n">end_node</span><span class="p">))</span><span class="o">.</span><span class="n">finish_setup</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Windfarm._setup_logger">
+<a class="viewcode-back" href="../../../API/windfarm.html#wombat.windfarm.windfarm.Windfarm._setup_logger">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_setup_logger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log_columns</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;datetime&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;env_datetime&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;env_time&quot;</span><span class="p">,</span>
+        <span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">system_list</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">_operations_writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictWriter</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">_operations_csv</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;|&quot;</span><span class="p">,</span> <span class="n">fieldnames</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_columns</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">initial</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">_operations_writer</span><span class="o">.</span><span class="n">writeheader</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Windfarm._log_operations">
+<a class="viewcode-back" href="../../../API/windfarm.html#wombat.windfarm.windfarm.Windfarm._log_operations">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_log_operations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Logs the operational data for a simulation.&quot;&quot;&quot;</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;datetime&quot;</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span>
+            <span class="s2">&quot;env_datetime&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">simulation_time</span><span class="p">,</span>
+            <span class="s2">&quot;env_time&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">message</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="p">{</span><span class="n">system</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">system</span><span class="p">)</span><span class="o">.</span><span class="n">operating_level</span> <span class="k">for</span> <span class="n">system</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system_list</span><span class="p">}</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">_operations_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+        <span class="n">HOURS</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1"># Loop 10K times, to limit the number of times we write to the operations</span>
+            <span class="c1"># log file. 10K was a crude optimization decision, so performance can vary</span>
+            <span class="c1"># dependending on the simulation</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10000</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">HOURS</span><span class="p">)</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;datetime&quot;</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span>
+                    <span class="s2">&quot;env_datetime&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">simulation_time</span><span class="p">,</span>
+                    <span class="s2">&quot;env_time&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="n">message</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="n">system</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">system</span><span class="p">)</span><span class="o">.</span><span class="n">operating_level</span>
+                        <span class="k">for</span> <span class="n">system</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system_list</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">_operations_buffer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">_operations_writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">_operations_buffer</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">_operations_buffer</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Windfarm.system">
+<a class="viewcode-back" href="../../../API/windfarm.html#wombat.windfarm.windfarm.Windfarm.system">[docs]</a>
+    <span class="nd">@cache</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">System</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convenience function to returns the desired `System` object for a turbine or</span>
+<span class="sd">        substation in the windfarm.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        system_id : str</span>
+<span class="sd">            The system&#39;s unique identifier, ``wombat.windfarm.System.id``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        System</span>
+<span class="sd">            The ``System`` object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">system_id</span><span class="p">][</span><span class="s2">&quot;system&quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Windfarm.cable">
+<a class="viewcode-back" href="../../../API/windfarm.html#wombat.windfarm.windfarm.Windfarm.cable">[docs]</a>
+    <span class="nd">@cache</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cable_id</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Cable</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convenience function to returns the desired `Cable` object for a cable in the</span>
+<span class="sd">        windfarm.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        cable_id : tuple[str, str] | str</span>
+<span class="sd">            The cable&#39;s unique identifier, of the form: (``wombat.windfarm.System.id``,</span>
+<span class="sd">            ``wombat.windfarm.System.id``), for the (downstream node id, upstream node</span>
+<span class="sd">            id), or the ``Cable.id``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Cable</span>
+<span class="sd">            The ``Cable`` object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cable_id</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">edge_id</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">cable_id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;::&quot;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge_id</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">edge_id</span> <span class="o">=</span> <span class="n">edge_id</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">edge_id</span> <span class="o">=</span> <span class="n">cable_id</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">edge_id</span><span class="p">][</span><span class="s2">&quot;cable&quot;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Edge </span><span class="si">{</span><span class="n">edge_id</span><span class="si">}</span><span class="s2"> is invalid.&quot;</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">current_availability</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculates the product of all system ``operating_level`` variables across</span>
+<span class="sd">        the windfarm using the following forumation.</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \sum{</span>
+<span class="sd">                OperatingLevel_{substation_{i}} *</span>
+<span class="sd">                \sum{OperatingLevel_{turbine_{j}} * Weight_{turbine_{j}}}</span>
+<span class="sd">            }</span>
+
+<span class="sd">        where the :math:``{OperatingLevel}`` is the product of the operating level</span>
+<span class="sd">        of each subassembly on a given system (substation or turbine), and the</span>
+<span class="sd">        :math:``{Weight}`` is the proportion of one turbine&#39;s capacity relative to</span>
+<span class="sd">        the whole windfarm.</span>
+<span class="sd">        &quot;&quot;&quot;</span>  <span class="c1"># noqa: W605</span>
+        <span class="n">operating_levels</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">s_id</span><span class="p">:</span> <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">operating_level</span>
+                <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">substation_turbine_map</span><span class="p">[</span><span class="n">s_id</span><span class="p">][</span><span class="s2">&quot;turbines&quot;</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+            <span class="p">]</span>
+            <span class="k">for</span> <span class="n">s_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">substation_turbine_map</span>
+        <span class="p">}</span>
+        <span class="n">availability</span> <span class="o">=</span> <span class="n">fsum</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">s_id</span><span class="p">)</span><span class="o">.</span><span class="n">operating_level</span>
+                <span class="o">*</span> <span class="n">fsum</span><span class="p">(</span>
+                    <span class="n">operating_levels</span><span class="p">[</span><span class="n">s_id</span><span class="p">]</span>
+                    <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">substation_turbine_map</span><span class="p">[</span><span class="n">s_id</span><span class="p">][</span><span class="s2">&quot;weights&quot;</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">s_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">substation_turbine_map</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">availability</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">current_availability_wo_servicing</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculates the product of all system ``operating_level`` variables across</span>
+<span class="sd">        the windfarm using the following forumation, ignoring 0 operating level due to</span>
+<span class="sd">        ongoing servicing.</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \sum{</span>
+<span class="sd">                OperatingLevel_{substation_{i}} *</span>
+<span class="sd">                \sum{OperatingLevel_{turbine_{j}} * Weight_{turbine_{j}}}</span>
+<span class="sd">            }</span>
+
+<span class="sd">        where the :math:``{OperatingLevel}`` is the product of the operating level</span>
+<span class="sd">        of each subassembly on a given system (substation or turbine), and the</span>
+<span class="sd">        :math:``{Weight}`` is the proportion of one turbine&#39;s capacity relative to</span>
+<span class="sd">        the whole windfarm.</span>
+<span class="sd">        &quot;&quot;&quot;</span>  <span class="c1"># noqa: W605</span>
+        <span class="n">operating_levels</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">s_id</span><span class="p">:</span> <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">operating_level_wo_servicing</span>
+                <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">substation_turbine_map</span><span class="p">[</span><span class="n">s_id</span><span class="p">][</span><span class="s2">&quot;turbines&quot;</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+            <span class="p">]</span>
+            <span class="k">for</span> <span class="n">s_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">substation_turbine_map</span>
+        <span class="p">}</span>
+        <span class="n">availability</span> <span class="o">=</span> <span class="n">fsum</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">s_id</span><span class="p">)</span><span class="o">.</span><span class="n">operating_level_wo_servicing</span>
+                <span class="o">*</span> <span class="n">fsum</span><span class="p">(</span>
+                    <span class="n">operating_levels</span><span class="p">[</span><span class="n">s_id</span><span class="p">]</span>
+                    <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">substation_turbine_map</span><span class="p">[</span><span class="n">s_id</span><span class="p">][</span><span class="s2">&quot;weights&quot;</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">s_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">substation_turbine_map</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">availability</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Rob Hammond
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2021 Alliance for Sustainable Energy, LLC.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

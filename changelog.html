@@ -1,0 +1,1114 @@
+
+<!DOCTYPE html>
+
+
+<html lang="python" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Change Log &#8212; WOMBAT</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=30a733bc"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'changelog';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Helpers and Plotting" href="API/utilities.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="python"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">WOMBAT</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WISDEM/WOMBAT" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI version" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/v/WOMBAT" class="icon-link-image" alt="PyPI version"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI downloads" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/dm/WOMBAT" class="icon-link-image" alt="PyPI downloads"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples" title="Launch Binder" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://mybinder.org/badge_logo.svg" class="icon-link-image" alt="Launch Binder"/></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributor's Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="presentations.html">Presentations and Publications</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="workshops/index.html">Workshops</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="workshops/nawea_wind_tech_2023.html">NAWEA WindTech 2023 WOMBAT Tutorial</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="team.html">Team</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Working With the Code Base</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="examples/index.html">User Guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/how_to.html">How To Use WOMBAT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/strategy_demonstration.html">Servicing Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/metrics_demonstration.html">Demonstration of the Available Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/examples_reference.html">Examples Reference</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="API/index.html">WOMBAT API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="API/simulation_api.html">Simulation API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API/types.html">Data Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API/core.html">Simulation Core Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API/windfarm.html">Wind Farm Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API/utilities.html">Helpers and Plotting</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Change Log</a></li>
+
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/changelog.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Change Log</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Change Log</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#changelog">CHANGELOG</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#february-2025">0.9.7 (12 February 2025)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#december-2024">0.9.6 (11 December 2024)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#august-2024">0.9.5 (6 August 2024)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#july-2024">0.9.4 (1 July 2024)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-9-3-15-february-2024">v0.9.3 (15 February 2024)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-9-2-13-november-2023">v0.9.2 (13 November 2023)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#general">General</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#bug-fixes">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-9-1-27-october-2023">v0.9.1 (27 October 2023)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-9-27-october-2023">v0.9 (27 October 2023)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Bug Fixes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#general-updates">General Updates</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#methodology-updates">Methodology Updates</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deprecations">Deprecations</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-8-1-28-august-2023">v0.8.1 (28 August 2023)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-8-0-16-august-2023">v0.8.0 (16 August 2023)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Bug Fixes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#features">Features</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">General</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-7-1-4-may-2023">v0.7.1 (4 May 2023)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-7-0-3-may-2023">v0.7.0 (3 May 2023)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-6-2-3-february-2023">v0.6.2 (3 February 2023)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-6-1-31-january-2023">v0.6.1 (31 January 2023)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-6-0-10-january-2023">v0.6.0 (10 January 2023)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#new-and-updated-features">New and Updated Features</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#general-improvements">General Improvements</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#july-2022">0.5.1 (22 July 2022)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#june-2022">0.5.0 (30 June 2022)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#march-8">0.4.1 (2022-March-8)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#february-4">0.4.0 (2022-February-4)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#december-9">0.3.5 (2021-December-9)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#march-2">0.3.1 (2021-March-2)</a></li>
+</ul>
+</li>
+</ul>
+
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="change-log">
+<h1>Change Log<a class="headerlink" href="#change-log" title="Link to this heading">#</a></h1>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="changelog">
+<h1>CHANGELOG<a class="headerlink" href="#changelog" title="Link to this heading">#</a></h1>
+<section id="february-2025">
+<h2>0.9.7 (12 February 2025)<a class="headerlink" href="#february-2025" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Fixes a new bug where YAML is now sensitive to the implicit closing of files by using
+a context manager to open a YAML file and return the contents.</p></li>
+<li><p>Removes PyPI secret usage now that trusted publishing fails with redundant permissions.</p></li>
+</ul>
+</section>
+<section id="december-2024">
+<h2>0.9.6 (11 December 2024)<a class="headerlink" href="#december-2024" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Fixes a discrepancy where the wind farm vs turbine availability losses do not match. A slight difference in total availability will be noticeable as a result.</p></li>
+</ul>
+</section>
+<section id="august-2024">
+<h2>0.9.5 (6 August 2024)<a class="headerlink" href="#august-2024" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Fixes a bug that causes delayed mobilizations. The underlying cause was the lack of
+resetting the index column of <code class="docutils literal notranslate"><span class="pre">WombatEnvironment.weather</span></code> after filtering out rows
+that exist prior to the starting year of the simulation.</p></li>
+<li><p>The Polars minimum version was bumped to avoid a deprecation error with the previous
+index column generation method.</p></li>
+</ul>
+</section>
+<section id="july-2024">
+<h2>0.9.4 (1 July 2024)<a class="headerlink" href="#july-2024" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Adds support for Python 3.11 and 3.12.</p></li>
+<li><p>Adds the following capability and servicing equipment codes:</p>
+<ul>
+<li><p>MCN for medium cranes, which should enable greater options for land-based wind.</p></li>
+<li><p>VSG for vessel support groups, or any representation of multiple vessels used for a
+single operation.</p></li>
+</ul>
+</li>
+<li><p>Updates Polars API usage to account for a series of deprecation and future warnings.</p></li>
+<li><p>Changes the metrics demonstration to use the COREWIND Morro Bay in situ example, and
+adds the availability plotting to the demonstration example.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RepairRequest.prior_operating_level</span></code> has been added to allow 100% reduction factor failures to correctly and consistently restore the operating level of a subassembly following a repair.</p></li>
+<li><p>Replaces the <code class="docutils literal notranslate"><span class="pre">valid_reduction</span></code> attrs validator with <code class="docutils literal notranslate"><span class="pre">validate_0_1_inclusive</span></code> to reuse the logic in multiple places without duplicating checking methods.</p></li>
+<li><p>Adds a <code class="docutils literal notranslate"><span class="pre">replacement</span></code> flag for interruption methods, so that a failure or replacement comment can be added as a cause for <code class="docutils literal notranslate"><span class="pre">simpy.process.interrupt</span></code>. This update allows the failure and maintenance processes to check if an interruption should cause the process to exit completely. Additionally, the forced exit ensures that processes can't persist after a replacement event when a process is recreated, which was happening in isolated cases.</p></li>
+<li><p>Fixes a bug in <code class="docutils literal notranslate"><span class="pre">RepairManager.purge_subassemble_requests()</span></code> where the pending tows are cleared regardless of whether or not the focal subassembly is the cause of the tow, leading to a simulation failure.</p></li>
+<li><p>Fixes a bug in <code class="docutils literal notranslate"><span class="pre">utilities/utilities.py:create_variable_from_string()</span></code> to operate in a way that is expected. The original method was removing all numerics, but only leading punctuation and numerics should be replaced, with any punctuation being replaced with an underscore.</p></li>
+<li><p>Adds additional inline comments for clarification on internal methods.</p></li>
+<li><p>Update <a class="reference external" href="http://README.md">README.md</a> to be inline with current conda and Python standards.</p></li>
+<li><p>Fully adopts <code class="docutils literal notranslate"><span class="pre">functools.cache</span></code> now that older Python versions where
+<code class="docutils literal notranslate"><span class="pre">functools.lru_cache</span></code> was the available caching method.</p></li>
+<li><p>Fixes a Pandas <code class="docutils literal notranslate"><span class="pre">FutureWarning</span></code> by removing a now unnecessary piece of code in
+<code class="docutils literal notranslate"><span class="pre">wombat/core/post_processor.py:equipment_costs</span></code></p></li>
+</ul>
+</section>
+<section id="v0-9-3-15-february-2024">
+<h2>v0.9.3 (15 February 2024)<a class="headerlink" href="#v0-9-3-15-february-2024" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Reinstate the original time-based availability methodology, which is based on all
+turbines, not the wind farm total.</p></li>
+<li><p>Replace the <code class="docutils literal notranslate"><span class="pre">black</span></code> formatter with <code class="docutils literal notranslate"><span class="pre">ruff</span></code>.</p></li>
+<li><p>Adopt <code class="docutils literal notranslate"><span class="pre">pyupgrade</span></code> to ensure modern Python language usage.</p></li>
+<li><p>Add the NumPy 2.0 integration tool to Ruff.</p></li>
+</ul>
+</section>
+<section id="v0-9-2-13-november-2023">
+<h2>v0.9.2 (13 November 2023)<a class="headerlink" href="#v0-9-2-13-november-2023" title="Link to this heading">#</a></h2>
+<section id="general">
+<h3>General<a class="headerlink" href="#general" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Adds the PowerPoint file used in the NAWEA/WindTech 2023 Workshop.</p></li>
+<li><p>Updates all coming soon links and typos.</p></li>
+</ul>
+</section>
+<section id="bug-fixes">
+<h3>Bug Fixes<a class="headerlink" href="#bug-fixes" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Fixes an edge-case introduced in v0.9.1 where traveling during a crew transfer process is able to occur after the end of the simulation period.</p></li>
+<li><p>The documentation has been completely converted to a Jupyter Book paradigm due to a build issue found in the GitHub Actions.</p></li>
+</ul>
+</section>
+</section>
+<section id="v0-9-1-27-october-2023">
+<h2>v0.9.1 (27 October 2023)<a class="headerlink" href="#v0-9-1-27-october-2023" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Removes the pre-public release analysis data and results, located at<code class="docutils literal notranslate"><span class="pre">library/original-outdated</span></code>, from the repository, but can be found in all releases prior to v0.9. This is being done to manage the package size and ensure it can be published to PyPI.</p></li>
+</ul>
+</section>
+<section id="v0-9-27-october-2023">
+<h2>v0.9 (27 October 2023)<a class="headerlink" href="#v0-9-27-october-2023" title="Link to this heading">#</a></h2>
+<section id="id1">
+<h3>Bug Fixes<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Repairs that had a weather delay extended repairs past the end of the shift now properly extend the repair into future shifts instead of completing early. This has a small negative impact on availability because that means some repairs can take longer than they had originally.</p></li>
+<li><p>Traveling to a system for a repair where the timing extends beyond the end of the shift, but into the next shift, is now registered as a shift delay just like travel weather delays that extend beyond the end of the current shift but before the start of the next shift. This has a small positive impact on availability because a turbine or cable may not start being repaired until weather is more consistently clear, rather than starting it and extending it for many shifts.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Windfarm.cable()</span></code> now correctly identifies 2 and 3 length cable naming conventions to differentiate which version of the cable id is being retrieved.</p></li>
+<li><p>An edge case where events occurred just after the end of a simulation has been resolved by checking the datetime stamp of that event and not adding any action log to the simulation that is after the <code class="docutils literal notranslate"><span class="pre">WombatEnvironment.end_datetime</span></code>.</p></li>
+<li><p>A bug in how the total wind farm operating level was calculated is updated to account for substation downtime, rather than using a sum of all turbine values.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Metrics.time_based_availability</span></code> and <code class="docutils literal notranslate"><span class="pre">Metrics.production_based_availability</span></code> have been updated to use to take advantage of the above fix. Similarly, the time-based availability skews higher now, as is expected when taking into account all availability greater than 0, and the energy-based availability drops moderately as a result of accounting for the substation downtime.</p></li>
+</ul>
+</section>
+<section id="general-updates">
+<h3>General Updates<a class="headerlink" href="#general-updates" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Metrics.equipment_labor_cost_breakdowns</span></code> now has a <code class="docutils literal notranslate"><span class="pre">by_equipment</span></code> boolean flag, so that the labor and equipment costs can be broken down by category and equipment. Additionally, <code class="docutils literal notranslate"><span class="pre">total_hours</span></code> has been added to the results, resulting in fewer computed metrics across the same set of breakdowns.</p></li>
+<li><p>&quot;request canceled&quot; and &quot;complete&quot; are now updated in the logging to directly state if it's a &quot;repair&quot; or &quot;maintenance&quot; task that was completed or canceled to ensure consistency across the logging messages. As a result, <code class="docutils literal notranslate"><span class="pre">Metrics.task_completion_rate()</span></code> can now correctly differentiate between the completed tasks effectively.</p></li>
+<li><p>The use of unique naming for the servicing equipment is now enforced to ensure that there is no overlap and potential confusion in the model.</p></li>
+<li><p>New, experimental plotting functionality has been added via <code class="docutils literal notranslate"><span class="pre">wombat.utilities.plot</span></code>.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_farm_layout</span></code> plots the graph layout of the farm. Note that this will not work if realistic lat/lon pairs have not been provided in the layout CSV.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_farm_availability</span></code> plots a line chart of the monthly overall windfarm availability. Additional toggles allow for the plotting of individual turbines in the background and/or a 95% confidence interval band around the farm's availability</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_detailed_availability</span></code> plots a heatmap of the hourly turbine and farm operational levels to help in debugging simulations where availability may be running suspiciously low (i.e., a turbine might have shut down or a cable failure didn't get repaired within a reasonable time frame).</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Simulation.service_equipment</span></code> is now a dictionary to provide clear access to the servicing equipment details.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Simulation.from_config()</span></code> requires both a library input and a file name input for the configuration after deprecating the <code class="docutils literal notranslate"><span class="pre">library</span></code> field from the configuration requirements due to it being cumbersome</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Metrics.opex()</span></code> provides the opex output by category if <code class="docutils literal notranslate"><span class="pre">by_category</span></code> is set to be <code class="docutils literal notranslate"><span class="pre">True</span></code></p></li>
+</ul>
+</section>
+<section id="methodology-updates">
+<h3>Methodology Updates<a class="headerlink" href="#methodology-updates" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Subassemblies and cables are now able to resample their next times to failure for all maintenance and failure activities, so that replacement events reset the timing for failures across the board.</p></li>
+<li><p>Systems are no longer interrupted once the servicing equipment addressing a repair or maintenance task is dispatched, and instead are interrupted just before the crew is transferred to begin repair, maintenance, or unmooring. This has a small net positive increase in the availability for short travel distances, but can vary if the travel time is more than a few hours (i.e., large distance to port, slow travel due to weather, &amp; etc.)</p></li>
+<li><p>When a tow to port repair is in the queue, no other repairs or maintenance activities will occur for that turbine until it's brought into port for repairs.</p></li>
+</ul>
+</section>
+<section id="deprecations">
+<h3>Deprecations<a class="headerlink" href="#deprecations" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>The original library structure has been fully deprecated, please see the Reference/How To example for more details on converting data that has not yet been updated.</p></li>
+<li><p>All PySAM functionality has been deprecated as it's no longer relevant to this work.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">Simulation.config</span></code> no longer requires the <code class="docutils literal notranslate"><span class="pre">library</span></code> field to reduce conflicts with sharing data between users.</p></li>
+</ul>
+</section>
+</section>
+<section id="v0-8-1-28-august-2023">
+<h2>v0.8.1 (28 August 2023)<a class="headerlink" href="#v0-8-1-28-august-2023" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Fixes a bug where servicing equipment waiting for the next operational period at the end of a simulation get stuck in an infinite loop because the timeout is set for just prior to the end of the simulation, and not just after the end of the simulation's maximum run time.</p></li>
+</ul>
+</section>
+<section id="v0-8-0-16-august-2023">
+<h2>v0.8.0 (16 August 2023)<a class="headerlink" href="#v0-8-0-16-august-2023" title="Link to this heading">#</a></h2>
+<section id="id2">
+<h3>Bug Fixes<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Most of the <code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">type:</span> <span class="pre">ignore</span></code> comments have been removed, or the past errors have been resolved</p></li>
+<li><p>Failure and maintenance logic in the <code class="docutils literal notranslate"><span class="pre">Cable</span></code> and <code class="docutils literal notranslate"><span class="pre">Subassembly</span></code> models have been wrapped in <code class="docutils literal notranslate"><span class="pre">if</span></code>/<code class="docutils literal notranslate"><span class="pre">else</span></code> blocks to ensure previously unreachable code still can't be reached under limited conditions</p></li>
+<li><p>Fixes a bug in where the mobilization duration is logged. Previously, the mobilization duration was logged upon completion, but now is logged while during the actual mobilizing, with costs still being logged upon completion.</p></li>
+<li><p>Fixes an uncommon error where repairs are made twice causing the simulation to fail. This was caused by a control mismatch in the unscheduled repair process, and was fixed by better tracking and controlling when a repair moves from &quot;pending&quot; (submitted), to &quot;processing&quot; (handed off to the servicing equipment for repair or to the port for a tow-to-port repair cycle), to &quot;completed&quot; (the repair is registered as complete). Additionally, the servicing equipment no longer relies on receiving the first repair from the repair manager on dispatch, and follows the same <code class="docutils literal notranslate"><span class="pre">get_next_request()</span></code> logic that will occur following the initial dispatch and repair.</p></li>
+<li><p>Fixes an error where a repair has <code class="docutils literal notranslate"><span class="pre">replacement=True</span></code> and <code class="docutils literal notranslate"><span class="pre">operation_reduction</span></code> &lt; 1 both resets the <code class="docutils literal notranslate"><span class="pre">operating_level</span></code> back to 1 and readjusts for the <code class="docutils literal notranslate"><span class="pre">operation_reduction</span></code>, which can cause <code class="docutils literal notranslate"><span class="pre">operating_level</span></code> &gt; 100%</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ServiceEquipment.crew_transfer()</span></code> uses a while loop in place of an <code class="docutils literal notranslate"><span class="pre">if</span></code> with recursion strategy to handle unsafe transfer conditions to continuously wait until the next shift's available window.</p></li>
+</ul>
+</section>
+<section id="features">
+<h3>Features<a class="headerlink" href="#features" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Adds a <code class="docutils literal notranslate"><span class="pre">non_stop_shift</span></code> attribute to <code class="docutils literal notranslate"><span class="pre">ServiceEquipmentData</span></code>, <code class="docutils literal notranslate"><span class="pre">UnscheduledServiceEquipmentData</span></code>, <code class="docutils literal notranslate"><span class="pre">ScheduledServiceEquipmentData</span></code>, and <code class="docutils literal notranslate"><span class="pre">PortConfig</span></code> that is set in the post-initialization hook or through <code class="docutils literal notranslate"><span class="pre">DateLimitsMixin._set_environment_shift()</span></code> to ensure it is updated appropriately. Additionally, all checks for a 24 hour shift now check for the <code class="docutils literal notranslate"><span class="pre">non_stop_shift</span></code> attribute.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Metrics.emissions()</span></code> has been added to the list of available metrics to calculate the emissions from idling at port or sea, tranisiting, and maneuvering. Co-authored by and inspired by analysis work from &#64;hemezz.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Simulation</span></code> now accepts a <code class="docutils literal notranslate"><span class="pre">random_seed</span></code> or <code class="docutils literal notranslate"><span class="pre">random_generator</span></code> variable to seed the random number generators for Weibull failure timeouts and wait timing between event completions. Setting the <code class="docutils literal notranslate"><span class="pre">random_seed</span></code> to the same value from one simulation to the next will net the same results between different simulations, whereas the <code class="docutils literal notranslate"><span class="pre">random_generator</span></code> can be used to use the same generator for a batch of simulations.</p></li>
+</ul>
+</section>
+<section id="id3">
+<h3>General<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>All <code class="docutils literal notranslate"><span class="pre">assert</span></code> statements are now only called when type checking is performed</p></li>
+<li><p>Replaces all <code class="docutils literal notranslate"><span class="pre">.get(lamda</span> <span class="pre">x:</span> <span class="pre">x</span> <span class="pre">==</span> <span class="pre">request)</span></code> with a 10x faster <code class="docutils literal notranslate"><span class="pre">.get(lambda</span> <span class="pre">x:</span> <span class="pre">x</span> <span class="pre">is</span> <span class="pre">request)</span></code> to more efficiently filter out the desired event to be removed from the repair manager and port repair management.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WombatEnvironment.weather</span></code> is now a Polars DataFrame to improve efficiency and indexing bottlenecks introduced in Pandas 2.0.</p></li>
+<li><p>All subassembly cable files are read in once, and stored in a dictionary to provide a modest speed up for the simulation initialization.</p></li>
+</ul>
+</section>
+</section>
+<section id="v0-7-1-4-may-2023">
+<h2>v0.7.1 (4 May 2023)<a class="headerlink" href="#v0-7-1-4-may-2023" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Features</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">Metrics.process_times()</span></code> now includes the time_to_start, representing the time between when a request is submitted, and when the repairs officially start.</p></li>
+<li><p>Expand the acceptable date formats for the weather profiles to allow for year-first.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="v0-7-0-3-may-2023">
+<h2>v0.7.0 (3 May 2023)<a class="headerlink" href="#v0-7-0-3-may-2023" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Replace Flake8 and Pylint in the pre-commit workflow with ruff, and fix/ignore the resulting errors as appropriate</p></li>
+<li><p>Features:</p>
+<ul>
+<li><p>Weather data now has the ability to contain more than just the required &quot;windspeed&quot; and &quot;waveheight&quot; columns. This will allow for easier expansion of the weather model in the future, and increase compatibility with other NREL techno economic modeling frameworks.</p></li>
+</ul>
+</li>
+<li><p>Bug fixes:</p>
+<ul>
+<li><p>Maintenance and failure simulation process interruptions were occuring prior to starting the process timing, and causing simulation failures.</p></li>
+<li><p>Duplicated parameters were being processed in <code class="docutils literal notranslate"><span class="pre">WombatEnvironment.log_action</span></code> stemming from improper handling of varying parameters in some of the more complex control flow logic in <em>in situ</em> repairs.</p></li>
+<li><p>Another edge case of negative delays during crew transfers where there is insufficient time remaining in the shift after account for weather, so the method was called recursively, but not exiting the original loop.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Port</span></code> management of <em>in situ</em> and tow-to-port capable tugboats wasn't properly accounting for tugboats of varying capabilities, and assuming all tugboats could do both. The vessel management and repair processing were out of sync causing duplicated turbine servicing/towing.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RepairManager</span></code> has consolidated the dispatching of servicing equipment to be the following categories instead of the previously complex logic:</p>
+<ul>
+<li><p>If a request is a tow-to-port category, have the port initiate the process</p></li>
+<li><p>If the dispatching thresholds are met, then have the port initiate a repair for port-based servicing equipment, otherwise the repair manager will dispatch the appropriate servicing equipment.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ServiceEquipment.weather_delay()</span></code> no longer silently processes a second weather delay.</p></li>
+<li><p>Intra-site travel is now correctly logging the distance and duration of traveling between systems at the site by moving the location setting logic out of <code class="docutils literal notranslate"><span class="pre">crew_transfer</span></code> method and being entirely maintained within, or next to, the <code class="docutils literal notranslate"><span class="pre">travel</span></code> method of <code class="docutils literal notranslate"><span class="pre">ServiceEquipment</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RepairManager</span></code> now properly waits to dispatch servicing equipment until they are no longer under service from another servicing equipment unit.</p></li>
+<li><p>Servicing equipment are no longer simultaneously dispatched from both the <code class="docutils literal notranslate"><span class="pre">Port</span></code> and <code class="docutils literal notranslate"><span class="pre">RepairManager</span></code> causing simulations to potentially error out when the <code class="docutils literal notranslate"><span class="pre">System.servicing</span></code> or <code class="docutils literal notranslate"><span class="pre">Cable.servicing</span></code> statuses are overridden by the second-in-line servicing equipment. This was resolved by the port waiting for the turbine, a tugboat, and a spot at port to become available, then immediately halting the turbine, and starting the tow-in logic.</p></li>
+<li><p>Missing <code class="docutils literal notranslate"><span class="pre">ServiceEquipment.dispatched</span></code> status updates have been amended, so no matter the operation, a piece of servicing equipment should be set to <code class="docutils literal notranslate"><span class="pre">dispatched</span> <span class="pre">=</span> <span class="pre">True</span></code> until the crew is back and repair is completed.</p></li>
+<li><p>To avoid multiple dispatches to a single turbine, cable, or substation, or multiple dispatches of a single vessel/onsite equipment, a random timeout between 0 and 30 seconds (in simulation time) is processed, then a status double-checking occurs.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Metrics.process_times()</span></code> now includes the &quot;N&quot; column to indicate the number of processes that fall into each category.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="v0-6-2-3-february-2023">
+<h2>v0.6.2 (3 February 2023)<a class="headerlink" href="#v0-6-2-3-february-2023" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Warnings from Pandas <code class="docutils literal notranslate"><span class="pre">.groupby()</span></code> calls have been silenced by shifting the column filtering to before the groupby method call.</p></li>
+<li><p>Fixed the towing to port logging message, and subsequent <code class="docutils literal notranslate"><span class="pre">Metrics.number_of_tows()</span></code> search criteria to correctly calculate the number of tows in each direction.</p></li>
+<li><p>Fixes a bug in the crew transfer logic where the travel time back to port is longer than the weather delay itself, and a negative time delay is incorrectly attempted to be processed.</p></li>
+</ul>
+</section>
+<section id="v0-6-1-31-january-2023">
+<h2>v0.6.1 (31 January 2023)<a class="headerlink" href="#v0-6-1-31-january-2023" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>A hot fix for the code comparison data not being found when installing from PyPI, which was caused by missing <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> files in the reconfigured library structure.</p></li>
+</ul>
+</section>
+<section id="v0-6-0-10-january-2023">
+<h2>v0.6.0 (10 January 2023)<a class="headerlink" href="#v0-6-0-10-january-2023" title="Link to this heading">#</a></h2>
+<p>In v0.6, due to a series of bug fixes, logic improvements, and feature additions (all described below), users can expect mild to significant shifts in their results. These shifts, while startling, move WOMBAT towards more accurate results now that servicing equipment can't be dispatched multiple times in a row, statuses can't be reset without failure. Additionally, in our validation cases this has led to an average speedup of 71%, or 3.5x faster run times.</p>
+<section id="new-and-updated-features">
+<h3>New and Updated Features<a class="headerlink" href="#new-and-updated-features" title="Link to this heading">#</a></h3>
+<ul>
+<li><p>Environmental and logistics considerations via prohibited operations periods and speed reduction periods.</p>
+<ul class="simple">
+<li><p>All periods can be set for each servicing equipment, or across the board when set at the environment level</p></li>
+<li><p>For ports, the same logic applies where the environment can set the port variables and the port can set its associated tugboats' variables</p></li>
+<li><p>When a setting is defined in multiple locations, the more conservative restriction is applied</p></li>
+<li><p>Variables <code class="docutils literal notranslate"><span class="pre">non_operational_start</span></code>, <code class="docutils literal notranslate"><span class="pre">non_operational_end</span></code> create the annualized period where operations are prohibited, resulting in the creation of the array <code class="docutils literal notranslate"><span class="pre">non_operational_dates</span></code> and set <code class="docutils literal notranslate"><span class="pre">non_operational_dates_set</span></code>.</p></li>
+<li><p>Variables <code class="docutils literal notranslate"><span class="pre">reduced_speed_start</span></code>, <code class="docutils literal notranslate"><span class="pre">reduced_speed_end</span></code> create the annualized period where the maximum speed, <code class="docutils literal notranslate"><span class="pre">reduced_speed</span></code>, for all operations is imposed, resulting in the creation of the array <code class="docutils literal notranslate"><span class="pre">reduced_speed_dates</span></code> and set <code class="docutils literal notranslate"><span class="pre">reduced_speed_dates_set</span></code>.</p></li>
+</ul>
+</li>
+<li><p>Export Cables</p>
+<ul class="simple">
+<li><p>Models the export cabling system as a single cable between the substation and the interconnection point or as a connection between multiple substations. For multiple connected substations, the model assumes they are independent systems.</p></li>
+<li><p>Adds support for &quot;type&quot; in the wind farm layout CSV file, which should be filled with either &quot;substation&quot; or &quot;turbine&quot;. This column supports multi-substation farms so that accurate plots and connections can be made. For instance, multiple connected substations, can now be accurately rendered and modeled in the farm.</p></li>
+<li><p>Adds support for &quot;upstream_cable_name&quot; in the wind farm layout CSV file, to provide an individualized name to a cable in place of using the name field in the cable settings file for all similar cables.</p></li>
+</ul>
+</li>
+<li><p>New library structure that mirrors ORBIT (see below diagram)! In v0.7, the original library structure will be officially deprecated in favor of the below, and during the v0.6 lifecycle a warning will be raised to instruct users where to place and structure folders going forward.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;library&gt;
+  ├── project
+    ├── config       &lt;- Project-level configuration files
+    ├── port         &lt;- Port configuration files
+    ├── plant        &lt;- Wind farm layout files
+  ├── cables         &lt;- Export and Array cable configuration files
+  ├── substructures  &lt;- Substructure configuration files
+  ├── turbines       &lt;- Turbine configuration and power curve files
+  ├── vessels        &lt;- Land-based and offshore servicing equipment configuration files
+  ├── weather        &lt;- Weather profiles
+  ├── results        &lt;- The analysis log files and any saved output data
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Adds <code class="docutils literal notranslate"><span class="pre">create_library_structure</span></code> to <code class="docutils literal notranslate"><span class="pre">wombat.core.library</span></code> so that users can create the appropriate folder structure for a new project without having to manually create each and every folder.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Maintenance.operation_reduction</span></code> has been enabled to better resemble the effect of unaddressed maintenance.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Failure</span></code> now has a boolean flag for <code class="docutils literal notranslate"><span class="pre">replacement</span></code> to indicate if a replacement is required, which allows for operational shutdowns without necessitating a full replacement of the subassembly. Additionally, this flag enables a replacement event for non-shutdown failures.</p></li>
+</ul>
+</section>
+<section id="general-improvements">
+<h3>General Improvements<a class="headerlink" href="#general-improvements" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Bump Python versioning requirements to 3.8+</p></li>
+<li><p>Add PyArrow dependency for fasting save/load processes for CSV reading and writing</p></li>
+<li><p>Convert boolean operational statuses for <code class="docutils literal notranslate"><span class="pre">System</span></code>, <code class="docutils literal notranslate"><span class="pre">Subassembly</span></code>, <code class="docutils literal notranslate"><span class="pre">Cable</span></code>, and <code class="docutils literal notranslate"><span class="pre">ServiceEquipment</span></code> to SimPy events for more efficient processing and accurate delays for restarting</p></li>
+<li><p>Fix numerous bugs in the repair logic introduced by the use of boolean checks and status switches, which also improve simulation performance. These issues were primarily caused by erroneously resetting the status, but with the new event setting and <code class="docutils literal notranslate"><span class="pre">.succeed()</span></code> logic to clear an operation, the previously incorrect resetting is much harder to do.</p></li>
+<li><p>Continue to improve the performance of low-level simulation operations to realize further improvements in memory usage and simulation performance</p></li>
+<li><p>Logging is now based on directly writing to CSV in place of the <code class="docutils literal notranslate"><span class="pre">logging</span></code>-based infrastructure</p>
+<ul>
+<li><p>All underlying infrastructure withing the simulation have also been updated to accommodate the different file types, which allows for more direct interaction at the end of the simulation and enables PyArrow CSV read/write</p></li>
+<li><p>This enables:</p>
+<ul>
+<li><p>deprecation warnings to be passed directly to the terminal/notebook without interfering with the file handling</p></li>
+<li><p>reasonable speedups to simulation times by not having additional overhead from the logging and buffering</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Metrics.process_times()</span></code> has been converted to efficient pandas code for fast computation.</p></li>
+<li><p>The Metrics example usage documentation page has been rewritten and reformatted to provide more helpful information to users</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Metrics</span></code> methods now accurately account for the effect of substation operating reductions on upstream turbines so that each substation's subgraph multiplies the turbine operating capacity by the substation operating capacity.</p></li>
+<li><p>Fixes a bug in the <code class="docutils literal notranslate"><span class="pre">RepairManager.get_next_highest_severity_request()</span></code> where requests aren't processed in first in, first out order with a severity level priority.</p></li>
+<li><p>Remove duplicated logic in the <code class="docutils literal notranslate"><span class="pre">Subassembly</span></code> and <code class="docutils literal notranslate"><span class="pre">Cable</span></code> maintenance and failure modeling ensuring that repetitive logic is identical between scenarios.</p></li>
+</ul>
+</section>
+</section>
+<section id="july-2022">
+<h2>0.5.1 (22 July 2022)<a class="headerlink" href="#july-2022" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Updates to use the most recent pandas API/recommendations, which fixes numerous warnings in the <code class="docutils literal notranslate"><span class="pre">Metrics</span></code> class</p></li>
+<li><p>Fixes inconsistency in returning floats vs <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code>s in the <code class="docutils literal notranslate"><span class="pre">Metrics</span></code> class</p></li>
+<li><p>Updates the examples to work with the returned <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> values, and adds warnings about the change in usage</p></li>
+<li><p>Updates the documentation configuration to be compatible with the latest sphinx book theme API usage</p></li>
+<li><p>Adds a potential fix to an occasional issue where the logging files can't be deleted using <code class="docutils literal notranslate"><span class="pre">WombatEnvironment.cleanup_log_files()</span></code> because the file is still considered to be in use</p></li>
+</ul>
+</section>
+<section id="june-2022">
+<h2>0.5.0 (30 June 2022)<a class="headerlink" href="#june-2022" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Adds capabilities: &quot;TOW&quot; and &quot;AHV&quot; for tugboat/towing equipment and anchor-handling vessels</p></li>
+<li><p>Adds a tow-to-port strategy that is activated for repairs with the &quot;TOW&quot; capability in the servicing</p></li>
+<li><p>Adds a <code class="docutils literal notranslate"><span class="pre">Port</span></code> class to handle the tow-to-port class and tugboat-based service requests</p></li>
+<li><p>Allows for any name to define the subassemblies of a turbine or substation to enable users to use the naming conventions they are most familiar with or most meaningful for their own work</p></li>
+<li><p>Minor bug fixes in the <code class="docutils literal notranslate"><span class="pre">Metrics</span></code> class to improve stability, improve code reuse, and documentation\</p></li>
+<li><p>Adds nearly all documentation updates from PR #39 as a result of an internal code review, but makes the changes in the source files that generate the example notebooks, so is not a direct merge</p></li>
+<li><p>Adds an annual fee to <code class="docutils literal notranslate"><span class="pre">PortConfig.annual_fee</span></code> that gets applied monthly, though is not included in any metrics yet.</p></li>
+<li><p>Adds <code class="docutils literal notranslate"><span class="pre">UnscheduledServiceEquipmentData.tow_speed</span></code> to differentiate between towing speeds and traveling speeds required between port and site, and implements the towing speed application appropriately</p></li>
+<li><p>Adds a <code class="docutils literal notranslate"><span class="pre">location</span></code> flag to the events logging infrastructure and implements its usage across the simulation architecture</p></li>
+<li><p>Creates the metric <code class="docutils literal notranslate"><span class="pre">Metrics.number_of_tows</span></code> to track the number of tows and provides breakdowns as needed</p></li>
+<li><p>Creates the metric <code class="docutils literal notranslate"><span class="pre">Metrics.vessel_crew_hours_at_sea</span></code> to track the number of vessel or crew hours at sea</p></li>
+<li><p>Creates the metric <code class="docutils literal notranslate"><span class="pre">Metrics.port_fees</span></code> to calculate any port fees associated with a project</p></li>
+<li><p>Creates the metric <code class="docutils literal notranslate"><span class="pre">Metrics.opex</span></code> to calculate a project's operational expenditures</p></li>
+<li><p>Creates the metric <code class="docutils literal notranslate"><span class="pre">Metrics.NPV</span></code> to calculate a project's net present value</p></li>
+<li><p>Modifies <code class="docutils literal notranslate"><span class="pre">Metrics.project_fixed_costs</span></code> to have more time resolutions to align with the OpEx calculation options</p></li>
+<li><p>Fixes some results formatting inconsistencies in the <code class="docutils literal notranslate"><span class="pre">Metrics</span></code> class</p></li>
+</ul>
+</section>
+<section id="march-8">
+<h2>0.4.1 (2022-March-8)<a class="headerlink" href="#march-8" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Adds code diagrams to demonstrate how the various components connect</p></li>
+<li><p>Updates the documentation to be better in line with the current state of the software</p></li>
+<li><p>Fixes a bug that allowed the x_metrics_inputs.yaml file to persist after the cleanup method is called.</p></li>
+<li><p>Updates the provided library content structure to account for future updates</p></li>
+</ul>
+</section>
+<section id="february-4">
+<h2>0.4.0 (2022-February-4)<a class="headerlink" href="#february-4" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Testing now included!</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pathlib.Path</span></code> is used in place of <code class="docutils literal notranslate"><span class="pre">os</span></code> throughout for easier to read file maneuvering.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">attrs.define</span></code> and <code class="docutils literal notranslate"><span class="pre">attrs.field</span></code> have been adopted in place of <code class="docutils literal notranslate"><span class="pre">attr.s</span></code> and <code class="docutils literal notranslate"><span class="pre">attr.ib</span></code>, respectively.</p></li>
+<li><p>Typing style is updated for future python type annotations as, e.g., <code class="docutils literal notranslate"><span class="pre">Union[List[str],</span> <span class="pre">str]</span></code> -&gt;
+<code class="docutils literal notranslate"><span class="pre">list[str]</span> <span class="pre">|</span> <span class="pre">str</span></code>.</p></li>
+<li><p>Unused imports have been further cleaned up.</p></li>
+<li><p>Better caching of commonly computed values for faster simulations</p></li>
+<li><p>Simulation metrics are now able to be saved for later reloading and use.</p></li>
+<li><p>Minor documentation updates, mostly in the examples section for changed API usage.</p></li>
+<li><p>Validation cases have been re-run for the most up-to-date version.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.windfarm.system.System</span></code> no longer requires every subassembly model to be
+defined for increased flexibility and ease of definition of turbine simulations</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.utilities.hours_until_future_hour()</span></code> correctly moves to the expected hour in the future,
+regardless of the number of days that are added.</p></li>
+<li><p>The IEA Task 26 validation cabling vessel was renamed from &quot;cabling.yaml&quot; to &quot;cabling_scheduled.yaml&quot;
+for consistent naming conventions.</p></li>
+<li><p>Improved error messages throughout.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.simulation_api.Simulation</span></code> no longer accepts <code class="docutils literal notranslate"><span class="pre">name</span></code> as an input, and reads it
+directly from the configuration.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.simulation_api.Simulation.run</span></code> now has a <code class="docutils literal notranslate"><span class="pre">create_metrics</span></code> flag that defaults to <code class="docutils literal notranslate"><span class="pre">True</span></code>
+to indicate if the metrics suite should be created, so that <code class="docutils literal notranslate"><span class="pre">False</span></code> can be used if numerous
+analyses will be run and post-processed after the fact.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.simulation_api.Simulation.save_metrics_inputs</span></code> added to allow for saving
+the elements required to recreate a <code class="docutils literal notranslate"><span class="pre">Metrics</span></code> object at a later point in time.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.environment.WombatEnvironment.workday_start</span></code> and
+<code class="docutils literal notranslate"><span class="pre">wombat.core.environment.WombatEnvironment.workday_end</span></code> are better validated for edge cases.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.environment.WombatEnvironment._weather_setup</span></code> validates the start and end points
+against the provided weather profile and against each other to ensure they are valid boundaries.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.environment.WombatEnvironment.cleanup_log_files</span></code> will only try to delete files that actually
+exist to avoid unexpected simulation failures at the last step.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.environment.WombatEnvironment.date_ix</span></code> accepts <code class="docutils literal notranslate"><span class="pre">datetime.datetime</span></code> and <code class="docutils literal notranslate"><span class="pre">datetime.date</span></code> inputs to
+avoid unnecesary errors or manipulations in a simulation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.environment.WombatEnvironment.log_action</span></code> now only accepts numeric inputs for
+<code class="docutils literal notranslate"><span class="pre">system_ol</span></code> and <code class="docutils literal notranslate"><span class="pre">part_ol</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.environment.WombatEnvironment.weather_forecast</span></code> now rounds the starting time down to
+include the current hour, which fixes a bug in some edge cases where a crew transfer at the end
+of the shift gets stuck and has to wait until the next shift despite ample time to transfer.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.environment.WombatEnvironment.is_workshift</span></code> correctly accounts for around the clock
+shifts.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.data_classes.annual_date_range</span></code> now uses <code class="docutils literal notranslate"><span class="pre">numpy.hstack</span></code> to construct 1-D
+multiple year date ranges to ensure there is no nesting of data.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.repair_management.RepairManager.submit_request</span></code> will only attempt to deploy servicing
+equipment for strategies that have been initialized to reduce unnecessarily running code.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.repair_management.RepairManager.get_request_by_turbine</span></code> was renamed to
+<code class="docutils literal notranslate"><span class="pre">wombat.core.repair_management.RepairManager.get_request_by_system</span></code> to explicitly include substations.
+to remove repeated calculations and checks.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.repair_management.RepairManager.get_request_by_severity</span></code> request checking was optimized
+to remove repeated calculations and checks.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.repair_management.RepairManager.purge_subassembly_requests</span></code> no longer prematurely exits
+the loop to purge unnecessary requests from the logs in case of a replacement being required.
+Additionally, an <code class="docutils literal notranslate"><span class="pre">exclude</span></code> parameter has been added for niche use cases where all but a couple
+of requests will need to be removed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.service_equipment.ServiceEquipment</span></code> has more attributes for tracking its location
+throughout a simulation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.service_equipment.ServiceEquipment.find_uninterrupted_weather_window</span></code> now rounds
+float inputs up to the nearest whole number to ensure the proper length window is retrieved.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.service_equipment.ServiceEquipment.find_interrupted_weather_window</span></code> uses <code class="docutils literal notranslate"><span class="pre">math.ceil</span></code>
+in place of <code class="docutils literal notranslate"><span class="pre">np.ceil().astype(int)</span></code> for strictly python data types in computation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.service_equipment.ServiceEquipment.travel</span></code> consistently resets the location attributes
+when moving between site and port to fix bugs in the end location.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.service_equipment.ServiceEquipment.crew_transfer</span></code> now indicates when the crew is
+actually being transferred, and updates the equipment's location post-transfer. Additionally, the
+travel time in delays is now accounted for, so the actually elapsed time is accounted for in
+processing weather delays. A bug in processing weather delays is fixed and uses the correct <code class="docutils literal notranslate"><span class="pre">SimPy</span></code>
+timeout call so that the simulation does not get stuck due to improper calling.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.service_equipment.ServiceEquipment.process_repair</span></code> adds a safety window to account
+for the crew having enough time to safely transfer back to the equipment. This logic is likely
+not entirely fixed, but is sufficiently fixed for the time being.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.service_equipment.ServiceEquipment.process_repair</span></code>:</p>
+<ul>
+<li><p>fixes a bug in the hours to process calculation by reconfiguring the control flow for both
+simplicity and accuracy.</p></li>
+<li><p>Additionally, the equipment will travel back to port if the work shift is over, so the equipment
+does not skip steps the repair logic.</p></li>
+<li><p>Weather delays will also not be processed if the actual repair is finished, and will be moved to
+the crew transfer step.</p></li>
+<li><p>The hours required vs hours available is reset for equipment that have around the clock shifts,
+so the timing is not arbitrarily capped, which also reduces the number of steps in the simulation.</p></li>
+<li><p>The work shift indicator check now accounts for the equipment's specific work shift settings, and
+not the environment's to ensure the proper operating parameters are used.</p></li>
+<li><p>The control flow for if there isn't enough time to perform the repair is updated to accurately
+account for when and where the equipment needs to travel</p></li>
+<li><p>Cables are no longer retrieved through system and causing an error when processing their repairs.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.service_equipment.ServiceEquipment._calculate_intra_site_time</span></code> now accounts for a
+speed of 0 km/hr so that function will not error out when there is a travel distance, but no speed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.service_equipment.ServiceEquipment.run_scheduled</span></code> now sets the <code class="docutils literal notranslate"><span class="pre">onsite</span></code> variable
+for equipment that are always on site for more consistent handling of the onsite attribute.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.service_equipment.ServiceEquipment.wait_until_next_operational_period</span></code> now resets
+the equipment's location attributes so its location can't incorrectly persist from the last step.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.service_equipment.ServiceEquipment.register_repair_with_subassembly</span></code> correctly
+retrieves the cable information for upstream cables to be reset.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.post_processor.Metrics.service_equipment_utilization</span></code> has a new methodolgy that uses the
+actual number of days in operation instead of a backwards computation that consistently and
+accurately accounts for the days where the servicing equipment is in operation. Additionally, the
+filtering is updated to match the filter for total days, which also improves accuracy of results.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.core.post_processor.Metrics.from_simulation_outputs</span></code> classmethod was added to easily load
+simulation data for after-the-fact analyses.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.windfarm.Windfarm</span></code> operations logging message generation routines were optimized.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.windfarm.Windfarm.system</span></code> was created in place of <code class="docutils literal notranslate"><span class="pre">wombat.windfarm.Windfarm.node_system</span></code>
+as a convenience method for grabbing the <code class="docutils literal notranslate"><span class="pre">System</span></code> object from the windfarm graph layout.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.windfarm.Windfarm.cable</span></code> was created to replicate the <code class="docutils literal notranslate"><span class="pre">system</span></code> method for cable objects.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.windfarm.Windfarm</span></code>, <code class="docutils literal notranslate"><span class="pre">wombat.windfarm.system.cable.Cable</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">wombat.windfarm.system.system.System</span></code> all have an operating level property that is the current
+operating level and one that does not account for if a system is being serviced, and therefore
+registered as non-operational. This fixes a bug in the dispatching of unscheduled service equipment
+when a repair request is submitted while a repair is occurring that drops the operating level below
+the strategy threshold. In the dispatching check we now are able to consider the operating level
+before a system was shut down for repairs and avoid improper dispatching.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.windfarm.system.cable.Cable</span></code> now takes <code class="docutils literal notranslate"><span class="pre">end_node</span></code> in place of <code class="docutils literal notranslate"><span class="pre">upstream_nodes</span></code> to simplify
+the initialization process and be more explicit about the starting and ending points on the cable.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.windfarm.system.cable.Cable.interrupt_subassembly_processes</span></code> is now <code class="docutils literal notranslate"><span class="pre">interrupt_processes</span></code>
+and only interrupts the cable's own maintenance and failure simulation processes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.windfarm.system.cable.Cable.interrupt_all_subassembly_processes</span></code> wraps <code class="docutils literal notranslate"><span class="pre">interrupt_processes</span></code>
+to ensure similar functionality between system and subassembly methods for use in the simulations.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.windfarm.system.cable.Cable</span></code> logging now properly records itself as the target of repairs
+and maintenance tasks instead of its starting node.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.windfarm.system.cable.Cable.upstream_nodes</span></code> has been updated to be in the correct order
+the nodes sit on the string</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.windfarm.system.subassembly.Subassembly.interrupt_subassembly_processes</span></code> is now
+<code class="docutils literal notranslate"><span class="pre">interrupt_processes</span></code> and only interrupts the cable's own maintenance and failure simulation processes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.windfarm.system.system.System.interrupt_all_subassembly_processes</span></code> was added so that
+subassemblies are no longer directly interacting with each other, and the interruptions are caused
+by the system's themselves.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wombat.windfarm.system.system.System.log_action</span></code> no returns the <code class="docutils literal notranslate"><span class="pre">Subassembly.id</span></code> instead of the
+<code class="docutils literal notranslate"><span class="pre">__repr__</span></code> for the object to create a legible log.</p></li>
+</ul>
+</section>
+<section id="december-9">
+<h2>0.3.5 (2021-December-9)<a class="headerlink" href="#december-9" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Downtime-based and requests-based unscheduled maintenance models have been added to
+servicing equipment.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Windfarm.current_availability</span></code> is able to account for multiple substations and is now
+an accurate calculation of the operating level across the windfarm.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Simulation.from_inputs()</span></code> is replaced by <code class="docutils literal notranslate"><span class="pre">Simulation.from_config()</span></code> to be more
+straightforward for users.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ServiceCrew</span></code> has been added for expansion to multiple crews.</p></li>
+<li><p>Servicing equipment now have separate <code class="docutils literal notranslate"><span class="pre">travel</span></code> and <code class="docutils literal notranslate"><span class="pre">crew_transfer</span></code>, <code class="docutils literal notranslate"><span class="pre">weather_delay</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">repair</span></code> functions to more realistically simulate the separate processes involved.</p></li>
+<li><p>The windfarm now has a distance matrix to calculate the distance between any two
+systems onsite, for instance, substation to cable, cable to turbine, etc.</p></li>
+<li><p>Bug fix in the task completion rate metric.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WombatEnvironment.log_action()</span></code> enforces the use of keyword arguments with only 3
+required inputs.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WombatEnvironment.weather_forecast()</span></code> outputs now include the datetime index.</p></li>
+<li><p>If no PySAM settings are provided, the <code class="docutils literal notranslate"><span class="pre">financial_model</span></code> will be set to <code class="docutils literal notranslate"><span class="pre">None</span></code> with a
+<code class="docutils literal notranslate"><span class="pre">NotImplementedError</span></code> being raised for any attempted usage of the PySAM powered
+functionality.</p></li>
+<li><p>Fix bugs in <code class="docutils literal notranslate"><span class="pre">Maintenance</span></code> and <code class="docutils literal notranslate"><span class="pre">Failure</span></code> initialization.</p></li>
+<li><p>Fix bugs in operating level accounting from recent updates.</p></li>
+<li><p>Update the Unicode typing in all docstrings.</p></li>
+<li><p>Update the documentation to account for all the recent changes, including adding a new
+demonstration notebook for the 3 new strategies.</p></li>
+</ul>
+</section>
+<section id="march-2">
+<h2>0.3.1 (2021-March-2)<a class="headerlink" href="#march-2" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Updated the <code class="docutils literal notranslate"><span class="pre">simulation/</span></code> folder to be a single-level <code class="docutils literal notranslate"><span class="pre">core/</span></code> directory.</p></li>
+<li><p>Updates the order of the keyword arguments for <code class="docutils literal notranslate"><span class="pre">WombatEnvironment.log_action()</span></code>, and makes all arguments keyword-only arguments.</p></li>
+</ul>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="API/utilities.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Helpers and Plotting</p>
+      </div>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Change Log</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#changelog">CHANGELOG</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#february-2025">0.9.7 (12 February 2025)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#december-2024">0.9.6 (11 December 2024)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#august-2024">0.9.5 (6 August 2024)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#july-2024">0.9.4 (1 July 2024)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-9-3-15-february-2024">v0.9.3 (15 February 2024)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-9-2-13-november-2023">v0.9.2 (13 November 2023)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#general">General</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#bug-fixes">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-9-1-27-october-2023">v0.9.1 (27 October 2023)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-9-27-october-2023">v0.9 (27 October 2023)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Bug Fixes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#general-updates">General Updates</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#methodology-updates">Methodology Updates</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deprecations">Deprecations</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-8-1-28-august-2023">v0.8.1 (28 August 2023)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-8-0-16-august-2023">v0.8.0 (16 August 2023)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Bug Fixes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#features">Features</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">General</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-7-1-4-may-2023">v0.7.1 (4 May 2023)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-7-0-3-may-2023">v0.7.0 (3 May 2023)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-6-2-3-february-2023">v0.6.2 (3 February 2023)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-6-1-31-january-2023">v0.6.1 (31 January 2023)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-6-0-10-january-2023">v0.6.0 (10 January 2023)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#new-and-updated-features">New and Updated Features</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#general-improvements">General Improvements</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#july-2022">0.5.1 (22 July 2022)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#june-2022">0.5.0 (30 June 2022)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#march-8">0.4.1 (2022-March-8)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#february-4">0.4.0 (2022-February-4)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#december-9">0.3.5 (2021-December-9)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#march-2">0.3.1 (2021-March-2)</a></li>
+</ul>
+</li>
+</ul>
+
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Rob Hammond
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2021 Alliance for Sustainable Energy, LLC.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

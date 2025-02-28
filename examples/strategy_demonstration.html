@@ -1,0 +1,924 @@
+
+<!DOCTYPE html>
+
+
+<html lang="python" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Servicing Strategies &#8212; WOMBAT</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=30a733bc"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/strategy_demonstration';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Demonstration of the Available Metrics" href="metrics_demonstration.html" />
+    <link rel="prev" title="How To Use WOMBAT" href="how_to.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="python"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">WOMBAT</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WISDEM/WOMBAT" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI version" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/v/WOMBAT" class="icon-link-image" alt="PyPI version"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI downloads" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/dm/WOMBAT" class="icon-link-image" alt="PyPI downloads"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples" title="Launch Binder" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://mybinder.org/badge_logo.svg" class="icon-link-image" alt="Launch Binder"/></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributor's Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../presentations.html">Presentations and Publications</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../workshops/index.html">Workshops</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../workshops/nawea_wind_tech_2023.html">NAWEA WindTech 2023 WOMBAT Tutorial</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../team.html">Team</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Working With the Code Base</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">User Guide</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="how_to.html">How To Use WOMBAT</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Servicing Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metrics_demonstration.html">Demonstration of the Available Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples_reference.html">Examples Reference</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../API/index.html">WOMBAT API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../API/simulation_api.html">Simulation API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../API/types.html">Data Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../API/core.html">Simulation Core Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../API/windfarm.html">Wind Farm Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../API/utilities.html">Helpers and Plotting</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Change Log</a></li>
+
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/examples/strategy_demonstration.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Servicing Strategies</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat-setup-and-variables">WOMBAT Setup and Variables</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#imports-and-notebook-configuration">Imports and notebook configuration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simulation-and-results-setup">Simulation and results setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run-the-simulations-and-display-the-results">Run the simulations and display the results</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="servicing-strategies">
+<h1>Servicing Strategies<a class="headerlink" href="#servicing-strategies" title="Link to this heading">#</a></h1>
+<p><a class="reference external" href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples"><img alt="Binder" src="https://mybinder.org/badge_logo.svg" /></a></p>
+<p>In this example, we'll demonstrate the essential differences in scheduled servicing, unscheduled servicing, and tow-to-port repair strategies. Each of the examples demonstrated below will be based on the 2015 Dinwoodie, et al. paper, though the variations will be for demonstration purposes only.</p>
+<p>A Jupyter notebook of this tutorial can be run from
+<code class="docutils literal notranslate"><span class="pre">examples/strategy_demonstration.ipynb</span></code>locally, or through
+<a class="reference external" href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples">binder</a>.</p>
+<section id="wombat-setup-and-variables">
+<h2>WOMBAT Setup and Variables<a class="headerlink" href="#wombat-setup-and-variables" title="Link to this heading">#</a></h2>
+<p>The vessels that will be changed in this demonstration are the field support vessel (FSV) with capability: &quot;SCN&quot;, the heavy lift vessel (HLV) with capability: &quot;LCN&quot;, and the tugboats, which have capability: &quot;TOW&quot;.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When running tow-to-port a <code class="docutils literal notranslate"><span class="pre">Port</span></code> configuration is also required, which will control the tugboats. However, the port costs will still be accounted for in the
+<code class="docutils literal notranslate"><span class="pre">FixedCosts</span></code> class as port fees are assumed to be constant. These costs are not considered in this example, so differences in cost should be taken with a grain
+of salt given the reduction of HLV and FSV operational and mobilization costs.</p>
+</div>
+<p>Scenario descriptions:</p>
+<ul class="simple">
+<li><p><strong>Scheduled</strong>: exactly the same as the base case (fsv_scheduled.yaml and hlv_scheduled.yaml)</p></li>
+<li><p><strong>Unscheduled: requests</strong>: the FSV and HLV are called to site when 10 requests that
+they can service are logged (fsv_requests.yaml and hlv_requests.yaml)</p></li>
+<li><p><strong>Unscheduled: downtime</strong>: the FSV and HLV are called to site once the wind farm's
+operating level hits 90% or lower (fsv_downtime.yaml and hlv_downtime.yaml)</p></li>
+<li><p><strong>Unscheduled: tow-to-port</strong>: the FSV and HLV will be replaced with three identical
+tugboats (tugboat1.yaml, tugboat2.yaml, tugboat3.yaml), and all the failures associated
+with the FSV and HLV will be changed to capability &quot;TOW&quot; to trigger the tow-to-port
+repairs. These processes will be triggered on the first request (WOMBAT base
+assumption that can't be changed for now).</p></li>
+</ul>
+<p>In this example, we will demonstrate how the results for the base case for the Dinwoodie, et al. example vary based on how each of the vessels are scheduled. The configuration details all remain the same, regardless of details, except for the strategy information, which is defined as follows:</p>
+<p>This example is set up similarly to that of the validation cases to show how the results differ, and not a step-by-step guide for setting up the analyses. We refer the reader to the extensive <a class="reference internal" href="../API/index.html"><span class="std std-doc">documentation</span></a> and <a class="reference internal" href="how_to.html"><span class="std std-doc">How To example</span></a> for more information.</p>
+</section>
+<section id="imports-and-notebook-configuration">
+<h2>Imports and notebook configuration<a class="headerlink" href="#imports-and-notebook-configuration" title="Link to this heading">#</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">perf_counter</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">wombat.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Simulation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wombat.core.library</span><span class="w"> </span><span class="kn">import</span> <span class="n">DINWOODIE</span>
+
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">&quot;display.max_rows&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">&quot;display.max_columns&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">float_format</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{:,.2f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="simulation-and-results-setup">
+<h2>Simulation and results setup<a class="headerlink" href="#simulation-and-results-setup" title="Link to this heading">#</a></h2>
+<p>Here we're providing the names of the configuration files (found at: dinwoodie / config)
+without their .yaml extensions (added in later) and the results that we want to compare
+between simulations to understand some of the timing and cost trade-offs between
+simulations.</p>
+<p>The dictionary of keys and lists will be used to create the results data frame where the
+keys will be the indices and the lists will be the row values for each of the above
+configurations.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">configs</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;base_scheduled&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;base_requests&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;base_downtime&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;base_tow_to_port&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">columns</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">configs</span><span class="p">)</span> <span class="c1"># Create a unique copy of the config names for column naming</span>
+<span class="n">results</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;availability - time based&quot;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s2">&quot;availability - production based&quot;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s2">&quot;capacity factor - net&quot;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s2">&quot;capacity factor - gross&quot;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s2">&quot;power production&quot;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s2">&quot;task completion rate&quot;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s2">&quot;annual direct O&amp;M cost&quot;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s2">&quot;annual vessel cost&quot;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s2">&quot;ctv cost&quot;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s2">&quot;fsv cost&quot;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s2">&quot;hlv cost&quot;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s2">&quot;tow cost&quot;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s2">&quot;annual repair cost&quot;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s2">&quot;annual technician cost&quot;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s2">&quot;ctv utilization&quot;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s2">&quot;fsv utilization&quot;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s2">&quot;hlv utilization&quot;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s2">&quot;tow utilization&quot;</span><span class="p">:</span> <span class="p">[],</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="run-the-simulations-and-display-the-results">
+<h2>Run the simulations and display the results<a class="headerlink" href="#run-the-simulations-and-display-the-results" title="Link to this heading">#</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">timing_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([],</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Load Time (min)&quot;</span><span class="p">,</span> <span class="s2">&quot;Run Time (min)&quot;</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="n">configs</span><span class="p">)</span>
+<span class="n">timing_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Scenario&quot;</span>
+
+<span class="k">for</span> <span class="n">config</span> <span class="ow">in</span> <span class="n">configs</span><span class="p">:</span>
+
+    <span class="c1"># Load the simulation</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span>
+    <span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="n">DINWOODIE</span> <span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">config</span><span class="si">}</span><span class="s2">.yaml&quot;</span><span class="p">)</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span>
+    <span class="n">timing_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;Load Time (min)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span> <span class="o">/</span> <span class="mi">60</span>
+
+    <span class="c1"># Run the simulation</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span>
+    <span class="n">timing_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;Run Time (min)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span> <span class="o">/</span> <span class="mi">60</span>
+
+    <span class="c1"># Gather the results of interest</span>
+    <span class="n">years</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">year</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">mil</span> <span class="o">=</span> <span class="mi">1000000</span>
+
+    <span class="c1"># Gather the high-level results for the simulation</span>
+    <span class="n">availability_time</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">time_based_availability</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">&quot;windfarm&quot;</span><span class="p">)</span>
+    <span class="n">availability_production</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">production_based_availability</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">&quot;windfarm&quot;</span><span class="p">)</span>
+    <span class="n">cf_net</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">capacity_factor</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;net&quot;</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">&quot;windfarm&quot;</span><span class="p">)</span>
+    <span class="n">cf_gross</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">capacity_factor</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;gross&quot;</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">&quot;windfarm&quot;</span><span class="p">)</span>
+    <span class="n">power_production</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">power_production</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">&quot;windfarm&quot;</span><span class="p">)</span>
+    <span class="n">completion_rate</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">task_completion_rate</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">)</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">events</span><span class="p">[[</span><span class="s2">&quot;materials_cost&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">techs</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">project_fixed_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="s2">&quot;low&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">operations</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">events</span><span class="p">[[</span><span class="s2">&quot;total_cost&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+    <span class="c1"># Gather the equipment costs and separate the results by equipment type</span>
+    <span class="n">equipment</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">equipment_costs</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">by_equipment</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">equipment_sum</span> <span class="o">=</span> <span class="n">equipment</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">hlv</span> <span class="o">=</span> <span class="n">equipment</span><span class="p">[[</span><span class="n">el</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">equipment</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="s2">&quot;Heavy Lift Vessel&quot;</span> <span class="ow">in</span> <span class="n">el</span><span class="p">]]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">fsv</span> <span class="o">=</span> <span class="n">equipment</span><span class="p">[[</span><span class="n">el</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">equipment</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="s2">&quot;Field Support Vessel&quot;</span> <span class="ow">in</span> <span class="n">el</span><span class="p">]]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">ctv</span> <span class="o">=</span> <span class="n">equipment</span><span class="p">[[</span><span class="n">el</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">equipment</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="s2">&quot;Crew Transfer Vessel&quot;</span> <span class="ow">in</span> <span class="n">el</span><span class="p">]]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">tow</span> <span class="o">=</span> <span class="n">equipment</span><span class="p">[[</span><span class="n">el</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">equipment</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="s2">&quot;Tugboat&quot;</span> <span class="ow">in</span> <span class="n">el</span><span class="p">]]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+    <span class="c1"># Gather the equipment utilization data frame and separate the results by equipment type</span>
+    <span class="n">utilization</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">service_equipment_utilization</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">)</span>
+    <span class="n">hlv_ur</span> <span class="o">=</span> <span class="n">utilization</span><span class="p">[[</span><span class="n">el</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">utilization</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="s2">&quot;Heavy Lift Vessel&quot;</span> <span class="ow">in</span> <span class="n">el</span><span class="p">]]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">fsv_ur</span> <span class="o">=</span> <span class="n">utilization</span><span class="p">[[</span><span class="n">el</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">utilization</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="s2">&quot;Field Support Vessel&quot;</span> <span class="ow">in</span> <span class="n">el</span><span class="p">]]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">ctv_ur</span> <span class="o">=</span> <span class="n">utilization</span><span class="p">[[</span><span class="n">el</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">utilization</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="s2">&quot;Crew Transfer Vessel&quot;</span> <span class="ow">in</span> <span class="n">el</span><span class="p">]]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">tow_ur</span> <span class="o">=</span> <span class="n">utilization</span><span class="p">[[</span><span class="n">el</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">utilization</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="s2">&quot;Tugboat&quot;</span> <span class="ow">in</span> <span class="n">el</span><span class="p">]]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+    <span class="c1"># Log the results of interest</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;availability - time based&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">availability_time</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;availability - production based&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">availability_production</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;capacity factor - net&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cf_net</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;capacity factor - gross&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cf_gross</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;power production&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">power_production</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;task completion rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">completion_rate</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;annual direct O&amp;M cost&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">total</span> <span class="o">+</span> <span class="n">techs</span><span class="p">)</span> <span class="o">/</span> <span class="n">mil</span> <span class="o">/</span> <span class="n">years</span><span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;annual vessel cost&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">equipment_sum</span> <span class="o">/</span> <span class="n">mil</span> <span class="o">/</span> <span class="n">years</span><span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;ctv cost&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ctv</span> <span class="o">/</span> <span class="n">mil</span> <span class="o">/</span> <span class="n">years</span><span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;fsv cost&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fsv</span> <span class="o">/</span> <span class="n">mil</span> <span class="o">/</span> <span class="n">years</span><span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;hlv cost&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hlv</span> <span class="o">/</span> <span class="n">mil</span> <span class="o">/</span> <span class="n">years</span><span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;tow cost&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tow</span> <span class="o">/</span> <span class="n">mil</span> <span class="o">/</span> <span class="n">years</span><span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;annual repair cost&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">parts</span> <span class="o">/</span> <span class="n">mil</span> <span class="o">/</span> <span class="n">years</span><span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;annual technician cost&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">techs</span> <span class="o">/</span> <span class="n">mil</span> <span class="o">/</span> <span class="n">years</span><span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;ctv utilization&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ctv_ur</span><span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;fsv utilization&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fsv_ur</span><span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;hlv utilization&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hlv_ur</span><span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;tow utilization&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tow_ur</span><span class="p">)</span>
+
+    <span class="c1"># Clear the logs</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">cleanup_log_files</span><span class="p">()</span>
+
+<span class="n">timing_df</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Load Time (min)</th>
+      <th>Run Time (min)</th>
+    </tr>
+    <tr>
+      <th>Scenario</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>base_scheduled</th>
+      <td>0.03</td>
+      <td>0.61</td>
+    </tr>
+    <tr>
+      <th>base_requests</th>
+      <td>0.03</td>
+      <td>0.62</td>
+    </tr>
+    <tr>
+      <th>base_downtime</th>
+      <td>0.03</td>
+      <td>0.65</td>
+    </tr>
+    <tr>
+      <th>base_tow_to_port</th>
+      <td>0.03</td>
+      <td>0.66</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">results_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">results_df</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>base_scheduled</th>
+      <th>base_requests</th>
+      <th>base_downtime</th>
+      <th>base_tow_to_port</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>availability - time based</th>
+      <td>0.97</td>
+      <td>0.97</td>
+      <td>0.97</td>
+      <td>0.96</td>
+    </tr>
+    <tr>
+      <th>availability - production based</th>
+      <td>0.97</td>
+      <td>0.97</td>
+      <td>0.97</td>
+      <td>0.96</td>
+    </tr>
+    <tr>
+      <th>capacity factor - net</th>
+      <td>0.46</td>
+      <td>0.46</td>
+      <td>0.46</td>
+      <td>0.46</td>
+    </tr>
+    <tr>
+      <th>capacity factor - gross</th>
+      <td>0.48</td>
+      <td>0.48</td>
+      <td>0.48</td>
+      <td>0.48</td>
+    </tr>
+    <tr>
+      <th>power production</th>
+      <td>9,728.86</td>
+      <td>9,730.84</td>
+      <td>9,736.45</td>
+      <td>9,676.77</td>
+    </tr>
+    <tr>
+      <th>task completion rate</th>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>0.99</td>
+      <td>0.99</td>
+    </tr>
+    <tr>
+      <th>annual direct O&amp;M cost</th>
+      <td>18.32</td>
+      <td>12.49</td>
+      <td>5.44</td>
+      <td>9.94</td>
+    </tr>
+    <tr>
+      <th>annual vessel cost</th>
+      <td>12.67</td>
+      <td>7.31</td>
+      <td>1.92</td>
+      <td>2.01</td>
+    </tr>
+    <tr>
+      <th>ctv cost</th>
+      <td>1.92</td>
+      <td>1.92</td>
+      <td>1.92</td>
+      <td>1.92</td>
+    </tr>
+    <tr>
+      <th>fsv cost</th>
+      <td>0.27</td>
+      <td>0.22</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>hlv cost</th>
+      <td>10.49</td>
+      <td>5.18</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>tow cost</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.10</td>
+    </tr>
+    <tr>
+      <th>annual repair cost</th>
+      <td>4.04</td>
+      <td>3.58</td>
+      <td>1.92</td>
+      <td>4.33</td>
+    </tr>
+    <tr>
+      <th>annual technician cost</th>
+      <td>1.60</td>
+      <td>1.60</td>
+      <td>1.60</td>
+      <td>1.60</td>
+    </tr>
+    <tr>
+      <th>ctv utilization</th>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>1.00</td>
+      <td>1.00</td>
+    </tr>
+    <tr>
+      <th>fsv utilization</th>
+      <td>1.00</td>
+      <td>0.92</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>hlv utilization</th>
+      <td>0.97</td>
+      <td>0.93</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>tow utilization</th>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.83</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./examples"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="how_to.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">How To Use WOMBAT</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="metrics_demonstration.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Demonstration of the Available Metrics</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat-setup-and-variables">WOMBAT Setup and Variables</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#imports-and-notebook-configuration">Imports and notebook configuration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simulation-and-results-setup">Simulation and results setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run-the-simulations-and-display-the-results">Run the simulations and display the results</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Rob Hammond
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2021 Alliance for Sustainable Energy, LLC.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,1213 @@
+
+<!DOCTYPE html>
+
+
+<html lang="python" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wombat.core.repair_management &#8212; WOMBAT</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../_static/documentation_options.js?v=30a733bc"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/wombat/core/repair_management';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="python"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">WOMBAT</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WISDEM/WOMBAT" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI version" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/v/WOMBAT" class="icon-link-image" alt="PyPI version"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI downloads" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/dm/WOMBAT" class="icon-link-image" alt="PyPI downloads"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples" title="Launch Binder" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://mybinder.org/badge_logo.svg" class="icon-link-image" alt="Launch Binder"/></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributor's Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../presentations.html">Presentations and Publications</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../workshops/index.html">Workshops</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../workshops/nawea_wind_tech_2023.html">NAWEA WindTech 2023 WOMBAT Tutorial</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../team.html">Team</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Working With the Code Base</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples/index.html">User Guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/how_to.html">How To Use WOMBAT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/strategy_demonstration.html">Servicing Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/metrics_demonstration.html">Demonstration of the Available Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/examples_reference.html">Examples Reference</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../API/index.html">WOMBAT API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../API/simulation_api.html">Simulation API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../API/types.html">Data Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../API/core.html">Simulation Core Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../API/windfarm.html">Wind Farm Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../API/utilities.html">Helpers and Plotting</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Change Log</a></li>
+
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for wombat.core.repair_management</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Creates the necessary repair classes.&quot;&quot;&quot;</span>
+
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">chain</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Generator</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">simpy.resources.store</span><span class="w"> </span><span class="kn">import</span> <span class="n">FilterStore</span><span class="p">,</span> <span class="n">FilterStoreGet</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">wombat.core</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Failure</span><span class="p">,</span>
+    <span class="n">Maintenance</span><span class="p">,</span>
+    <span class="n">StrategyMap</span><span class="p">,</span>
+    <span class="n">RepairRequest</span><span class="p">,</span>
+    <span class="n">WombatEnvironment</span><span class="p">,</span>
+    <span class="n">UnscheduledServiceEquipmentData</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">wombat.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Port</span><span class="p">,</span> <span class="n">ServiceEquipment</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">wombat.windfarm</span><span class="w"> </span><span class="kn">import</span> <span class="n">Windfarm</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">wombat.windfarm.system</span><span class="w"> </span><span class="kn">import</span> <span class="n">Cable</span><span class="p">,</span> <span class="n">System</span>
+
+
+<div class="viewcode-block" id="RepairManager">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.repair_management.RepairManager">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RepairManager</span><span class="p">(</span><span class="n">FilterStore</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Provides a class to manage repair and maintenance tasks.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    FilterStore : simpy.resources.store.FilterStore</span>
+<span class="sd">        The ``simpy`` class on which RepairManager is based to manage the repair and</span>
+<span class="sd">        maintenance tasks.</span>
+<span class="sd">    env : wombat.core.WombatEnvironment</span>
+<span class="sd">        The simulation environment.</span>
+<span class="sd">    capacity : float</span>
+<span class="sd">        The maximum number of tasks that can be submitted to the manager, by default</span>
+<span class="sd">        ``np.inf``.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    env : wombat.core.WombatEnvironment</span>
+<span class="sd">        The simulation environment.</span>
+<span class="sd">    windfarm: wombat.windfarm.Windfarm</span>
+<span class="sd">        The simulated windfarm. This is only used for getting the operational capacity.</span>
+<span class="sd">    _current_id : int</span>
+<span class="sd">        The logged and auto-incrememented integer base for the ID generated for each</span>
+<span class="sd">        submitted repair request.</span>
+<span class="sd">    downtime_based_equipment: StrategyMap</span>
+<span class="sd">        The mapping between downtime-based servicing equipment and their capabilities.</span>
+<span class="sd">    request_based_equipment: StrategyMap</span>
+<span class="sd">        The mapping between request-based servicing equipment and their capabilities.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="n">WombatEnvironment</span><span class="p">,</span> <span class="n">capacity</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">capacity</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="n">env</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_id</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">invalid_systems</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">systems_in_tow</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">systems_waiting_for_tow</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">downtime_based_equipment</span> <span class="o">=</span> <span class="n">StrategyMap</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request_based_equipment</span> <span class="o">=</span> <span class="n">StrategyMap</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">completed_requests</span> <span class="o">=</span> <span class="n">FilterStore</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">in_process_requests</span> <span class="o">=</span> <span class="n">FilterStore</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request_status_map</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">set</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;pending&quot;</span><span class="p">:</span> <span class="nb">set</span><span class="p">(),</span>
+            <span class="s2">&quot;processing&quot;</span><span class="p">:</span> <span class="nb">set</span><span class="p">(),</span>
+            <span class="s2">&quot;completed&quot;</span><span class="p">:</span> <span class="nb">set</span><span class="p">(),</span>
+        <span class="p">}</span>
+
+<div class="viewcode-block" id="RepairManager._update_equipment_map">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.repair_management.RepairManager._update_equipment_map">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_equipment_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service_equipment</span><span class="p">:</span> <span class="n">ServiceEquipment</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates ``equipment_map`` with a provided servicing equipment object.&quot;&quot;&quot;</span>
+        <span class="n">capability</span> <span class="o">=</span> <span class="n">service_equipment</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">capability</span>
+        <span class="n">strategy</span> <span class="o">=</span> <span class="n">service_equipment</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">strategy</span>
+
+        <span class="k">if</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;downtime&quot;</span><span class="p">:</span>
+            <span class="n">mapping</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downtime_based_equipment</span>
+        <span class="k">elif</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;requests&quot;</span><span class="p">:</span>
+            <span class="n">mapping</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_based_equipment</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Shouldn&#39;t be possible to get here!</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid servicing equipment!&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
+                <span class="n">service_equipment</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span> <span class="n">UnscheduledServiceEquipmentData</span>
+            <span class="p">)</span>
+        <span class="n">strategy_threshold</span> <span class="o">=</span> <span class="n">service_equipment</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">strategy_threshold</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">capability</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">capability</span><span class="p">:</span>
+                <span class="n">mapping</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">strategy_threshold</span><span class="p">,</span> <span class="n">service_equipment</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RepairManager._register_windfarm">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.repair_management.RepairManager._register_windfarm">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_register_windfarm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">windfarm</span><span class="p">:</span> <span class="n">Windfarm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds the simulation windfarm to the class attributes.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span> <span class="o">=</span> <span class="n">windfarm</span></div>
+
+
+<div class="viewcode-block" id="RepairManager._register_equipment">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.repair_management.RepairManager._register_equipment">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_register_equipment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service_equipment</span><span class="p">:</span> <span class="n">ServiceEquipment</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds the servicing equipment to the class attributes and adds it to the</span>
+<span class="sd">        capabilities mapping.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_equipment_map</span><span class="p">(</span><span class="n">service_equipment</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RepairManager._register_port">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.repair_management.RepairManager._register_port">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_register_port</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span> <span class="n">Port</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Registers the port with the repair manager, so that they can communicate as</span>
+<span class="sd">        needed.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        port : Port</span>
+<span class="sd">            The port where repairs will occur.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">port</span></div>
+
+
+<div class="viewcode-block" id="RepairManager._create_request_id">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.repair_management.RepairManager._create_request_id">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_request_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">RepairRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a unique ``request_id`` to be logged in the ``request``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : RepairRequest</span>
+<span class="sd">            The request object.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            An 11-digit identifier starting with &quot;MNT&quot; for maintenance tasks or &quot;RPR&quot;</span>
+<span class="sd">            for repairs.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the ``request.details`` property is not a ``Failure`` or ``Maintenance``</span>
+<span class="sd">            object,</span>
+<span class="sd">            then a ValueError will be raised.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">details</span><span class="p">,</span> <span class="n">Failure</span><span class="p">):</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;RPR&quot;</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">details</span><span class="p">,</span> <span class="n">Maintenance</span><span class="p">):</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;MNT&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Note this is a safety, and shouldn&#39;t be able to be reached</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;A valid ``RepairRequest`` must be submitted&quot;</span><span class="p">)</span>
+
+        <span class="n">request_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_id</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_id</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">request_id</span></div>
+
+
+<div class="viewcode-block" id="RepairManager._is_request_processing">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.repair_management.RepairManager._is_request_processing">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_is_request_processing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">RepairRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks if a repair is being performed, or has already been completed.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : RepairRequest</span>
+<span class="sd">            The request that is about to be submitted to servicing equipment, but needs</span>
+<span class="sd">            to be double-checked against ongoing processes.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if the request is ongoing or completed, False, if it&#39;s ok to processed</span>
+<span class="sd">            with the operation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">rid</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">request_id</span>
+        <span class="n">processing</span> <span class="o">=</span> <span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">rid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_status_map</span><span class="p">[</span><span class="s2">&quot;processing&quot;</span><span class="p">])()</span>
+        <span class="n">completed</span> <span class="o">=</span> <span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">rid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_status_map</span><span class="p">[</span><span class="s2">&quot;completed&quot;</span><span class="p">])()</span>
+        <span class="k">return</span> <span class="n">processing</span> <span class="ow">or</span> <span class="n">completed</span></div>
+
+
+<div class="viewcode-block" id="RepairManager._run_equipment_downtime">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.repair_management.RepairManager._run_equipment_downtime">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_equipment_downtime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">RepairRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">Generator</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run any equipment that has a pending request where the current windfarm</span>
+<span class="sd">        operating capacity is less than or equal to the servicing equipment&#39;s threshold.</span>
+
+<span class="sd">        TODO: This methodology needs to better resolve dispatching every equipment</span>
+<span class="sd">        relating to a request vs just the one(s) that are required. Basically, don&#39;t</span>
+<span class="sd">        dispatch every available HLV, but just one plus one of every other capability</span>
+<span class="sd">        category that has pending requests</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Add an initial check to help avoid simultaneous dispatching</span>
+        <span class="n">seconds_to_wait</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">random_generator</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">3600.0</span>
+        <span class="p">)</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">seconds_to_wait</span><span class="p">)</span>
+
+        <span class="c1"># Port-based servicing equipment should be handled by the port and does not</span>
+        <span class="c1"># have an operating reduction threshold to meet at this time</span>
+        <span class="k">if</span> <span class="s2">&quot;TOW&quot;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">details</span><span class="o">.</span><span class="n">service_equipment</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">system_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="o">.</span><span class="n">invalid_systems</span><span class="p">:</span>
+                <span class="n">system</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">system_id</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="n">system</span><span class="o">.</span><span class="n">servicing_queue</span> <span class="o">&amp;</span> <span class="n">system</span><span class="o">.</span><span class="n">servicing</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">get_random_seconds</span><span class="p">(</span><span class="n">high</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">system_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">systems_in_tow</span><span class="p">:</span>
+                    <span class="k">return</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">invalidate_system</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">tow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="o">.</span><span class="n">run_tow_to_port</span><span class="p">(</span><span class="n">request</span><span class="p">))</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Wait for the actual system or cable to be available</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">cable</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">cable</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">system_id</span><span class="p">)</span><span class="o">.</span><span class="n">servicing</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">system_id</span><span class="p">)</span><span class="o">.</span><span class="n">servicing</span>
+
+        <span class="n">operating_capacity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">current_availability_wo_servicing</span>
+        <span class="k">for</span> <span class="n">capability</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_map</span><span class="p">:</span>
+            <span class="n">equipment_mapping</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downtime_based_equipment</span><span class="o">.</span><span class="n">get_mapping</span><span class="p">(</span><span class="n">capability</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">equipment</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">equipment_mapping</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">operating_capacity</span> <span class="o">&gt;</span> <span class="n">equipment</span><span class="o">.</span><span class="n">strategy_threshold</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="c1"># Avoid simultaneous dispatches by waiting a random number of seconds</span>
+                <span class="n">seconds_to_wait</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">random_generator</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">3600.0</span>
+                <span class="p">)</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">seconds_to_wait</span><span class="p">)</span>
+
+                <span class="n">equipment_obj</span> <span class="o">=</span> <span class="n">equipment</span><span class="o">.</span><span class="n">equipment</span>
+                <span class="k">if</span> <span class="n">equipment_obj</span><span class="o">.</span><span class="n">dispatched</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="c1"># Equipment-based logic does not manage system availability, so</span>
+                <span class="c1"># ensure it&#39;s available prior to dispatching, and double check in</span>
+                <span class="c1"># case delays causing a timing collision</span>
+                <span class="k">if</span> <span class="n">equipment_obj</span><span class="o">.</span><span class="n">port_based</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">system_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="o">.</span><span class="n">invalid_systems</span><span class="p">:</span>
+                        <span class="k">break</span>
+
+                    <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">system_id</span><span class="p">)</span><span class="o">.</span><span class="n">servicing</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="o">.</span><span class="n">run_unscheduled_in_situ</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">equipment_obj</span><span class="o">.</span><span class="n">run_unscheduled_in_situ</span><span class="p">())</span>
+
+                    <span class="c1"># Move the dispatched capability to the end of list to ensure proper</span>
+                    <span class="c1"># cycling of available servicing equipment</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">downtime_based_equipment</span><span class="o">.</span><span class="n">move_equipment_to_end</span><span class="p">(</span><span class="n">capability</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RepairManager._run_equipment_requests">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.repair_management.RepairManager._run_equipment_requests">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_equipment_requests</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">RepairRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">Generator</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the first piece of equipment (if none are onsite) for each equipment</span>
+<span class="sd">        capability category where the number of requests is greater than or equal to the</span>
+<span class="sd">        equipment&#39;s threshold.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Add an initial check to help avoid simultaneous dispatching</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">get_random_seconds</span><span class="p">(</span><span class="n">high</span><span class="o">=</span><span class="mi">30</span><span class="p">))</span>
+
+        <span class="c1"># Port-based servicing equipment should be handled by the port and does not have</span>
+        <span class="c1"># a requests-based threshold to meet at this time</span>
+        <span class="k">if</span> <span class="s2">&quot;TOW&quot;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">details</span><span class="o">.</span><span class="n">service_equipment</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">system_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="o">.</span><span class="n">invalid_systems</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">systems_waiting_for_tow</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">system_id</span><span class="p">)</span>
+                <span class="n">system</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">system_id</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="n">system</span><span class="o">.</span><span class="n">servicing_queue</span> <span class="o">&amp;</span> <span class="n">system</span><span class="o">.</span><span class="n">servicing</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">get_random_seconds</span><span class="p">(</span><span class="n">high</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">system_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">systems_in_tow</span><span class="p">:</span>
+                    <span class="k">return</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">invalidate_system</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">tow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="o">.</span><span class="n">run_tow_to_port</span><span class="p">(</span><span class="n">request</span><span class="p">))</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Wait for the actual system or cable to be available</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">cable</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">cable</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">system_id</span><span class="p">)</span><span class="o">.</span><span class="n">servicing</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">system_id</span><span class="p">)</span><span class="o">.</span><span class="n">servicing</span>
+
+        <span class="n">dispatched</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">capability</span><span class="p">,</span> <span class="n">n_requests</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># For a requests basis, the capability and submitted request must match</span>
+            <span class="k">if</span> <span class="n">capability</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">details</span><span class="o">.</span><span class="n">service_equipment</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">equipment_mapping</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_based_equipment</span><span class="o">.</span><span class="n">get_mapping</span><span class="p">(</span><span class="n">capability</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">equipment</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">equipment_mapping</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">n_requests</span> <span class="o">&lt;</span> <span class="n">equipment</span><span class="o">.</span><span class="n">strategy_threshold</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="c1"># Avoid simultaneous dispatches by waiting a random number of seconds</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">get_random_seconds</span><span class="p">(</span><span class="n">high</span><span class="o">=</span><span class="mi">30</span><span class="p">))</span>
+
+                <span class="c1"># Run only the first piece of equipment in the mapping list, but ensure</span>
+                <span class="c1"># that it moves to the back of the line after being used</span>
+                <span class="n">equipment_obj</span> <span class="o">=</span> <span class="n">equipment</span><span class="o">.</span><span class="n">equipment</span>
+                <span class="k">if</span> <span class="n">equipment_obj</span><span class="o">.</span><span class="n">dispatched</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+                <span class="c1"># Either run the repair logic from the port for port-based servicing</span>
+                <span class="c1"># equipment, so that it can self-mangge or dispatch the servicing</span>
+                <span class="c1"># equipment directly, when port is an implicitly modeled aspect</span>
+                <span class="k">if</span> <span class="n">equipment_obj</span><span class="o">.</span><span class="n">port_based</span><span class="p">:</span>
+                    <span class="c1"># Equipment-based logic does not manage system availability, so</span>
+                    <span class="c1"># ensure it&#39;s available prior to dispatching</span>
+                    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">system_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="o">.</span><span class="n">invalid_systems</span><span class="p">:</span>
+                        <span class="k">break</span>
+
+                    <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="o">.</span><span class="n">run_unscheduled_in_situ</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">equipment_obj</span><span class="o">.</span><span class="n">run_unscheduled_in_situ</span><span class="p">())</span>
+
+                    <span class="c1"># Move the dispatched capability to the end of list to ensure proper</span>
+                    <span class="c1"># cycling of available servicing equipment</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">request_based_equipment</span><span class="o">.</span><span class="n">move_equipment_to_end</span><span class="p">(</span><span class="n">capability</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+                <span class="n">dispatched</span> <span class="o">=</span> <span class="n">capability</span>
+                <span class="k">break</span>
+
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">60</span><span class="p">)</span>  <span class="c1"># wait one minute for repair to register</span>
+
+        <span class="c1"># Double check the the number of reqeusts is still below the threshold following</span>
+        <span class="c1"># the dispatching of a piece of servicing equipment. This mostly pertains to</span>
+        <span class="c1"># highly frequent request with long repair times and low thresholds.</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">dispatched</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">or</span> <span class="n">equipment_obj</span><span class="o">.</span><span class="n">port_based</span>
+            <span class="ow">or</span> <span class="n">dispatched</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_map</span>
+        <span class="p">):</span>
+            <span class="k">return</span>
+        <span class="n">n_requests</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_map</span><span class="p">[</span><span class="n">dispatched</span><span class="p">]</span>
+        <span class="n">threshold_check</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">n_requests</span> <span class="o">&gt;=</span> <span class="n">eq</span><span class="o">.</span><span class="n">strategy_threshold</span>
+            <span class="k">for</span> <span class="n">eq</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_based_equipment</span><span class="o">.</span><span class="n">get_mapping</span><span class="p">(</span><span class="n">dispatched</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">threshold_check</span><span class="p">):</span>
+            <span class="n">new_request_check</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">x</span>
+                <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span>
+                <span class="k">if</span> <span class="n">dispatched</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">details</span><span class="o">.</span><span class="n">service_equipment</span>
+                <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_request_processing</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">request</span>
+            <span class="p">]</span>
+            <span class="k">if</span> <span class="n">new_request_check</span><span class="p">:</span>
+                <span class="n">new_request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">==</span> <span class="n">new_request_check</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">value</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_run_equipment_requests</span><span class="p">(</span><span class="n">new_request</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="RepairManager.register_request">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.repair_management.RepairManager.register_request">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">register_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">RepairRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RepairRequest</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The method to submit requests to the repair mananger and adds a unique</span>
+<span class="sd">        identifier for logging.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : RepairRequest</span>
+<span class="sd">            The request that needs to be tracked and logged.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        RepairRequest</span>
+<span class="sd">            The same request as passed into the method, but with a unique identifier</span>
+<span class="sd">            used for logging.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">request_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_request_id</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">assign_id</span><span class="p">(</span><span class="n">request_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request_status_map</span><span class="p">[</span><span class="s2">&quot;pending&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="n">request</span><span class="o">.</span><span class="n">request_id</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">request</span></div>
+
+
+<div class="viewcode-block" id="RepairManager.submit_request">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.repair_management.RepairManager.submit_request">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">submit_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">RepairRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The method to submit requests to the repair mananger and adds a unique</span>
+<span class="sd">        identifier for logging.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : RepairRequest</span>
+<span class="sd">            The request that needs to be tracked and logged.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        RepairRequest</span>
+<span class="sd">            The same request as passed into the method, but with a unique identifier</span>
+<span class="sd">            used for logging.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">downtime_based_equipment</span><span class="o">.</span><span class="n">is_running</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_run_equipment_downtime</span><span class="p">(</span><span class="n">request</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_based_equipment</span><span class="o">.</span><span class="n">is_running</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_run_equipment_requests</span><span class="p">(</span><span class="n">request</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="RepairManager.get_request_by_system">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.repair_management.RepairManager.get_request_by_system">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_request_by_system</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">equipment_capability</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">system_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FilterStoreGet</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets all repair requests for a certain turbine with given a sequence of</span>
+<span class="sd">        ``equipment_capability`` as long as it isn&#39;t registered as unable to be</span>
+<span class="sd">        serviced.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        equipment_capability : list[str]</span>
+<span class="sd">            The capability of the servicing equipment requesting repairs to process.</span>
+<span class="sd">        system_id : Optional[str], optional</span>
+<span class="sd">            ID of the turbine or OSS; should correspond to ``System.id``, by default</span>
+<span class="sd">            None. If None, then it will simply sort the list by ``System.id`` and return</span>
+<span class="sd">            the first repair requested.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Optional[FilterStoreGet]</span>
+<span class="sd">            The first repair request for the focal system or None, if self.items is</span>
+<span class="sd">            empty, or there is no matching system.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">system_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">invalid_systems</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">equipment_capability</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">equipment_capability</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+
+        <span class="c1"># Filter the requests by system</span>
+        <span class="n">requests</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span>
+        <span class="k">if</span> <span class="n">system_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">requests</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span> <span class="k">if</span> <span class="n">el</span><span class="o">.</span><span class="n">system_id</span> <span class="o">==</span> <span class="n">system_id</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">requests</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Filter the requests by equipment capability and return the first valid request</span>
+        <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">equipment_capability</span><span class="p">,</span> <span class="nb">set</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">request</span> <span class="ow">in</span> <span class="n">requests</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_request_processing</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">system_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">systems_waiting_for_tow</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">equipment_capability</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">details</span><span class="o">.</span><span class="n">service_equipment</span><span class="p">):</span>
+                <span class="c1"># If this is the first request for the system, make sure no other</span>
+                <span class="c1"># servicing equipment can access i</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">request_status_map</span><span class="p">[</span><span class="s2">&quot;pending&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">difference_update</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">requests</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">request_id</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">request_status_map</span><span class="p">[</span><span class="s2">&quot;processing&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="n">requests</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">request_id</span><span class="p">])</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="ow">is</span> <span class="n">requests</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># There were no matching equipment requirements to match the equipment</span>
+        <span class="c1"># attempting to retrieve its next request</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="RepairManager.get_request_by_severity">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.repair_management.RepairManager.get_request_by_severity">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_request_by_severity</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">equipment_capability</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">severity_level</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FilterStoreGet</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the next repair request by ``severity_level``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        equipment_capability : list[str]</span>
+<span class="sd">            The capability of the equipment requesting possible repairs to make.</span>
+<span class="sd">        severity_level : int</span>
+<span class="sd">            Severity level of focus, default None.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Optional[FilterStoreGet]</span>
+<span class="sd">            Repair request meeting the required criteria.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">equipment_capability</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">equipment_capability</span><span class="p">)</span>
+
+        <span class="n">requests</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span>
+        <span class="k">if</span> <span class="n">severity_level</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Capture only the desired severity level, if specified</span>
+            <span class="n">requests</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">el</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span> <span class="k">if</span> <span class="p">(</span><span class="n">el</span><span class="o">.</span><span class="n">severity_level</span> <span class="o">==</span> <span class="n">severity_level</span><span class="p">)</span>
+            <span class="p">]</span>
+            <span class="k">if</span> <span class="n">requests</span> <span class="o">==</span> <span class="p">[]:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Re-order requests by severity (high to low) and the order they were submitted</span>
+        <span class="c1"># Need to ensure that the requests are in submission order in case any get put</span>
+        <span class="c1"># back</span>
+        <span class="n">requests</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">requests</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">severity_level</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">request</span> <span class="ow">in</span> <span class="n">requests</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_request_processing</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">system_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">systems_waiting_for_tow</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">cable</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">cable</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">system_id</span><span class="p">)</span><span class="o">.</span><span class="n">servicing</span><span class="o">.</span><span class="n">triggered</span><span class="p">:</span>
+                    <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">system_id</span><span class="p">)</span><span class="o">.</span><span class="n">servicing</span><span class="o">.</span><span class="n">triggered</span><span class="p">:</span>
+                    <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">system_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">invalid_systems</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">equipment_capability</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">details</span><span class="o">.</span><span class="n">service_equipment</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">request_status_map</span><span class="p">[</span><span class="s2">&quot;pending&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">difference_update</span><span class="p">(</span>
+                        <span class="p">[</span><span class="n">request</span><span class="o">.</span><span class="n">request_id</span><span class="p">]</span>
+                    <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">request_status_map</span><span class="p">[</span><span class="s2">&quot;processing&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="n">request</span><span class="o">.</span><span class="n">request_id</span><span class="p">])</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="ow">is</span> <span class="n">request</span><span class="p">)</span>
+
+        <span class="c1"># Ensure None is returned if nothing is found in the loop just as a FilterGet</span>
+        <span class="c1"># would if allowed to oeprate without the above looping to identify multiple</span>
+        <span class="c1"># criteria and acting on the request before it&#39;s processed</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="RepairManager.invalidate_system">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.repair_management.RepairManager.invalidate_system">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">invalidate_system</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">:</span> <span class="n">System</span> <span class="o">|</span> <span class="n">Cable</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tow</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Disables the ability for servicing equipment to service a specific system,</span>
+<span class="sd">        sets the turbine status to be in servicing, and interrupts all the processes</span>
+<span class="sd">        to turn off operations.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        system : System | Cable | str</span>
+<span class="sd">            The system, cable, or ``str`` id of one to disable repairs.</span>
+<span class="sd">        tow : bool, optional</span>
+<span class="sd">            Set to True if this is for a tow-to-port request.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s2">&quot;::&quot;</span> <span class="ow">in</span> <span class="n">system</span><span class="p">:</span>
+                <span class="n">system</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">cable</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">system</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">system</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">invalid_systems</span> <span class="ow">and</span> <span class="n">system</span><span class="o">.</span><span class="n">servicing</span><span class="o">.</span><span class="n">triggered</span><span class="p">:</span>
+            <span class="n">system</span><span class="o">.</span><span class="n">servicing_queue</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">event</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">invalid_systems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">simulation_time</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">system</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> already being serviced&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">tow</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">systems_in_tow</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+            <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">systems_waiting_for_tow</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">systems_waiting_for_tow</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RepairManager.interrupt_system">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.repair_management.RepairManager.interrupt_system">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">interrupt_system</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">:</span> <span class="n">System</span> <span class="o">|</span> <span class="n">Cable</span><span class="p">,</span> <span class="n">replacement</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the turbine status to be in servicing, and interrupts all the processes</span>
+<span class="sd">        to turn off operations.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        system_id : str</span>
+<span class="sd">            The system to disable repairs.</span>
+<span class="sd">        replacement: str | None, optional</span>
+<span class="sd">            If a subassebly `id` is provided, this indicates the interruption is caused</span>
+<span class="sd">            by its replacement event. Defaults to None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">system</span><span class="o">.</span><span class="n">servicing</span><span class="o">.</span><span class="n">triggered</span> <span class="ow">and</span> <span class="n">system</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">invalid_systems</span><span class="p">:</span>
+            <span class="n">system</span><span class="o">.</span><span class="n">servicing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">event</span><span class="p">()</span>
+            <span class="n">system</span><span class="o">.</span><span class="n">interrupt_all_subassembly_processes</span><span class="p">(</span><span class="n">replacement</span><span class="o">=</span><span class="n">replacement</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">simulation_time</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">system</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> already being serviced&quot;</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RepairManager.register_repair">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.repair_management.RepairManager.register_repair">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">register_repair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repair</span><span class="p">:</span> <span class="n">RepairRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Registers the repair as complete with the repair managiner.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        repair : RepairRequest</span>
+<span class="sd">            The repair that has been completed.</span>
+<span class="sd">        port : bool, optional</span>
+<span class="sd">            If True, indicates that a port handled the repair, otherwise that a managed</span>
+<span class="sd">            servicing equipment handled the repair, by default False.</span>
+
+<span class="sd">        Yields</span>
+<span class="sd">        ------</span>
+<span class="sd">        Generator</span>
+<span class="sd">            The ``completed_requests.put()`` that registers completion.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request_status_map</span><span class="p">[</span><span class="s2">&quot;processing&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">difference_update</span><span class="p">([</span><span class="n">repair</span><span class="o">.</span><span class="n">request_id</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request_status_map</span><span class="p">[</span><span class="s2">&quot;completed&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="n">repair</span><span class="o">.</span><span class="n">request_id</span><span class="p">])</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">completed_requests</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">repair</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">in_process_requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="ow">is</span> <span class="n">repair</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RepairManager.enable_requests_for_system">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.repair_management.RepairManager.enable_requests_for_system">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">enable_requests_for_system</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">:</span> <span class="n">System</span> <span class="o">|</span> <span class="n">Cable</span><span class="p">,</span> <span class="n">tow</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reenables service equipment operations on the provided system.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        system_id : System | Cable</span>
+<span class="sd">            The ``System`` or ``Cable`` that can be operated on again.</span>
+<span class="sd">        tow : bool, optional</span>
+<span class="sd">            Set to True if this is for a tow-to-port request.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">system</span><span class="o">.</span><span class="n">servicing</span><span class="o">.</span><span class="n">triggered</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">simulation_time</span><span class="si">}</span><span class="s2"> Repairs were already completed&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot; at </span><span class="si">{</span><span class="n">system</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">invalid_systems</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">invalid_systems</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">tow</span><span class="p">:</span>
+            <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">systems_in_tow</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">systems_in_tow</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+        <span class="n">system</span><span class="o">.</span><span class="n">servicing</span><span class="o">.</span><span class="n">succeed</span><span class="p">()</span>
+        <span class="n">system</span><span class="o">.</span><span class="n">servicing_queue</span><span class="o">.</span><span class="n">succeed</span><span class="p">()</span>
+        <span class="n">system</span><span class="o">.</span><span class="n">interrupt_all_subassembly_processes</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="RepairManager.get_all_requests_for_system">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.repair_management.RepairManager.get_all_requests_for_system">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_requests_for_system</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">system_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">RepairRequest</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">Generator</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets all repair requests for a specific ``system_id``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        agent : str</span>
+<span class="sd">            The name of the entity requesting all of a system&#39;s repair requests.</span>
+<span class="sd">        system_id : Optional[str], optional</span>
+<span class="sd">            ID of the turbine or OSS; should correspond to ``System.id``.</span>
+<span class="sd">            the first repair requested.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Optional[list[RepairRequest]]</span>
+<span class="sd">            All repair requests for a given system. If no matching requests are found,</span>
+<span class="sd">            or there aren&#39;t any items in the queue yet, then None is returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Filter the requests by system</span>
+        <span class="n">requests</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span>
+        <span class="k">if</span> <span class="n">system_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">requests</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span> <span class="k">if</span> <span class="n">el</span><span class="o">.</span><span class="n">system_id</span> <span class="o">==</span> <span class="n">system_id</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">requests</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Loop the requests and pop them from the queue</span>
+        <span class="k">for</span> <span class="n">request</span> <span class="ow">in</span> <span class="n">requests</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">log_action</span><span class="p">(</span>
+                <span class="n">system_id</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">system_id</span><span class="p">,</span>
+                <span class="n">system_name</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">system_name</span><span class="p">,</span>
+                <span class="n">part_id</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">subassembly_id</span><span class="p">,</span>
+                <span class="n">part_name</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">subassembly_name</span><span class="p">,</span>
+                <span class="n">system_ol</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">),</span>
+                <span class="n">part_ol</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">),</span>
+                <span class="n">agent</span><span class="o">=</span><span class="n">agent</span><span class="p">,</span>
+                <span class="n">action</span><span class="o">=</span><span class="s2">&quot;requests being moved&quot;</span><span class="p">,</span>
+                <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="n">request_id</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">request_id</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">request_status_map</span><span class="p">[</span><span class="s2">&quot;pending&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">difference_update</span><span class="p">([</span><span class="n">request</span><span class="o">.</span><span class="n">request_id</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">request_status_map</span><span class="p">[</span><span class="s2">&quot;processing&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="n">request</span><span class="o">.</span><span class="n">request_id</span><span class="p">])</span>
+            <span class="n">_</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="ow">is</span> <span class="n">request</span><span class="p">)</span>  <span class="c1"># pylint: disable=W0640</span>
+
+        <span class="k">return</span> <span class="n">requests</span></div>
+
+
+<div class="viewcode-block" id="RepairManager.purge_subassembly_requests">
+<a class="viewcode-back" href="../../../API/core.html#wombat.core.repair_management.RepairManager.purge_subassembly_requests">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">purge_subassembly_requests</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">system_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">subassembly_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">exclude</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">RepairRequest</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Yields all the requests for a system/subassembly combination. This is</span>
+<span class="sd">        intended to be used to remove erroneous requests after a subassembly has been</span>
+<span class="sd">        replaced.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        system_id : str</span>
+<span class="sd">            Either the ``System.id`` or ``Cable.id``.</span>
+<span class="sd">        subassembly_id : str</span>
+<span class="sd">            Either the ``Subassembly.id`` or the ``Cable.id`` repeated for cables.</span>
+<span class="sd">        exclude : list[str]</span>
+<span class="sd">            A list of ``request_id`` to exclude from the purge. This is a specific use</span>
+<span class="sd">            case for the combined cable system/subassembly, but can be to exclude</span>
+<span class="sd">            certain requests from the purge.</span>
+
+<span class="sd">        Yields</span>
+<span class="sd">        ------</span>
+<span class="sd">        Optional[list[RepairRequest]]</span>
+<span class="sd">            All requests made to the repair manager for the provided system/subassembly</span>
+<span class="sd">            combination. Returns None if self.items is empty or the loop terminates</span>
+<span class="sd">            without finding what it is looking for.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># First check the system matches because we&#39;ll need these separated later to</span>
+        <span class="c1"># ensure we don&#39;t incorrectly remove towing requests from other subassemblies</span>
+        <span class="n">system_requests</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">request</span>
+            <span class="k">for</span> <span class="n">request</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span>
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">system_id</span> <span class="o">==</span> <span class="n">system_id</span> <span class="ow">and</span> <span class="n">request</span><span class="o">.</span><span class="n">request_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="n">system_requests</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">subassembly_requests</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">request</span>
+            <span class="k">for</span> <span class="n">request</span> <span class="ow">in</span> <span class="n">system_requests</span>
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">subassembly_id</span> <span class="o">==</span> <span class="n">subassembly_id</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="n">subassembly_requests</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">request</span> <span class="ow">in</span> <span class="n">subassembly_requests</span><span class="p">:</span>
+            <span class="n">which</span> <span class="o">=</span> <span class="s2">&quot;repair&quot;</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">details</span><span class="p">,</span> <span class="n">Failure</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;maintenance&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">log_action</span><span class="p">(</span>
+                <span class="n">system_id</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">system_id</span><span class="p">,</span>
+                <span class="n">system_name</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">system_name</span><span class="p">,</span>
+                <span class="n">part_id</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">subassembly_id</span><span class="p">,</span>
+                <span class="n">part_name</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">subassembly_name</span><span class="p">,</span>
+                <span class="n">system_ol</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">),</span>
+                <span class="n">part_ol</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">),</span>
+                <span class="n">agent</span><span class="o">=</span><span class="s2">&quot;RepairManager&quot;</span><span class="p">,</span>
+                <span class="n">action</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">which</span><span class="si">}</span><span class="s2"> canceled&quot;</span><span class="p">,</span>
+                <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;replacement required&quot;</span><span class="p">,</span>
+                <span class="n">request_id</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">request_id</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">request_status_map</span><span class="p">[</span><span class="s2">&quot;pending&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">difference_update</span><span class="p">([</span><span class="n">request</span><span class="o">.</span><span class="n">request_id</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">request_status_map</span><span class="p">[</span><span class="s2">&quot;processing&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="n">request</span><span class="o">.</span><span class="n">request_id</span><span class="p">])</span>
+            <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="ow">is</span> <span class="n">request</span><span class="p">)</span>  <span class="c1"># pylint: disable=W0640</span>
+        <span class="n">sid</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">system_id</span>
+
+        <span class="c1"># Ensure that if it was reset, and a tow was waiting, that it gets cleared,</span>
+        <span class="c1"># unless a separate subassembly required the tow</span>
+        <span class="k">if</span> <span class="n">sid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">systems_waiting_for_tow</span><span class="p">:</span>
+            <span class="n">other_subassembly_match</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">system_requests</span> <span class="k">if</span> <span class="s2">&quot;TOW&quot;</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">details</span><span class="o">.</span><span class="n">service_equipment</span>
+            <span class="p">]</span>
+            <span class="k">if</span> <span class="n">sid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">systems_in_tow</span> <span class="ow">and</span> <span class="n">other_subassembly_match</span> <span class="o">==</span> <span class="p">[]:</span>
+                <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">systems_waiting_for_tow</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">systems_waiting_for_tow</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span>
+                <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">subassembly_requests</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">request_map</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates an updated mapping between the servicing equipment capabilities and</span>
+<span class="sd">        the number of requests that fall into each capability category (nonzero values</span>
+<span class="sd">        only).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">requests</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">Counter</span><span class="p">(</span>
+                <span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">details</span><span class="o">.</span><span class="n">service_equipment</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">requests</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Rob Hammond
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2021 Alliance for Sustainable Energy, LLC.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

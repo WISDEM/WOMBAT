@@ -1,0 +1,855 @@
+
+<!DOCTYPE html>
+
+
+<html lang="python" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wombat.core.simulation_api &#8212; WOMBAT</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../_static/documentation_options.js?v=30a733bc"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/wombat/core/simulation_api';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="python"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">WOMBAT</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WISDEM/WOMBAT" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI version" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/v/WOMBAT" class="icon-link-image" alt="PyPI version"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI downloads" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/dm/WOMBAT" class="icon-link-image" alt="PyPI downloads"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples" title="Launch Binder" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://mybinder.org/badge_logo.svg" class="icon-link-image" alt="Launch Binder"/></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributor's Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../presentations.html">Presentations and Publications</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../workshops/index.html">Workshops</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../workshops/nawea_wind_tech_2023.html">NAWEA WindTech 2023 WOMBAT Tutorial</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../team.html">Team</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Working With the Code Base</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples/index.html">User Guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/how_to.html">How To Use WOMBAT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/strategy_demonstration.html">Servicing Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/metrics_demonstration.html">Demonstration of the Available Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/examples_reference.html">Examples Reference</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../API/index.html">WOMBAT API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../API/simulation_api.html">Simulation API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../API/types.html">Data Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../API/core.html">Simulation Core Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../API/windfarm.html">Wind Farm Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../API/utilities.html">Helpers and Plotting</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Change Log</a></li>
+
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for wombat.core.simulation_api</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;The main API for the ``wombat``.&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">attrs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Attribute</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">define</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">simpy.events</span><span class="w"> </span><span class="kn">import</span> <span class="n">Event</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">wombat.core</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Metrics</span><span class="p">,</span>
+    <span class="n">FromDictMixin</span><span class="p">,</span>
+    <span class="n">RepairManager</span><span class="p">,</span>
+    <span class="n">ServiceEquipment</span><span class="p">,</span>
+    <span class="n">WombatEnvironment</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wombat.windfarm</span><span class="w"> </span><span class="kn">import</span> <span class="n">Windfarm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wombat.core.port</span><span class="w"> </span><span class="kn">import</span> <span class="n">Port</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wombat.core.library</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_yaml</span><span class="p">,</span> <span class="n">library_map</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wombat.core.data_classes</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_to_list</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_library_mapper</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Attempts to extract a default library path if one of &quot;DINWOODIE&quot; or &quot;IEA_26&quot;</span>
+<span class="sd">    are passed, other returns ``file_path``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file_path : str | Path</span>
+<span class="sd">        Should be a valid file path, or one of &quot;DINWOODIE&quot; or &quot;IEA_26&quot; to indicate a</span>
+<span class="sd">        provided library is being used.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str | Path</span>
+<span class="sd">        The library path.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">library_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">file_path</span><span class="p">))</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
+
+
+<div class="viewcode-block" id="Configuration">
+<a class="viewcode-back" href="../../../API/simulation_api.html#wombat.core.simulation_api.Configuration">[docs]</a>
+<span class="nd">@define</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">auto_attribs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Configuration</span><span class="p">(</span><span class="n">FromDictMixin</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The ``Simulation`` configuration data class that provides all the necessary</span>
+<span class="sd">    definitions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name: str</span>
+<span class="sd">        Name of the simulation. Used for logging files.</span>
+<span class="sd">    layout : str</span>
+<span class="sd">        The windfarm layout file. See ``wombat.Windfarm`` for more details.</span>
+<span class="sd">    service_equipment : str | list[str]</span>
+<span class="sd">        The equpiment that will be used in the simulation. See</span>
+<span class="sd">        ``wombat.core.ServiceEquipment`` for more details.</span>
+<span class="sd">    weather : str</span>
+<span class="sd">        The weather profile to be used. See ``wombat.simulation.WombatEnvironment``</span>
+<span class="sd">        for more details.</span>
+<span class="sd">    workday_start : int</span>
+<span class="sd">        Starting hour for a typical work shift. Can be overridden by</span>
+<span class="sd">        equipment-specific settings.</span>
+<span class="sd">    workday_end : int</span>
+<span class="sd">        Ending hour for a typical work shift. Can be overridden by</span>
+<span class="sd">        equipment-specific settings.</span>
+<span class="sd">    inflation_rate : float</span>
+<span class="sd">        The annual inflation rate to be used for post-processing.</span>
+<span class="sd">    fixed_costs : str</span>
+<span class="sd">        The file name for the fixed costs assumptions.</span>
+<span class="sd">    project_capacity : int | float</span>
+<span class="sd">        The total capacity of the wind plant, in MW.</span>
+<span class="sd">    port : dict | str | Path</span>
+<span class="sd">        The port configuration file or dictionary that will be used to setup a</span>
+<span class="sd">        tow-to-port repair strategy, default None.</span>
+<span class="sd">    port_distance : int | float</span>
+<span class="sd">        The simulation-wide daily travel distance for servicing equipment. This should</span>
+<span class="sd">        be used as a base setting when multiple or all servicing equipment will be</span>
+<span class="sd">        operating out of the same base location, but can be individually modified.</span>
+<span class="sd">    start_year : int</span>
+<span class="sd">        Start year of the simulation. The exact date will be determined by</span>
+<span class="sd">        the first valid date of this year in ``weather``.</span>
+<span class="sd">    end_year : int</span>
+<span class="sd">        Final year of the simulation. The exact date will be determined by</span>
+<span class="sd">        the last valid date of this year in ``weather``.</span>
+<span class="sd">    non_operational_start : str | datetime.datetime | None</span>
+<span class="sd">        The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized</span>
+<span class="sd">        period of prohibited operations. When defined at the environment level, an</span>
+<span class="sd">        undefined or later starting date will be overridden for all servicing equipment</span>
+<span class="sd">        and any modeled port, by default None.</span>
+<span class="sd">    non_operational_end : str | datetime.datetime | None</span>
+<span class="sd">        The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized</span>
+<span class="sd">        period of prohibited operations. When defined at the environment level, an</span>
+<span class="sd">        undefined or earlier ending date will be overridden for all servicing equipment</span>
+<span class="sd">        and any modeled port, by default None.</span>
+<span class="sd">    reduced_speed_start : str | datetime.datetime | None</span>
+<span class="sd">        The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized</span>
+<span class="sd">        period of reduced speed operations. When defined at the environment level, an</span>
+<span class="sd">        undefined or later starting date will be overridden for all servicing equipment</span>
+<span class="sd">        and any modeled port, by default None.</span>
+<span class="sd">    reduced_speed_end : str | datetime.datetime | None</span>
+<span class="sd">        The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized</span>
+<span class="sd">        period of reduced speed operations. When defined at the environment level, an</span>
+<span class="sd">        undefined or earlier ending date will be overridden for all servicing equipment</span>
+<span class="sd">        and any modeled port, by default None.</span>
+<span class="sd">    reduced_speed : float</span>
+<span class="sd">        The maximum operating speed during the annualized reduced speed operations.</span>
+<span class="sd">        When defined at the environment level, an undefined or faster value will be</span>
+<span class="sd">        overridden for all servicing equipment and any modeled port, by default 0.0.</span>
+<span class="sd">    random_seed : int | None</span>
+<span class="sd">        The random seed to be passed to a universal NumPy ``default_rng`` object to</span>
+<span class="sd">        generate Weibull random generators, by default None.</span>
+<span class="sd">    random_generator: np.random._generator.Generator | None</span>
+<span class="sd">        An optional numpy random generator that can be provided to seed a simulation</span>
+<span class="sd">        with the same generator each time, in place of the random seed. If a</span>
+<span class="sd">        :py:attr:`random_seed` is also provided, this will override the random seed,</span>
+<span class="sd">        by default None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">layout</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">service_equipment</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">converter</span><span class="o">=</span><span class="n">convert_to_list</span><span class="p">)</span>
+    <span class="n">weather</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+    <span class="n">workday_start</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">converter</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">workday_end</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">converter</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">inflation_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">converter</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">project_capacity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">converter</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">fixed_costs</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">port</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">start_year</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">end_year</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">port_distance</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">non_operational_start</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">non_operational_end</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">reduced_speed_start</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">reduced_speed_end</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">reduced_speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">random_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">random_generator</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">_generator</span><span class="o">.</span><span class="n">Generator</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Simulation">
+<a class="viewcode-back" href="../../../API/simulation_api.html#wombat.core.simulation_api.Simulation">[docs]</a>
+<span class="nd">@define</span><span class="p">(</span><span class="n">auto_attribs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Simulation</span><span class="p">(</span><span class="n">FromDictMixin</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The primary API to interact with the simulation methodologies.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    library_path : str</span>
+<span class="sd">        The path to the main data library.</span>
+<span class="sd">    config : Configuration | dict | str</span>
+<span class="sd">        One of the following:</span>
+<span class="sd">         - A pre-loaded ``Configuration`` object</span>
+<span class="sd">         - A dictionary ready to be converted to a ``Configuration`` object</span>
+<span class="sd">         - The name of the configuration file to be loaded, that will be located at:</span>
+<span class="sd">           ``library_path`` / config / ``config``</span>
+<span class="sd">    random_seed : int | None</span>
+<span class="sd">        The random seed to be passed to a universal NumPy ``default_rng`` object to</span>
+<span class="sd">        generate Weibull random generators, by default None.</span>
+<span class="sd">    random_generator: np.random._generator.Generator | None</span>
+<span class="sd">        An optional numpy random generator that can be provided to seed a simulation</span>
+<span class="sd">        with the same generator each time, in place of the random seed. If a</span>
+<span class="sd">        :py:attr:`random_seed` is also provided, this will override the random seed,</span>
+<span class="sd">        by default None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">library_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">converter</span><span class="o">=</span><span class="n">_library_mapper</span><span class="p">)</span>
+    <span class="n">config</span><span class="p">:</span> <span class="n">Configuration</span> <span class="o">=</span> <span class="n">field</span><span class="p">()</span>
+    <span class="n">random_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">random_generator</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">_generator</span><span class="o">.</span><span class="n">Generator</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">metrics</span><span class="p">:</span> <span class="n">Metrics</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">windfarm</span><span class="p">:</span> <span class="n">Windfarm</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">env</span><span class="p">:</span> <span class="n">WombatEnvironment</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">repair_manager</span><span class="p">:</span> <span class="n">RepairManager</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">service_equipment</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ServiceEquipment</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">port</span><span class="p">:</span> <span class="n">Port</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__attrs_post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Post-initialization hook.&quot;&quot;&quot;</span>
+        <span class="c1"># Check for random seeding from the configuration if none provided directly</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_seed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">random_seed</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_generator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">random_generator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">random_generator</span>
+
+        <span class="c1"># Finish the setup</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_simulation</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Simulation._create_configuration">
+<a class="viewcode-back" href="../../../API/simulation_api.html#wombat.core.simulation_api.Simulation._create_configuration">[docs]</a>
+    <span class="nd">@config</span><span class="o">.</span><span class="n">validator</span>  <span class="c1"># type: ignore</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_configuration</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="p">:</span> <span class="n">Attribute</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">dict</span> <span class="o">|</span> <span class="n">Configuration</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validates the configuration object and creates the ``Configuration`` object</span>
+<span class="sd">        for the simulation.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        TypeError</span>
+<span class="sd">            Raised if the value provided is not able to create a valid ``Configuration``</span>
+<span class="sd">            object</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            Raised if ``name`` and ``config.name`` or ``library_path`` and</span>
+<span class="sd">            ``config.library`` are not aligned.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Configuration</span>
+<span class="sd">            The validated simulation configuration</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">)):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">load_yaml</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">library_path</span> <span class="o">/</span> <span class="s2">&quot;project/config&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">Configuration</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Configuration</span><span class="p">):</span>
+            <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s2">&quot;``config`` must be a dictionary, valid file path to a yaml-enocoded&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;dictionary, or ``Configuration`` object!&quot;</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Simulation.from_config">
+<a class="viewcode-back" href="../../../API/simulation_api.html#wombat.core.simulation_api.Simulation.from_config">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_config</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">library_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">dict</span> <span class="o">|</span> <span class="n">Configuration</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates the ``Simulation`` object only the configuration contents as either a</span>
+<span class="sd">        full file path to the configuration file, a dictionary of the configuration</span>
+<span class="sd">        contents, or pre-loaded ``Configuration`` object.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        library_path : str | Path</span>
+<span class="sd">            The simulation&#39;s data library. If a filename is provided for</span>
+<span class="sd">            :py:attr:`config`, this is the data library from where it will be imported.</span>
+<span class="sd">            This will also be used to feed into the returned `Simulation.library_path`.</span>
+<span class="sd">        config : str | Path | dict | Configuration</span>
+<span class="sd">            The simulation configuration, see ``Configuration`` for more details on the</span>
+<span class="sd">            contents. The following is a description of the acceptable contents:</span>
+
+<span class="sd">            - ``str`` : the full file path of the configuration yaml file.</span>
+<span class="sd">            - ``dict`` : a dictionary with the requried configuration settings.</span>
+<span class="sd">            - ``Configuration`` : a pre-created ``Configuration`` object.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        TypeError</span>
+<span class="sd">            Raised if ``config`` is not one of the three acceptable input types.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Simulation</span>
+<span class="sd">            A ready-to-run ``Simulation`` object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">library_path</span> <span class="o">=</span> <span class="n">_library_mapper</span><span class="p">(</span><span class="n">library_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">)):</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">library_path</span> <span class="o">/</span> <span class="s2">&quot;project&quot;</span> <span class="o">/</span> <span class="s2">&quot;config&quot;</span> <span class="o">/</span> <span class="n">config</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">load_yaml</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">Configuration</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">Configuration</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s2">&quot;``config`` must be a dictionary or ``Configuration`` object!&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">Configuration</span><span class="p">)</span>  <span class="c1"># mypy helper</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>  <span class="c1"># type: ignore</span>
+            <span class="n">library_path</span><span class="o">=</span><span class="n">library_path</span><span class="p">,</span>
+            <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
+            <span class="n">random_seed</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">random_seed</span><span class="p">,</span>
+            <span class="n">random_generator</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">random_generator</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Simulation._setup_simulation">
+<a class="viewcode-back" href="../../../API/simulation_api.html#wombat.core.simulation_api.Simulation._setup_simulation">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_setup_simulation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the simulation objects.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="n">WombatEnvironment</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">library_path</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">weather</span><span class="p">,</span>
+            <span class="n">simulation_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">workday_start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">workday_start</span><span class="p">,</span>
+            <span class="n">workday_end</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">workday_end</span><span class="p">,</span>
+            <span class="n">start_year</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">start_year</span><span class="p">,</span>
+            <span class="n">end_year</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">end_year</span><span class="p">,</span>
+            <span class="n">port_distance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">port_distance</span><span class="p">,</span>
+            <span class="n">non_operational_start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">non_operational_start</span><span class="p">,</span>
+            <span class="n">non_operational_end</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">non_operational_end</span><span class="p">,</span>
+            <span class="n">reduced_speed_start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">reduced_speed_start</span><span class="p">,</span>
+            <span class="n">reduced_speed_end</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">reduced_speed_end</span><span class="p">,</span>
+            <span class="n">reduced_speed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">reduced_speed</span><span class="p">,</span>
+            <span class="n">random_seed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">random_seed</span><span class="p">,</span>
+            <span class="n">random_generator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">random_generator</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">repair_manager</span> <span class="o">=</span> <span class="n">RepairManager</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span> <span class="o">=</span> <span class="n">Windfarm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">layout</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">repair_manager</span><span class="p">)</span>
+
+        <span class="c1"># Create the servicing equipment and set the necessary environment variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">service_equipment</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ServiceEquipment</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: ignore</span>
+        <span class="k">for</span> <span class="n">service_equipment</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">service_equipment</span><span class="p">:</span>
+            <span class="n">equipment</span> <span class="o">=</span> <span class="n">ServiceEquipment</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">repair_manager</span><span class="p">,</span> <span class="n">service_equipment</span>
+            <span class="p">)</span>
+            <span class="n">equipment</span><span class="o">.</span><span class="n">finish_setup_with_environment_variables</span><span class="p">()</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">equipment</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_equipment</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Servicing equipment `</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">` already exists, please use unique&quot;</span>
+                    <span class="s2">&quot; names for all servicing equipment.&quot;</span>
+                <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">service_equipment</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">equipment</span>  <span class="c1"># type: ignore</span>
+
+        <span class="c1"># Create the port and add any tugboats to the available servicing equipment list</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">port</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">Port</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">repair_manager</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">port</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">service_equipment</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="o">.</span><span class="n">service_equipment_manager</span><span class="o">.</span><span class="n">items</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">service_equipment</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">name</span>  <span class="c1"># type: ignore</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_equipment</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Servicing equipment `</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">` already exists, please use&quot;</span>
+                        <span class="s2">&quot; unique names for all servicing equipment.&quot;</span>
+                    <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">service_equipment</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">service_equipment</span>  <span class="c1"># type: ignore</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">project_capacity</span> <span class="o">*</span> <span class="mi">1000</span> <span class="o">!=</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">capacity</span><span class="p">,</span> <span class="mi">6</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Input `project_capacity`: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">project_capacity</span><span class="si">:</span><span class="s2">,.6f</span><span class="si">}</span><span class="s2"> MW is&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot; not equal to the sum of turbine capacities:&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">capacity</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1000</span><span class="si">:</span><span class="s2">,.6f</span><span class="si">}</span><span class="s2"> MW&quot;</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Simulation.run">
+<a class="viewcode-back" href="../../../API/simulation_api.html#wombat.core.simulation_api.Simulation.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">until</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Event</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">create_metrics</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">save_metrics_inputs</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calls ``WombatEnvironment.run()`` and gathers the results for</span>
+<span class="sd">        post-processing. See ``wombat.simulation.WombatEnvironment.run`` or</span>
+<span class="sd">        ``simpy.Environment.run`` for more details.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        until : Optional[int | float | Event], optional</span>
+<span class="sd">            When to stop the simulation, by default None. See documentation on</span>
+<span class="sd">            ``simpy.Environment.run`` for more details.</span>
+<span class="sd">        create_metrics : bool, optional</span>
+<span class="sd">            If True, the metrics object will be created, and not, if False, by default</span>
+<span class="sd">            True.</span>
+<span class="sd">        save_metrics_inputs : bool, optional</span>
+<span class="sd">            If True, the metrics inputs data will be saved to a yaml file, with file</span>
+<span class="sd">            references to any larger data structures that can be reloaded later. If</span>
+<span class="sd">            False, the data will not be saved, by default True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="n">until</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">save_metrics_inputs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_metrics_inputs</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">create_metrics</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">initialize_metrics</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Instantiates the ``metrics`` attribute after the simulation is run.&quot;&quot;&quot;</span>
+        <span class="n">events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">load_events_log_dataframe</span><span class="p">()</span>
+        <span class="n">operations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">load_operations_log_dataframe</span><span class="p">()</span>
+        <span class="n">power_potential</span><span class="p">,</span> <span class="n">power_production</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">power_production_potential_to_csv</span><span class="p">(</span>
+            <span class="n">windfarm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="p">,</span> <span class="n">operations</span><span class="o">=</span><span class="n">operations</span><span class="p">,</span> <span class="n">return_df</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="n">substation_turbine_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">s_id</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="k">for</span> <span class="n">s_id</span><span class="p">,</span> <span class="nb">dict</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">substation_turbine_map</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="n">capacities</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">capacity</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">turbine_id</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="n">Metrics</span><span class="p">(</span>
+            <span class="n">data_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">library_path</span><span class="p">,</span>
+            <span class="n">events</span><span class="o">=</span><span class="n">events</span><span class="p">,</span>
+            <span class="n">operations</span><span class="o">=</span><span class="n">operations</span><span class="p">,</span>
+            <span class="n">potential</span><span class="o">=</span><span class="n">power_potential</span><span class="p">,</span>
+            <span class="n">production</span><span class="o">=</span><span class="n">power_production</span><span class="p">,</span>
+            <span class="n">inflation_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">inflation_rate</span><span class="p">,</span>
+            <span class="n">project_capacity</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">project_capacity</span><span class="p">,</span>
+            <span class="n">turbine_capacities</span><span class="o">=</span><span class="n">capacities</span><span class="p">,</span>
+            <span class="n">fixed_costs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">fixed_costs</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+            <span class="n">substation_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">substation_id</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="n">turbine_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">turbine_id</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="n">substation_turbine_map</span><span class="o">=</span><span class="n">substation_turbine_map</span><span class="p">,</span>
+            <span class="n">service_equipment_names</span><span class="o">=</span><span class="p">[</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">service_equipment</span><span class="p">],</span>  <span class="c1"># type: ignore</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="Simulation.save_metrics_inputs">
+<a class="viewcode-back" href="../../../API/simulation_api.html#wombat.core.simulation_api.Simulation.save_metrics_inputs">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_metrics_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Saves the inputs for the `Metrics` initialization with either a direct</span>
+<span class="sd">        copy of the data or a file reference that can be loaded later.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">substation_turbine_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">s_id</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="k">for</span> <span class="n">s_id</span><span class="p">,</span> <span class="nb">dict</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">substation_turbine_map</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;data_dir&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">library_path</span><span class="p">),</span>
+            <span class="s2">&quot;events&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">events_log_fname</span><span class="p">),</span>
+            <span class="s2">&quot;operations&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">operations_log_fname</span><span class="p">),</span>
+            <span class="s2">&quot;potential&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">power_potential_fname</span><span class="p">),</span>
+            <span class="s2">&quot;production&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">power_production_fname</span><span class="p">),</span>
+            <span class="s2">&quot;inflation_rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">inflation_rate</span><span class="p">,</span>
+            <span class="s2">&quot;project_capacity&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">project_capacity</span><span class="p">,</span>
+            <span class="s2">&quot;turbine_capacities&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">t_id</span><span class="p">)</span><span class="o">.</span><span class="n">capacity</span> <span class="k">for</span> <span class="n">t_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">turbine_id</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;fixed_costs&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">fixed_costs</span><span class="p">,</span>
+            <span class="s2">&quot;substation_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">substation_id</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="s2">&quot;turbine_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">windfarm</span><span class="o">.</span><span class="n">turbine_id</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="s2">&quot;substation_turbine_map&quot;</span><span class="p">:</span> <span class="n">substation_turbine_map</span><span class="p">,</span>
+            <span class="s2">&quot;service_equipment_names&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">service_equipment</span><span class="p">],</span>
+        <span class="p">}</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">metrics_input_fname</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">default_flow_style</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Rob Hammond
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2021 Alliance for Sustainable Energy, LLC.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

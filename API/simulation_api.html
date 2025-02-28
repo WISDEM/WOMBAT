@@ -1,0 +1,1580 @@
+
+<!DOCTYPE html>
+
+
+<html lang="python" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Simulation API &#8212; WOMBAT</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=30a733bc"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'API/simulation_api';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Data Classes" href="types.html" />
+    <link rel="prev" title="WOMBAT API" href="index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="python"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">WOMBAT</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/WISDEM/WOMBAT" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI version" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/v/WOMBAT" class="icon-link-image" alt="PyPI version"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/WOMBAT/" title="PyPI downloads" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://img.shields.io/pypi/dm/WOMBAT" class="icon-link-image" alt="PyPI downloads"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples" title="Launch Binder" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://mybinder.org/badge_logo.svg" class="icon-link-image" alt="Launch Binder"/></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributor's Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../presentations.html">Presentations and Publications</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../workshops/index.html">Workshops</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../workshops/nawea_wind_tech_2023.html">NAWEA WindTech 2023 WOMBAT Tutorial</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../team.html">Team</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Working With the Code Base</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">User Guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/how_to.html">How To Use WOMBAT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/strategy_demonstration.html">Servicing Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/metrics_demonstration.html">Demonstration of the Available Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/examples_reference.html">Examples Reference</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">WOMBAT API</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Simulation API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="types.html">Data Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html">Simulation Core Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="windfarm.html">Wind Farm Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html">Helpers and Plotting</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Change Log</a></li>
+
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/API/simulation_api.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Simulation API</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.simulation_api.Configuration"><code class="docutils literal notranslate"><span class="pre">Configuration</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simulation-interface">Simulation Interface</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.simulation_api.Simulation"><code class="docutils literal notranslate"><span class="pre">Simulation</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.simulation_api.Simulation._create_configuration"><code class="docutils literal notranslate"><span class="pre">Simulation._create_configuration()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.simulation_api.Simulation.from_config"><code class="docutils literal notranslate"><span class="pre">Simulation.from_config()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.simulation_api.Simulation._setup_simulation"><code class="docutils literal notranslate"><span class="pre">Simulation._setup_simulation()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.simulation_api.Simulation.run"><code class="docutils literal notranslate"><span class="pre">Simulation.run()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.simulation_api.Simulation.save_metrics_inputs"><code class="docutils literal notranslate"><span class="pre">Simulation.save_metrics_inputs()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#metrics-computation">Metrics Computation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics"><code class="docutils literal notranslate"><span class="pre">Metrics</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics._hourly_cost"><code class="docutils literal notranslate"><span class="pre">Metrics._hourly_cost</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics._salary_cost"><code class="docutils literal notranslate"><span class="pre">Metrics._salary_cost</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics._labor_cost"><code class="docutils literal notranslate"><span class="pre">Metrics._labor_cost</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics._equipment_cost"><code class="docutils literal notranslate"><span class="pre">Metrics._equipment_cost</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics._materials_cost"><code class="docutils literal notranslate"><span class="pre">Metrics._materials_cost</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics._total_cost"><code class="docutils literal notranslate"><span class="pre">Metrics._total_cost</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics._cost_columns"><code class="docutils literal notranslate"><span class="pre">Metrics._cost_columns</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.from_simulation_outputs"><code class="docutils literal notranslate"><span class="pre">Metrics.from_simulation_outputs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics._tidy_data"><code class="docutils literal notranslate"><span class="pre">Metrics._tidy_data()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics._read_data"><code class="docutils literal notranslate"><span class="pre">Metrics._read_data()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics._apply_inflation_rate"><code class="docutils literal notranslate"><span class="pre">Metrics._apply_inflation_rate()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.time_based_availability"><code class="docutils literal notranslate"><span class="pre">Metrics.time_based_availability()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.production_based_availability"><code class="docutils literal notranslate"><span class="pre">Metrics.production_based_availability()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.capacity_factor"><code class="docutils literal notranslate"><span class="pre">Metrics.capacity_factor()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.task_completion_rate"><code class="docutils literal notranslate"><span class="pre">Metrics.task_completion_rate()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.equipment_costs"><code class="docutils literal notranslate"><span class="pre">Metrics.equipment_costs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.service_equipment_utilization"><code class="docutils literal notranslate"><span class="pre">Metrics.service_equipment_utilization()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.vessel_crew_hours_at_sea"><code class="docutils literal notranslate"><span class="pre">Metrics.vessel_crew_hours_at_sea()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.number_of_tows"><code class="docutils literal notranslate"><span class="pre">Metrics.number_of_tows()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.labor_costs"><code class="docutils literal notranslate"><span class="pre">Metrics.labor_costs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.equipment_labor_cost_breakdowns"><code class="docutils literal notranslate"><span class="pre">Metrics.equipment_labor_cost_breakdowns()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.emissions"><code class="docutils literal notranslate"><span class="pre">Metrics.emissions()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.component_costs"><code class="docutils literal notranslate"><span class="pre">Metrics.component_costs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.port_fees"><code class="docutils literal notranslate"><span class="pre">Metrics.port_fees()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.project_fixed_costs"><code class="docutils literal notranslate"><span class="pre">Metrics.project_fixed_costs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.opex"><code class="docutils literal notranslate"><span class="pre">Metrics.opex()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.process_times"><code class="docutils literal notranslate"><span class="pre">Metrics.process_times()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.power_production"><code class="docutils literal notranslate"><span class="pre">Metrics.power_production()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.npv"><code class="docutils literal notranslate"><span class="pre">Metrics.npv()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="simulation-api">
+<span id="id1"></span><h1>Simulation API<a class="headerlink" href="#simulation-api" title="Link to this heading">#</a></h1>
+<a class="reference internal image-reference" href="../_images/simulation_api.svg"><img alt="" class="align-center" src="../_images/simulation_api.svg" style="width: 2400px;" />
+</a>
+<section id="configuration">
+<span id="simulation-api-config"></span><h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.core.simulation_api.Configuration">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.core.simulation_api.</span></span><span class="sig-name descname"><span class="pre">Configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">service_equipment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weather</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workday_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workday_end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inflation_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_capacity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_costs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_year</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_year</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">non_operational_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">non_operational_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduced_speed_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduced_speed_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduced_speed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_generator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/simulation_api.html#Configuration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.simulation_api.Configuration" title="Link to this definition">#</a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> configuration data class that provides all the necessary
+definitions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) -- Name of the simulation. Used for logging files.</p></li>
+<li><p><strong>layout</strong> (<em>str</em>) -- The windfarm layout file. See <code class="docutils literal notranslate"><span class="pre">wombat.Windfarm</span></code> for more details.</p></li>
+<li><p><strong>service_equipment</strong> (<em>str</em><em> | </em><em>list</em><em>[</em><em>str</em><em>]</em>) -- The equpiment that will be used in the simulation. See
+<code class="docutils literal notranslate"><span class="pre">wombat.core.ServiceEquipment</span></code> for more details.</p></li>
+<li><p><strong>weather</strong> (<em>str</em>) -- The weather profile to be used. See <code class="docutils literal notranslate"><span class="pre">wombat.simulation.WombatEnvironment</span></code>
+for more details.</p></li>
+<li><p><strong>workday_start</strong> (<em>int</em>) -- Starting hour for a typical work shift. Can be overridden by
+equipment-specific settings.</p></li>
+<li><p><strong>workday_end</strong> (<em>int</em>) -- Ending hour for a typical work shift. Can be overridden by
+equipment-specific settings.</p></li>
+<li><p><strong>inflation_rate</strong> (<em>float</em>) -- The annual inflation rate to be used for post-processing.</p></li>
+<li><p><strong>fixed_costs</strong> (<em>str</em>) -- The file name for the fixed costs assumptions.</p></li>
+<li><p><strong>project_capacity</strong> (<em>int</em><em> | </em><em>float</em>) -- The total capacity of the wind plant, in MW.</p></li>
+<li><p><strong>port</strong> (<em>dict</em><em> | </em><em>str</em><em> | </em><em>Path</em>) -- The port configuration file or dictionary that will be used to setup a
+tow-to-port repair strategy, default None.</p></li>
+<li><p><strong>port_distance</strong> (<em>int</em><em> | </em><em>float</em>) -- The simulation-wide daily travel distance for servicing equipment. This should
+be used as a base setting when multiple or all servicing equipment will be
+operating out of the same base location, but can be individually modified.</p></li>
+<li><p><strong>start_year</strong> (<em>int</em>) -- Start year of the simulation. The exact date will be determined by
+the first valid date of this year in <code class="docutils literal notranslate"><span class="pre">weather</span></code>.</p></li>
+<li><p><strong>end_year</strong> (<em>int</em>) -- Final year of the simulation. The exact date will be determined by
+the last valid date of this year in <code class="docutils literal notranslate"><span class="pre">weather</span></code>.</p></li>
+<li><p><strong>non_operational_start</strong> (<em>str</em><em> | </em><em>datetime.datetime</em><em> | </em><em>None</em>) -- The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+period of prohibited operations. When defined at the environment level, an
+undefined or later starting date will be overridden for all servicing equipment
+and any modeled port, by default None.</p></li>
+<li><p><strong>non_operational_end</strong> (<em>str</em><em> | </em><em>datetime.datetime</em><em> | </em><em>None</em>) -- The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+period of prohibited operations. When defined at the environment level, an
+undefined or earlier ending date will be overridden for all servicing equipment
+and any modeled port, by default None.</p></li>
+<li><p><strong>reduced_speed_start</strong> (<em>str</em><em> | </em><em>datetime.datetime</em><em> | </em><em>None</em>) -- The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+period of reduced speed operations. When defined at the environment level, an
+undefined or later starting date will be overridden for all servicing equipment
+and any modeled port, by default None.</p></li>
+<li><p><strong>reduced_speed_end</strong> (<em>str</em><em> | </em><em>datetime.datetime</em><em> | </em><em>None</em>) -- The ending month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
+period of reduced speed operations. When defined at the environment level, an
+undefined or earlier ending date will be overridden for all servicing equipment
+and any modeled port, by default None.</p></li>
+<li><p><strong>reduced_speed</strong> (<em>float</em>) -- The maximum operating speed during the annualized reduced speed operations.
+When defined at the environment level, an undefined or faster value will be
+overridden for all servicing equipment and any modeled port, by default 0.0.</p></li>
+<li><p><strong>random_seed</strong> (<em>int</em><em> | </em><em>None</em>) -- The random seed to be passed to a universal NumPy <code class="docutils literal notranslate"><span class="pre">default_rng</span></code> object to
+generate Weibull random generators, by default None.</p></li>
+<li><p><strong>random_generator</strong> (<em>np.random._generator.Generator</em><em> | </em><em>None</em>) -- An optional numpy random generator that can be provided to seed a simulation
+with the same generator each time, in place of the random seed. If a
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">random_seed</span></code> is also provided, this will override the random seed,
+by default None.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="simulation-interface">
+<span id="simulation-api-interface"></span><h2>Simulation Interface<a class="headerlink" href="#simulation-interface" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.core.simulation_api.Simulation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.core.simulation_api.</span></span><span class="sig-name descname"><span class="pre">Simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">library_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_generator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/simulation_api.html#Simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.simulation_api.Simulation" title="Link to this definition">#</a></dt>
+<dd><p>The primary API to interact with the simulation methodologies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>library_path</strong> (<em>str</em>) -- The path to the main data library.</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="#wombat.core.simulation_api.Configuration" title="wombat.core.simulation_api.Configuration"><em>Configuration</em></a><em> | </em><em>dict</em><em> | </em><em>str</em>) -- <dl class="simple">
+<dt>One of the following:</dt><dd><ul>
+<li><p>A pre-loaded <code class="docutils literal notranslate"><span class="pre">Configuration</span></code> object</p></li>
+<li><p>A dictionary ready to be converted to a <code class="docutils literal notranslate"><span class="pre">Configuration</span></code> object</p></li>
+<li><p>The name of the configuration file to be loaded, that will be located at:
+<code class="docutils literal notranslate"><span class="pre">library_path</span></code> / config / <code class="docutils literal notranslate"><span class="pre">config</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>random_seed</strong> (<em>int</em><em> | </em><em>None</em>) -- The random seed to be passed to a universal NumPy <code class="docutils literal notranslate"><span class="pre">default_rng</span></code> object to
+generate Weibull random generators, by default None.</p></li>
+<li><p><strong>random_generator</strong> (<em>np.random._generator.Generator</em><em> | </em><em>None</em>) -- An optional numpy random generator that can be provided to seed a simulation
+with the same generator each time, in place of the random seed. If a
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">random_seed</span></code> is also provided, this will override the random seed,
+by default None.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.simulation_api.Simulation._create_configuration">
+<span class="sig-name descname"><span class="pre">_create_configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/simulation_api.html#Simulation._create_configuration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.simulation_api.Simulation._create_configuration" title="Link to this definition">#</a></dt>
+<dd><p>Validates the configuration object and creates the <code class="docutils literal notranslate"><span class="pre">Configuration</span></code> object
+for the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>TypeError</strong> -- Raised if the value provided is not able to create a valid <code class="docutils literal notranslate"><span class="pre">Configuration</span></code>
+    object</p></li>
+<li><p><strong>ValueError</strong> -- Raised if <code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">config.name</span></code> or <code class="docutils literal notranslate"><span class="pre">library_path</span></code> and
+    <code class="docutils literal notranslate"><span class="pre">config.library</span></code> are not aligned.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Configuration</em> -- The validated simulation configuration</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>attribute</strong> (<em>Attribute</em>)</p></li>
+<li><p><strong>value</strong> (<em>str</em><em> | </em><em>Path</em><em> | </em><em>dict</em><em> | </em><a class="reference internal" href="#wombat.core.simulation_api.Configuration" title="wombat.core.simulation_api.Configuration"><em>Configuration</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.simulation_api.Simulation.from_config">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">library_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/simulation_api.html#Simulation.from_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.simulation_api.Simulation.from_config" title="Link to this definition">#</a></dt>
+<dd><p>Creates the <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> object only the configuration contents as either a
+full file path to the configuration file, a dictionary of the configuration
+contents, or pre-loaded <code class="docutils literal notranslate"><span class="pre">Configuration</span></code> object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>library_path</strong> (<em>str</em><em> | </em><em>Path</em>) -- The simulation's data library. If a filename is provided for
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">config</span></code>, this is the data library from where it will be imported.
+This will also be used to feed into the returned <cite>Simulation.library_path</cite>.</p></li>
+<li><p><strong>config</strong> (<em>str</em><em> | </em><em>Path</em><em> | </em><em>dict</em><em> | </em><a class="reference internal" href="#wombat.core.simulation_api.Configuration" title="wombat.core.simulation_api.Configuration"><em>Configuration</em></a>) -- <p>The simulation configuration, see <code class="docutils literal notranslate"><span class="pre">Configuration</span></code> for more details on the
+contents. The following is a description of the acceptable contents:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">str</span></code> : the full file path of the configuration yaml file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dict</span></code> : a dictionary with the requried configuration settings.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Configuration</span></code> : a pre-created <code class="docutils literal notranslate"><span class="pre">Configuration</span></code> object.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> -- Raised if <code class="docutils literal notranslate"><span class="pre">config</span></code> is not one of the three acceptable input types.</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Simulation</em> -- A ready-to-run <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.simulation_api.Simulation._setup_simulation">
+<span class="sig-name descname"><span class="pre">_setup_simulation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/simulation_api.html#Simulation._setup_simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.simulation_api.Simulation._setup_simulation" title="Link to this definition">#</a></dt>
+<dd><p>Initializes the simulation objects.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.simulation_api.Simulation.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">until</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">create_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_metrics_inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/simulation_api.html#Simulation.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.simulation_api.Simulation.run" title="Link to this definition">#</a></dt>
+<dd><p>Calls <code class="docutils literal notranslate"><span class="pre">WombatEnvironment.run()</span></code> and gathers the results for
+post-processing. See <code class="docutils literal notranslate"><span class="pre">wombat.simulation.WombatEnvironment.run</span></code> or
+<code class="docutils literal notranslate"><span class="pre">simpy.Environment.run</span></code> for more details.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>until</strong> (<em>Optional</em><em>[</em><em>int</em><em> | </em><em>float</em><em> | </em><em>Event</em><em>]</em><em>, </em><em>optional</em>) -- When to stop the simulation, by default None. See documentation on
+<code class="docutils literal notranslate"><span class="pre">simpy.Environment.run</span></code> for more details.</p></li>
+<li><p><strong>create_metrics</strong> (<em>bool</em><em>, </em><em>optional</em>) -- If True, the metrics object will be created, and not, if False, by default
+True.</p></li>
+<li><p><strong>save_metrics_inputs</strong> (<em>bool</em><em>, </em><em>optional</em>) -- If True, the metrics inputs data will be saved to a yaml file, with file
+references to any larger data structures that can be reloaded later. If
+False, the data will not be saved, by default True.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.simulation_api.Simulation.save_metrics_inputs">
+<span class="sig-name descname"><span class="pre">save_metrics_inputs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/simulation_api.html#Simulation.save_metrics_inputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.simulation_api.Simulation.save_metrics_inputs" title="Link to this definition">#</a></dt>
+<dd><p>Saves the inputs for the <cite>Metrics</cite> initialization with either a direct
+copy of the data or a file reference that can be loaded later.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="metrics-computation">
+<span id="simulation-api-metrics"></span><h2>Metrics Computation<a class="headerlink" href="#metrics-computation" title="Link to this heading">#</a></h2>
+<p>For example usage of the Metrics class and its associated methods, please see the
+<a class="reference internal" href="../examples/metrics_demonstration.html"><span class="doc std std-doc">examples documentation page</span></a></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wombat.core.post_processor.</span></span><span class="sig-name descname"><span class="pre">Metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">potential</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">production</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inflation_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_capacity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">turbine_capacities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">substation_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">turbine_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">substation_turbine_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">service_equipment_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_costs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics" title="Link to this definition">#</a></dt>
+<dd><p>The metric computation class for storing logs and compiling results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_dir</strong> (<em>str</em><em> | </em><em>Path</em>)</p></li>
+<li><p><strong>events</strong> (<em>str</em><em> | </em><em>pd.DataFrame</em>)</p></li>
+<li><p><strong>operations</strong> (<em>str</em><em> | </em><em>pd.DataFrame</em>)</p></li>
+<li><p><strong>potential</strong> (<em>str</em><em> | </em><em>pd.DataFrame</em>)</p></li>
+<li><p><strong>production</strong> (<em>str</em><em> | </em><em>pd.DataFrame</em>)</p></li>
+<li><p><strong>inflation_rate</strong> (<em>float</em>)</p></li>
+<li><p><strong>project_capacity</strong> (<em>float</em>)</p></li>
+<li><p><strong>turbine_capacities</strong> (<em>list</em><em>[</em><em>float</em><em>]</em>)</p></li>
+<li><p><strong>substation_id</strong> (<em>str</em><em> | </em><em>list</em><em>[</em><em>str</em><em>]</em>)</p></li>
+<li><p><strong>turbine_id</strong> (<em>str</em><em> | </em><em>list</em><em>[</em><em>str</em><em>]</em>)</p></li>
+<li><p><strong>substation_turbine_map</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>dict</em><em>[</em><em>str</em><em>, </em><em>list</em><em>[</em><em>str</em><em>]</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>service_equipment_names</strong> (<em>str</em><em> | </em><em>list</em><em>[</em><em>str</em><em>]</em>)</p></li>
+<li><p><strong>fixed_costs</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics._hourly_cost">
+<span class="sig-name descname"><span class="pre">_hourly_cost</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'hourly_labor_cost'</span></em><a class="headerlink" href="#wombat.core.post_processor.Metrics._hourly_cost" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics._salary_cost">
+<span class="sig-name descname"><span class="pre">_salary_cost</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'salary_labor_cost'</span></em><a class="headerlink" href="#wombat.core.post_processor.Metrics._salary_cost" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics._labor_cost">
+<span class="sig-name descname"><span class="pre">_labor_cost</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'total_labor_cost'</span></em><a class="headerlink" href="#wombat.core.post_processor.Metrics._labor_cost" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics._equipment_cost">
+<span class="sig-name descname"><span class="pre">_equipment_cost</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'equipment_cost'</span></em><a class="headerlink" href="#wombat.core.post_processor.Metrics._equipment_cost" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics._materials_cost">
+<span class="sig-name descname"><span class="pre">_materials_cost</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'materials_cost'</span></em><a class="headerlink" href="#wombat.core.post_processor.Metrics._materials_cost" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics._total_cost">
+<span class="sig-name descname"><span class="pre">_total_cost</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'total_cost'</span></em><a class="headerlink" href="#wombat.core.post_processor.Metrics._total_cost" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics._cost_columns">
+<span class="sig-name descname"><span class="pre">_cost_columns</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['hourly_labor_cost',</span> <span class="pre">'salary_labor_cost',</span> <span class="pre">'total_labor_cost',</span> <span class="pre">'equipment_cost',</span> <span class="pre">'materials_cost',</span> <span class="pre">'total_cost']</span></em><a class="headerlink" href="#wombat.core.post_processor.Metrics._cost_columns" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics.from_simulation_outputs">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_simulation_outputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics.from_simulation_outputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics.from_simulation_outputs" title="Link to this definition">#</a></dt>
+<dd><p>Creates the Metrics class from the saved outputs of a simulation for ease of
+revisiting the calculated metrics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fpath</strong> (<em>Path</em><em> | </em><em>str</em>) -- The full path to the file where the data was saved.</p></li>
+<li><p><strong>fname</strong> (<em>Path</em><em> | </em><em>str</em>) -- The filename for where the data was saved, which should be a direct
+dictionary mapping for the Metrics initialization.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#wombat.core.post_processor.Metrics" title="wombat.core.post_processor.Metrics"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metrics</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Metrics</em> -- The class object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics._tidy_data">
+<span class="sig-name descname"><span class="pre">_tidy_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics._tidy_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics._tidy_data" title="Link to this definition">#</a></dt>
+<dd><p>Tidies the &quot;raw&quot; csv-converted data to be able to be used among the
+<code class="docutils literal notranslate"><span class="pre">Metrics</span></code> class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>pd.DataFrame</em>) -- The csv log data.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>pd.DataFrame</em> -- A tidied data frame to be used for all the operations in this class.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics._read_data">
+<span class="sig-name descname"><span class="pre">_read_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics._read_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics._read_data" title="Link to this definition">#</a></dt>
+<dd><p>Reads the csv log data from library. This is intended to be used for the
+events or operations data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) -- Path to the simulation library.</p></li>
+<li><p><strong>fname</strong> (<em>str</em>) -- Filename of the csv data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>pd.DataFrame</em> -- Dataframe of either the events or operations data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics._apply_inflation_rate">
+<span class="sig-name descname"><span class="pre">_apply_inflation_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics._apply_inflation_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics._apply_inflation_rate" title="Link to this definition">#</a></dt>
+<dd><p>Adjusts the cost data for compounding inflation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inflation_rate</strong> (<em>float</em>) -- The inflation rate to be applied for each year.</p></li>
+<li><p><strong>events</strong> (<em>pd.DataFrame</em>) -- The events dataframe containing the project cost data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>pd.DataFrame</em> -- The events dataframe with costs adjusted for inflation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics.time_based_availability">
+<span class="sig-name descname"><span class="pre">time_based_availability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics.time_based_availability"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics.time_based_availability" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the time-based availabiliy over a project's lifetime as a single
+value, annual average, or monthly average for the whole windfarm or by turbine.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This currently assumes that if there are multiple substations, that
+the turbines are all connected to multiple.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frequency</strong> (<em>str</em>) -- One of &quot;project&quot;, &quot;annual&quot;, &quot;monthly&quot;, or &quot;month-year&quot;.</p></li>
+<li><p><strong>by</strong> (<em>str</em>) -- One of &quot;windfarm&quot; or &quot;turbine&quot;.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>pd.DataFrame</em> -- The time-based availability at the desired aggregation level.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics.production_based_availability">
+<span class="sig-name descname"><span class="pre">production_based_availability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics.production_based_availability"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics.production_based_availability" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the production-based availabiliy over a project's lifetime as a
+single value, annual average, or monthly average for the whole windfarm or by
+turbine.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This currently assumes that if there are multiple substations, that
+the turbines are all connected to multiple.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frequency</strong> (<em>str</em>) -- One of &quot;project&quot;, &quot;annual&quot;, &quot;monthly&quot;, or &quot;month-year&quot;.</p></li>
+<li><p><strong>by</strong> (<em>str</em>) -- One of &quot;windfarm&quot; or &quot;turbine&quot;.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>pd.DataFrame</em> -- The production-based availability at the desired aggregation level.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics.capacity_factor">
+<span class="sig-name descname"><span class="pre">capacity_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">which</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics.capacity_factor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics.capacity_factor" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the capacity factor over a project's lifetime as a single value,
+annual average, or monthly average for the whole windfarm or by turbine.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This currently assumes that if there are multiple substations, that
+the turbines are all connected to multiple.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>which</strong> (<em>str</em>) -- One of &quot;net&quot; or &quot;gross&quot;.</p></li>
+<li><p><strong>frequency</strong> (<em>str</em>) -- One of &quot;project&quot;, &quot;annual&quot;, &quot;monthly&quot;, or &quot;month-year&quot;.</p></li>
+<li><p><strong>by</strong> (<em>str</em>) -- One of &quot;windfarm&quot; or &quot;turbine&quot;.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>pd.DataFrame</em> -- The capacity factor at the desired aggregation level.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics.task_completion_rate">
+<span class="sig-name descname"><span class="pre">task_completion_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">which</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics.task_completion_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics.task_completion_rate" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the task completion rate (including tasks that are canceled after
+a replacement event) over a project's lifetime as a single value, annual
+average, or monthly average for the whole windfarm or by turbine.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>which</strong> (<em>str</em>) -- One of &quot;scheduled&quot;, &quot;unscheduled&quot;, or &quot;both&quot;.</p></li>
+<li><p><strong>frequency</strong> (<em>str</em>) -- One of &quot;project&quot;, &quot;annual&quot;, &quot;monthly&quot;, or &quot;month-year&quot;.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>float | pd.DataFrame</em> -- The task completion rate at the desired aggregation level.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics.equipment_costs">
+<span class="sig-name descname"><span class="pre">equipment_costs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_equipment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics.equipment_costs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics.equipment_costs" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the equipment costs for the simulation at a project, annual, or
+monthly level with (or without) respect to equipment utilized in the simulation.
+This excludes any port fees that might apply, which are included in:
+<code class="docutils literal notranslate"><span class="pre">port_fees</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frequency</strong> (<em>str</em>) -- One of &quot;project&quot;, &quot;annual&quot;, &quot;monthly&quot;, or &quot;month-year&quot;.</p></li>
+<li><p><strong>by_equipment</strong> (<em>bool</em><em>, </em><em>optional</em>) -- Indicates whether the values are with resepect to the equipment utilized
+(True) or not (False), by default False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><p><em>pd.DataFrame</em> --</p>
+<dl class="simple">
+<dt>Returns pandas <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> with columns:</dt><dd><ul class="simple">
+<li><p>year (if appropriate for frequency)</p></li>
+<li><p>month (if appropriate for frequency)</p></li>
+<li><p>then any equipment names as they appear in the logs</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> -- If <code class="docutils literal notranslate"><span class="pre">frequency</span></code> is not one of &quot;project&quot;, &quot;annual&quot;, &quot;monthly&quot;, or
+    &quot;month-year&quot;.</p></li>
+<li><p><strong>ValueError</strong> -- If <code class="docutils literal notranslate"><span class="pre">by_equipment</span></code> is not one of <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics.service_equipment_utilization">
+<span class="sig-name descname"><span class="pre">service_equipment_utilization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics.service_equipment_utilization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics.service_equipment_utilization" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the utilization rate for each of the service equipment in the
+simulation  as the ratio of total number of days each of the servicing
+equipment is in operation over the total number of days it's present in the
+simulation. This number excludes mobilization time and the time between
+visits for scheduled servicing equipment strategies.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For tugboats in a tow-to-port scenario, this ratio will be near
+100% because they are considered to be operating on an as-needed basis per
+the port contracting assumptions</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>frequency</strong> (<em>str</em>) -- One of &quot;project&quot; or &quot;annual&quot;.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>pd.DataFrame</em> -- The utilization rate of each of the simulation <code class="docutils literal notranslate"><span class="pre">SerivceEquipment</span></code>.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> -- If <code class="docutils literal notranslate"><span class="pre">frequency</span></code> is not one of &quot;project&quot; or &quot;annual&quot;.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics.vessel_crew_hours_at_sea">
+<span class="sig-name descname"><span class="pre">vessel_crew_hours_at_sea</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_equipment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vessel_crew_assumption</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics.vessel_crew_hours_at_sea"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics.vessel_crew_hours_at_sea" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the total number of crew hours at sea that occurred during a
+simulation at a project, annual, or monthly level that can be broken out by
+servicing equipment. This includes time mobilizing, delayed at sea, servicing,
+towing, and traveling.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This metric is intended to be used for offshore wind simulations.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frequency</strong> (<em>str</em>) -- One of &quot;project&quot;, &quot;annual&quot;, &quot;monthly&quot;, or &quot;month-year&quot;.</p></li>
+<li><p><strong>by_equipment</strong> (<em>bool</em><em>, </em><em>optional</em>) -- Indicates whether the values are with resepect to each tugboat (True) or not
+(False), by default False.</p></li>
+<li><p><strong>vessel_crew_assumption</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em><em>, </em><em>optional</em>) -- Dictionary of vessel names (<code class="docutils literal notranslate"><span class="pre">ServiceEquipment.settings.name</span></code>) and number
+of crew members aboard to trannsform the results from vessel hours at sea
+to crew hours at sea.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><p><em>pd.DataFrame</em> -- Returns a pandas <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> with columns:</p>
+<ul class="simple">
+<li><p>year (if appropriate for frequency)</p></li>
+<li><p>month (if appropriate for frequency)</p></li>
+<li><p>Total Crew Hours at Sea</p></li>
+<li><p>{ServiceEquipment.settings.name} (if broken out)</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> -- If <code class="docutils literal notranslate"><span class="pre">frequency</span></code> is not one of &quot;project&quot;, &quot;annual&quot;, &quot;monthly&quot;, or
+    &quot;month-year&quot;.</p></li>
+<li><p><strong>ValueError</strong> -- If <code class="docutils literal notranslate"><span class="pre">by_equipment</span></code> is not one of <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+<li><p><strong>ValueError</strong> -- If <code class="docutils literal notranslate"><span class="pre">vessel_crew_assumption</span></code> is not a dictionary.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics.number_of_tows">
+<span class="sig-name descname"><span class="pre">number_of_tows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_tug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics.number_of_tows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics.number_of_tows" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the total number of tows that occurred during a simulation at a
+project, annual, or monthly level that can be broken out by tugboat.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frequency</strong> (<em>str</em>) -- One of &quot;project&quot;, &quot;annual&quot;, &quot;monthly&quot;, or &quot;month-year&quot;.</p></li>
+<li><p><strong>by_tug</strong> (<em>bool</em><em>, </em><em>optional</em>) -- Indicates whether the values are with resepect to each tugboat (True) or not
+(False), by default False.</p></li>
+<li><p><strong>by_direction</strong> (<em>bool</em><em>, </em><em>optional</em>) -- Indicates whether the values are with respect to the direction a turbine is
+towed (True) or not (False), by default False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><p><em>float | pd.DataFrame</em> -- Returns either a float for whole project-level costs or a pandas
+<code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> with columns:</p>
+<ul class="simple">
+<li><p>year (if appropriate for frequency)</p></li>
+<li><p>month (if appropriate for frequency)</p></li>
+<li><p>total_tows</p></li>
+<li><p>total_tows_to_port (if broken out)</p></li>
+<li><p>total_tows_to_site (if broken out)</p></li>
+<li><p>{ServiceEquipment.settings.name}_total_tows (if broken out)</p></li>
+<li><p>{ServiceEquipment.settings.name}_to_port (if broken out)</p></li>
+<li><p>{ServiceEquipment.settings.name}_to_site (if broken out)</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> -- If <code class="docutils literal notranslate"><span class="pre">frequency</span></code> is not one of &quot;project&quot;, &quot;annual&quot;, &quot;monthly&quot;, or
+    &quot;month-year&quot;.</p></li>
+<li><p><strong>ValueError</strong> -- If <code class="docutils literal notranslate"><span class="pre">by_tug</span></code> is not one of <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+<li><p><strong>ValueError</strong> -- If <code class="docutils literal notranslate"><span class="pre">by_direction</span></code> is not one of <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics.labor_costs">
+<span class="sig-name descname"><span class="pre">labor_costs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics.labor_costs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics.labor_costs" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the labor costs for the simulation at a project, annual, or
+monthly level that can be broken out by hourly and salary labor costs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frequency</strong> (<em>str</em>) -- One of &quot;project&quot;, &quot;annual&quot;, &quot;monthly&quot;, or &quot;month-year&quot;.</p></li>
+<li><p><strong>by_type</strong> (<em>bool</em><em>, </em><em>optional</em>) -- Indicates whether the values are with resepect to the labor types
+(True) or not (False), by default False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><p><em>float | pd.DataFrame</em> -- Returns either a float for whole project-level costs or a pandas
+<code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> with columns:</p>
+<ul class="simple">
+<li><p>year (if appropriate for frequency)</p></li>
+<li><p>month (if appropriate for frequency)</p></li>
+<li><p>total_labor_cost</p></li>
+<li><p>hourly_labor_cost (if broken out)</p></li>
+<li><p>salary_labor_cost (if broken out)</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> -- If <code class="docutils literal notranslate"><span class="pre">frequency</span></code> is not one of &quot;project&quot;, &quot;annual&quot;, &quot;monthly&quot;, or
+    &quot;month-year&quot;.</p></li>
+<li><p><strong>ValueError</strong> -- If <code class="docutils literal notranslate"><span class="pre">by_type</span></code> is not one of <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics.equipment_labor_cost_breakdowns">
+<span class="sig-name descname"><span class="pre">equipment_labor_cost_breakdowns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_category</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_equipment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics.equipment_labor_cost_breakdowns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics.equipment_labor_cost_breakdowns" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the producitivty cost and time breakdowns for the simulation at a
+project, annual, or monthly level that can be broken out to include the
+equipment and labor components, as well as be broken down by servicing
+equipment.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Doesn't produce a value if there's no cost associated with a &quot;reason&quot;.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frequency</strong> (<em>str</em>) -- One of &quot;project&quot;, &quot;annual&quot;, &quot;monthly&quot;, or &quot;month-year&quot;.</p></li>
+<li><p><strong>by_category</strong> (<em>bool</em><em>, </em><em>optional</em>) -- Indicates whether to include the equipment and labor categories (True) or
+not (False), by default False.</p></li>
+<li><p><strong>by_equipment</strong> (<em>bool</em><em>, </em><em>optional</em>) -- Indicates whether the values are with resepect to the equipment utilized
+(True) or not (False), by default False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><p><em>pd.DataFrame</em> --</p>
+<dl class="simple">
+<dt>Returns pandas <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> with columns:</dt><dd><ul class="simple">
+<li><p>year (if appropriate for frequency)</p></li>
+<li><p>month (if appropriate for frequency)</p></li>
+<li><p>reason</p></li>
+<li><p>hourly_labor_cost (if by_category == <code class="docutils literal notranslate"><span class="pre">True</span></code>)</p></li>
+<li><p>salary_labor_cost (if by_category == <code class="docutils literal notranslate"><span class="pre">True</span></code>)</p></li>
+<li><p>total_labor_cost (if by_category == <code class="docutils literal notranslate"><span class="pre">True</span></code>)</p></li>
+<li><p>equipment_cost (if by_category == <code class="docutils literal notranslate"><span class="pre">True</span></code>)</p></li>
+<li><p>total_cost (if broken out)</p></li>
+<li><p>total_hours</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> -- If <code class="docutils literal notranslate"><span class="pre">frequency</span></code> is not one of &quot;project&quot;, &quot;annual&quot;, &quot;monthly&quot;, or
+    &quot;month-year&quot;.</p></li>
+<li><p><strong>ValueError</strong> -- If <code class="docutils literal notranslate"><span class="pre">by_category</span></code> is not one of <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics.emissions">
+<span class="sig-name descname"><span class="pre">emissions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">emissions_factors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maneuvering_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port_engine_on_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics.emissions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics.emissions" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the emissions, typically in tons, per hour of operations for
+transiting, maneuvering (calculated as a % of transiting), idling at the site
+(repairs, crew transfer, weather delays), and idling at port (weather delays),
+excluding waiting overnight between shifts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>emissions_factors</strong> (<em>dict</em>) -- Dictionary of emissions per hour for &quot;transit&quot;, &quot;maneuver&quot;, &quot;idle at site&quot;,
+and &quot;idle at port&quot; for each of the servicing equipment in the simulation.</p></li>
+<li><p><strong>maneuvering_factor</strong> (<em>float</em><em>, </em><em>optional</em>) -- The proportion of transit time that can be attributed to
+maneuvering/positioning, by default 0.1.</p></li>
+<li><p><strong>port_engine_on_factor</strong> (<em>float</em><em>, </em><em>optional</em>) -- The proportion of idling at port time that can be attributed to having the
+engine on and producing emissions, by default 0.25.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>pd.DataFrame</em> -- DataFrame of &quot;duration&quot; (hours), &quot;distance_km&quot;, and &quot;emissions&quot; (tons) for
+each servicing equipment in the simulation for each emissions category.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>KeyError</strong> -- Raised if any of the servicing equipment are missing from the
+    <code class="docutils literal notranslate"><span class="pre">emissions_factors</span></code> dictionary.</p></li>
+<li><p><strong>KeyError</strong> -- Raised if any of the emissions categories are missing from each servcing
+    equipment definition in <code class="docutils literal notranslate"><span class="pre">emissions_factors</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics.component_costs">
+<span class="sig-name descname"><span class="pre">component_costs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_category</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_action</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics.component_costs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics.component_costs" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the component costs for the simulation at a project, annual, or
+monthly level that can be broken out by cost categories. This will not sum to
+the total cost because it is does not include times where there is no work being
+done, but costs are being accrued.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It should be noted that the costs will include costs accrued from both
+weather delays and shift-to-shift delays. In the future these will be
+disentangled.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frequency</strong> (<em>str</em>) -- One of &quot;project&quot;, &quot;annual&quot;, &quot;monthly&quot;, or &quot;month-year&quot;.</p></li>
+<li><p><strong>by_category</strong> (<em>bool</em><em>, </em><em>optional</em>) -- Indicates whether the values are with resepect to the various cost
+categories (True) or not (False), by default False.</p></li>
+<li><p><strong>by_action</strong> (<em>bool</em><em>, </em><em>optional</em>) -- Indicates whether component costs are going to be further broken out by the
+action being performed--repair, maintenance, and delay--(True) or not
+(False), by default False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><p><em>float | pd.DataFrame</em> -- Returns either a float for whole project-level costs or a pandas
+<code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> with columns:</p>
+<ul class="simple">
+<li><p>year (if appropriate for frequency)</p></li>
+<li><p>month (if appropriate for frequency)</p></li>
+<li><p>component</p></li>
+<li><p>action (if broken out)</p></li>
+<li><p>materials_cost (if broken out)</p></li>
+<li><p>total_labor_cost (if broken out)</p></li>
+<li><p>equipment_cost (if broken out)</p></li>
+<li><p>total_cost</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> -- If <code class="docutils literal notranslate"><span class="pre">frequency</span></code> is not one of &quot;project&quot;, &quot;annual&quot;, &quot;monthly&quot;, or
+    &quot;month-year&quot;.</p></li>
+<li><p><strong>ValueError</strong> -- If <code class="docutils literal notranslate"><span class="pre">by_category</span></code> is not one of <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+<li><p><strong>ValueError</strong> -- If <code class="docutils literal notranslate"><span class="pre">by_action</span></code> is not one of <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics.port_fees">
+<span class="sig-name descname"><span class="pre">port_fees</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics.port_fees"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics.port_fees" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the port fees for the simulation at a project, annual, or monthly
+level. This excludes any equipment or labor costs, which are included in:
+<code class="docutils literal notranslate"><span class="pre">equipment_costs</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>frequency</strong> (<em>str</em>) -- One of &quot;project&quot; or &quot;annual&quot;, &quot;monthly&quot;, &quot;.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>pd.DataFrame</em> -- The broken out by time port fees with</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> -- If <code class="docutils literal notranslate"><span class="pre">frequency</span></code> not one of &quot;project&quot; or &quot;annual&quot;.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics.project_fixed_costs">
+<span class="sig-name descname"><span class="pre">project_fixed_costs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics.project_fixed_costs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics.project_fixed_costs" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the fixed costs of a project at the project and annual frequencies
+at a given cost breakdown resolution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frequency</strong> (<em>str</em>) -- One of &quot;project&quot; or &quot;annual&quot;, &quot;monthly&quot;, &quot;.</p></li>
+<li><p><strong>resolution</strong> (<em>st</em>) -- <p>One of &quot;low&quot;, &quot;medium&quot;, or &quot;high&quot;, where the values correspond to:</p>
+<ul>
+<li><p>low: <code class="docutils literal notranslate"><span class="pre">FixedCosts.resolution[&quot;low&quot;]</span></code>, corresponding to itemized costs.</p></li>
+<li><p>medium: <code class="docutils literal notranslate"><span class="pre">FixedCosts.resolution[&quot;medium&quot;]</span></code>, corresponding to the
+overarching cost categories.</p></li>
+<li><p>high: <code class="docutils literal notranslate"><span class="pre">FixedCosts.resolution[&quot;high&quot;]</span></code>, corresponding to a lump sum.</p></li>
+</ul>
+<p>These values can also be seen through the <code class="docutils literal notranslate"><span class="pre">FixedCosts.hierarchy</span></code></p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>pd.DataFrame</em> -- The project's fixed costs as a sum or annualized with high, medium, and low
+resolution as desired.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> -- If <code class="docutils literal notranslate"><span class="pre">frequency</span></code> not one of &quot;project&quot; or &quot;annual&quot;.</p></li>
+<li><p><strong>ValueError</strong> -- If <code class="docutils literal notranslate"><span class="pre">resolution</span></code> must be one of &quot;low&quot;, &quot;medium&quot;, or &quot;high&quot;.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics.opex">
+<span class="sig-name descname"><span class="pre">opex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_category</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics.opex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics.opex" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the project's OpEx for the simulation at a project, annual, or
+monthly level.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frequency</strong> (<em>str</em>) -- One of project, annual, monthly, or month-year.</p></li>
+<li><p><strong>by_category</strong> (<em>bool</em><em>, </em><em>optional</em>) -- Indicates whether the values are with resepect to the various cost
+categories (True) or not (False), by default False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>pd.DataFrame</em> -- The project's OpEx broken out at the desired time and category resolution.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics.process_times">
+<span class="sig-name descname"><span class="pre">process_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics.process_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics.process_times" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the time, in hours, to complete a repair/maintenance request, on
+both a request to completion basis, and the actual time to complete the repair.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p><em>pd.DataFrame</em> --</p>
+<ul class="simple">
+<li><p>category (index): repair/maintenance category</p></li>
+<li><p>time_to_completion: total number of hours from the time of request to the
+time of completion</p></li>
+<li><p>process_time: total number of hours it took for the equipment to complete</p></li>
+<li><p>the request.</p></li>
+<li><p>downtime: total number of hours where the operations were below 100%.</p></li>
+<li><p>N: total number of processes in the category.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics.power_production">
+<span class="sig-name descname"><span class="pre">power_production</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'windfarm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gwh'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics.power_production"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics.power_production" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the power production for the simulation at a project, annual, or
+monthly level that can be broken out by turbine.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frequency</strong> (<em>str</em>) -- One of &quot;project&quot;, &quot;annual&quot;, &quot;monthly&quot;, or &quot;month-year&quot;.</p></li>
+<li><p><strong>by</strong> (<em>str</em>) -- One of &quot;windfarm&quot; or &quot;turbine&quot;.</p></li>
+<li><p><strong>units</strong> (<em>str</em>) -- One of &quot;gwh&quot;, &quot;mwh&quot;, or &quot;kwh&quot;.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><p><em>float | pd.DataFrame</em> -- Returns either a float for whole project-level costs or a pandas
+<code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> with columns:</p>
+<ul class="simple">
+<li><p>year (if appropriate for frequency)</p></li>
+<li><p>month (if appropriate for frequency)</p></li>
+<li><p>total_power_production</p></li>
+<li><p>&lt;turbine_id&gt;_power_production (if broken out)</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> -- If <code class="docutils literal notranslate"><span class="pre">frequency</span></code> is not one of &quot;project&quot;, &quot;annual&quot;, &quot;monthly&quot;, or
+    &quot;month-year&quot;.</p></li>
+<li><p><strong>ValueError</strong> -- If <code class="docutils literal notranslate"><span class="pre">by_turbine</span></code> is not one of <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wombat.core.post_processor.Metrics.npv">
+<span class="sig-name descname"><span class="pre">npv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discount_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.025</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offtake_price</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">80</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wombat/core/post_processor.html#Metrics.npv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wombat.core.post_processor.Metrics.npv" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the net present value of the windfarm at a project, annual, or
+monthly resolution given a base discount rate and offtake price.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function will be improved over time to incorporate more of the
+financial parameter at play, such as PPAs.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frequency</strong> (<em>str</em>) -- One of &quot;project&quot;, &quot;annual&quot;, &quot;monthly&quot;, or &quot;month-year&quot;.</p></li>
+<li><p><strong>discount_rate</strong> (<em>float</em><em>, </em><em>optional</em>) -- The rate of return that could be earned on alternative investments, by
+default 0.025.</p></li>
+<li><p><strong>offtake_price</strong> (<em>float</em><em>, </em><em>optional</em>) -- Price of energy, per MWh, by default 80.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>pd.DataFrame</em> -- The project net prsent value at the desired time resolution.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./API"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">WOMBAT API</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="types.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Data Classes</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.simulation_api.Configuration"><code class="docutils literal notranslate"><span class="pre">Configuration</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simulation-interface">Simulation Interface</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.simulation_api.Simulation"><code class="docutils literal notranslate"><span class="pre">Simulation</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.simulation_api.Simulation._create_configuration"><code class="docutils literal notranslate"><span class="pre">Simulation._create_configuration()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.simulation_api.Simulation.from_config"><code class="docutils literal notranslate"><span class="pre">Simulation.from_config()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.simulation_api.Simulation._setup_simulation"><code class="docutils literal notranslate"><span class="pre">Simulation._setup_simulation()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.simulation_api.Simulation.run"><code class="docutils literal notranslate"><span class="pre">Simulation.run()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.simulation_api.Simulation.save_metrics_inputs"><code class="docutils literal notranslate"><span class="pre">Simulation.save_metrics_inputs()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#metrics-computation">Metrics Computation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics"><code class="docutils literal notranslate"><span class="pre">Metrics</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics._hourly_cost"><code class="docutils literal notranslate"><span class="pre">Metrics._hourly_cost</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics._salary_cost"><code class="docutils literal notranslate"><span class="pre">Metrics._salary_cost</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics._labor_cost"><code class="docutils literal notranslate"><span class="pre">Metrics._labor_cost</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics._equipment_cost"><code class="docutils literal notranslate"><span class="pre">Metrics._equipment_cost</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics._materials_cost"><code class="docutils literal notranslate"><span class="pre">Metrics._materials_cost</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics._total_cost"><code class="docutils literal notranslate"><span class="pre">Metrics._total_cost</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics._cost_columns"><code class="docutils literal notranslate"><span class="pre">Metrics._cost_columns</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.from_simulation_outputs"><code class="docutils literal notranslate"><span class="pre">Metrics.from_simulation_outputs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics._tidy_data"><code class="docutils literal notranslate"><span class="pre">Metrics._tidy_data()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics._read_data"><code class="docutils literal notranslate"><span class="pre">Metrics._read_data()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics._apply_inflation_rate"><code class="docutils literal notranslate"><span class="pre">Metrics._apply_inflation_rate()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.time_based_availability"><code class="docutils literal notranslate"><span class="pre">Metrics.time_based_availability()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.production_based_availability"><code class="docutils literal notranslate"><span class="pre">Metrics.production_based_availability()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.capacity_factor"><code class="docutils literal notranslate"><span class="pre">Metrics.capacity_factor()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.task_completion_rate"><code class="docutils literal notranslate"><span class="pre">Metrics.task_completion_rate()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.equipment_costs"><code class="docutils literal notranslate"><span class="pre">Metrics.equipment_costs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.service_equipment_utilization"><code class="docutils literal notranslate"><span class="pre">Metrics.service_equipment_utilization()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.vessel_crew_hours_at_sea"><code class="docutils literal notranslate"><span class="pre">Metrics.vessel_crew_hours_at_sea()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.number_of_tows"><code class="docutils literal notranslate"><span class="pre">Metrics.number_of_tows()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.labor_costs"><code class="docutils literal notranslate"><span class="pre">Metrics.labor_costs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.equipment_labor_cost_breakdowns"><code class="docutils literal notranslate"><span class="pre">Metrics.equipment_labor_cost_breakdowns()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.emissions"><code class="docutils literal notranslate"><span class="pre">Metrics.emissions()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.component_costs"><code class="docutils literal notranslate"><span class="pre">Metrics.component_costs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.port_fees"><code class="docutils literal notranslate"><span class="pre">Metrics.port_fees()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.project_fixed_costs"><code class="docutils literal notranslate"><span class="pre">Metrics.project_fixed_costs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.opex"><code class="docutils literal notranslate"><span class="pre">Metrics.opex()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.process_times"><code class="docutils literal notranslate"><span class="pre">Metrics.process_times()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.power_production"><code class="docutils literal notranslate"><span class="pre">Metrics.power_production()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#wombat.core.post_processor.Metrics.npv"><code class="docutils literal notranslate"><span class="pre">Metrics.npv()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Rob Hammond
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2021 Alliance for Sustainable Energy, LLC.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
