@@ -222,7 +222,7 @@ class Subassembly:
 
         Yields
         ------
-        simpy.events. HOURS_IN_DAY
+        simpy.events.Event
             Time between failure events that need to request a repair.
         """
         while True:
