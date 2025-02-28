@@ -13,7 +13,6 @@ from wombat.core import (
     SubassemblyData,
     WombatEnvironment,
 )
-from wombat.utilities.time import HOURS_IN_DAY
 
 
 class Subassembly:
@@ -183,7 +182,7 @@ class Subassembly:
             Time between maintenance requests.
         """
         while True:
-            hours_to_next = maintenance.frequency * HOURS_IN_DAY
+            hours_to_next = maintenance.frequency
             if hours_to_next == 0:
                 remainder = self.env.max_run_time - self.env.now
                 try:
@@ -222,7 +221,7 @@ class Subassembly:
 
         Yields
         ------
-        simpy.events.Event
+        simpy.events. HOURS_IN_DAY
             Time between failure events that need to request a repair.
         """
         while True:
