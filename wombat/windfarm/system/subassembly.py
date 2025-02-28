@@ -13,6 +13,7 @@ from wombat.core import (
     SubassemblyData,
     WombatEnvironment,
 )
+from wombat.utilities.time import HOURS_IN_DAY
 
 
 class Subassembly:
@@ -182,7 +183,7 @@ class Subassembly:
             Time between maintenance requests.
         """
         while True:
-            hours_to_next = maintenance.frequency
+            hours_to_next = maintenance.frequency * HOURS_IN_DAY
             if hours_to_next == 0:
                 remainder = self.env.max_run_time - self.env.now
                 try:
