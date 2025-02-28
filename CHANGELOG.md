@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.9.8
+
+- Fixes a major bug that previously removed the conversion from days to hours for the
+  `Maintenance.frequency` parameter.
+- Temporarily marks two servicing equipment as skipped so that the tests can be refactored
+  to be less reliant on complex timing between servicing equipment.
+
 ## Unreleased
 
 ### Features
