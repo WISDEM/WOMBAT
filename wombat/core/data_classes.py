@@ -411,7 +411,6 @@ class Maintenance(FromDictMixin):
         """Convert frequency to hours (simulation time scale) and the equipment
         requirement to a list.
         """
-        object.__setattr__(self, "frequency", self.frequency * HOURS_IN_DAY)
         object.__setattr__(
             self,
             "materials",
@@ -427,6 +426,22 @@ class Maintenance(FromDictMixin):
             The ``wombat.core.RepairManager`` generated identifier.
         """
         object.__setattr__(self, "request_id", request_id)
+
+    def hours_to_next_event(self) -> float | None:
+        """Sample the next time to failure in a Weibull distribution. If the ``scale``
+        and ``shape`` parameters are set to 0, then the model will return ``None`` to
+        cause the subassembly to timeout to the end of the simulation.
+
+        Returns
+        -------
+        float | None
+            Returns ``None`` for a non-modelled failure, or the time until the next
+            simulated failure.
+        """
+        if self.frequency is None:
+            return None
+
+        return self.frequency * HOURS_IN_DAY
 
 
 @define(frozen=True, auto_attribs=True)
@@ -519,7 +534,7 @@ class Failure(FromDictMixin):
             convert_ratio_to_absolute(self.materials, self.system_value),
         )
 
-    def hours_to_next_failure(self) -> float | None:
+    def hours_to_next_event(self) -> float | None:
         """Sample the next time to failure in a Weibull distribution. If the ``scale``
         and ``shape`` parameters are set to 0, then the model will return ``None`` to
         cause the subassembly to timeout to the end of the simulation.

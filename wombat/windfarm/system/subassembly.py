@@ -182,8 +182,8 @@ class Subassembly:
             Time between maintenance requests.
         """
         while True:
-            hours_to_next = maintenance.frequency
-            if hours_to_next == 0:
+            hours_to_next = maintenance.hours_to_next_event()
+            if hours_to_next is None:
                 remainder = self.env.max_run_time - self.env.now
                 try:
                     yield self.env.timeout(remainder)
@@ -225,7 +225,7 @@ class Subassembly:
             Time between failure events that need to request a repair.
         """
         while True:
-            hours_to_next = failure.hours_to_next_failure()
+            hours_to_next = failure.hours_to_next_event()
             if hours_to_next is None:
                 remainder = self.env.max_run_time - self.env.now
                 try:

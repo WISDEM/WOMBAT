@@ -308,7 +308,7 @@ def test_Failure():
     assert cls.system_value == 100000
     assert cls.description == "test"
     # TODO: UPDATE THIS BEFORE PR
-    # assert cls.hours_to_next_failure() == 1394.372138301769
+    # assert cls.hours_to_next_event() == 1394.372138301769
 
     # Test that the default values work
     inputs_all = {
@@ -390,7 +390,7 @@ def test_Failure():
         "rng": RNG,
     }
     cls = Failure.from_dict(inputs_all)
-    assert cls.hours_to_next_failure() is None
+    assert cls.hours_to_next_event() is None
 
     # TODO: Write a test for the weibull function
 
