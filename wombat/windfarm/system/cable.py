@@ -341,8 +341,33 @@ class Cable:
         simpy.events.Timeout
             Time between maintenance requests.
         """
+        # while True:
+        #     hours_to_next = maintenance.hours_to_next_event()
+        #     if hours_to_next is None:
+        #         remainder = self.env.max_run_time - self.env.now
+        #         try:
+        #             yield self.env.timeout(remainder)
+        #         except simpy.Interrupt:
+        #             remainder -= self.env.now
+        #     else:
+        #         while hours_to_next > 0:
+        #             start = -1  # Ensure an interruption before processing is caught
+        #             try:
+        #                 # If the replacement has not been completed, then wait
+        #                 yield self.servicing & self.downstream_failure & self.broken
+
+        #                 start = self.env.now
+        #                 yield self.env.timeout(hours_to_next)
+        #                 hours_to_next = 0
+        #                 self.trigger_request(maintenance)
+        #             except simpy.Interrupt as i:
+        #                 if i.cause == "replacement":
+        #                     return
+        #                 hours_to_next -= 0 if start == -1 else self.env.now - start
         while True:
-            hours_to_next = maintenance.hours_to_next_event()
+            hours_to_next, accrue_downtime = maintenance.hours_to_next_event(
+                self.env.now, self.env.simulation_time
+            )
             if hours_to_next is None:
                 remainder = self.env.max_run_time - self.env.now
                 try:
@@ -353,13 +378,18 @@ class Cable:
                 while hours_to_next > 0:
                     start = -1  # Ensure an interruption before processing is caught
                     try:
-                        # If the replacement has not been completed, then wait
-                        yield self.servicing & self.downstream_failure & self.broken
-
+                        # Downtime doesn't accrue for date-based maintenance
+                        if not accrue_downtime:
+                            yield (
+                                self.system.servicing
+                                & self.downstream_failure
+                                & self.broken
+                            )
                         start = self.env.now
                         yield self.env.timeout(hours_to_next)
                         hours_to_next = 0
                         self.trigger_request(maintenance)
+
                     except simpy.Interrupt as i:
                         if i.cause == "replacement":
                             return

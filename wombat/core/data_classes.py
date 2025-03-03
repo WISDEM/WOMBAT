@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import datetime
 from math import fsum
 from typing import TYPE_CHECKING, Any, Callable
@@ -296,6 +297,59 @@ def validate_0_1_inclusive(
         )
 
 
+def one_of(items: Sequence) -> Callable:
+    """Validates that the user input is one of :py:attr:`items`.
+
+    Parameters
+    ----------
+    items : Sequence
+        A list-like of valid values.
+    """
+
+    def validator(cls, attribute: attrs.Attribute, value: Any) -> None:
+        """Validator method that is returned to attrs."""
+        if value not in items:
+            raise ValueError(f"`{attribute.name}` must be one of: {','.join(items)}")
+
+    return validator
+
+
+def convert_frequency(value: int | float | str) -> float | str:
+    """Converts frequency number to a float or date string to a standard format "MM/DD".
+
+    Parameters
+    ----------
+    value : int | float | str
+        The number of days or years or date (month and day) of the first occurrence.
+
+    Returns
+    -------
+    float | str
+        The number of days or years, or date of the first occurence in MM/DD format.
+
+    Raises
+    ------
+    ValueError
+        Raised if the string isn't composed of a month and day separated by either a "-"
+        or "/".
+    ValueError
+        Raised if :py:attr:`value` is not a number, or a "MM/DD" "MM-DD" formatted date.
+    """
+    if isinstance(value, (int, float)):
+        return float(value)
+
+    if isinstance(value, str):
+        split_value = re.split(r"-|/", value)
+        if len(split_value) != 2:
+            raise ValueError(
+                "Date-based values must adhere to either 'MM-DD' or 'MM/DD' format."
+            )
+        return f"{split_value[0]:0>2}/{split_value[1]:0>2}"
+    raise ValueError(
+        "Input must be a number days or years, or of 'MM/DD' date formatting."
+    )
+
+
 @define
 class FromDictMixin:
     """A Mixin class to allow for kwargs overloading when a data class doesn't
@@ -392,7 +446,7 @@ class Maintenance(FromDictMixin):
 
     time: float = field(converter=float)
     materials: float = field(converter=float)
-    frequency: float = field(converter=float)
+    frequency: int | float | str = field(converter=float)
     service_equipment: list[str] = field(
         converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
@@ -402,6 +456,20 @@ class Maintenance(FromDictMixin):
     )
     system_value: int | float = field(converter=float)
     description: str = field(default="routine maintenance", converter=str)
+    frequency_basis: str = field(
+        default="days",
+        converter=(str.strip, str.lower),
+        validator=one_of(
+            (
+                "days",
+                "years",
+                "date-annual",
+                "date-semiannual",
+                "date-quarterly",
+                "date-biannual",
+            )
+        ),
+    )
     operation_reduction: float = field(default=0.0, converter=float)
     level: int = field(default=0, converter=int)
     request_id: str = field(init=False)
@@ -427,21 +495,64 @@ class Maintenance(FromDictMixin):
         """
         object.__setattr__(self, "request_id", request_id)
 
-    def hours_to_next_event(self) -> float | None:
-        """Sample the next time to failure in a Weibull distribution. If the ``scale``
-        and ``shape`` parameters are set to 0, then the model will return ``None`` to
-        cause the subassembly to timeout to the end of the simulation.
+    def _hours_to_next_date(
+        self, now_hours: float, now_date: datetime.datetime
+    ) -> float:
+        """Determines the number of hours until the next date in the date-based
+        frequency sequence.
+
+        Parameters
+        ----------
+        now_hours : float
+            Corresponds to ``WombatEnvironment.now``.
+        now_date : float
+            Corresponds to ``WombatEnvironment.simulation_time``.
+
+        Returns
+        -------
+        float
+            The number of hours until the next maintenance event.
+        """
+        return 1.0
+
+    def hours_to_next_event(
+        self, now_hours: float, now_date: datetime.datetime
+    ) -> tuple[float | None, float]:
+        """Calculate the next time the maintenance event should occur, and if downtime
+        should be discounted.
 
         Returns
         -------
         float | None
-            Returns ``None`` for a non-modelled failure, or the time until the next
-            simulated failure.
+            Returns ``None`` for a non-modelled maintenance task, and the number of
+            hours until the next event otherwise.
+        bool
+            False indicates that accrued downtime should not be counted towards the
+            failure, and True indicates that it should count towards the timing.
         """
         if self.frequency == 0:
-            return None
+            return None, False
 
-        return self.frequency * HOURS_IN_DAY
+        if self.frequency_basis == "days":
+            if TYPE_CHECKING:
+                assert isinstance(self.frequency, float)
+            return self.frequency * HOURS_IN_DAY, False
+
+        if self.frequency_basis == "years":
+            if TYPE_CHECKING:
+                assert isinstance(self.frequency, float)
+            return self.frequency * HOURS_IN_YEAR, False
+
+        if TYPE_CHECKING:
+            assert isinstance(self.frequency, str)
+        if self.frequency.startswith("date"):
+            return self._hours_to_next_date(now_hours, now_date), True
+
+        msg = (
+            f"Incorrect and uncaught `frequency_basis` ({self.frequency_basis}) or"
+            f" `frequency` ({self.frequency}) input."
+        )
+        raise ValueError(msg)
 
 
 @define(frozen=True, auto_attribs=True)

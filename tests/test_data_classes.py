@@ -230,7 +230,7 @@ def test_Maintenance():
     assert cls.time == 14.0
     assert cls.materials == 100.0
     assert cls.frequency == 200.0
-    assert cls.hours_to_next_event() == 200.0 * 24
+    assert cls.hours_to_next_event(0, 0) == (200.0 * 24, False)
     assert cls.service_equipment == ["CTV"]
     assert cls.operation_reduction == 0.5
     assert cls.system_value == 100000.0
@@ -249,7 +249,7 @@ def test_Maintenance():
     assert cls.time == 14.0
     assert cls.materials == 100.0
     assert cls.frequency == 200.0
-    assert cls.hours_to_next_event() == 200.0 * 24
+    assert cls.hours_to_next_event(0, 0) == (200.0 * 24, False)
     assert cls.service_equipment == ["CTV"]
     assert cls.operation_reduction == class_data["operation_reduction"].default
     assert cls.system_value == 100000.0
@@ -269,7 +269,7 @@ def test_Maintenance():
     assert cls.time == 14.0
     assert cls.materials == 25000.0
     assert cls.frequency == 200.0
-    assert cls.hours_to_next_event() == 200.0 * 24
+    assert cls.hours_to_next_event(0, 0) == (200.0 * 24, False)
     assert cls.service_equipment == ["CTV", "DSV"]
     assert cls.operation_reduction == 0.5
     assert cls.system_value == 100000.0
@@ -311,7 +311,7 @@ def test_Failure():
     assert cls.system_value == 100000
     assert cls.description == "test"
     # TODO: UPDATE THIS BEFORE PR
-    # assert cls.hours_to_next_event() == 1394.372138301769
+    # assert cls.hours_to_next_event(0, 0) == 1394.372138301769, False
 
     # Test that the default values work
     inputs_all = {

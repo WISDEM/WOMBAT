@@ -182,7 +182,9 @@ class Subassembly:
             Time between maintenance requests.
         """
         while True:
-            hours_to_next = maintenance.hours_to_next_event()
+            hours_to_next, accrue_downtime = maintenance.hours_to_next_event(
+                self.env.now, self.env.simulation_time
+            )
             if hours_to_next is None:
                 remainder = self.env.max_run_time - self.env.now
                 try:
@@ -193,13 +195,13 @@ class Subassembly:
                 while hours_to_next > 0:
                     start = -1  # Ensure an interruption before processing is caught
                     try:
-                        # Wait until these events are triggered and back to operational
-                        yield (
-                            self.system.servicing
-                            & self.system.cable_failure
-                            & self.broken
-                        )
-
+                        # Downtime doesn't accrue for date-based maintenance
+                        if not accrue_downtime:
+                            yield (
+                                self.system.servicing
+                                & self.system.cable_failure
+                                & self.broken
+                            )
                         start = self.env.now
                         yield self.env.timeout(hours_to_next)
                         hours_to_next = 0
