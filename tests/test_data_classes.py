@@ -229,7 +229,8 @@ def test_Maintenance():
     assert cls.description == "test"
     assert cls.time == 14.0
     assert cls.materials == 100.0
-    assert cls.frequency == 200.0 * 24
+    assert cls.frequency == 200.0
+    assert cls.hours_to_next_event() == 200.0 * 24
     assert cls.service_equipment == ["CTV"]
     assert cls.operation_reduction == 0.5
     assert cls.system_value == 100000.0
@@ -247,7 +248,8 @@ def test_Maintenance():
     assert cls.description == class_data["description"].default
     assert cls.time == 14.0
     assert cls.materials == 100.0
-    assert cls.frequency == 200.0 * 24
+    assert cls.frequency == 200.0
+    assert cls.hours_to_next_event() == 200.0 * 24
     assert cls.service_equipment == ["CTV"]
     assert cls.operation_reduction == class_data["operation_reduction"].default
     assert cls.system_value == 100000.0
@@ -266,7 +268,8 @@ def test_Maintenance():
     assert cls.description == "test"
     assert cls.time == 14.0
     assert cls.materials == 25000.0
-    assert cls.frequency == 200.0 * 24
+    assert cls.frequency == 200.0
+    assert cls.hours_to_next_event() == 200.0 * 24
     assert cls.service_equipment == ["CTV", "DSV"]
     assert cls.operation_reduction == 0.5
     assert cls.system_value == 100000.0

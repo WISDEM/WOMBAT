@@ -438,7 +438,7 @@ class Maintenance(FromDictMixin):
             Returns ``None`` for a non-modelled failure, or the time until the next
             simulated failure.
         """
-        if self.frequency is None:
+        if self.frequency == 0:
             return None
 
         return self.frequency * HOURS_IN_DAY
