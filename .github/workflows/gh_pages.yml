@@ -21,9 +21,9 @@ jobs:
     - name: Install dependencies
       run: |
         pip install --upgrade pip
-        pip install -e ".[docs]"
+        pip install ".[docs]"
 
-    - name: Build the book
+    - name: Build the documentation
       run: |
         jupyter-book build docs
 
