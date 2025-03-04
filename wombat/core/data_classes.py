@@ -15,6 +15,7 @@ import attrs
 import numpy as np
 import pandas as pd
 from attrs import Factory, Attribute, field, define
+from dateutil.relativedelta import relativedelta
 
 from wombat.utilities.time import HOURS_IN_DAY, HOURS_IN_YEAR, parse_date
 
@@ -446,7 +447,7 @@ class Maintenance(FromDictMixin):
 
     time: float = field(converter=float)
     materials: float = field(converter=float)
-    frequency: int | float | str = field(converter=float)
+    frequency: int | float | str = field(converter=convert_frequency)
     service_equipment: list[str] = field(
         converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
@@ -474,6 +475,7 @@ class Maintenance(FromDictMixin):
     level: int = field(default=0, converter=int)
     request_id: str = field(init=False)
     replacement: bool = field(default=False, init=False)
+    event_dates: list[str] = field(default=Factory(list), init=False)
 
     def __attrs_post_init__(self):
         """Convert frequency to hours (simulation time scale) and the equipment
@@ -494,6 +496,63 @@ class Maintenance(FromDictMixin):
             The ``wombat.core.RepairManager`` generated identifier.
         """
         object.__setattr__(self, "request_id", request_id)
+
+    def _update_date_based_timing(
+        self, start: datetime.datetime, end: datetime.datetime
+    ) -> None:
+        """Creates the list of dates where a maintenance request should occur.
+
+        Parameters
+        ----------
+        start : datetime.datetime
+            The starting date and time of the simulation
+            (``WombatEnvironment.start_datetime``).
+        end : datetime.datetime
+            The ending date and time of the simulation
+            (``WombatEnvironment.start_datetime``).
+
+        Raises
+        ------
+        ValueError
+            Raised if an invalid ``Maintenance.frequency_basis`` is used.
+        """
+        if self.frequency_basis in ("days", "years"):
+            return None
+
+        if TYPE_CHECKING:
+            assert isinstance(self.frequency, str)
+        basis = self.frequency_basis.replace("date-", "")
+        start_month, start_day = self.frequency.split("/")
+        start_dt = datetime.datetime(
+            year=start.year, month=int(start_month), day=int(start_day)
+        )
+        years = end.year - start.year + 1
+
+        match basis:
+            case "biannual":
+                diff = relativedelta(years=2)
+                periods = years // 2
+            case "annual":
+                diff = relativedelta(years=1)
+                periods = years
+            case "semiannual":
+                diff = relativedelta(months=6)
+                periods = (years * 12) // 6
+            case "quarterly":
+                diff = relativedelta(months=3)
+                periods = (years * 12) // 3
+            case _:
+                raise ValueError(f"Invalid `frequency_basis` for {self.description}.")
+        print(diff, periods)
+
+        event_dates = [start_dt + diff * i for i in range(periods + 1)]
+        event_dates = [
+            date
+            for date in event_dates
+            if start < date <= end and (date - start) > (start + diff - start)
+        ]
+
+        object.__setattr__(self, "event_dates", event_dates)
 
     def _hours_to_next_date(
         self, now_hours: float, now_date: datetime.datetime

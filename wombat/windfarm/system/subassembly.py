@@ -67,6 +67,11 @@ class Subassembly:
             Creates a dictionary to keep track of the running processes within the
             subassembly.
         """
+        for maintenance in self.data.maintenance:
+            maintenance._update_date_based_timing(
+                self.env.start_datetime, self.env.end_datetime
+            )
+
         for failure in self.data.failures:
             level = failure.level
             desc = failure.description
