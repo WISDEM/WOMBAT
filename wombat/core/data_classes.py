@@ -17,7 +17,7 @@ import pandas as pd
 from attrs import Factory, Attribute, field, define
 from dateutil.relativedelta import relativedelta
 
-from wombat.utilities.time import HOURS_IN_DAY, HOURS_IN_YEAR, parse_date
+from wombat.utilities.time import HOURS_IN_YEAR, parse_date, convert_dt_to_hours
 
 
 if TYPE_CHECKING:
@@ -415,7 +415,7 @@ class Maintenance(FromDictMixin):
         Amount of time required to perform maintenance, in hours.
     materials : float
         Cost of materials required to perform maintenance, in USD.
-    frequency : float
+    frequency : int | str
         Optimal number of days between performing maintenance, in days.
     service_equipment: list[str] | str
         Any combination of th following ``Equipment.capability`` options.
@@ -447,7 +447,7 @@ class Maintenance(FromDictMixin):
 
     time: float = field(converter=float)
     materials: float = field(converter=float)
-    frequency: int | float | str = field(converter=convert_frequency)
+    frequency: relativedelta | int | str = field(converter=convert_frequency)
     service_equipment: list[str] = field(
         converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
@@ -475,7 +475,7 @@ class Maintenance(FromDictMixin):
     level: int = field(default=0, converter=int)
     request_id: str = field(init=False)
     replacement: bool = field(default=False, init=False)
-    event_dates: list[str] = field(default=Factory(list), init=False)
+    event_dates: list[datetime.datetime] = field(default=Factory(list), init=False)
 
     def __attrs_post_init__(self):
         """Convert frequency to hours (simulation time scale) and the equipment
@@ -500,7 +500,11 @@ class Maintenance(FromDictMixin):
     def _update_date_based_timing(
         self, start: datetime.datetime, end: datetime.datetime
     ) -> None:
-        """Creates the list of dates where a maintenance request should occur.
+        """Creates the list of dates where a maintenance request should occur with a
+        buffer to ensure events can't occur within the first 60% of the frequency limit,
+        and so that the first event after the end timing (or at the exact end) is
+        included to ensure there is no special handling required for calculating the
+        final timeout.
 
         Parameters
         ----------
@@ -516,7 +520,12 @@ class Maintenance(FromDictMixin):
         ValueError
             Raised if an invalid ``Maintenance.frequency_basis`` is used.
         """
-        if self.frequency_basis in ("days", "years"):
+        if self.frequency_basis in ("days", "years", "months"):
+            if self.frequency == 0:
+                diff = relativedelta(dt1=end, dt2=start) + relativedelta(years=1)
+            else:
+                diff = relativedelta(**{self.frequency_basis: self.frequency})  # type: ignore
+            object.__setattr__(self, "frequency", diff)
             return None
 
         if TYPE_CHECKING:
@@ -543,39 +552,42 @@ class Maintenance(FromDictMixin):
                 periods = (years * 12) // 3
             case _:
                 raise ValueError(f"Invalid `frequency_basis` for {self.description}.")
-        print(diff, periods)
 
-        event_dates = [start_dt + diff * i for i in range(periods + 1)]
-        event_dates = [
-            date
-            for date in event_dates
-            if start < date <= end and (date - start) > (start + diff - start)
-        ]
+        _event_dates = [start_dt + diff * i for i in range(periods + 2)]
+        event_dates = []
+        for date in _event_dates:
+            if (date > start) and date - start > (start + diff - start) * 0.6:
+                if date >= end:
+                    event_dates.append(date)
+                    break
+                event_dates.append(date)
 
+        object.__setattr__(self, "frequency", diff)
         object.__setattr__(self, "event_dates", event_dates)
 
-    def _hours_to_next_date(
-        self, now_hours: float, now_date: datetime.datetime
-    ) -> float:
+    def _hours_to_next_date(self, now_date: datetime.datetime) -> float | None:
         """Determines the number of hours until the next date in the date-based
         frequency sequence.
 
         Parameters
         ----------
-        now_hours : float
-            Corresponds to ``WombatEnvironment.now``.
         now_date : float
             Corresponds to ``WombatEnvironment.simulation_time``.
 
         Returns
         -------
-        float
-            The number of hours until the next maintenance event.
+        float | None
+            The number of hours until the next maintenance event, or None to ensure
+            no events are set to occur until the after end of the simulation.
         """
-        return 1.0
+        for date in self.event_dates:
+            if date > now_date:
+                return convert_dt_to_hours(date - now_date)
+
+        return None
 
     def hours_to_next_event(
-        self, now_hours: float, now_date: datetime.datetime
+        self, now_date: datetime.datetime
     ) -> tuple[float | None, float]:
         """Calculate the next time the maintenance event should occur, and if downtime
         should be discounted.
@@ -589,29 +601,12 @@ class Maintenance(FromDictMixin):
             False indicates that accrued downtime should not be counted towards the
             failure, and True indicates that it should count towards the timing.
         """
-        if self.frequency == 0:
-            return None, False
-
-        if self.frequency_basis == "days":
-            if TYPE_CHECKING:
-                assert isinstance(self.frequency, float)
-            return self.frequency * HOURS_IN_DAY, False
-
-        if self.frequency_basis == "years":
-            if TYPE_CHECKING:
-                assert isinstance(self.frequency, float)
-            return self.frequency * HOURS_IN_YEAR, False
+        if self.frequency_basis.startswith("date"):
+            return self._hours_to_next_date(now_date), True
 
         if TYPE_CHECKING:
-            assert isinstance(self.frequency, str)
-        if self.frequency.startswith("date"):
-            return self._hours_to_next_date(now_hours, now_date), True
-
-        msg = (
-            f"Incorrect and uncaught `frequency_basis` ({self.frequency_basis}) or"
-            f" `frequency` ({self.frequency}) input."
-        )
-        raise ValueError(msg)
+            assert isinstance(self.frequency, relativedelta)
+        return convert_dt_to_hours(now_date + self.frequency - now_date), False
 
 
 @define(frozen=True, auto_attribs=True)

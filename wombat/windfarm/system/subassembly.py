@@ -188,7 +188,7 @@ class Subassembly:
         """
         while True:
             hours_to_next, accrue_downtime = maintenance.hours_to_next_event(
-                self.env.now, self.env.simulation_time
+                self.env.simulation_time
             )
             if hours_to_next is None:
                 remainder = self.env.max_run_time - self.env.now

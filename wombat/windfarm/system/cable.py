@@ -161,6 +161,9 @@ class Cable:
             yield desc, self.env.process(self.run_single_failure(failure))
 
         for i, maintenance in enumerate(self.data.maintenance):
+            maintenance._update_date_based_timing(
+                self.env.start_datetime, self.env.end_datetime
+            )
             desc = maintenance.description
             yield desc, self.env.process(self.run_single_maintenance(maintenance))
 
@@ -366,7 +369,7 @@ class Cable:
         #                 hours_to_next -= 0 if start == -1 else self.env.now - start
         while True:
             hours_to_next, accrue_downtime = maintenance.hours_to_next_event(
-                self.env.now, self.env.simulation_time
+                self.env.simulation_time
             )
             if hours_to_next is None:
                 remainder = self.env.max_run_time - self.env.now
