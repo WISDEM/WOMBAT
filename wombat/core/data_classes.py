@@ -464,6 +464,7 @@ class Maintenance(FromDictMixin):
             (
                 "days",
                 "years",
+                "months",
                 "date-annual",
                 "date-semiannual",
                 "date-quarterly",
