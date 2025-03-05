@@ -190,32 +190,25 @@ class Subassembly:
             hours_to_next, accrue_downtime = maintenance.hours_to_next_event(
                 self.env.simulation_time
             )
-            if hours_to_next is None:
-                remainder = self.env.max_run_time - self.env.now
+            while hours_to_next > 0:
+                start = -1  # Ensure an interruption before processing is caught
                 try:
-                    yield self.env.timeout(remainder)
-                except simpy.Interrupt:
-                    remainder -= self.env.now
-            else:
-                while hours_to_next > 0:
-                    start = -1  # Ensure an interruption before processing is caught
-                    try:
-                        # Downtime doesn't accrue for date-based maintenance
-                        if not accrue_downtime:
-                            yield (
-                                self.system.servicing
-                                & self.system.cable_failure
-                                & self.broken
-                            )
-                        start = self.env.now
-                        yield self.env.timeout(hours_to_next)
-                        hours_to_next = 0
-                        self.trigger_request(maintenance)
+                    # Downtime doesn't accrue for date-based maintenance
+                    if not accrue_downtime:
+                        yield (
+                            self.system.servicing
+                            & self.system.cable_failure
+                            & self.broken
+                        )
+                    start = self.env.now
+                    yield self.env.timeout(hours_to_next)
+                    hours_to_next = 0
+                    self.trigger_request(maintenance)
 
-                    except simpy.Interrupt as i:
-                        if i.cause == "replacement":
-                            return
-                        hours_to_next -= 0 if start == -1 else self.env.now - start
+                except simpy.Interrupt as i:
+                    if i.cause == "replacement":
+                        return
+                    hours_to_next -= 0 if start == -1 else self.env.now - start
 
     def run_single_failure(self, failure: Failure) -> Generator:
         """Runs a process to trigger one type of failure repair request throughout the
