@@ -9,6 +9,7 @@ import attr
 import numpy as np
 import pytest
 import numpy.testing as npt
+from dateutil.relativedelta import relativedelta
 
 from wombat.core.library import load_yaml
 from wombat.core.data_classes import (
@@ -215,6 +216,9 @@ def test_FromDictMixin():
 
 def test_Maintenance():
     """Tests the `Maintenance` class."""
+    start = datetime.datetime(2000, 1, 1)
+    end = datetime.datetime(2001, 1, 1)
+    max_run_time = (end - start).days * 24
     # Test for all inputs being provided and converted
     inputs_all = {
         "description": "test",
@@ -226,11 +230,12 @@ def test_Maintenance():
         "system_value": 100000,
     }
     cls = Maintenance.from_dict(inputs_all)
+    cls._update_date_based_timing(start, end, max_run_time)
     assert cls.description == "test"
     assert cls.time == 14.0
     assert cls.materials == 100.0
-    assert cls.frequency == 200.0
-    assert cls.hours_to_next_event(0, 0) == (200.0 * 24, False)
+    assert cls.frequency == relativedelta(days=200)
+    assert cls.hours_to_next_event(start) == (200.0 * 24, False)
     assert cls.service_equipment == ["CTV"]
     assert cls.operation_reduction == 0.5
     assert cls.system_value == 100000.0
@@ -244,12 +249,13 @@ def test_Maintenance():
         "system_value": 100000,
     }
     cls = Maintenance.from_dict(inputs_defaults)
+    cls._update_date_based_timing(start, end, max_run_time)
     class_data = attr.fields_dict(Maintenance)
     assert cls.description == class_data["description"].default
     assert cls.time == 14.0
     assert cls.materials == 100.0
-    assert cls.frequency == 200.0
-    assert cls.hours_to_next_event(0, 0) == (200.0 * 24, False)
+    assert cls.frequency == relativedelta(days=200)
+    assert cls.hours_to_next_event(start) == (200.0 * 24, False)
     assert cls.service_equipment == ["CTV"]
     assert cls.operation_reduction == class_data["operation_reduction"].default
     assert cls.system_value == 100000.0
@@ -265,11 +271,12 @@ def test_Maintenance():
         "system_value": 100000,
     }
     cls = Maintenance.from_dict(inputs_system_value)
+    cls._update_date_based_timing(start, end, max_run_time)
     assert cls.description == "test"
     assert cls.time == 14.0
     assert cls.materials == 25000.0
-    assert cls.frequency == 200.0
-    assert cls.hours_to_next_event(0, 0) == (200.0 * 24, False)
+    assert cls.frequency == relativedelta(days=200)
+    assert cls.hours_to_next_event(start) == (200.0 * 24, False)
     assert cls.service_equipment == ["CTV", "DSV"]
     assert cls.operation_reduction == 0.5
     assert cls.system_value == 100000.0

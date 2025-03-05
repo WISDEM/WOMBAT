@@ -498,7 +498,7 @@ class Maintenance(FromDictMixin):
         object.__setattr__(self, "request_id", request_id)
 
     def _update_date_based_timing(
-        self, start: datetime.datetime, end: datetime.datetime
+        self, start: datetime.datetime, end: datetime.datetime, max_run_time: int
     ) -> None:
         """Creates the list of dates where a maintenance request should occur with a
         buffer to ensure events can't occur within the first 60% of the frequency limit,
@@ -513,7 +513,7 @@ class Maintenance(FromDictMixin):
             (``WombatEnvironment.start_datetime``).
         end : datetime.datetime
             The ending date and time of the simulation
-            (``WombatEnvironment.start_datetime``).
+            (``WombatEnvironment.end_datetime``).
 
         Raises
         ------
@@ -522,7 +522,7 @@ class Maintenance(FromDictMixin):
         """
         if self.frequency_basis in ("days", "years", "months"):
             if self.frequency == 0:
-                diff = relativedelta(dt1=end, dt2=start) + relativedelta(years=1)
+                diff = relativedelta(hours=max_run_time)
             else:
                 diff = relativedelta(**{self.frequency_basis: self.frequency})  # type: ignore
             object.__setattr__(self, "frequency", diff)
@@ -565,7 +565,7 @@ class Maintenance(FromDictMixin):
         object.__setattr__(self, "frequency", diff)
         object.__setattr__(self, "event_dates", event_dates)
 
-    def _hours_to_next_date(self, now_date: datetime.datetime) -> float | None:
+    def _hours_to_next_date(self, now_date: datetime.datetime) -> float:
         """Determines the number of hours until the next date in the date-based
         frequency sequence.
 
@@ -576,27 +576,27 @@ class Maintenance(FromDictMixin):
 
         Returns
         -------
-        float | None
-            The number of hours until the next maintenance event, or None to ensure
-            no events are set to occur until the after end of the simulation.
+        float
+            The number of hours until the next maintenance event.
+
+        Raises
+        ------
+        ValueError
         """
         for date in self.event_dates:
             if date > now_date:
                 return convert_dt_to_hours(date - now_date)
 
-        return None
+        raise RuntimeError("Setup did not produce an extra event for safety.")
 
-    def hours_to_next_event(
-        self, now_date: datetime.datetime
-    ) -> tuple[float | None, float]:
+    def hours_to_next_event(self, now_date: datetime.datetime) -> tuple[float, bool]:
         """Calculate the next time the maintenance event should occur, and if downtime
         should be discounted.
 
         Returns
         -------
-        float | None
-            Returns ``None`` for a non-modelled maintenance task, and the number of
-            hours until the next event otherwise.
+        float
+            Returns the number of hours until the next event.
         bool
             False indicates that accrued downtime should not be counted towards the
             failure, and True indicates that it should count towards the timing.

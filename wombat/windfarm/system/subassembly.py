@@ -69,7 +69,7 @@ class Subassembly:
         """
         for maintenance in self.data.maintenance:
             maintenance._update_date_based_timing(
-                self.env.start_datetime, self.env.end_datetime
+                self.env.start_datetime, self.env.end_datetime, self.env.max_run_time
             )
 
         for failure in self.data.failures:
