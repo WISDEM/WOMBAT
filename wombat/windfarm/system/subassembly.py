@@ -68,7 +68,7 @@ class Subassembly:
             subassembly.
         """
         for maintenance in self.data.maintenance:
-            maintenance._update_date_based_timing(
+            maintenance._update_event_timing(
                 self.env.start_datetime, self.env.end_datetime, self.env.max_run_time
             )
 

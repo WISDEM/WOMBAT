@@ -229,7 +229,7 @@ def test_Maintenance_conversion():
         "system_value": 100000,
     }
     cls = Maintenance.from_dict(inputs_all)
-    cls._update_date_based_timing(start, end, max_run_time)
+    cls._update_event_timing(start, end, max_run_time)
     assert cls.description == "test"
     assert cls.time == 14.0
     assert cls.materials == 100.0
@@ -259,38 +259,38 @@ def test_Maintenance_frequency():
         "system_value": 100000,
     }
     cls = Maintenance.from_dict(inputs_all)
-    cls._update_date_based_timing(start, end, max_run_time)
+    cls._update_event_timing(start, end, max_run_time)
     assert cls.frequency == relativedelta(days=(end - start).days)
-    assert cls.frequency_basis == "days"
+    assert cls.frequency_basis == "date-hours"
 
     # Test the conversion for standard, non-date inputs
     start = datetime.datetime(2000, 2, 1)
     end = datetime.datetime(2001, 1, 1)
     max_run_time = (end - start).days * 24
 
-    inputs_all["frequency"] = 3 / 1
-    inputs_all["frequency_basis"] = "date-monthly"
+    inputs_all["frequency"] = 3
+    inputs_all["frequency_basis"] = "months"
     cls = Maintenance.from_dict(inputs_all)
-    cls._update_date_based_timing(start, end, max_run_time)
+    cls._update_event_timing(start, end, max_run_time)
     assert cls.frequency == relativedelta(months=3)
 
     inputs_all["frequency"] = 4
     inputs_all["frequency_basis"] = "years"
     cls = Maintenance.from_dict(inputs_all)
-    cls._update_date_based_timing(start, end, max_run_time)
+    cls._update_event_timing(start, end, max_run_time)
     assert cls.frequency == relativedelta(years=4)
 
     # Test the conversion for date-based inputs
     inputs_all["frequency"] = 3
-    inputs_all["frequency_basis"] = "months"
+    inputs_all["frequency_basis"] = "date-months"
     cls = Maintenance.from_dict(inputs_all)
-    cls._update_date_based_timing(start, end, max_run_time)
+    cls._update_event_timing(start, end, max_run_time)
     assert cls.frequency == relativedelta(months=3)
 
     inputs_all["frequency"] = 4
-    inputs_all["frequency_basis"] = "years"
+    inputs_all["frequency_basis"] = "date-years"
     cls = Maintenance.from_dict(inputs_all)
-    cls._update_date_based_timing(start, end, max_run_time)
+    cls._update_event_timing(start, end, max_run_time)
     assert cls.frequency == relativedelta(years=4)
 
 
@@ -307,7 +307,7 @@ def test_Maintenance_defaults():
         "system_value": 100000,
     }
     cls = Maintenance.from_dict(inputs_defaults)
-    cls._update_date_based_timing(start, end, max_run_time)
+    cls._update_event_timing(start, end, max_run_time)
     class_data = attr.fields_dict(Maintenance)
     assert cls.description == class_data["description"].default
     assert cls.time == 14.0
@@ -337,7 +337,7 @@ def test_Maintenance_proportional_materials():
         "system_value": 100000,
     }
     cls = Maintenance.from_dict(inputs_system_value)
-    cls._update_date_based_timing(start, end, max_run_time)
+    cls._update_event_timing(start, end, max_run_time)
     assert cls.description == "test"
     assert cls.time == 14.0
     assert cls.materials == 25000.0
@@ -363,7 +363,7 @@ def test_Maintenance_assign_id():
         "system_value": 100000,
     }
     cls = Maintenance.from_dict(inputs_system_value)
-    cls._update_date_based_timing(start, end, max_run_time)
+    cls._update_event_timing(start, end, max_run_time)
     correct_id = "M00001"
     cls.assign_id(request_id=correct_id)
     assert cls.request_id == correct_id

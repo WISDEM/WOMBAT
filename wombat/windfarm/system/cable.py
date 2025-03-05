@@ -161,7 +161,7 @@ class Cable:
             yield desc, self.env.process(self.run_single_failure(failure))
 
         for i, maintenance in enumerate(self.data.maintenance):
-            maintenance._update_date_based_timing(
+            maintenance._update_event_timing(
                 self.env.start_datetime, self.env.end_datetime, self.env.max_run_time
             )
             desc = maintenance.description

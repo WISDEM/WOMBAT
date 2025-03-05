@@ -519,12 +519,19 @@ class Maintenance(FromDictMixin):
         ValueError
             Raised if an invalid ``Maintenance.frequency_basis`` is used.
         """
+        # For events that should not occur, overwrite the user-passed timing settings
+        # to ensure there is a single event scheduled for just after the simulation end
         n_frequency = deepcopy(self.frequency)
         if self.frequency == 0:
+            basis = "days"
+            n_frequency = 1
             diff = relativedelta(hours=max_run_time)
+            object.__setattr__(self, "frequency_basis", "date-hours")
+            object.__setattr__(self, "start_date", start)
+        else:
+            basis = self.frequency_basis.replace("date-", "")
+            diff = relativedelta(**{basis: self.frequency})  # type: ignore
 
-        basis = self.frequency_basis.replace("date-", "")
-        diff = relativedelta(**{basis: self.frequency})  # type: ignore
         years = end.year - min(self.start_date.year, start.year) + 1
 
         if TYPE_CHECKING:
