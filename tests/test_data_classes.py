@@ -12,6 +12,7 @@ import numpy.testing as npt
 from dateutil.relativedelta import relativedelta
 
 from wombat.core.library import load_yaml
+from wombat.utilities.time import convert_dt_to_hours
 from wombat.core.data_classes import (
     Failure,
     FixedCosts,
@@ -224,6 +225,8 @@ def test_Maintenance_conversion():
         "time": 14,
         "materials": 100,
         "frequency": 200,
+        "frequency_basis": "days",
+        "start_date": "02-01-2000",
         "service_equipment": "ctv",
         "operation_reduction": 0.5,
         "system_value": 100000,
@@ -235,6 +238,7 @@ def test_Maintenance_conversion():
     assert cls.materials == 100.0
     assert cls.frequency == relativedelta(days=200)
     assert cls.frequency_basis == "days"
+    assert cls.start_date == datetime.datetime(2000, 2, 1)
     assert cls.hours_to_next_event(start) == (200.0 * 24, False)
     assert cls.service_equipment == ["CTV"]
     assert cls.operation_reduction == 0.5
@@ -270,28 +274,83 @@ def test_Maintenance_frequency():
 
     inputs_all["frequency"] = 3
     inputs_all["frequency_basis"] = "months"
+    inputs_all["start_date"] = "01/01/2000"
     cls = Maintenance.from_dict(inputs_all)
     cls._update_event_timing(start, end, max_run_time)
     assert cls.frequency == relativedelta(months=3)
+    assert cls.frequency_basis == "months"
+    assert cls.start_date == datetime.datetime(2000, 1, 1)
+    assert cls.event_dates == []
 
     inputs_all["frequency"] = 4
     inputs_all["frequency_basis"] = "years"
+    inputs_all["start_date"] = None
     cls = Maintenance.from_dict(inputs_all)
     cls._update_event_timing(start, end, max_run_time)
     assert cls.frequency == relativedelta(years=4)
+    current_dt = datetime.datetime(2002, 2, 1)
+    expected_dt = datetime.datetime(2006, 2, 1)
+    expected_hours = convert_dt_to_hours(expected_dt - current_dt)
+    assert (expected_hours, False) == cls.hours_to_next_event(current_dt)
 
     # Test the conversion for date-based inputs
     inputs_all["frequency"] = 3
     inputs_all["frequency_basis"] = "date-months"
+    inputs_all["start_date"] = "01/01/2000"
     cls = Maintenance.from_dict(inputs_all)
     cls._update_event_timing(start, end, max_run_time)
     assert cls.frequency == relativedelta(months=3)
+    assert cls.event_dates == [
+        datetime.datetime(2000, 4, 1),
+        datetime.datetime(2000, 7, 1),
+        datetime.datetime(2000, 10, 1),
+        datetime.datetime(2001, 1, 1),
+    ]
+    current_dt = datetime.datetime(2000, 12, 1)
+    expected_dt = datetime.datetime(2001, 1, 1)
+    expected_hours = convert_dt_to_hours(expected_dt - current_dt)
+    assert (expected_hours, True) == cls.hours_to_next_event(current_dt)
 
+    start = datetime.datetime(2000, 2, 1)
+    end = datetime.datetime(2006, 1, 1)
+    max_run_time = (end - start).days * 24
     inputs_all["frequency"] = 4
     inputs_all["frequency_basis"] = "date-years"
+    inputs_all["start_date"] = None
     cls = Maintenance.from_dict(inputs_all)
     cls._update_event_timing(start, end, max_run_time)
     assert cls.frequency == relativedelta(years=4)
+    assert cls.event_dates == [
+        datetime.datetime(2004, 2, 1),
+        datetime.datetime(2008, 2, 1),
+    ]
+    current_dt = start
+    expected_dt = datetime.datetime(2004, 2, 1)
+    expected_hours = convert_dt_to_hours(expected_dt - current_dt)
+    assert (expected_hours, True) == cls.hours_to_next_event(current_dt)
+
+    inputs_all["start_date"] = "06-30-2002"
+    cls = Maintenance.from_dict(inputs_all)
+    cls._update_event_timing(start, end, max_run_time)
+    assert cls.frequency == relativedelta(years=4)
+    assert cls.event_dates == [
+        datetime.datetime(2002, 6, 30),
+        datetime.datetime(2006, 6, 30),
+    ]
+
+    start = datetime.datetime(2000, 1, 1)
+    end = datetime.datetime(2001, 1, 1)
+    max_run_time = (end - start).days * 24
+    inputs_all["frequency"] = 180
+    inputs_all["frequency_basis"] = "date-days"
+    inputs_all["start_date"] = "01/01/2000"
+    cls = Maintenance.from_dict(inputs_all)
+    cls._update_event_timing(start, end, max_run_time)
+    assert cls.event_dates == [
+        datetime.datetime(2000, 6, 29),
+        datetime.datetime(2000, 12, 26),
+        datetime.datetime(2001, 6, 24),
+    ]
 
 
 def test_Maintenance_defaults():
@@ -314,10 +373,40 @@ def test_Maintenance_defaults():
     assert cls.materials == 100.0
     assert cls.frequency == relativedelta(days=200)
     assert cls.frequency_basis == "days"
+    assert cls.start_date == start
+    assert cls.event_dates == []
     assert cls.hours_to_next_event(start) == (200.0 * 24, False)
     assert cls.service_equipment == ["CTV"]
     assert cls.operation_reduction == class_data["operation_reduction"].default
     assert cls.system_value == 100000.0
+
+
+def test_Maintenance_no_events():
+    """Tests the `Maintenance` class for when there is no modeled maintenance."""
+    start = datetime.datetime(2000, 1, 1)
+    end = datetime.datetime(2001, 1, 1)
+    max_run_time = (end - start).days * 24
+    inputs = {
+        "time": 0,
+        "materials": 0,
+        "frequency": 0,
+        "service_equipment": "ctv",
+        "system_value": 0,
+    }
+    cls = Maintenance.from_dict(inputs)
+    cls._update_event_timing(start, end, max_run_time)
+    class_data = attr.fields_dict(Maintenance)
+    assert cls.description == class_data["description"].default
+    assert cls.time == 0
+    assert cls.materials == 0
+    assert cls.frequency == relativedelta(hours=max_run_time)
+    assert cls.frequency_basis == "date-hours"
+    assert cls.start_date == start
+    assert cls.event_dates == [end + relativedelta(hours=1)]
+    assert cls.hours_to_next_event(start) == (max_run_time + 1, True)
+    assert cls.service_equipment == ["CTV"]
+    assert cls.operation_reduction == class_data["operation_reduction"].default
+    assert cls.system_value == 0
 
 
 def test_Maintenance_proportional_materials():

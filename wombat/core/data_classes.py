@@ -14,7 +14,7 @@ import attr
 import attrs
 import numpy as np
 import pandas as pd
-from attrs import Factory, Attribute, field, define, validators
+from attrs import Factory, Attribute, field, define, converters, validators
 from dateutil.relativedelta import relativedelta
 
 from wombat.utilities.time import HOURS_IN_YEAR, parse_date, convert_dt_to_hours
@@ -462,10 +462,10 @@ class Maintenance(FromDictMixin):
             )
         ),
     )
-    start_date: datetime.datetime = field(
-        default="01/01/1990",
-        converter=to_datetime,
-        validator=validators.instance_of(datetime.datetime),
+    start_date: datetime.datetime | None = field(
+        default=None,
+        converter=converters.optional(to_datetime),
+        validator=validators.optional(validators.instance_of(datetime.datetime)),
     )
     operation_reduction: float = field(default=0.0, converter=float)
     level: int = field(default=0, converter=int)
@@ -519,21 +519,29 @@ class Maintenance(FromDictMixin):
         ValueError
             Raised if an invalid ``Maintenance.frequency_basis`` is used.
         """
+        if self.start_date is None:
+            object.__setattr__(self, "start_date", start)
+        if TYPE_CHECKING:
+            assert isinstance(self.start_date, datetime.datetime)
+
         # For events that should not occur, overwrite the user-passed timing settings
         # to ensure there is a single event scheduled for just after the simulation end
         n_frequency = deepcopy(self.frequency)
         if self.frequency == 0:
-            basis = "days"
-            n_frequency = 1
             diff = relativedelta(hours=max_run_time)
+            object.__setattr__(self, "frequency", diff)
             object.__setattr__(self, "frequency_basis", "date-hours")
-            object.__setattr__(self, "start_date", start)
-        else:
-            basis = self.frequency_basis.replace("date-", "")
-            diff = relativedelta(**{basis: self.frequency})  # type: ignore
+            object.__setattr__(self, "event_dates", [end + relativedelta(hours=1)])
+            return
 
+        if not self.frequency_basis.startswith("date"):
+            diff = relativedelta(**{self.frequency_basis: self.frequency})  # type: ignore
+            object.__setattr__(self, "frequency", diff)
+            return
+
+        basis = self.frequency_basis.replace("date-", "")
+        diff = relativedelta(**{basis: self.frequency})  # type: ignore
         years = end.year - min(self.start_date.year, start.year) + 1
-
         if TYPE_CHECKING:
             assert isinstance(n_frequency, int)
         match basis:
@@ -550,10 +558,9 @@ class Maintenance(FromDictMixin):
         event_dates = []
         for date in _event_dates:
             if date > start:
-                if date >= end:
-                    event_dates.append(date)
-                    break
                 event_dates.append(date)
+                if date >= end:
+                    break
 
         object.__setattr__(self, "frequency", diff)
         object.__setattr__(self, "event_dates", event_dates)
@@ -598,7 +605,7 @@ class Maintenance(FromDictMixin):
             return self._hours_to_next_date(now_date), True
 
         if TYPE_CHECKING:
-            assert isinstance(self.frequency, relativedelta)
+            assert isinstance(self.frequency, datetime.datetime)
         return convert_dt_to_hours(now_date + self.frequency - now_date), False
 
 
