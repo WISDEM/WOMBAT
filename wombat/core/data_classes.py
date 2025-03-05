@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import re
 import datetime
+from copy import deepcopy
 from math import fsum
 from typing import TYPE_CHECKING, Any, Callable
 from pathlib import Path
@@ -14,7 +14,7 @@ import attr
 import attrs
 import numpy as np
 import pandas as pd
-from attrs import Factory, Attribute, field, define
+from attrs import Factory, Attribute, field, define, validators
 from dateutil.relativedelta import relativedelta
 
 from wombat.utilities.time import HOURS_IN_YEAR, parse_date, convert_dt_to_hours
@@ -315,40 +315,31 @@ def one_of(items: Sequence) -> Callable:
     return validator
 
 
-def convert_frequency(value: int | float | str) -> float | str:
-    """Converts frequency number to a float or date string to a standard format "MM/DD".
+def to_datetime(value: str | datetime.datetime) -> datetime.datetime:
+    """Converts a date string to a Python ``datetime`` object.
 
     Parameters
     ----------
-    value : int | float | str
+    value : str | datetime.datetime
         The number of days or years or date (month and day) of the first occurrence.
 
     Returns
     -------
-    float | str
-        The number of days or years, or date of the first occurence in MM/DD format.
+    datetime.datetime
+        The datetime object corresponding to the input string.
 
     Raises
     ------
     ValueError
-        Raised if the string isn't composed of a month and day separated by either a "-"
-        or "/".
-    ValueError
-        Raised if :py:attr:`value` is not a number, or a "MM/DD" "MM-DD" formatted date.
+        Raised if a string or datetime object is not passed.
     """
-    if isinstance(value, (int, float)):
-        return float(value)
+    if isinstance(value, datetime.datetime):
+        return value
 
     if isinstance(value, str):
-        split_value = re.split(r"-|/", value)
-        if len(split_value) != 2:
-            raise ValueError(
-                "Date-based values must adhere to either 'MM-DD' or 'MM/DD' format."
-            )
-        return f"{split_value[0]:0>2}/{split_value[1]:0>2}"
-    raise ValueError(
-        "Input must be a number days or years, or of 'MM/DD' date formatting."
-    )
+        return pd.to_datetime(value).to_pydatetime()
+
+    raise ValueError("Input must be a datetime or string.")
 
 
 @define
@@ -447,7 +438,7 @@ class Maintenance(FromDictMixin):
 
     time: float = field(converter=float)
     materials: float = field(converter=float)
-    frequency: relativedelta | int | str = field(converter=convert_frequency)
+    frequency: relativedelta | int = field(converter=int)
     service_equipment: list[str] = field(
         converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
@@ -463,14 +454,18 @@ class Maintenance(FromDictMixin):
         validator=one_of(
             (
                 "days",
-                "years",
                 "months",
-                "date-annual",
-                "date-semiannual",
-                "date-quarterly",
-                "date-biannual",
+                "years",
+                "date-days",
+                "date-months",
+                "date-years",
             )
         ),
+    )
+    start_date: datetime.datetime = field(
+        default="01/01/1990",
+        converter=to_datetime,
+        validator=validators.instance_of(datetime.datetime),
     )
     operation_reduction: float = field(default=0.0, converter=float)
     level: int = field(default=0, converter=int)
@@ -498,7 +493,7 @@ class Maintenance(FromDictMixin):
         """
         object.__setattr__(self, "request_id", request_id)
 
-    def _update_date_based_timing(
+    def _update_event_timing(
         self, start: datetime.datetime, end: datetime.datetime, max_run_time: int
     ) -> None:
         """Creates the list of dates where a maintenance request should occur with a
@@ -515,49 +510,39 @@ class Maintenance(FromDictMixin):
         end : datetime.datetime
             The ending date and time of the simulation
             (``WombatEnvironment.end_datetime``).
+        max_run_time : datetime.datetime
+            The maximum run time of the simulation, in hours
+            (``WombatEnvironment.max_run_time``).
 
         Raises
         ------
         ValueError
             Raised if an invalid ``Maintenance.frequency_basis`` is used.
         """
-        if self.frequency_basis in ("days", "years", "months"):
-            if self.frequency == 0:
-                diff = relativedelta(hours=max_run_time)
-            else:
-                diff = relativedelta(**{self.frequency_basis: self.frequency})  # type: ignore
-            object.__setattr__(self, "frequency", diff)
-            return None
+        n_frequency = deepcopy(self.frequency)
+        if self.frequency == 0:
+            diff = relativedelta(hours=max_run_time)
+
+        basis = self.frequency_basis.replace("date-", "")
+        diff = relativedelta(**{basis: self.frequency})  # type: ignore
+        years = end.year - min(self.start_date.year, start.year) + 1
 
         if TYPE_CHECKING:
-            assert isinstance(self.frequency, str)
-        basis = self.frequency_basis.replace("date-", "")
-        start_month, start_day = self.frequency.split("/")
-        start_dt = datetime.datetime(
-            year=start.year, month=int(start_month), day=int(start_day)
-        )
-        years = end.year - start.year + 1
-
+            assert isinstance(n_frequency, int)
         match basis:
-            case "biannual":
-                diff = relativedelta(years=2)
-                periods = years // 2
-            case "annual":
-                diff = relativedelta(years=1)
-                periods = years
-            case "semiannual":
-                diff = relativedelta(months=6)
-                periods = (years * 12) // 6
-            case "quarterly":
-                diff = relativedelta(months=3)
-                periods = (years * 12) // 3
+            case "days":
+                periods = (years * 365) // n_frequency
+            case "months":
+                periods = (years * 12) // n_frequency
+            case "years":
+                periods = years // n_frequency
             case _:
                 raise ValueError(f"Invalid `frequency_basis` for {self.description}.")
 
-        _event_dates = [start_dt + diff * i for i in range(periods + 2)]
+        _event_dates = [self.start_date + diff * i for i in range(periods + 2)]
         event_dates = []
         for date in _event_dates:
-            if (date > start) and date - start > (start + diff - start) * 0.6:
+            if date > start:
                 if date >= end:
                     event_dates.append(date)
                     break

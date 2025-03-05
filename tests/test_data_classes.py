@@ -214,12 +214,11 @@ def test_FromDictMixin():
         DictClass.from_dict({})
 
 
-def test_Maintenance():
-    """Tests the `Maintenance` class."""
+def test_Maintenance_conversion():
+    """Tests the `Maintenance` class for all inputs being provided and converted."""
     start = datetime.datetime(2000, 1, 1)
     end = datetime.datetime(2001, 1, 1)
     max_run_time = (end - start).days * 24
-    # Test for all inputs being provided and converted
     inputs_all = {
         "description": "test",
         "time": 14,
@@ -235,12 +234,71 @@ def test_Maintenance():
     assert cls.time == 14.0
     assert cls.materials == 100.0
     assert cls.frequency == relativedelta(days=200)
+    assert cls.frequency_basis == "days"
     assert cls.hours_to_next_event(start) == (200.0 * 24, False)
     assert cls.service_equipment == ["CTV"]
     assert cls.operation_reduction == 0.5
     assert cls.system_value == 100000.0
 
-    # Test for default values being populated
+
+def test_Maintenance_frequency():
+    """Tests the `Maintenance` class ``frequency`` and ``frequency_basis`` handling."""
+    start = datetime.datetime(2000, 1, 1)
+    end = datetime.datetime(2001, 1, 1)
+    max_run_time = (end - start).days * 24
+
+    # Test maximum time limit replaces a 0-valued input
+    inputs_all = {
+        "description": "test",
+        "time": 14,
+        "materials": 100,
+        "frequency": 0,
+        "frequency_basis": "days",
+        "service_equipment": "ctv",
+        "operation_reduction": 0.5,
+        "system_value": 100000,
+    }
+    cls = Maintenance.from_dict(inputs_all)
+    cls._update_date_based_timing(start, end, max_run_time)
+    assert cls.frequency == relativedelta(days=(end - start).days)
+    assert cls.frequency_basis == "days"
+
+    # Test the conversion for standard, non-date inputs
+    start = datetime.datetime(2000, 2, 1)
+    end = datetime.datetime(2001, 1, 1)
+    max_run_time = (end - start).days * 24
+
+    inputs_all["frequency"] = 3 / 1
+    inputs_all["frequency_basis"] = "date-monthly"
+    cls = Maintenance.from_dict(inputs_all)
+    cls._update_date_based_timing(start, end, max_run_time)
+    assert cls.frequency == relativedelta(months=3)
+
+    inputs_all["frequency"] = 4
+    inputs_all["frequency_basis"] = "years"
+    cls = Maintenance.from_dict(inputs_all)
+    cls._update_date_based_timing(start, end, max_run_time)
+    assert cls.frequency == relativedelta(years=4)
+
+    # Test the conversion for date-based inputs
+    inputs_all["frequency"] = 3
+    inputs_all["frequency_basis"] = "months"
+    cls = Maintenance.from_dict(inputs_all)
+    cls._update_date_based_timing(start, end, max_run_time)
+    assert cls.frequency == relativedelta(months=3)
+
+    inputs_all["frequency"] = 4
+    inputs_all["frequency_basis"] = "years"
+    cls = Maintenance.from_dict(inputs_all)
+    cls._update_date_based_timing(start, end, max_run_time)
+    assert cls.frequency == relativedelta(years=4)
+
+
+def test_Maintenance_defaults():
+    """Tests the `Maintenance` class for default values being populated."""
+    start = datetime.datetime(2000, 1, 1)
+    end = datetime.datetime(2001, 1, 1)
+    max_run_time = (end - start).days * 24
     inputs_defaults = {
         "time": 14,
         "materials": 100,
@@ -255,12 +313,20 @@ def test_Maintenance():
     assert cls.time == 14.0
     assert cls.materials == 100.0
     assert cls.frequency == relativedelta(days=200)
+    assert cls.frequency_basis == "days"
     assert cls.hours_to_next_event(start) == (200.0 * 24, False)
     assert cls.service_equipment == ["CTV"]
     assert cls.operation_reduction == class_data["operation_reduction"].default
     assert cls.system_value == 100000.0
 
-    # Test for proportional materials cost, relative to system value
+
+def test_Maintenance_proportional_materials():
+    """Tests the `Maintenance` classfor proportional materials cost, relative to system
+    value.
+    """
+    start = datetime.datetime(2000, 1, 1)
+    end = datetime.datetime(2001, 1, 1)
+    max_run_time = (end - start).days * 24
     inputs_system_value = {
         "description": "test",
         "time": 14,
@@ -281,7 +347,23 @@ def test_Maintenance():
     assert cls.operation_reduction == 0.5
     assert cls.system_value == 100000.0
 
-    # Test for assign_id
+
+def test_Maintenance_assign_id():
+    """Tests the `Maintenance` class."""
+    start = datetime.datetime(2000, 1, 1)
+    end = datetime.datetime(2001, 1, 1)
+    max_run_time = (end - start).days * 24
+    inputs_system_value = {
+        "description": "test",
+        "time": 14,
+        "materials": 0.25,
+        "frequency": 200,
+        "service_equipment": ["ctv", "dsv"],
+        "operation_reduction": 0.5,
+        "system_value": 100000,
+    }
+    cls = Maintenance.from_dict(inputs_system_value)
+    cls._update_date_based_timing(start, end, max_run_time)
     correct_id = "M00001"
     cls.assign_id(request_id=correct_id)
     assert cls.request_id == correct_id
