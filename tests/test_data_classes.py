@@ -239,7 +239,7 @@ def test_Maintenance_conversion():
     assert cls.frequency == relativedelta(days=200)
     assert cls.frequency_basis == "days"
     assert cls.start_date == datetime.datetime(2000, 2, 1)
-    assert cls.hours_to_next_event(start) == (200.0 * 24, False)
+    assert cls.hours_to_next_event(start) == (31 * 24, False)
     assert cls.service_equipment == ["CTV"]
     assert cls.operation_reduction == 0.5
     assert cls.system_value == 100000.0
@@ -272,15 +272,20 @@ def test_Maintenance_frequency():
     end = datetime.datetime(2001, 1, 1)
     max_run_time = (end - start).days * 24
 
+    # Prior starting date gets adjusted to first post-simulation start
     inputs_all["frequency"] = 3
     inputs_all["frequency_basis"] = "months"
     inputs_all["start_date"] = "01/01/2000"
+    expected_first_dt = datetime.datetime(2000, 4, 1)
     cls = Maintenance.from_dict(inputs_all)
     cls._update_event_timing(start, end, max_run_time)
     assert cls.frequency == relativedelta(months=3)
     assert cls.frequency_basis == "months"
-    assert cls.start_date == datetime.datetime(2000, 1, 1)
+    assert cls.start_date == expected_first_dt
     assert cls.event_dates == []
+    current_dt = start
+    expected_hours = convert_dt_to_hours(expected_first_dt - current_dt)
+    assert (expected_hours, False) == cls.hours_to_next_event(current_dt)
 
     inputs_all["frequency"] = 4
     inputs_all["frequency_basis"] = "years"
@@ -288,12 +293,35 @@ def test_Maintenance_frequency():
     cls = Maintenance.from_dict(inputs_all)
     cls._update_event_timing(start, end, max_run_time)
     assert cls.frequency == relativedelta(years=4)
+    current_dt = datetime.datetime(2000, 2, 1)
+    expected_dt = datetime.datetime(2004, 2, 1)
+    expected_hours = convert_dt_to_hours(expected_dt - current_dt)
+    assert (expected_hours, False) == cls.hours_to_next_event(current_dt)
     current_dt = datetime.datetime(2002, 2, 1)
     expected_dt = datetime.datetime(2006, 2, 1)
     expected_hours = convert_dt_to_hours(expected_dt - current_dt)
     assert (expected_hours, False) == cls.hours_to_next_event(current_dt)
 
+    # Staggered start date for timing based
+    start = datetime.datetime(2000, 1, 1)
+    end = datetime.datetime(2010, 12, 31)
+    max_run_time = (end - start).days * 24
+    inputs_all["frequency"] = 1
+    inputs_all["frequency_basis"] = "years"
+    inputs_all["start_date"] = "01/01/2008"
+    cls = Maintenance.from_dict(inputs_all)
+    cls._update_event_timing(start, end, max_run_time)
+    expected_dt = datetime.datetime(2008, 1, 1)
+    assert cls.start_date == expected_dt
+    current_dt = start
+    expected_hours = convert_dt_to_hours(expected_dt - current_dt)
+    assert (expected_hours, False) == cls.hours_to_next_event(current_dt)
+
     # Test the conversion for date-based inputs
+    # Months and basic start date
+    start = datetime.datetime(2000, 2, 1)
+    end = datetime.datetime(2001, 1, 1)
+    max_run_time = (end - start).days * 24
     inputs_all["frequency"] = 3
     inputs_all["frequency_basis"] = "date-months"
     inputs_all["start_date"] = "01/01/2000"
@@ -311,6 +339,7 @@ def test_Maintenance_frequency():
     expected_hours = convert_dt_to_hours(expected_dt - current_dt)
     assert (expected_hours, True) == cls.hours_to_next_event(current_dt)
 
+    # Years and default start date
     start = datetime.datetime(2000, 2, 1)
     end = datetime.datetime(2006, 1, 1)
     max_run_time = (end - start).days * 24
@@ -329,6 +358,7 @@ def test_Maintenance_frequency():
     expected_hours = convert_dt_to_hours(expected_dt - current_dt)
     assert (expected_hours, True) == cls.hours_to_next_event(current_dt)
 
+    # Years and staggered start date
     inputs_all["start_date"] = "06-30-2002"
     cls = Maintenance.from_dict(inputs_all)
     cls._update_event_timing(start, end, max_run_time)
@@ -338,18 +368,19 @@ def test_Maintenance_frequency():
         datetime.datetime(2006, 6, 30),
     ]
 
+    # Days and prior start date
     start = datetime.datetime(2000, 1, 1)
     end = datetime.datetime(2001, 1, 1)
     max_run_time = (end - start).days * 24
     inputs_all["frequency"] = 180
     inputs_all["frequency_basis"] = "date-days"
-    inputs_all["start_date"] = "01/01/2000"
+    inputs_all["start_date"] = "12/31/1999"
     cls = Maintenance.from_dict(inputs_all)
     cls._update_event_timing(start, end, max_run_time)
     assert cls.event_dates == [
-        datetime.datetime(2000, 6, 29),
-        datetime.datetime(2000, 12, 26),
-        datetime.datetime(2001, 6, 24),
+        datetime.datetime(2000, 6, 28),
+        datetime.datetime(2000, 12, 25),
+        datetime.datetime(2001, 6, 23),
     ]
 
 

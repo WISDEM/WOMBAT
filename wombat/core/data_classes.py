@@ -519,8 +519,10 @@ class Maintenance(FromDictMixin):
         ValueError
             Raised if an invalid ``Maintenance.frequency_basis`` is used.
         """
+        date_based = self.frequency_basis.startswith("date-")
         if self.start_date is None:
             object.__setattr__(self, "start_date", start)
+
         if TYPE_CHECKING:
             assert isinstance(self.start_date, datetime.datetime)
 
@@ -534,9 +536,11 @@ class Maintenance(FromDictMixin):
             object.__setattr__(self, "event_dates", [end + relativedelta(hours=1)])
             return
 
-        if not self.frequency_basis.startswith("date"):
+        if not date_based:
             diff = relativedelta(**{self.frequency_basis: self.frequency})  # type: ignore
             object.__setattr__(self, "frequency", diff)
+            if self.start_date < start and not date_based:
+                object.__setattr__(self, "start_date", self.start_date + diff)
             return
 
         basis = self.frequency_basis.replace("date-", "")
@@ -606,6 +610,9 @@ class Maintenance(FromDictMixin):
 
         if TYPE_CHECKING:
             assert isinstance(self.frequency, datetime.datetime)
+
+        if now_date < self.start_date:
+            return convert_dt_to_hours(self.start_date - now_date), False
         return convert_dt_to_hours(now_date + self.frequency - now_date), False
 
 
