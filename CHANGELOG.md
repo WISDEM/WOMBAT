@@ -33,6 +33,41 @@ the next event.
   allows for maintenance activities to start well into the simulation period allowing
   for costs on OEM-warrantied maintenance activities to be unmodeled.
 
+A few examples of more complex scenarios assuming a 1/1/2000 simulation starting date:
+
+- Semiannual event to occur starting in the 3rd month of the simulation:
+
+  ```yaml
+  frequency: 6
+  frequency_basis: months
+  start_date: "9/1/1999"
+  ```
+
+- Summer-based annual event with the first occurrence in the 3rd year of the simulation:
+
+  ```yaml
+  frequency: 1
+  frequency_basis: years
+  start_date: "6/1/2003"
+  ```
+
+- Annual, June maintenance activity:
+
+  ```yaml
+  frequency: 1
+  frequency_basis: "date-years"
+  start_date: "6/1/2000"
+  ```
+
+- Biannual, June maintenance activity that should start in the first year, and every
+  other year after that:
+
+  ```yaml
+  frequency: 1
+  frequency_basis: "date-years"
+  start_date: "6/1/2000"
+  ```
+
 #### Repeat vessel configuration simplification
 
 Multiple instances of a servicing equipment can be created with a list of the name
