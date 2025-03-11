@@ -119,6 +119,7 @@ cables:
 - Basic tests added for the Simulation API
 - The wind farm operation level calculation was moved to `wombat/utilities/utilities.py`
   so it can be reused when `Metrics` loads the operational data.
+- Fixes the `FutureWarnings` from Pandas about changing offset strings.
 
 ## 0.9.7 (12 February 2025)
 
