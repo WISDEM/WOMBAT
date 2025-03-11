@@ -309,7 +309,7 @@ def plot_operational_levels(
     env_datetime_df["month"] = env_datetime_df.env_datetime.dt.month
     env_datetime_df["month_year"] = pd.DatetimeIndex(
         env_datetime_df.env_datetime
-    ).to_period("m")
+    ).to_period("M")
     ix = ~env_datetime_df.month_year.duplicated() & (
         env_datetime_df.month.isin((4, 7, 10))
     )
