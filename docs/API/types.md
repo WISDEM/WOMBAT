@@ -1,5 +1,5 @@
 (types)=
-# Data Classes
+# Conifgurations (Data Classes)
 
 The WOMBAT architecture relies heavily on a base set of data classes to process most of
 the model's inputs. This enables a rigid, yet robust data model to properly define a
@@ -36,7 +36,8 @@ hoping for the best.
    :members:
    :undoc-members:
    :exclude-members: time, materials, frequency, equipment, system_value, description,
-    level, operation_reduction, rng, service_equipment, replacement
+    level, operation_reduction, rng, service_equipment, replacement, frequency_basis,
+    start_date, request_id, event_dates
 ```
 
 (types:maintenance:unscheduled)=
@@ -48,7 +49,7 @@ hoping for the best.
    :undoc-members:
    :exclude-members: scale, shape, time, materials, operation_reduction, weibull, name,
     maintenance, failures, level, equipment, system_value, description, rng,
-    service_equipment, replacement
+    service_equipment, replacement, request_id
 ```
 
 (types:maintenance:requests)=

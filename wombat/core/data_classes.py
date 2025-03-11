@@ -407,7 +407,8 @@ class Maintenance(FromDictMixin):
     materials : float
         Cost of materials required to perform maintenance, in USD.
     frequency : int | str
-        Optimal number of days between performing maintenance, in days.
+        Number of days, months, or years between events, see :py:attr:`frequency_basis`
+        for further configuration. Defaults to days as the basis.
     service_equipment: list[str] | str
         Any combination of th following ``Equipment.capability`` options.
 
@@ -434,6 +435,36 @@ class Maintenance(FromDictMixin):
 
     level : int, optional
         Severity level of the maintenance. Defaults to 0.
+    frequency_basis : str, optional
+        The basis of the frequency input. Defaults to "days". Must be one of the
+        following inputs:
+
+        - days: :py:attr:`frequency` corresponds to the number of days between events.
+        - months: :py:attr:`frequency` corresponds to the number of months between
+        events.
+
+        - years: :py:attr:`frequency` corresponds to the number of years between events.
+        - date-days: :py:attr:`frequency` corresponds to the exact number of days
+        between events, starting with :py:attr:`start_date` (i.e. downtime does not
+        impact timing).
+
+        - date-months: :py:attr:`frequency` corresponds to the number of months between
+        events, starting with :py:attr:`start_date` (i.e. downtime does not impact
+        timing).
+
+        - date-years: :py:attr:`frequency` corresponds to the number of years between
+        events, starting with :py:attr:`start_date` (i.e. downtime does not impact
+        timing).
+
+    start_date : str, optional
+        The date in "MM/DD/YYYY" or similarly legible format
+        (``pandas.to_datetime(start_date)`` used to convert internally) of the first
+        instance of the maintenance event. For instance, this allows for annual summer
+        maintenance activities for reduced downtime of fleet-wide preventative
+        maintenance, or for allowing a delayed start to certain activities (nothing
+        in the first five years, then run on a regular schedule). Defaults to the
+        frequency + simulation start date and is used for any
+        :py:attr:`frequency_basis`.
     """
 
     time: float = field(converter=float)
