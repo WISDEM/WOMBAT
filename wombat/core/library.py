@@ -21,6 +21,7 @@ signifies the user's input library path:
 from __future__ import annotations
 
 import re
+from copy import deepcopy
 from typing import Any
 from pathlib import Path
 
@@ -147,3 +148,97 @@ def create_library_structure(
         if create_init:
             f = f / "__init__.py"
             f.touch()
+
+
+def convert_failure_data(
+    configuration: str | Path | dict,
+    which: str,
+    save_name: str | Path | None = None,
+    return_dict: bool = False,
+) -> None | dict:
+    """Converts the failure configuration data for cable, turbine, substation data
+    in both individual files or consolidated configurations.
+
+    Parameters
+    ----------
+    configuration : str | Path | dict
+        The configuration file or dictionary containing failure data.
+    which : str
+        The type of configuration. Muat be one of "cable", "substation", "turbine",
+        or "configuration" where "configuration" is a consolidated simulation
+        configuration file containing any or all of the different types.
+    save_name : str | Path | None, optional
+        The file path and name of where to save the converted configuration, by default
+        None.
+    return_dict : bool, optional
+        Use True to return the converted dictionary, by default False.
+
+    Returns
+    -------
+    None | dict
+        If :py:attr:`return_dict` is True, then `dict`, otherwise None.
+
+    Raises
+    ------
+    FileNotFoundError
+        Raised if the :py:attr:`configuration` can't be found.
+    ValueError
+        Raised if :py:attr:`configuration` can't be converted to a dictionary because
+        a dictionary was not passed nor was a valid file path to load.
+    ValueError
+        Raised if :py:attr:`which` received an invalid input.
+    """
+    configuration = deepcopy(configuration)
+    if isinstance(configuration, str):
+        configuration = Path(configuration)
+    if isinstance(configuration, Path):
+        configuration = configuration.resolve()
+        if not configuration.is_file():
+            msg = f"{configuration} cannot be found, please check the path."
+            raise FileNotFoundError(msg)
+        configuration = load_yaml(configuration.parent, configuration.name)
+
+    if not isinstance(configuration, dict):
+        raise ValueError("The `configuration` could not be converted to a dictionary.")
+
+    opts = ("cable", "turbine", "substation", "configuration")
+    match which:
+        case "cable":
+            configuration["failures"] = list(configuration["failures"].values())
+        case "turbine" | "substation":
+            for key, val in configuration.items():
+                if not isinstance(val, dict) or key == "power_curve":
+                    continue
+                configuration[key]["failures"] = list(
+                    configuration[key]["failures"].values()
+                )
+        case "configuration":
+            if "cables" in configuration:
+                for name, config in configuration["cables"].items():
+                    configuration["cables"][name]["failures"] = list(
+                        config["failures"].values()
+                    )
+            if "turbines" in configuration:
+                for name, config in configuration["turbines"].items():
+                    for key, val in config.items():
+                        if isinstance(val, dict) and key != "power_curve":
+                            configuration["turbines"][name][key]["failures"] = list(
+                                val["failures"].values()
+                            )
+            if "substations" in configuration:
+                for name, config in configuration["substations"].items():
+                    for key, val in config.items():
+                        if isinstance(val, dict):
+                            configuration["substations"][name][key]["failures"] = list(
+                                val["failures"].values()
+                            )
+        case _:
+            raise ValueError(f"`which` must be one of: {', '.join(opts)}")
+
+    if save_name is not None:
+        with Path(save_name).open("w") as f:
+            yaml.dump(configuration, f, default_flow_style=False, sort_keys=False)
+
+    if return_dict:
+        return configuration
+    return None
