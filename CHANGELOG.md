@@ -51,6 +51,8 @@
 - Basic tests added for the Simulation API
 - The wind farm operation level calculation was moved to `wombat/utilities/utilities.py`
   so it can be reused when `Metrics` loads the operational data.
+- Update the `Failure` definition to use lists of failure configurations, not
+  dictionaries. Provides a conversion tool in `wombat/core/library.py::convert_failure`.
 
 ## 0.9.7 (12 February 2025)
 

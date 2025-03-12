@@ -96,8 +96,8 @@ GENERATOR_SUBASSEMBLY = {
             "system_value": 39000000,
         }
     ],
-    "failures": {
-        1: {
+    "failures": [
+        {
             "scale": 0.1333,
             "shape": 1,
             "time": 3,
@@ -108,7 +108,7 @@ GENERATOR_SUBASSEMBLY = {
             "description": "manual reset",
             "system_value": 39000000,
         },
-        2: {
+        {
             "scale": 0.3333,
             "shape": 1,
             "time": 7.5,
@@ -119,7 +119,7 @@ GENERATOR_SUBASSEMBLY = {
             "description": "minor repair",
             "system_value": 39000000,
         },
-        3: {
+        {
             "scale": 3.6363,
             "shape": 1,
             "time": 22,
@@ -130,7 +130,7 @@ GENERATOR_SUBASSEMBLY = {
             "description": "medium repair",
             "system_value": 39000000,
         },
-        4: {
+        {
             "scale": 25,
             "shape": 1,
             "time": 26,
@@ -141,7 +141,7 @@ GENERATOR_SUBASSEMBLY = {
             "description": "major repair",
             "system_value": 39000000,
         },
-        5: {
+        {
             "scale": 12.5,
             "shape": 1,
             "time": 52,
@@ -152,7 +152,7 @@ GENERATOR_SUBASSEMBLY = {
             "description": "major replacement",
             "system_value": 39000000,
         },
-    },
+    ],
     "rng": RNG,
 }
 

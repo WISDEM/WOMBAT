@@ -250,6 +250,24 @@ def check_start_stop_dates(
         )
 
 
+def convert_maintenance_list(value: list[dict], self_) -> list[Maintenance]:
+    """Converts a list of ``Maintenance`` configuration dictionaries to a list of
+    ``Maintenance`` objects.
+    """
+    kw = {"system_value": self_.system_value}
+    [el.update(kw) for el in value]
+    return [Maintenance.from_dict(el) for el in value]
+
+
+def convert_failure_list(value: list[dict], self_) -> list[Failure]:
+    """Converts a list of ``Failure`` configuration dictionaries to a list of
+    ``Failure`` objects.
+    """
+    kw = {"system_value": self_.system_value, "rng": self_.rng}
+    [el.update(kw) for el in value]
+    return [Failure.from_dict(el) for el in value]
+
+
 def valid_hour(
     instance: Any,
     attribute: Attribute,
@@ -557,58 +575,25 @@ class SubassemblyData(FromDictMixin):
     maintenance : list[dict[str, float | str]]
         List of the maintenance classification dictionaries. This will be converted
         to a list of ``Maintenance`` objects in the post initialization hook.
-    failures : dict[int, dict[str, float | str]]
-        Dictionary of failure classifications in a numerical (ordinal) categorization
-        order. This will be converted to a dictionary of ``Failure`` objects in the
-        post initialization hook.
+    failures : list[dict[str, float | str]]
+        List of failure configuration dictionaries that will be individually converted
+        to a list of ``Failure`` objects in the post initialization hook.
     system_value : int | float
         Turbine's cost of replacement. Used in case percentages of turbine cost are used
         in place of an absolute cost.
     """
 
     name: str = field(converter=str)
-    maintenance: list[Maintenance | dict[str, float | str]]
-    failures: (
-        list[Failure | dict[str, float | str]]
-        | dict[int, Failure | dict[str, float | str]]
-    )
     system_value: int | float = field(converter=float)
     rng: np.random._generator.Generator = field(
         validator=attrs.validators.instance_of(np.random._generator.Generator)
     )
-
-    def __attrs_post_init__(self):
-        """Convert the maintenance and failure data to ``Maintenance`` and ``Failure``
-        objects, respectively.
-        """
-        for kwargs in self.maintenance:
-            if TYPE_CHECKING:
-                assert isinstance(kwargs, dict)
-            kwargs.update({"system_value": self.system_value})
-        object.__setattr__(
-            self,
-            "maintenance",
-            [
-                Maintenance.from_dict(kw) if isinstance(kw, dict) else kw
-                for kw in self.maintenance
-            ],
-        )
-
-        for kwargs in self.failures.values():  # type: ignore
-            if TYPE_CHECKING:
-                assert isinstance(kwargs, dict)
-            kwargs.update({"system_value": self.system_value})
-
-        failures_list = []
-        rng_dict = {"rng": self.rng}
-        if TYPE_CHECKING:
-            assert isinstance(self.failures, dict)
-        for config in self.failures.values():
-            if TYPE_CHECKING:
-                assert isinstance(config, dict)
-            config.update(rng_dict)
-            failures_list.append(Failure.from_dict(config))
-        object.__setattr__(self, "failures", failures_list)
+    maintenance: list[Maintenance | dict[str, float | str]] = field(
+        converter=attrs.Converter(convert_maintenance_list, takes_self=True)
+    )
+    failures: list[Failure | dict[str, float | str]] = field(
+        converter=attrs.Converter(convert_failure_list, takes_self=True)
+    )
 
 
 @define(frozen=True, auto_attribs=True)
