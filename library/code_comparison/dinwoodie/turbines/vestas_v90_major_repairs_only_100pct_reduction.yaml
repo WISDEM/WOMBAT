@@ -1,5 +1,5 @@
 capacity_kw: 3000
-capex_kw: 1300  # need an updated value
+capex_kw: 1300
 power_curve:
   file: vestas_v90_power_curve.csv
   bin_width: 0.5
@@ -12,49 +12,44 @@ turbine:
     service_equipment: CTV
     frequency: 0
   failures:
-    1:
-      scale: 0
-      shape: 0
-      time: 0
-      materials: 0
-      service_equipment: CTV
-      operation_reduction: 0.0
-      level: 1
-      description: manual reset
-    2:
-      scale: 0
-      shape: 0
-      time: 0
-      materials: 0
-      service_equipment: CTV
-      operation_reduction: 0.0
-      level: 2
-      description: minor repair
-    3:
-      scale: 0
-      shape: 0
-      time: 0
-      materials: 0
-      service_equipment: CTV
-      operation_reduction: 0.0
-      level: 3
-      description: medium repair
-    4:
-      scale: 25
-      shape: 1
-      time: 26
-      materials: 73500
-      service_equipment: SCN
-      operation_reduction: 0.0
-      level: 4
-      description: major repair
-    5:
-      scale: 0
-      shape: 0
-      time: 0
-      materials: 0
-      service_equipment: LCN
-      operation_reduction: 0
-      replacement: true
-      level: 5
-      description: major replacement
+  - scale: 0
+    shape: 0
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    operation_reduction: 0.0
+    level: 1
+    description: manual reset
+  - scale: 0
+    shape: 0
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    operation_reduction: 0.0
+    level: 2
+    description: minor repair
+  - scale: 0
+    shape: 0
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    operation_reduction: 0.0
+    level: 3
+    description: medium repair
+  - scale: 25
+    shape: 1
+    time: 26
+    materials: 73500
+    service_equipment: SCN
+    operation_reduction: 0.0
+    level: 4
+    description: major repair
+  - scale: 0
+    shape: 0
+    time: 0
+    materials: 0
+    service_equipment: LCN
+    operation_reduction: 0
+    replacement: true
+    level: 5
+    description: major replacement

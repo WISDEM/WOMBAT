@@ -1,5 +1,5 @@
 capacity_kw: 4000
-capex_kw: 1300  # need an updated value
+capex_kw: 1300
 power_curve:
   file: turbine_csm_4mw_power_curve.csv
   bin_width: 0.5
@@ -12,53 +12,47 @@ generator:
     service_equipment: CTV
     frequency: 365
   failures:
-    #  NOT MODELING REMOTE RESETS FOR NOW
-    1:
-      scale: 0.14289
-      shape: 1
-      time: 2
-      materials: 0
-      service_equipment: RMT
-      operation_reduction: 0.0
-      level: 1
-      description: remote reset
-    2:
-      scale: 0.2
-      shape: 1
-      time: 3
-      materials: 238
-      service_equipment: CTV
-      operation_reduction: 0.0
-      level: 2
-      description: manual reset
-    3:
-      scale: 0.3333
-      shape: 1
-      time: 7.5
-      materials: 5279
-      service_equipment: CTV
-      operation_reduction: 0.0
-      level: 3
-      description: minor repair
-    4:
-      scale: 3.3333
-      shape: 1
-      time: 29.5  # has 7.5hr inspection time baked in
-      materials: 29230
-      service_equipment: CTV
-      operation_reduction: 0.0
-      level: 4
-      description: major repair
-    5:
-      scale: 9.0909
-      shape: 1
-      time: 41.5  # has 7.5hr inspection time baked in
-      materials: 441373
-      service_equipment: LCN
-      operation_reduction: 0.0
-      replacement: true
-      level: 5
-      description: major replacement
+  - scale: 0.14289
+    shape: 1
+    time: 2
+    materials: 0
+    service_equipment: RMT
+    operation_reduction: 0.0
+    level: 1
+    description: remote reset
+  - scale: 0.2
+    shape: 1
+    time: 3
+    materials: 238
+    service_equipment: CTV
+    operation_reduction: 0.0
+    level: 2
+    description: manual reset
+  - scale: 0.3333
+    shape: 1
+    time: 7.5
+    materials: 5279
+    service_equipment: CTV
+    operation_reduction: 0.0
+    level: 3
+    description: minor repair
+  - scale: 3.3333
+    shape: 1
+    time: 29.5
+    materials: 29230
+    service_equipment: CTV
+    operation_reduction: 0.0
+    level: 4
+    description: major repair
+  - scale: 9.0909
+    shape: 1
+    time: 41.5
+    materials: 441373
+    service_equipment: LCN
+    operation_reduction: 0.0
+    replacement: true
+    level: 5
+    description: major replacement
 supporting_structure:
   name: supporting_structure
   maintenance:
@@ -68,12 +62,11 @@ supporting_structure:
     service_equipment: CTV
     frequency: 365
   failures:
-    3:
-      scale: 43.4783
-      shape: 1
-      time: 8
-      materials: 5000
-      service_equipment: DSV
-      operation_reduction: 0
-      level: 3
-      description: small foundation/scour repair
+  - scale: 43.4783
+    shape: 1
+    time: 8
+    materials: 5000
+    service_equipment: DSV
+    operation_reduction: 0
+    level: 3
+    description: small foundation/scour repair

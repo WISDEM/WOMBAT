@@ -1,5 +1,5 @@
 capacity_kw: 3000
-capex_kw: 1300  # need an updated value
+capex_kw: 1300
 power_curve:
   file: vestas_v90_power_curve.csv
   bin_width: 0.5
@@ -12,13 +12,12 @@ turbine:
     service_equipment: CTV
     frequency: 0
   failures:
-    1:
-      scale: 0
-      shape: 0
-      time: 0
-      materials: 0
-      service_equipment: CTV
-      operation_reduction: 0.0
-      replacement: true
-      level: 1
-      description: manual reset
+  - scale: 0
+    shape: 0
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    operation_reduction: 0.0
+    replacement: true
+    level: 1
+    description: manual reset
