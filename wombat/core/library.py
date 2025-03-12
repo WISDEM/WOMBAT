@@ -189,6 +189,7 @@ def convert_failure_data(
         Raised if :py:attr:`which` received an invalid input.
     """
     configuration = deepcopy(configuration)
+    original = deepcopy(configuration)
     if isinstance(configuration, str):
         configuration = Path(configuration)
     if isinstance(configuration, Path):
@@ -199,7 +200,11 @@ def convert_failure_data(
         configuration = load_yaml(configuration.parent, configuration.name)
 
     if not isinstance(configuration, dict):
-        raise ValueError("The `configuration` could not be converted to a dictionary.")
+        if isinstance(original, (str, Path)):
+            msg = f"{original} could not be converted to a dictionary."
+        else:
+            msg = "Input to `configuration` was not a dictionary."
+        raise TypeError(msg)
 
     opts = ("cable", "turbine", "substation", "configuration")
     match which:
