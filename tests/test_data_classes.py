@@ -454,7 +454,7 @@ def test_RepairRequest():
     assert cls.system_name == request["system_name"]
     assert cls.subassembly_id == request["subassembly_id"]
     assert cls.subassembly_name == request["subassembly_name"]
-    assert cls.severity_level == 1
+    assert cls.severity_level == 2
     assert cls.cable
     assert cls.upstream_turbines == []
 
