@@ -1,5 +1,16 @@
 # Helpers and Plotting
 
+(converting-and-structuring)=
+## Importing and Converting From Old Versions
+
+```{eval-rst}
+.. autofunction:: wombat.core.library.load_yaml
+
+.. autofunction:: wombat.core.library.create_library_structure
+
+.. autofunction:: wombat.core.library.convert_failure_data
+```
+
 (plotting)=
 ## Plotting
 

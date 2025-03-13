@@ -76,7 +76,7 @@ def load_yaml(path: str | Path, fname: str | Path) -> Any:
     path : str | Path
         Path to the file to be loaded.
     fname : str | Path
-        Name of the file (ending in .yaml) to be loaded.
+        Name of the file (ending in .yaml or .yml) to be loaded.
 
     Returns
     -------
@@ -95,19 +95,19 @@ def create_library_structure(
     """Creates the following library structure at ``library_path``. If ``library_path``
     does not exist, then the method will fail.
 
-    ```
-    <library_path>
-    ├── project
-        ├── config     <- Project-level configuration files
-        ├── port       <- Port configuration files
-        ├── plant      <- Wind farm layout files
-    ├── cables       <- Export and Array cable configuration files
-    ├── substations  <- Substation configuration files
-    ├── turbines     <- Turbine configuration and power curve files
-    ├── vessels      <- Land-based and offshore servicing equipment configuration files
-    ├── weather      <- Weather profiles
-    ├── results      <- The analysis log files and any saved output data
-    ```
+    .. code-block:: text
+
+        <library_path>/
+        └── project
+            └── config     <- Project-level configuration files
+            └── port       <- Port configuration files
+            └── plant      <- Wind farm layout files
+        └── cables       <- Export and Array cable configuration files
+        └── substations  <- Substation configuration files
+        └── turbines     <- Turbine configuration and power curve files
+        └── vessels      <- Land-based and offshore servicing equipment configuration files
+        └── weather      <- Weather profiles
+        └── results      <- The analysis log files and any saved output data
 
     Parameters
     ----------
@@ -122,7 +122,7 @@ def create_library_structure(
     ------
     FileNotFoundError
         Raised if ``library_path`` is not a directory
-    """
+    """  # noqa: E501
     if isinstance(library_path, str):
         library_path = Path(library_path)
     library_path = library_path.resolve(strict=True)
@@ -156,8 +156,9 @@ def convert_failure_data(
     save_name: str | Path | None = None,
     return_dict: bool = False,
 ) -> None | dict:
-    """Converts the failure configuration data for cable, turbine, substation data
-    in both individual files or consolidated configurations.
+    """Converts the pre-v0.10 failure configuration data for cable, turbine, substation
+    data in both individual files or consolidated configurations to be in the v0.10+
+    style.
 
     Parameters
     ----------
