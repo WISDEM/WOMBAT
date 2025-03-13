@@ -298,23 +298,6 @@ def validate_0_1_inclusive(
         )
 
 
-def one_of(items: Sequence) -> Callable:
-    """Validates that the user input is one of :py:attr:`items`.
-
-    Parameters
-    ----------
-    items : Sequence
-        A list-like of valid values.
-    """
-
-    def validator(cls, attribute: attrs.Attribute, value: Any) -> None:
-        """Validator method that is returned to attrs."""
-        if value not in items:
-            raise ValueError(f"`{attribute.name}` must be one of: {','.join(items)}")
-
-    return validator
-
-
 def to_datetime(value: str | datetime.datetime) -> datetime.datetime:
     """Converts a date string to a Python ``datetime`` object.
 
@@ -482,7 +465,7 @@ class Maintenance(FromDictMixin):
     frequency_basis: str = field(
         default="days",
         converter=(str.strip, str.lower),
-        validator=one_of(
+        validator=attrs.validators.in_(
             (
                 "days",
                 "months",
