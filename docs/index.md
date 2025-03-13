@@ -58,7 +58,7 @@ As of v0.10, a series of convenience features and consistency updates have been 
 - Date-based maintenance scheduling is now possible.
 
 Please see the CHANGELOG for complete information, and the appropriate documentation
-pages
+pages.
 
 * On this site: https://wisdem.github.io/WOMBAT/changelog.html
 * On GitHub: https://github.com/WISDEM/WOMBAT/blob/main/CHANGELOG.md
