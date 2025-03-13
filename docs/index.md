@@ -45,14 +45,20 @@ rob.hammond@nrel.gov.
 
 ## Latest Changes?
 
-As of v0.8, a series of bug fixes in the cable, subassembly, repair management, and
-servicing equipment models that ensure repairs can't happen twice under limited
-circumstances or that more than one repair can occur simultaneously. New features include
-an emissions metric and random seeding of simulations, with significant simulation
-speedups across the board due to using Polars for managing the weather and datetime
-functionality.
+As of v0.10, a series of convenience features and consistency updates have been made.
+- A breaking change to failure data has been made by using lists instead of dictionaries
+  in the configuration of cables, turbines, and substations. To ease adoption, a
+  function has been provided to convert to the new format:
+  https://wisdem.github.io/WOMBAT/API/utilities.html#importing-and-converting-from-old-versions.
+- Single configuration files are now supported for all non-CSV data. This means that
+  servicing equipment, cables, turbines, and substations can all be included in the
+  primary configuration file.
+- Simplification of duplicated servicing equipment definitions: simply provide a list
+  of the filename/id and the number of them that should be in the simulation.
+- Date-based maintenance scheduling is now possible.
 
-Please see the CHANGELOG for details!
+Please see the CHANGELOG for complete information, and the appropriate documentation
+pages
 
 * On this site: https://wisdem.github.io/WOMBAT/changelog.html
 * On GitHub: https://github.com/WISDEM/WOMBAT/blob/main/CHANGELOG.md
