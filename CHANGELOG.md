@@ -114,11 +114,16 @@ cables:
 
 ### Updates
 
-- Adds a CI check for code linting (pre-commit) and for the documentation building.
+- Update the `Failure` definition to use lists of failure configurations, not
+  dictionaries. Users can use the following function to update their cable, turbine,
+  substation, and consolidated configurations:
+  `wombat/core/library.py::convert_failure_data` Documentation is available at
+  https://wisdem.github.io/WOMBAT/API/utilities.html#importing-and-converting-from-old-versions.
 - Updates the minimum Python version to 3.10.
-- Basic tests added for the Simulation API
 - The wind farm operation level calculation was moved to `wombat/utilities/utilities.py`
   so it can be reused when `Metrics` loads the operational data.
+- Adds a CI check for code linting (pre-commit) and for the documentation building.
+- Basic tests added for the Simulation API
 - Fixes the `FutureWarnings` from Pandas about changing offset strings.
 
 ## 0.9.7 (12 February 2025)

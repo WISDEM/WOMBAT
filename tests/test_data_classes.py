@@ -610,17 +610,16 @@ def test_Failure():
 def test_SubassemblyData():
     """Tests the `SubassemblyData` class."""
     N_maintenance = len(GENERATOR_SUBASSEMBLY["maintenance"])
-    failure_levels = [f["level"] for f in GENERATOR_SUBASSEMBLY["failures"].values()]
+    failure_levels = [f["level"] for f in GENERATOR_SUBASSEMBLY["failures"]]
     N_failure = len(failure_levels)
 
     subassembly = SubassemblyData.from_dict(GENERATOR_SUBASSEMBLY)
     maintenance_list = [
         Maintenance.from_dict(m) for m in GENERATOR_SUBASSEMBLY["maintenance"]
     ]
-    failure_dict = {
-        level: Failure.from_dict({**f, "rng": RNG})
-        for level, f in GENERATOR_SUBASSEMBLY["failures"].items()
-    }
+    failure_list = [
+        Failure.from_dict({**f, "rng": RNG}) for f in GENERATOR_SUBASSEMBLY["failures"]
+    ]
 
     assert subassembly.name == GENERATOR_SUBASSEMBLY["name"]
     assert subassembly.system_value == GENERATOR_SUBASSEMBLY["system_value"]
@@ -638,11 +637,11 @@ def test_SubassemblyData():
 
     # Set the request ID for all failure tasks to avoid an AttributeError
     request = "R000000"
-    for i, level in enumerate(failure_dict):
+    for i, failure in enumerate(failure_list):
         rid = f"{request}{i}"
-        failure_dict[level].assign_id(request_id=rid)
+        failure.assign_id(request_id=rid)
         subassembly.failures[i].assign_id(request_id=rid)
-        assert failure_dict[level] == subassembly.failures[i]
+        assert failure_list[i] == subassembly.failures[i]
 
 
 def test_RepairRequest():
@@ -666,7 +665,7 @@ def test_RepairRequest():
     assert cls.system_name == request["system_name"]
     assert cls.subassembly_id == request["subassembly_id"]
     assert cls.subassembly_name == request["subassembly_name"]
-    assert cls.severity_level == 1
+    assert cls.severity_level == 2
     assert cls.cable
     assert cls.upstream_turbines == []
 

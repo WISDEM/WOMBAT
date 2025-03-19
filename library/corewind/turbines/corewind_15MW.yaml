@@ -12,68 +12,56 @@ electrical_system:
     service_equipment: CTV
     frequency: 0
   failures:
-    1:
-      scale: 1.859
-      shape: 1
-      time: 14
-      materials: 1000
-      service_equipment: CTV
-      operation_reduction: 0.0
-      level: 1
-      description: power converter minor repair
-      # n_technicians: 2
-    2:
-      scale: 2.793
-      shape: 1
-      time: 10
-      materials: 1000
-      service_equipment: CTV
-      operation_reduction: 0.0
-      level: 2
-      description: power electrical system minor repair
-      # n_technicians: 2
-    3:
-      scale: 2.959
-      shape: 1
-      time: 28
-      materials: 7000
-      service_equipment: LCN
-      operation_reduction: 0.0
-      level: 3
-      description: power converter major repair
-      # n_technicians: 3
-    4:
-      scale: 62.5
-      shape: 1
-      time: 28
-      materials: 5000
-      service_equipment: LCN
-      operation_reduction: 0.0
-      level: 4
-      description: power electrical system major repair
-      # n_technicians: 3
-    5:
-      scale: 12.99
-      shape: 1
-      time: 170
-      materials: 55000
-      service_equipment: LCN
-      operation_reduction: 0
-      replacement: true
-      level: 5
-      description: power converter replacement
-      # n_technicians: 4
-    6:
-      scale: 500
-      shape: 1
-      time: 54
-      materials: 50000
-      service_equipment: LCN
-      operation_reduction: 0
-      replacement: true
-      level: 6
-      description: power electrical system major replacement
-      # n_technicians: 4
+  - scale: 1.859
+    shape: 1
+    time: 14
+    materials: 1000
+    service_equipment: CTV
+    operation_reduction: 0.0
+    level: 1
+    description: power converter minor repair
+  - scale: 2.793
+    shape: 1
+    time: 10
+    materials: 1000
+    service_equipment: CTV
+    operation_reduction: 0.0
+    level: 2
+    description: power electrical system minor repair
+  - scale: 2.959
+    shape: 1
+    time: 28
+    materials: 7000
+    service_equipment: LCN
+    operation_reduction: 0.0
+    level: 3
+    description: power converter major repair
+  - scale: 62.5
+    shape: 1
+    time: 28
+    materials: 5000
+    service_equipment: LCN
+    operation_reduction: 0.0
+    level: 4
+    description: power electrical system major repair
+  - scale: 12.99
+    shape: 1
+    time: 170
+    materials: 55000
+    service_equipment: LCN
+    operation_reduction: 0
+    replacement: true
+    level: 5
+    description: power converter replacement
+  - scale: 500
+    shape: 1
+    time: 54
+    materials: 50000
+    service_equipment: LCN
+    operation_reduction: 0
+    replacement: true
+    level: 6
+    description: power electrical system major replacement
 hydraulic_system:
   name: hydraulic_system
   maintenance:
@@ -83,47 +71,39 @@ hydraulic_system:
     service_equipment: CTV
     frequency: 0
   failures:
-    1:
-      scale: 1.214
-      shape: 1
-      time: 18
-      materials: 500
-      service_equipment: CTV
-      operation_reduction: 0
-      level: 1
-      description: minor pitch system repair
-      # n_technicians: 2
-    2:
-      scale: 100
-      shape: 1
-      time: 8
-      materials: 1000
-      service_equipment: CTV
-      operation_reduction: 0
-      level: 2
-      description: minor ballast pump repair
-      # n_technicians: 2
-    3:
-      scale: 5.587
-      shape: 1
-      time: 38
-      materials: 1900
-      service_equipment: CTV
-      operation_reduction: 0.0
-      level: 3
-      description: major pitch system repair
-      # n_technicians: 3
-    5:
-      scale: 1000
-      shape: 1
-      time: 75
-      materials: 14000
-      service_equipment: LCN
-      operation_reduction: 0
-      replacement: true
-      level: 5
-      description: major pitch system replacement
-      # n_technicians: 4
+  - scale: 1.214
+    shape: 1
+    time: 18
+    materials: 500
+    service_equipment: CTV
+    operation_reduction: 0
+    level: 1
+    description: minor pitch system repair
+  - scale: 100
+    shape: 1
+    time: 8
+    materials: 1000
+    service_equipment: CTV
+    operation_reduction: 0
+    level: 2
+    description: minor ballast pump repair
+  - scale: 5.587
+    shape: 1
+    time: 38
+    materials: 1900
+    service_equipment: CTV
+    operation_reduction: 0.0
+    level: 3
+    description: major pitch system repair
+  - scale: 1000
+    shape: 1
+    time: 75
+    materials: 14000
+    service_equipment: LCN
+    operation_reduction: 0
+    replacement: true
+    level: 5
+    description: major pitch system replacement
 yaw_system:
   name: yaw_system
   maintenance:
@@ -133,37 +113,31 @@ yaw_system:
     service_equipment: CTV
     frequency: 0
   failures:
-    1:
-      scale: 6.173
-      shape: 1
-      time: 10
-      materials: 500
-      service_equipment: CTV
-      operation_reduction: 0
-      level: 1
-      description: yaw system minor repair
-      # n_technicians: 2
-    3:
-      scale: 166.7
-      shape: 1
-      time: 40
-      materials: 3000
-      service_equipment: LCN
-      operation_reduction: 0.0
-      level: 3
-      description: yaw system major repair
-      # n_technicians: 3
-    5:
-      scale: 1000
-      shape: 1
-      time: 147
-      materials: 12500
-      service_equipment: LCN
-      operation_reduction: 0
-      replacement: true
-      level: 5
-      description: yaw system major replacement
-      # n_technicians: 5
+  - scale: 6.173
+    shape: 1
+    time: 10
+    materials: 500
+    service_equipment: CTV
+    operation_reduction: 0
+    level: 1
+    description: yaw system minor repair
+  - scale: 166.7
+    shape: 1
+    time: 40
+    materials: 3000
+    service_equipment: LCN
+    operation_reduction: 0.0
+    level: 3
+    description: yaw system major repair
+  - scale: 1000
+    shape: 1
+    time: 147
+    materials: 12500
+    service_equipment: LCN
+    operation_reduction: 0
+    replacement: true
+    level: 5
+    description: yaw system major replacement
 rotor_blades:
   name: rotor_blades
   maintenance:
@@ -173,37 +147,31 @@ rotor_blades:
     service_equipment: CTV
     frequency: 0
   failures:
-    2:
-      scale: 2.193
-      shape: 1
-      time: 18
-      materials: 6000
-      service_equipment: CTV
-      operation_reduction: 0
-      level: 2
-      description: blades minor repair
-      # n_technicians: 2
-    4:
-      scale: 100
-      shape: 1
-      time: 42
-      materials: 51732
-      service_equipment: LCN
-      operation_reduction: 0.0
-      level: 4
-      description: blades major repair
-      # n_technicians: 3
-    6:
-      scale: 1000
-      shape: 1
-      time: 864
-      materials: 534000
-      service_equipment: LCN
-      operation_reduction: 0
-      replacement: true
-      level: 6
-      description: blades major replacement
-      # n_technicians: 21
+  - scale: 2.193
+    shape: 1
+    time: 18
+    materials: 6000
+    service_equipment: CTV
+    operation_reduction: 0
+    level: 2
+    description: blades minor repair
+  - scale: 100
+    shape: 1
+    time: 42
+    materials: 51732
+    service_equipment: LCN
+    operation_reduction: 0.0
+    level: 4
+    description: blades major repair
+  - scale: 1000
+    shape: 1
+    time: 864
+    materials: 534000
+    service_equipment: LCN
+    operation_reduction: 0
+    replacement: true
+    level: 6
+    description: blades major replacement
 generator:
   name: generator
   maintenance:
@@ -212,39 +180,32 @@ generator:
     materials: 1500
     service_equipment: CTV
     frequency: 365
-    # n_technicians: 3
   failures:
-    2:
-      scale: 1.832
-      shape: 1
-      time: 13
-      materials: 1000
-      service_equipment: CTV
-      operation_reduction: 0.0
-      level: 2
-      description: direct drive generator minor repair
-      # n_technicians: 2
-    4:
-      scale: 33.333
-      shape: 1
-      time: 49
-      materials: 14340
-      service_equipment: LCN
-      operation_reduction: 0.0
-      level: 4
-      description: direct drive generator major repair
-      # n_technicians: 3
-    6:
-      scale: 111.1111
-      shape: 1
-      time: 244
-      materials: 236500
-      service_equipment: LCN
-      operation_reduction: 0
-      replacement: true
-      level: 6
-      description: direct drive generator major replacement
-      # n_technicians: 8
+  - scale: 1.832
+    shape: 1
+    time: 13
+    materials: 1000
+    service_equipment: CTV
+    operation_reduction: 0.0
+    level: 2
+    description: direct drive generator minor repair
+  - scale: 33.333
+    shape: 1
+    time: 49
+    materials: 14340
+    service_equipment: LCN
+    operation_reduction: 0.0
+    level: 4
+    description: direct drive generator major repair
+  - scale: 111.1111
+    shape: 1
+    time: 244
+    materials: 236500
+    service_equipment: LCN
+    operation_reduction: 0
+    replacement: true
+    level: 6
+    description: direct drive generator major replacement
 supporting_structure:
   name: supporting_structure
   maintenance:
@@ -253,77 +214,63 @@ supporting_structure:
     materials: 600
     service_equipment: CTV
     frequency: 365
-    # n_technicians: 4
   - description: structural subsea inspection
     time: 6
     materials: 500
     service_equipment: DSV
     frequency: 730
-    # n_technicians: 5
   failures:
-    1:
-      scale: 8.33
-      shape: 1
-      time: 40
-      materials: 1500
-      service_equipment: CTV
-      operation_reduction: 0
-      level: 1
-      description: marine growth removal
-      # n_technicians: 5
-    2:
-      scale: 66.67
-      shape: 1
-      time: 240
-      materials: 75000
-      service_equipment: AHV
-      operation_reduction: 0
-      level: 2
-      description: major anchor repair
-      # n_technicians: 10
-    3:
-      scale: 66.67
-      shape: 1
-      time: 240
-      materials: 20000
-      service_equipment: AHV
-      operation_reduction: 0
-      level: 3
-      description: mooring line major repair
-      # n_technicians: 10
-    4:
-      scale: 80
-      shape: 1
-      time: 360
-      materials: 512000
-      service_equipment: AHV
-      operation_reduction: 0
-      replacement: true
-      level: 4
-      description: anchor replacement
-      # n_technicians: 10
-    5:
-      scale: 80
-      shape: 1
-      time: 360
-      materials: 135000
-      service_equipment: AHV
-      operation_reduction: 0
-      replacement: true
-      level: 5
-      description: mooring line replacement
-      # n_technicians: 10
-    6:
-      scale: 30.3
-      shape: 1
-      time: 40
-      materials: 100000
-      service_equipment: CTV
-      operation_reduction: 0
-      replacement: true
-      level: 6
-      description: buoyancy module replacement
-      # n_technicians: 5
+  - scale: 8.33
+    shape: 1
+    time: 40
+    materials: 1500
+    service_equipment: CTV
+    operation_reduction: 0
+    level: 1
+    description: marine growth removal
+  - scale: 66.67
+    shape: 1
+    time: 240
+    materials: 75000
+    service_equipment: AHV
+    operation_reduction: 0
+    level: 2
+    description: major anchor repair
+  - scale: 66.67
+    shape: 1
+    time: 240
+    materials: 20000
+    service_equipment: AHV
+    operation_reduction: 0
+    level: 3
+    description: mooring line major repair
+  - scale: 80
+    shape: 1
+    time: 360
+    materials: 512000
+    service_equipment: AHV
+    operation_reduction: 0
+    replacement: true
+    level: 4
+    description: anchor replacement
+  - scale: 80
+    shape: 1
+    time: 360
+    materials: 135000
+    service_equipment: AHV
+    operation_reduction: 0
+    replacement: true
+    level: 5
+    description: mooring line replacement
+  - scale: 30.3
+    shape: 1
+    time: 40
+    materials: 100000
+    service_equipment: CTV
+    operation_reduction: 0
+    replacement: true
+    level: 6
+    description: buoyancy module replacement
 drive_train:
   name: drive_train
   maintenance:
@@ -333,34 +280,28 @@ drive_train:
     service_equipment: CTV
     frequency: 0
   failures:
-    2:
-      scale: 4.329
-      shape: 1
-      time: 10
-      materials: 1000
-      service_equipment: CTV
-      operation_reduction: 0
-      level: 2
-      description: main shaft minor repair
-      # n_technicians: 2
-    4:
-      scale: 38.462
-      shape: 1
-      time: 36
-      materials: 14000
-      service_equipment: LCN
-      operation_reduction: 0
-      level: 4
-      description: main shaft major repair
-      # n_technicians: 3
-    6:
-      scale: 111.111
-      shape: 1
-      time: 144
-      materials: 232000
-      service_equipment: LCN
-      operation_reduction: 0
-      replacement: true
-      level: 6
-      description: main shaft replacement
-      # n_technicians: 5
+  - scale: 4.329
+    shape: 1
+    time: 10
+    materials: 1000
+    service_equipment: CTV
+    operation_reduction: 0
+    level: 2
+    description: main shaft minor repair
+  - scale: 38.462
+    shape: 1
+    time: 36
+    materials: 14000
+    service_equipment: LCN
+    operation_reduction: 0
+    level: 4
+    description: main shaft major repair
+  - scale: 111.111
+    shape: 1
+    time: 144
+    materials: 232000
+    service_equipment: LCN
+    operation_reduction: 0
+    replacement: true
+    level: 6
+    description: main shaft replacement
