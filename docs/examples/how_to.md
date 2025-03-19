@@ -339,6 +339,13 @@ defintions require a dictionary-style input with keys to match the severity leve
 given failure. For more details on the complete subassembly definition, please visit the
 [Subassembly API documentation](types:windfarm:subassembly).
 
+```{important}
+As of v0.10, failure configurations (`failures`) require a list-based definition. To
+convert older cable, subastation, and turbine configuration failues, use the
+library function `convert_failure_data` as shown in the
+[helpers API documentation](importing-and-converting-from-old-versions).
+```
+
 ```{code-block} yaml
 generator:
   name: generator  # doesn't need to match the subassembly key that becomes System.id
@@ -350,7 +357,7 @@ generator:
     frequency: 365
     operation_reduction: 0  # default value
   failures:
-    1:
+    -
       scale: 0.1333
       shape: 1
       time: 3
@@ -392,7 +399,7 @@ transformer:
       service_equipment: CTV
       frequency: 0
   failures:
-    1:
+    -
       scale: 0
       shape: 0
       time: 0
@@ -466,7 +473,7 @@ maintenance:
     service_equipment: CTV
     frequency: 0
 failures:
-  1:
+  -
     scale: 0
     shape: 0
     time: 0
