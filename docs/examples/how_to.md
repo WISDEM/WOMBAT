@@ -543,6 +543,52 @@ project_capacity: 240
 #                          pointer is provided here and located in: dinwoodie / project / port
 ```
 
+```{note}
+As of v0.10, multiple vessels can be modeled with a single configuration, and vessel,
+turbine, cable, and substation configurations can be included directly in the contents
+of the primary configuration.
+```
+
+Alternatively, the configuration can be simplified to be of the following form to utilize
+repeated vessel configurations and the single file configuration. The new keys for where
+to embed the data directly correspond to the folder names where the files originally
+resided. For instance, below embedding `<library>/vessels/ctv.yaml` into the
+main configuration means that we need a new key called `vessels`, with a subkey
+underneath called `ctv`.
+
+```{code-block} yaml
+name: dinwoodie_base
+weather: alpha_ventus_weather_2002_2014.csv  # located in: dinwoodie / weather
+service_equipment:
+# YAML-encoded list, but could also be created in standard Python list notation with
+# square brackets: [ctv1.yaml, ctv2.yaml, ..., hlv_requests.yaml]
+# All below equipment configurations are located in: dinwoodie / vessels
+  - [ctv, 3]
+  - fsv_requests.yaml
+  - hlv_requests.yaml
+layout: layout.csv  # located in: dinwoodie / windfarm
+inflation_rate: 0
+fixed_costs: fixed_costs.yaml  # located in: dinwoodie / project / config
+workday_start: 7
+workday_end: 19
+start_year: 2003
+end_year: 2012
+project_capacity: 240
+vessels:
+  ctv:
+    ... # contents of ctv1.yaml without the numbered naming which is created automatically
+turbines:
+  ...
+cables:
+  ...
+substations:
+  ...
+```
+
+For a complete example of this, please see the
+`library/corewind/project/config/morro_bay_in_situ_consolidated.yaml` configuration
+file.
+
 ## Create a simulation
 
 There are two ways that this could be done, the first is to use the classmethod
@@ -626,7 +672,6 @@ end = perf_counter()
 timing = end - start
 print(f"Run time: {timing / 60:,.2f} minutes")
 ```
-
 
 ## Metric computation
 

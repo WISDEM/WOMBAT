@@ -4,45 +4,113 @@
 
 ### Features
 
-- Multiple instances of a servicing equipment can be created with a list of the name
-  and number of them in the following forms. This creates copies where the equipment's
-  name is suffixed with a 1-indexed indication of which number it is, such as
-  "Crew Transfer Vessel -1" through "Crew Transfer Vessel - 4" for the below example.
+#### Date-based maintenance and improved timing
+
+The frequency of maintenance events is now significantly more customizable by enabling
+custom starting dates and more resolved frequency inputs. There is no change required
+for existing configurations as the default value will `frequency` number of days until
+the next event.
+
+- `frequency` is an integer input (0 for unmodeled)
+- `frequency_basis` indicates the time basis for `frequency`, which is modeled in two
+  forms:
+  - timing based: amount of operational time that should pass before an event occurs,
+    which does not count downtime (repairs, upstream failure, or system offline) in the
+    time until the next event.
+    - "days": number of days between events (default)
+    - "months": number of months between events
+    - "years": number of years between events
+  - date based: uses a set schedule for when events should occur, regardless of downtime
+    and will use `start_date` as the first occurrence of the event.
+    - "date-days": number of days between events
+    - "date-months": number of months between events
+    - "date-years": number of years between events
+- `start_date`: The first occurrence of the maintenance event, which defaults to the
+  simulation start date + the expected interval. If the input is prior to the simulation
+  start date, then it is treated as a staggered timing, so, for instance, a biannual
+  event starting the year prior to the simulation ends up being staggered with the first
+  occurrence in the first year of the simulation, not the second. Similarly, this
+  allows for maintenance activities to start well into the simulation period allowing
+  for costs on OEM-warrantied maintenance activities to be unmodeled.
+
+A few examples of more complex scenarios assuming a 1/1/2000 simulation starting date:
+
+- Semiannual event to occur starting in the 3rd month of the simulation:
 
   ```yaml
-  ...
-  servicing_equipment:
-    - - ctv.yaml
-      - 4
-    - [hlv.yaml, 2]
-    - dsv.yaml
-  ...
+  frequency: 6
+  frequency_basis: months
+  start_date: "9/1/1999"
   ```
 
-- WOMBAT configurations now allow for the embedding of servicing equipment, turbine,
-  substation, cable, and port data within the main configuration. Now, the only files
-  required outside the primary configuration YAML are the weather profile and layout.
-  To utilize this update, data can be included in the following form:
+- Summer-based annual event with the first occurrence in the 3rd year of the simulation:
 
   ```yaml
-  servicing_equipment:
-    - [7, ctv]
-  ...  # Other configuration details
-  vessels:
-    ctv:
-      ...  # Contents of library/corewind/vessels/ctv.yaml
-  turbines:
-    corewind_15MW:
-      ...  # Contents of library/corewind/turbines/corewind_15MW.yaml
-  substations:
-    corewind_substation:
-      ...  # Contents of library/corewind/substations/corewind_substation.yaml
-  cables:
-    corewind_array:
-      ...  # Contents of library/corewind/cables/corewind_array.yaml
-    corewind_export:
-      ...  # Contents of library/corewind/cables/corewind_export.yaml
+  frequency: 1
+  frequency_basis: years
+  start_date: "6/1/2003"
   ```
+
+- Annual, June maintenance activity:
+
+  ```yaml
+  frequency: 1
+  frequency_basis: "date-years"
+  start_date: "6/1/2000"
+  ```
+
+- Biannual, June maintenance activity that should start in the first year, and every
+  other year after that:
+
+  ```yaml
+  frequency: 1
+  frequency_basis: "date-years"
+  start_date: "6/1/2000"
+  ```
+
+#### Repeat vessel configuration simplification
+
+Multiple instances of a servicing equipment can be created with a list of the name
+and number of them in the following forms. This creates copies where the equipment's
+name is suffixed with a 1-indexed indication of which number it is, such as
+"Crew Transfer Vessel -1" through "Crew Transfer Vessel - 4" for the below example.
+
+```yaml
+...
+servicing_equipment:
+  - - ctv.yaml
+    - 4
+  - [hlv.yaml, 2]
+  - dsv.yaml
+...
+```
+
+#### Single(ish) file configuration
+
+WOMBAT configurations now allow for the embedding of servicing equipment, turbine,
+substation, cable, and port data within the main configuration. Now, the only files
+required outside the primary configuration YAML are the weather profile and layout.
+To utilize this update, data can be included in the following form:
+
+```yaml
+servicing_equipment:
+  - [7, ctv]
+...  # Other configuration details
+vessels:
+  ctv:
+    ...  # Contents of library/corewind/vessels/ctv.yaml
+turbines:
+  corewind_15MW:
+    ...  # Contents of library/corewind/turbines/corewind_15MW.yaml
+substations:
+  corewind_substation:
+    ...  # Contents of library/corewind/substations/corewind_substation.yaml
+cables:
+  corewind_array:
+    ...  # Contents of library/corewind/cables/corewind_array.yaml
+  corewind_export:
+    ...  # Contents of library/corewind/cables/corewind_export.yaml
+```
 
 ### Updates
 
@@ -51,6 +119,7 @@
 - Basic tests added for the Simulation API
 - The wind farm operation level calculation was moved to `wombat/utilities/utilities.py`
   so it can be reused when `Metrics` loads the operational data.
+- Fixes the `FutureWarnings` from Pandas about changing offset strings.
 
 ## 0.9.7 (12 February 2025)
 
