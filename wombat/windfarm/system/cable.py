@@ -161,6 +161,9 @@ class Cable:
             yield desc, self.env.process(self.run_single_failure(failure))
 
         for i, maintenance in enumerate(self.data.maintenance):
+            maintenance._update_event_timing(
+                self.env.start_datetime, self.env.end_datetime, self.env.max_run_time
+            )
             desc = maintenance.description
             yield desc, self.env.process(self.run_single_maintenance(maintenance))
 
@@ -342,28 +345,28 @@ class Cable:
             Time between maintenance requests.
         """
         while True:
-            hours_to_next = maintenance.frequency
-            if hours_to_next == 0:
-                remainder = self.env.max_run_time - self.env.now
+            hours_to_next, accrue_downtime = maintenance.hours_to_next_event(
+                self.env.simulation_time
+            )
+            while hours_to_next > 0:
+                start = -1  # Ensure an interruption before processing is caught
                 try:
-                    yield self.env.timeout(remainder)
-                except simpy.Interrupt:
-                    remainder -= self.env.now
-            else:
-                while hours_to_next > 0:
-                    start = -1  # Ensure an interruption before processing is caught
-                    try:
-                        # If the replacement has not been completed, then wait
-                        yield self.servicing & self.downstream_failure & self.broken
+                    # Downtime doesn't accrue for date-based maintenance
+                    if not accrue_downtime:
+                        yield (
+                            self.system.servicing
+                            & self.downstream_failure
+                            & self.broken
+                        )
+                    start = self.env.now
+                    yield self.env.timeout(hours_to_next)
+                    hours_to_next = 0
+                    self.trigger_request(maintenance)
 
-                        start = self.env.now
-                        yield self.env.timeout(hours_to_next)
-                        hours_to_next = 0
-                        self.trigger_request(maintenance)
-                    except simpy.Interrupt as i:
-                        if i.cause == "replacement":
-                            return
-                        hours_to_next -= 0 if start == -1 else self.env.now - start
+                except simpy.Interrupt as i:
+                    if i.cause == "replacement":
+                        return
+                    hours_to_next -= 0 if start == -1 else self.env.now - start
 
     def run_single_failure(self, failure: Failure) -> Generator:
         """Runs a process to trigger one type of failure repair request throughout the
@@ -380,7 +383,7 @@ class Cable:
             Time between failure events that need to request a repair.
         """
         while True:
-            hours_to_next = failure.hours_to_next_failure()
+            hours_to_next = failure.hours_to_next_event()
             if hours_to_next is None:
                 remainder = self.env.max_run_time - self.env.now
                 try:

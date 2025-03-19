@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime
+from copy import deepcopy
 from math import fsum
 from typing import TYPE_CHECKING, Any, Callable
 from pathlib import Path
@@ -13,9 +14,10 @@ import attr
 import attrs
 import numpy as np
 import pandas as pd
-from attrs import Factory, Attribute, field, define
+from attrs import Factory, Attribute, field, define, converters, validators
+from dateutil.relativedelta import relativedelta
 
-from wombat.utilities.time import HOURS_IN_DAY, HOURS_IN_YEAR, parse_date
+from wombat.utilities.time import HOURS_IN_YEAR, parse_date, convert_dt_to_hours
 
 
 if TYPE_CHECKING:
@@ -314,6 +316,33 @@ def validate_0_1_inclusive(
         )
 
 
+def to_datetime(value: str | datetime.datetime) -> datetime.datetime:
+    """Converts a date string to a Python ``datetime`` object.
+
+    Parameters
+    ----------
+    value : str | datetime.datetime
+        The number of days or years or date (month and day) of the first occurrence.
+
+    Returns
+    -------
+    datetime.datetime
+        The datetime object corresponding to the input string.
+
+    Raises
+    ------
+    ValueError
+        Raised if a string or datetime object is not passed.
+    """
+    if isinstance(value, datetime.datetime):
+        return value
+
+    if isinstance(value, str):
+        return pd.to_datetime(value).to_pydatetime()
+
+    raise ValueError("Input must be a datetime or string.")
+
+
 @define
 class FromDictMixin:
     """A Mixin class to allow for kwargs overloading when a data class doesn't
@@ -378,8 +407,9 @@ class Maintenance(FromDictMixin):
         Amount of time required to perform maintenance, in hours.
     materials : float
         Cost of materials required to perform maintenance, in USD.
-    frequency : float
-        Optimal number of days between performing maintenance, in days.
+    frequency : int | str
+        Number of days, months, or years between events, see :py:attr:`frequency_basis`
+        for further configuration. Defaults to days as the basis.
     service_equipment: list[str] | str
         Any combination of th following ``Equipment.capability`` options.
 
@@ -406,11 +436,41 @@ class Maintenance(FromDictMixin):
 
     level : int, optional
         Severity level of the maintenance. Defaults to 0.
+    frequency_basis : str, optional
+        The basis of the frequency input. Defaults to "days". Must be one of the
+        following inputs:
+
+        - days: :py:attr:`frequency` corresponds to the number of days between events.
+        - months: :py:attr:`frequency` corresponds to the number of months between
+        events.
+
+        - years: :py:attr:`frequency` corresponds to the number of years between events.
+        - date-days: :py:attr:`frequency` corresponds to the exact number of days
+        between events, starting with :py:attr:`start_date` (i.e. downtime does not
+        impact timing).
+
+        - date-months: :py:attr:`frequency` corresponds to the number of months between
+        events, starting with :py:attr:`start_date` (i.e. downtime does not impact
+        timing).
+
+        - date-years: :py:attr:`frequency` corresponds to the number of years between
+        events, starting with :py:attr:`start_date` (i.e. downtime does not impact
+        timing).
+
+    start_date : str, optional
+        The date in "MM/DD/YYYY" or similarly legible format
+        (``pandas.to_datetime(start_date)`` used to convert internally) of the first
+        instance of the maintenance event. For instance, this allows for annual summer
+        maintenance activities for reduced downtime of fleet-wide preventative
+        maintenance, or for allowing a delayed start to certain activities (nothing
+        in the first five years, then run on a regular schedule). Defaults to the
+        frequency + simulation start date and is used for any
+        :py:attr:`frequency_basis`.
     """
 
     time: float = field(converter=float)
     materials: float = field(converter=float)
-    frequency: float = field(converter=float)
+    frequency: relativedelta | int = field(converter=int)
     service_equipment: list[str] = field(
         converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
@@ -420,16 +480,35 @@ class Maintenance(FromDictMixin):
     )
     system_value: int | float = field(converter=float)
     description: str = field(default="routine maintenance", converter=str)
+    frequency_basis: str = field(
+        default="days",
+        converter=(str.strip, str.lower),
+        validator=attrs.validators.in_(
+            (
+                "days",
+                "months",
+                "years",
+                "date-days",
+                "date-months",
+                "date-years",
+            )
+        ),
+    )
+    start_date: datetime.datetime | None = field(
+        default=None,
+        converter=converters.optional(to_datetime),
+        validator=validators.optional(validators.instance_of(datetime.datetime)),
+    )
     operation_reduction: float = field(default=0.0, converter=float)
     level: int = field(default=0, converter=int)
     request_id: str = field(init=False)
     replacement: bool = field(default=False, init=False)
+    event_dates: list[datetime.datetime] = field(default=Factory(list), init=False)
 
     def __attrs_post_init__(self):
         """Convert frequency to hours (simulation time scale) and the equipment
         requirement to a list.
         """
-        object.__setattr__(self, "frequency", self.frequency * HOURS_IN_DAY)
         object.__setattr__(
             self,
             "materials",
@@ -445,6 +524,128 @@ class Maintenance(FromDictMixin):
             The ``wombat.core.RepairManager`` generated identifier.
         """
         object.__setattr__(self, "request_id", request_id)
+
+    def _update_event_timing(
+        self, start: datetime.datetime, end: datetime.datetime, max_run_time: int
+    ) -> None:
+        """Creates the list of dates where a maintenance request should occur with a
+        buffer to ensure events can't occur within the first 60% of the frequency limit,
+        and so that the first event after the end timing (or at the exact end) is
+        included to ensure there is no special handling required for calculating the
+        final timeout.
+
+        Parameters
+        ----------
+        start : datetime.datetime
+            The starting date and time of the simulation
+            (``WombatEnvironment.start_datetime``).
+        end : datetime.datetime
+            The ending date and time of the simulation
+            (``WombatEnvironment.end_datetime``).
+        max_run_time : datetime.datetime
+            The maximum run time of the simulation, in hours
+            (``WombatEnvironment.max_run_time``).
+
+        Raises
+        ------
+        ValueError
+            Raised if an invalid ``Maintenance.frequency_basis`` is used.
+        """
+        date_based = self.frequency_basis.startswith("date-")
+        if self.start_date is None:
+            object.__setattr__(self, "start_date", start)
+
+        if TYPE_CHECKING:
+            assert isinstance(self.start_date, datetime.datetime)
+
+        # For events that should not occur, overwrite the user-passed timing settings
+        # to ensure there is a single event scheduled for just after the simulation end
+        n_frequency = deepcopy(self.frequency)
+        if self.frequency == 0:
+            diff = relativedelta(hours=max_run_time)
+            object.__setattr__(self, "frequency", diff)
+            object.__setattr__(self, "frequency_basis", "date-hours")
+            object.__setattr__(self, "event_dates", [end + relativedelta(hours=1)])
+            return
+
+        if not date_based:
+            diff = relativedelta(**{self.frequency_basis: self.frequency})  # type: ignore
+            object.__setattr__(self, "frequency", diff)
+            if self.start_date < start and not date_based:
+                object.__setattr__(self, "start_date", self.start_date + diff)
+            return
+
+        basis = self.frequency_basis.replace("date-", "")
+        diff = relativedelta(**{basis: self.frequency})  # type: ignore
+        years = end.year - min(self.start_date.year, start.year) + 1
+        if TYPE_CHECKING:
+            assert isinstance(n_frequency, int)
+        match basis:
+            case "days":
+                periods = (years * 365) // n_frequency
+            case "months":
+                periods = (years * 12) // n_frequency
+            case "years":
+                periods = years // n_frequency
+            case _:
+                raise ValueError(f"Invalid `frequency_basis` for {self.description}.")
+
+        _event_dates = [self.start_date + diff * i for i in range(periods + 2)]
+        event_dates = []
+        for date in _event_dates:
+            if date > start:
+                event_dates.append(date)
+                if date >= end:
+                    break
+
+        object.__setattr__(self, "frequency", diff)
+        object.__setattr__(self, "event_dates", event_dates)
+
+    def _hours_to_next_date(self, now_date: datetime.datetime) -> float:
+        """Determines the number of hours until the next date in the date-based
+        frequency sequence.
+
+        Parameters
+        ----------
+        now_date : float
+            Corresponds to ``WombatEnvironment.simulation_time``.
+
+        Returns
+        -------
+        float
+            The number of hours until the next maintenance event.
+
+        Raises
+        ------
+        ValueError
+        """
+        for date in self.event_dates:
+            if date > now_date:
+                return convert_dt_to_hours(date - now_date)
+
+        raise RuntimeError("Setup did not produce an extra event for safety.")
+
+    def hours_to_next_event(self, now_date: datetime.datetime) -> tuple[float, bool]:
+        """Calculate the next time the maintenance event should occur, and if downtime
+        should be discounted.
+
+        Returns
+        -------
+        float
+            Returns the number of hours until the next event.
+        bool
+            False indicates that accrued downtime should not be counted towards the
+            failure, and True indicates that it should count towards the timing.
+        """
+        if self.frequency_basis.startswith("date"):
+            return self._hours_to_next_date(now_date), True
+
+        if TYPE_CHECKING:
+            assert isinstance(self.frequency, datetime.datetime)
+
+        if now_date < self.start_date:
+            return convert_dt_to_hours(self.start_date - now_date), False
+        return convert_dt_to_hours(now_date + self.frequency - now_date), False
 
 
 @define(frozen=True, auto_attribs=True)
@@ -537,7 +738,7 @@ class Failure(FromDictMixin):
             convert_ratio_to_absolute(self.materials, self.system_value),
         )
 
-    def hours_to_next_failure(self) -> float | None:
+    def hours_to_next_event(self) -> float | None:
         """Sample the next time to failure in a Weibull distribution. If the ``scale``
         and ``shape`` parameters are set to 0, then the model will return ``None`` to
         cause the subassembly to timeout to the end of the simulation.

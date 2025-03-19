@@ -27,6 +27,7 @@ dependencies = [
     "types-typed-ast>=1.5",
     "types-PyYAML>=6",
     "types-python-dateutil>=2.8",
+    "python-dateutil",
 ]
 keywords = [
     "python3",

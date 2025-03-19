@@ -86,8 +86,9 @@ def test_cable_failures(env_setup):
     # for p in cable.processes.values():
     #     pprint(p._target.__dict__)
     assert getattr(list(cable.processes.values())[0]._target, "_delay", None) is None
-    assert getattr(list(cable.processes.values())[1]._target, "_delay", None) == (
-        1416 - catastrophic_timeout
+    assert (
+        getattr(list(cable.processes.values())[1]._target, "_delay", None)
+        == env.max_run_time - catastrophic_timeout
     )
 
     # Check the failure was submitted and no other items exist for this cable
