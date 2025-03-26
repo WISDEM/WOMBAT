@@ -35,7 +35,7 @@ substations:
         materials: 2000
         service_equipment: CTV
         operation_reduction: 0
-        level: 2
+        level: 1
         description: oss minor repair
       - scale: 100
         shape: 1
@@ -43,7 +43,7 @@ substations:
         materials: 100000
         service_equipment: CTV
         operation_reduction: 0
-        level: 4
+        level: 2
         description: oss major repair
 cables:
   corewind_export:
@@ -64,7 +64,7 @@ cables:
       service_equipment:
       - CAB
       replacement: false
-      level: 4
+      level: 2
       description: export cable major repair
   corewind_array:
     name: array cable
@@ -83,7 +83,7 @@ cables:
       service_equipment:
       - CAB
       replacement: false
-      level: 4
+      level: 2
       description: array cable major repair
     - scale: 62.5
       shape: 1
@@ -93,7 +93,7 @@ cables:
       service_equipment:
       - CAB
       replacement: true
-      level: 6
+      level: 3
       description: array cable replacement
 turbines:
   corewind_15MW:
@@ -125,7 +125,7 @@ turbines:
         materials: 1000
         service_equipment: CTV
         operation_reduction: 0.0
-        level: 2
+        level: 1
         description: power electrical system minor repair
       - scale: 2.959
         shape: 1
@@ -133,7 +133,7 @@ turbines:
         materials: 7000
         service_equipment: LCN
         operation_reduction: 0.0
-        level: 3
+        level: 2
         description: power converter major repair
       - scale: 62.5
         shape: 1
@@ -141,7 +141,7 @@ turbines:
         materials: 5000
         service_equipment: LCN
         operation_reduction: 0.0
-        level: 4
+        level: 2
         description: power electrical system major repair
       - scale: 12.99
         shape: 1
@@ -150,7 +150,7 @@ turbines:
         service_equipment: LCN
         operation_reduction: 0
         replacement: true
-        level: 5
+        level: 3
         description: power converter replacement
       - scale: 500
         shape: 1
@@ -159,7 +159,7 @@ turbines:
         service_equipment: LCN
         operation_reduction: 0
         replacement: true
-        level: 6
+        level: 3
         description: power electrical system major replacement
     hydraulic_system:
       name: hydraulic_system
@@ -184,7 +184,7 @@ turbines:
         materials: 1000
         service_equipment: CTV
         operation_reduction: 0
-        level: 2
+        level: 1
         description: minor ballast pump repair
       - scale: 5.587
         shape: 1
@@ -192,7 +192,7 @@ turbines:
         materials: 1900
         service_equipment: CTV
         operation_reduction: 0.0
-        level: 3
+        level: 2
         description: major pitch system repair
       - scale: 1000
         shape: 1
@@ -201,7 +201,7 @@ turbines:
         service_equipment: LCN
         operation_reduction: 0
         replacement: true
-        level: 5
+        level: 3
         description: major pitch system replacement
     yaw_system:
       name: yaw_system
@@ -226,7 +226,7 @@ turbines:
         materials: 3000
         service_equipment: LCN
         operation_reduction: 0.0
-        level: 3
+        level: 2
         description: yaw system major repair
       - scale: 1000
         shape: 1
@@ -235,7 +235,7 @@ turbines:
         service_equipment: LCN
         operation_reduction: 0
         replacement: true
-        level: 5
+        level: 3
         description: yaw system major replacement
     rotor_blades:
       name: rotor_blades
@@ -252,7 +252,7 @@ turbines:
         materials: 6000
         service_equipment: CTV
         operation_reduction: 0
-        level: 2
+        level: 1
         description: blades minor repair
       - scale: 100
         shape: 1
@@ -260,7 +260,7 @@ turbines:
         materials: 51732
         service_equipment: LCN
         operation_reduction: 0.0
-        level: 4
+        level: 2
         description: blades major repair
       - scale: 1000
         shape: 1
@@ -269,7 +269,7 @@ turbines:
         service_equipment: LCN
         operation_reduction: 0
         replacement: true
-        level: 6
+        level: 3
         description: blades major replacement
     generator:
       name: generator
@@ -286,7 +286,7 @@ turbines:
         materials: 1000
         service_equipment: CTV
         operation_reduction: 0.0
-        level: 2
+        level: 1
         description: direct drive generator minor repair
       - scale: 33.333
         shape: 1
@@ -294,7 +294,7 @@ turbines:
         materials: 14340
         service_equipment: LCN
         operation_reduction: 0.0
-        level: 4
+        level: 2
         description: direct drive generator major repair
       - scale: 111.1111
         shape: 1
@@ -303,7 +303,7 @@ turbines:
         service_equipment: LCN
         operation_reduction: 0
         replacement: true
-        level: 6
+        level: 3
         description: direct drive generator major replacement
     supporting_structure:
       name: supporting_structure
@@ -333,7 +333,7 @@ turbines:
         materials: 75000
         service_equipment: AHV
         operation_reduction: 0
-        level: 2
+        level: 1
         description: major anchor repair
       - scale: 66.67
         shape: 1
@@ -341,7 +341,7 @@ turbines:
         materials: 20000
         service_equipment: AHV
         operation_reduction: 0
-        level: 3
+        level: 2
         description: mooring line major repair
       - scale: 80
         shape: 1
@@ -350,7 +350,7 @@ turbines:
         service_equipment: AHV
         operation_reduction: 0
         replacement: true
-        level: 4
+        level: 2
         description: anchor replacement
       - scale: 80
         shape: 1
@@ -359,7 +359,7 @@ turbines:
         service_equipment: AHV
         operation_reduction: 0
         replacement: true
-        level: 5
+        level: 3
         description: mooring line replacement
       - scale: 30.3
         shape: 1
@@ -368,7 +368,7 @@ turbines:
         service_equipment: CTV
         operation_reduction: 0
         replacement: true
-        level: 6
+        level: 3
         description: buoyancy module replacement
     drive_train:
       name: drive_train
@@ -385,7 +385,7 @@ turbines:
         materials: 1000
         service_equipment: CTV
         operation_reduction: 0
-        level: 2
+        level: 1
         description: main shaft minor repair
       - scale: 38.462
         shape: 1
@@ -393,7 +393,7 @@ turbines:
         materials: 14000
         service_equipment: LCN
         operation_reduction: 0
-        level: 4
+        level: 2
         description: main shaft major repair
       - scale: 111.111
         shape: 1
@@ -402,7 +402,7 @@ turbines:
         service_equipment: LCN
         operation_reduction: 0
         replacement: true
-        level: 6
+        level: 3
         description: main shaft replacement
 vessels:
   ctv:

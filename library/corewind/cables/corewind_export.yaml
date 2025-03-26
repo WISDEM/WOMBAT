@@ -15,5 +15,5 @@ failures:
   service_equipment:
   - CAB
   replacement: false
-  level: 4
+  level: 2
   description: export cable major repair

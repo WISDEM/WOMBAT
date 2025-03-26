@@ -16,7 +16,7 @@ transformer:
     materials: 2000
     service_equipment: CTV
     operation_reduction: 0
-    level: 2
+    level: 1
     description: oss minor repair
   - scale: 100
     shape: 1
@@ -24,5 +24,5 @@ transformer:
     materials: 100000
     service_equipment: CTV
     operation_reduction: 0
-    level: 4
+    level: 2
     description: oss major repair
