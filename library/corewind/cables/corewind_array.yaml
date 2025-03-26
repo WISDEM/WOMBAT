@@ -14,7 +14,7 @@ failures:
   service_equipment:
   - CAB
   replacement: false
-  level: 4
+  level: 2
   description: array cable major repair
 - scale: 62.5
   shape: 1
@@ -24,5 +24,5 @@ failures:
   service_equipment:
   - CAB
   replacement: true
-  level: 6
+  level: 3
   description: array cable replacement
