@@ -127,6 +127,7 @@ cables:
 - Fixes the `FutureWarnings` from Pandas about changing offset strings.
 - Updates the COREWIND severity levels to those originally listed in the publication now
   that severity levels can be used multiple times within a single subassembly.
+- Updates the GH Pages uploading workflow steps.
 
 ## 0.9.7 (12 February 2025)
 
