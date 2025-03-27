@@ -8,7 +8,7 @@ dynamic = ["version"]
 authors = [{name = "Rob Hammond", email = "rob.hammond@nrel.gov"}]
 readme = {file = "README.md", content-type = "text/markdown"}
 description = "Windfarm operations and maintenance cost-benefit analysis tool"
-requires-python = ">=3.9, <3.13"
+requires-python = ">=3.10, <3.13"
 license = {file = "LICENSE"}
 dependencies = [
     "attrs>=21",
@@ -27,6 +27,7 @@ dependencies = [
     "types-typed-ast>=1.5",
     "types-PyYAML>=6",
     "types-python-dateutil>=2.8",
+    "python-dateutil",
 ]
 keywords = [
     "python3",
@@ -45,8 +46,6 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -67,7 +66,7 @@ dev = [
     "isort>=5.10",
     "pytest>=7",
     "pytest-cov>=4",
-    "mypy==0.991",
+    "mypy",
     "ruff>=0.2",
     "pyupgrade",
 ]
@@ -166,7 +165,6 @@ fix = true
 # See https://github.com/charliermarsh/ruff#supported-rules
 # for rules included and matching to prefix.
 # TODO: "FBT", "B", "PIE, "T20", "SIM", "PTH", "PD", "I", "PL"
-ignore-init-module-imports = true
 select = ["F", "E", "W", "C4", "D", "UP"]
 
 # D205: not using summary lines and descriptions, just descriptions
@@ -198,6 +196,8 @@ exclude = [
     "dist",
     "node_modules",
     "venv",
+    "examples/archival/*",
+    "examples/*.ipynb"
 ]
 
 # Allow unused variables when underscore-prefixed.
@@ -205,55 +205,9 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.lint.per-file-ignores]
 "setup.py" = ["D104"]
-"library/__init__.py" = ["D104"]
-"library/code_comparison/__init__.py" = ["D104"]
-"library/code_comparison/dinwoodie/__init__.py" = ["D104"]
-"library/code_comparison/dinwoodie/cables/__init__.py" = ["D104"]
-"library/code_comparison/dinwoodie/project/__init__.py" = ["D104"]
-"library/code_comparison/dinwoodie/project/config/__init__.py" = ["D104"]
-"library/code_comparison/dinwoodie/project/plant/__init__.py" = ["D104"]
-"library/code_comparison/dinwoodie/project/port/__init__.py" = ["D104"]
-"library/code_comparison/dinwoodie/results/__init__.py" = ["D104"]
-"library/code_comparison/dinwoodie/substations/__init__.py" = ["D104"]
-"library/code_comparison/dinwoodie/turbines/__init__.py" = ["D104"]
-"library/code_comparison/dinwoodie/vessels/__init__.py" = ["D104"]
-"library/code_comparison/dinwoodie/weather/__init__.py" = ["D104"]
-"library/code_comparison/iea26/__init__.py" = ["D104"]
-"library/code_comparison/iea26/cables/__init__.py" = ["D104"]
-"library/code_comparison/iea26/project/__init__.py" = ["D104"]
-"library/code_comparison/iea26/project/config/__init__.py" = ["D104"]
-"library/code_comparison/iea26/project/plant/__init__.py" = ["D104"]
-"library/code_comparison/iea26/project/port/__init__.py" = ["D104"]
-"library/code_comparison/iea26/results/__init__.py" = ["D104"]
-"library/code_comparison/iea26/substations/__init__.py" = ["D104"]
-"library/code_comparison/iea26/turbines/__init__.py" = ["D104"]
-"library/code_comparison/iea26/vessels/__init__.py" = ["D104"]
-"library/code_comparison/iea26/weather/__init__.py" = ["D104"]
-"library/corewind/__init__.py" = ["D104"]
-"library/corewind/cables/__init__.py" = ["D104"]
-"library/corewind/project/__init__.py" = ["D104"]
-"library/corewind/project/config/__init__.py" = ["D104"]
-"library/corewind/project/plant/__init__.py" = ["D104"]
-"library/corewind/project/port/__init__.py" = ["D104"]
-"library/corewind/results/__init__.py" = ["D104"]
-"library/corewind/substations/__init__.py" = ["D104"]
-"library/corewind/turbines/__init__.py" = ["D104"]
-"library/corewind/vessels/__init__.py" = ["D104"]
-"library/corewind/weather/__init__.py" = ["D104"]
-"tests/library/__init__.py" = ["D104"]
-"tests/library/cables/__init__.py" = ["D104"]
-"tests/library/project/__init__.py" = ["D104"]
-"tests/library/project/config/__init__.py" = ["D104"]
-"tests/library/project/plant/__init__.py" = ["D104"]
-"tests/library/substations/__init__.py" = ["D104"]
-"tests/library/turbines/__init__.py" = ["D104"]
-"tests/library/vessels/__init__.py" = ["D104"]
-"tests/library/weather/__init__.py" = ["D104"]
-"wombat/__init__.py" = ["F401"]
-"wombat/core/__init__.py" = ["F401"]
-"wombat/utilities/__init__.py" = ["F401"]
-"wombat/windfarm/__init__.py" = ["F401"]
-"wombat/windfarm/system/__init__.py" = ["F401"]
+"*/__init__.py" = ["D104"]
+"wombat/*__init__.py" = ["F401"]
+
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"

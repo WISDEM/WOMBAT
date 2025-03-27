@@ -1,6 +1,5 @@
 """Tests the Subassembly class."""
 
-
 import numpy as np
 import pytest
 
@@ -37,8 +36,7 @@ def test_subassembly_initialization(env_setup):
     correct_N_maintenance = len(GENERATOR_SUBASSEMBLY["maintenance"])
     correct_N_failures = len(GENERATOR_SUBASSEMBLY["failures"])
     correct_descriptions = [
-        (el["level"], el["description"])
-        for el in GENERATOR_SUBASSEMBLY["failures"].values()
+        (el["level"], el["description"]) for el in GENERATOR_SUBASSEMBLY["failures"]
     ]
     correct_descriptions.extend(
         [el["description"] for el in GENERATOR_SUBASSEMBLY["maintenance"]]

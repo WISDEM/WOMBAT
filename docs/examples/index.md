@@ -55,7 +55,7 @@ events. The following will break down the differences between each of these syst
 modeling assumptions as well as the basic operations of the maintenance and failure models.
 
 - Maintenance
-  - `frequency`: based on a fixed number of days between an event
+  - `frequency`: based on an amount of time between events and a given starting date.
   - `operation_reduction`: the percentage of degradation the triggering of this event
     cause
 - Failure

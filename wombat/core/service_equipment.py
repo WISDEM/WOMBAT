@@ -515,7 +515,7 @@ class ServiceEquipment(RepairsMixin):
 
     def wait_until_next_operational_period(
         self, *, less_mobilization_hours: int = 0
-    ) -> Generator[Timeout, None, None]:
+    ) -> Generator[Timeout]:
         """Delays the crew and equipment until the start of the next operational
         period.
 
@@ -574,7 +574,7 @@ class ServiceEquipment(RepairsMixin):
 
         yield self.env.timeout(hours_to_next_shift)
 
-    def mobilize_scheduled(self) -> Generator[Timeout, None, None]:
+    def mobilize_scheduled(self) -> Generator[Timeout]:
         """Mobilizes the ServiceEquipment object by waiting for the next operational
         period, less the mobilization time, then logging the mobiliztion cost.
 
@@ -615,7 +615,7 @@ class ServiceEquipment(RepairsMixin):
             location="site",
         )
 
-    def mobilize(self) -> Generator[Timeout, None, None]:
+    def mobilize(self) -> Generator[Timeout]:
         """Mobilizes the ServiceEquipment object.
 
         NOTE: weather delays are not accounted for at this stage.
@@ -932,7 +932,7 @@ class ServiceEquipment(RepairsMixin):
         hours: float | None = None,
         distance: float | None = None,
         **kwargs,
-    ) -> Generator[Timeout | Process, None, None]:
+    ) -> Generator[Timeout | Process]:
         """The process for traveling between port and site, or two systems onsite.
 
         NOTE: This does not currently take the weather conditions into account.
@@ -1060,7 +1060,7 @@ class ServiceEquipment(RepairsMixin):
         end: str,
         set_current: str | None = None,
         **kwargs,
-    ) -> Generator[Timeout | Process, None, None]:
+    ) -> Generator[Timeout | Process]:
         """The process for towing a turbine to/from port.
 
         Parameters
@@ -1136,7 +1136,7 @@ class ServiceEquipment(RepairsMixin):
         subassembly: Subassembly,
         request: RepairRequest,
         to_system: bool,
-    ) -> Generator[Timeout | Process, None, None]:
+    ) -> Generator[Timeout | Process]:
         """The process of transfering the crew from the equipment to the ``System``
         for servicing using an uninterrupted weather window to ensure safe transfer.
 
@@ -1246,7 +1246,7 @@ class ServiceEquipment(RepairsMixin):
         system: System,
         request: RepairRequest,
         which: str,
-    ) -> Generator[Timeout | Process, None, None]:
+    ) -> Generator[Timeout | Process]:
         """The process of either umooring a floating turbine to prepare for towing it to
         port, or reconnecting it after its repairs have been completed.
 
@@ -1355,7 +1355,7 @@ class ServiceEquipment(RepairsMixin):
         time_processed: int | float = 0,
         prior_operation_level: float = -1.0,
         initial: bool = False,
-    ) -> Generator[Timeout | Process, None, None]:
+    ) -> Generator[Timeout | Process]:
         """Processes the repair including any weather and shift delays.
 
         Parameters
@@ -1626,7 +1626,7 @@ class ServiceEquipment(RepairsMixin):
                 self.travel(start="site", end="port", **shared_logging)
             )
 
-    def run_scheduled_in_situ(self) -> Generator[Process, None, None]:
+    def run_scheduled_in_situ(self) -> Generator[Process]:
         """Runs the simulation of in situ repairs for scheduled servicing equipment
         that have the `onsite` designation or don't require mobilization.
 
@@ -1700,7 +1700,7 @@ class ServiceEquipment(RepairsMixin):
                 yield system.servicing
                 yield self.env.process(self.in_situ_repair(request, initial=True))
 
-    def run_unscheduled_in_situ(self) -> Generator[Process, None, None]:
+    def run_unscheduled_in_situ(self) -> Generator[Process]:
         """Runs an in situ repair simulation for unscheduled servicing equipment, or
         those that have to be mobilized before performing repairs and maintenance.
 
@@ -1853,7 +1853,7 @@ class ServiceEquipment(RepairsMixin):
                 yield self.env.process(self.in_situ_repair(request, initial=True))
         self.dispatched = False
 
-    def run_tow_to_port(self, request: RepairRequest) -> Generator[Process, None, None]:
+    def run_tow_to_port(self, request: RepairRequest) -> Generator[Process]:
         """Runs the tow to port logic, so a turbine can be repaired at port.
 
         Parameters
@@ -1905,7 +1905,7 @@ class ServiceEquipment(RepairsMixin):
 
     def run_tow_to_site(
         self, request: RepairRequest, subassembly_resets: list[str] = []
-    ) -> Generator[Process, None, None]:
+    ) -> Generator[Process]:
         """Runs the tow to site logic for after a turbine has had its repairs completed
         at port.
 

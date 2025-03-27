@@ -1,14 +1,16 @@
 """The main API for the ``wombat``."""
+
 from __future__ import annotations
 
 import datetime
+from copy import deepcopy
 from typing import TYPE_CHECKING
 from pathlib import Path
 
 import yaml
 import numpy as np
 import pandas as pd
-from attrs import Attribute, field, define
+from attrs import Attribute, field, define, validators
 from simpy.events import Event
 
 from wombat.core import (
@@ -53,8 +55,9 @@ class Configuration(FromDictMixin):
         Name of the simulation. Used for logging files.
     layout : str
         The windfarm layout file. See ``wombat.Windfarm`` for more details.
-    service_equipment : str | list[str]
-        The equpiment that will be used in the simulation. See
+    service_equipment : str | list[str | list[str, int]]
+        The equpiment that will be used in the simulation. For multiple instances of a
+        single vessel use a list of the file name/id and the number of vessels. See
         ``wombat.core.ServiceEquipment`` for more details.
     weather : str
         The weather profile to be used. See ``wombat.simulation.WombatEnvironment``
@@ -111,11 +114,27 @@ class Configuration(FromDictMixin):
     random_seed : int | None
         The random seed to be passed to a universal NumPy ``default_rng`` object to
         generate Weibull random generators, by default None.
-    random_generator: np.random._generator.Generator | None
+    random_generator : np.random._generator.Generator | None
         An optional numpy random generator that can be provided to seed a simulation
         with the same generator each time, in place of the random seed. If a
         :py:attr:`random_seed` is also provided, this will override the random seed,
         by default None.
+    cables : dict[str, dict] | None
+        A dictionary of cable configurations with the keys aligning with the layout
+        file's :py:attr:`upstream_cable` field, which would replace the need for YAML
+        file defintions, by default None.
+    substations : dict[str, dict] | None
+        A dictionary of substation configurations with the keys aligning with the layout
+        file's :py:attr:`upstream_cable` field, which would replace the need for YAML
+        file defintions, by default None.
+    turbines : dict[str, dict] | None
+        A dictionary of turbine configurations with the keys aligning with the layout
+        file's :py:attr:`upstream_cable` field, which would replace the need for YAML
+        file defintions, by default None.
+    vessels : dict[str, dict] | None
+        A dictionary of servicing equipment configurations with the keys aligning with
+        entries of :py:attr:`service_equipment` field, which would replace the need for
+        YAML file defintions, by default None.
     """
 
     name: str
@@ -138,6 +157,18 @@ class Configuration(FromDictMixin):
     reduced_speed: float = field(default=0.0)
     random_seed: int | None = field(default=None)
     random_generator: np.random._generator.Generator | None = field(default=None)
+    cables: dict[str, dict] | None = field(
+        default=None, validator=validators.instance_of((dict, type(None)))
+    )
+    substations: dict[str, dict] | None = field(
+        default=None, validator=validators.instance_of((dict, type(None)))
+    )
+    turbines: dict[str, dict] | None = field(
+        default=None, validator=validators.instance_of((dict, type(None)))
+    )
+    vessels: dict[str, dict] | None = field(
+        default=None, validator=validators.instance_of((dict, type(None)))
+    )
 
 
 @define(auto_attribs=True)
@@ -271,6 +302,65 @@ class Simulation(FromDictMixin):
             random_generator=config.random_generator,
         )
 
+    def _initialize_servicing_equipment(self, configuration: str | dict) -> None:
+        """
+        Initializes a single piece of servicing equipment.
+
+        Parameters
+        ----------
+        configuration : str | dict
+            The servicing equipment configuration dictionary or YAML file.
+        """
+        equipment = ServiceEquipment(
+            self.env, self.windfarm, self.repair_manager, configuration
+        )
+        equipment.finish_setup_with_environment_variables()
+        name = equipment.settings.name
+        if name in self.service_equipment:
+            msg = (
+                f"Servicing equipment `{name}` already exists, please use"
+                " unique names for all servicing equipment."
+            )
+            raise ValueError(msg)
+        self.service_equipment[name] = equipment  # type: ignore
+
+    def _setup_servicing_equipment(self):
+        """Initializes the servicing equipment used in the simulation."""
+        for service_equipment in self.config.service_equipment:
+            n = 1
+            if isinstance(service_equipment, list):
+                n, service_equipment = service_equipment
+                if isinstance(n, str) and isinstance(service_equipment, int):
+                    n, service_equipment = service_equipment, n
+
+            if not service_equipment.endswith((".yml", ".yaml")):
+                if self.config.vessels is None:
+                    msg = (
+                        "The input to `vessels` must be defined if file names not"
+                        f" provided to `servicing_equipment`. '{service_equipment}'"
+                        "is not a YAML filename."
+                    )
+                    raise ValueError(msg)
+                service_equipment = self.config.vessels[service_equipment]  # type: ignore
+
+            if n == 1:
+                self._initialize_servicing_equipment(service_equipment)
+                continue
+
+            # YAML files must be loaded for repeats so that the naming can be unique
+            if isinstance(service_equipment, str):
+                if service_equipment.endswith((".yaml", ".yml")):
+                    service_equipment = load_yaml(
+                        self.env.data_dir / "vessels", service_equipment
+                    )
+            if TYPE_CHECKING:
+                assert isinstance(service_equipment, dict)
+            for i in range(n):
+                config = deepcopy(service_equipment)
+                name = f"{config['name']} {i + 1}"
+                config["name"] = name
+                self._initialize_servicing_equipment(config)
+
     def _setup_simulation(self):
         """Initializes the simulation objects."""
         self.env = WombatEnvironment(
@@ -291,22 +381,16 @@ class Simulation(FromDictMixin):
             random_generator=self.random_generator,
         )
         self.repair_manager = RepairManager(self.env)
-        self.windfarm = Windfarm(self.env, self.config.layout, self.repair_manager)
-
-        # Create the servicing equipment and set the necessary environment variables
+        self.windfarm = Windfarm(
+            env=self.env,
+            windfarm_layout=self.config.layout,
+            repair_manager=self.repair_manager,
+            substations=self.config.substations,
+            turbines=self.config.turbines,
+            cables=self.config.cables,
+        )
         self.service_equipment: dict[str, ServiceEquipment] = {}  # type: ignore
-        for service_equipment in self.config.service_equipment:
-            equipment = ServiceEquipment(
-                self.env, self.windfarm, self.repair_manager, service_equipment
-            )
-            equipment.finish_setup_with_environment_variables()
-            name = equipment.settings.name
-            if name in self.service_equipment:
-                raise ValueError(
-                    f"Servicing equipment `{name}` already exists, please use unique"
-                    " names for all servicing equipment."
-                )
-            self.service_equipment[name] = equipment  # type: ignore
+        self._setup_servicing_equipment()
 
         # Create the port and add any tugboats to the available servicing equipment list
         if self.config.port is not None:

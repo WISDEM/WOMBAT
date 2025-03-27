@@ -6,12 +6,18 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from wombat.core import WombatEnvironment
+from wombat.core import Metrics, WombatEnvironment
 from wombat.utilities import IEC_power_curve
 from wombat.core.library import load_yaml
 
 
 TEST_DATA = Path(__file__).resolve().parent / "library"
+
+
+def pytest_assertrepr_compare(op, left, right):
+    """Custom failure messages."""
+    if isinstance(left, Metrics) and isinstance(right, Metrics) and op == "==":
+        return left._repr_compare(right)
 
 
 @pytest.fixture
@@ -90,8 +96,8 @@ GENERATOR_SUBASSEMBLY = {
             "system_value": 39000000,
         }
     ],
-    "failures": {
-        1: {
+    "failures": [
+        {
             "scale": 0.1333,
             "shape": 1,
             "time": 3,
@@ -102,7 +108,7 @@ GENERATOR_SUBASSEMBLY = {
             "description": "manual reset",
             "system_value": 39000000,
         },
-        2: {
+        {
             "scale": 0.3333,
             "shape": 1,
             "time": 7.5,
@@ -113,7 +119,7 @@ GENERATOR_SUBASSEMBLY = {
             "description": "minor repair",
             "system_value": 39000000,
         },
-        3: {
+        {
             "scale": 3.6363,
             "shape": 1,
             "time": 22,
@@ -124,7 +130,7 @@ GENERATOR_SUBASSEMBLY = {
             "description": "medium repair",
             "system_value": 39000000,
         },
-        4: {
+        {
             "scale": 25,
             "shape": 1,
             "time": 26,
@@ -135,7 +141,7 @@ GENERATOR_SUBASSEMBLY = {
             "description": "major repair",
             "system_value": 39000000,
         },
-        5: {
+        {
             "scale": 12.5,
             "shape": 1,
             "time": 52,
@@ -146,7 +152,7 @@ GENERATOR_SUBASSEMBLY = {
             "description": "major replacement",
             "system_value": 39000000,
         },
-    },
+    ],
     "rng": RNG,
 }
 

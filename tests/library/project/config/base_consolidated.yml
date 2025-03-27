@@ -1,0 +1,413 @@
+name: base
+weather: test_weather.csv
+service_equipment:
+  - - ctv
+    - 2
+  - fsv_requests
+  - [2, hlv_requests]
+layout: layout_simulation.csv
+port_distance: 20
+inflation_rate: 0
+workday_start: 6
+workday_end: 22
+start_year: 2002
+end_year: 2003
+project_capacity: 18
+substations:
+  offshore_substation:
+    capacity_kw: 0
+    capex_kw: 0
+    transformer:
+      name: transformer
+      maintenance:
+        -
+          description: n/a
+          time: 0
+          materials: 0
+          service_equipment: CTV
+          frequency: 0
+      failures:
+        1:
+          scale: 0
+          shape: 0
+          time: 0
+          materials: 0
+          service_equipment: [CTV]
+          operation_reduction: 0
+          level: 1
+          description: n/a
+turbines:
+  vestas_v90:
+    capacity_kw: 3000
+    capex_kw: 1300  # need an updated value
+    power_curve:
+      file: vestas_v90_power_curve.csv
+      bin_width: 0.5
+    electrical_system:
+      name: electrical_system
+      maintenance:
+      - description: n/a
+        time: 0
+        materials: 0
+        service_equipment: CTV
+        frequency: 0
+      failures:
+        1:
+          scale: 0
+          shape: 0
+          time: 0
+          materials: 0
+          service_equipment: CTV
+          operation_reduction: 0
+          level: 1
+          description: n/a
+    electronic_control:
+      name: electronic_control
+      maintenance:
+      - description: n/a
+        time: 0
+        materials: 0
+        service_equipment: CTV
+        frequency: 0
+      failures:
+        1:
+          scale: 0
+          shape: 0
+          time: 0
+          materials: 0
+          service_equipment: CTV
+          operation_reduction: 0
+          level: 1
+          description: n/a
+    sensors:
+      name: sensors
+      maintenance:
+      - description: n/a
+        time: 0
+        materials: 0
+        service_equipment: CTV
+        frequency: 0
+      failures:
+        1:
+          scale: 0
+          shape: 0
+          time: 0
+          materials: 0
+          service_equipment: CTV
+          operation_reduction: 0
+          level: 1
+          description: n/a
+    hydraulic_system:
+      name: hydraulic_system
+      maintenance:
+      - description: n/a
+        time: 0
+        materials: 0
+        service_equipment: CTV
+        frequency: 0
+      failures:
+        1:
+          scale: 0
+          shape: 0
+          time: 0
+          materials: 0
+          service_equipment: CTV
+          operation_reduction: 0
+          level: 1
+          description: n/a
+    yaw_system:
+      name: yaw_system
+      maintenance:
+      - description: n/a
+        time: 0
+        materials: 0
+        service_equipment: CTV
+        frequency: 0
+      failures:
+        1:
+          scale: 0
+          shape: 0
+          time: 0
+          materials: 0
+          service_equipment: CTV
+          operation_reduction: 0
+          level: 1
+          description: n/a
+    rotor_blades:
+      name: rotor_blades
+      maintenance:
+      - description: n/a
+        time: 0
+        materials: 0
+        service_equipment: CTV
+        frequency: 0
+      failures:
+        1:
+          scale: 0
+          shape: 0
+          time: 0
+          materials: 0
+          service_equipment: CTV
+          operation_reduction: 0
+          level: 1
+          description: n/a
+    mechanical_brake:
+      name: mechanical_brake
+      maintenance:
+      - description: n/a
+        time: 0
+        materials: 0
+        service_equipment: CTV
+        frequency: 0
+      failures:
+        1:
+          scale: 0
+          shape: 0
+          time: 0
+          materials: 0
+          service_equipment: CTV
+          operation_reduction: 0
+          level: 1
+          description: n/a
+    rotor_hub:
+      name: rotor_hub
+      maintenance:
+      - description: n/a
+        time: 0
+        materials: 0
+        service_equipment: CTV
+        frequency: 0
+      failures:
+        1:
+          scale: 0
+          shape: 0
+          time: 0
+          materials: 0
+          service_equipment: CTV
+          operation_reduction: 0
+          level: 1
+          description: n/a
+    gearbox:
+      name: gearbox
+      maintenance:
+      - description: n/a
+        time: 0
+        materials: 0
+        service_equipment: CTV
+        frequency: 0
+      failures:
+        1:
+          scale: 0
+          shape: 0
+          time: 0
+          materials: 0
+          service_equipment: CTV
+          operation_reduction: 0
+          level: 1
+          description: n/a
+    generator:
+      name: generator
+      maintenance:
+      - description: annual service
+        time: 60
+        materials: 18500
+        service_equipment: CTV
+        frequency: 365
+      failures:
+        1:
+          scale: 0.1333
+          shape: 1
+          time: 3
+          materials: 0
+          service_equipment: CTV
+          operation_reduction: 0.0
+          level: 1
+          description: manual reset
+        2:
+          scale: 0.3333
+          shape: 1
+          time: 7.5
+          materials: 1000
+          service_equipment: CTV
+          operation_reduction: 0.0
+          level: 2
+          description: minor repair
+        3:
+          scale: 3.6363
+          shape: 1
+          time: 22
+          materials: 18500
+          service_equipment: CTV
+          operation_reduction: 0.0
+          level: 3
+          description: medium repair
+        4:
+          scale: 25
+          shape: 1
+          time: 26
+          materials: 73500
+          service_equipment: SCN
+          operation_reduction: 0.0
+          level: 4
+          description: major repair
+        5:
+          scale: 12.5
+          shape: 1
+          time: 52
+          materials: 334500
+          service_equipment: LCN
+          operation_reduction: 1.0
+          level: 5
+          description: major replacement
+    supporting_structure:
+      name: supporting_structure
+      maintenance:
+      - description: n/a
+        time: 0
+        materials: 0
+        service_equipment: CTV
+        frequency: 0
+      failures:
+        3:
+          scale: 0
+          shape: 0
+          time: 0
+          materials: 0
+          service_equipment: CTV
+          operation_reduction: 0
+          level: 3
+          description: n/a
+    drive_train:
+      name: drive_train
+      maintenance:
+      - description: n/a
+        time: 0
+        materials: 0
+        service_equipment: CTV
+        frequency: 0
+      failures:
+        1:
+          scale: 0
+          shape: 0
+          time: 0
+          materials: 0
+          service_equipment: CTV
+          operation_reduction: 0
+          level: 1
+          description: n/a
+cables:
+  array_33kv_630mm:
+    name: array cable
+    maintenance:
+      -
+        description: n/a
+        time: 0
+        materials: 0
+        service_equipment: CTV
+        frequency: 0
+    failures:
+      5:
+        scale: 2500
+        shape: 1
+        time: 32
+        materials: 350000
+        operation_reduction: 1
+        service_equipment: [CAB]
+        level: 5
+        description: cable replacement
+  export:
+    name: export
+    maintenance:
+    - description: na
+      time: 0
+      materials: 0
+      service_equipment: CTV
+      frequency: 0
+    failures:
+      1:
+        scale: 0
+        shape: 0
+        time: 0
+        materials: 0
+        service_equipment: CTV
+        operation_reduction: 0.0
+        level: 1
+        description: na
+vessels:
+  hlv_requests:
+    name: Heavy Lift Vessel
+    equipment_rate: 150000
+    charter_days: 30
+    strategy: requests
+    strategy_threshold: 10
+    start_year: 2002
+    end_year: 2014
+    onsite: false
+    capability: LCN
+    mobilization_cost: 500000
+    mobilization_days: 60
+    speed: 12.66
+    max_windspeed_transport: 10
+    max_windspeed_repair: 10
+    max_waveheight_transport: 2
+    max_waveheight_repair: 2
+    workday_start: 0
+    workday_end: 24
+    crew_transfer_time: 0.25
+    n_crews: 1
+    crew:
+      day_rate: 0  # crew comes with vessel
+      n_day_rate: 0
+      hourly_rate: 0
+      n_hourly_rate: 0
+  fsv_requests:
+    name: Field Support Vessel
+    equipment_rate: 9500
+    charter_days: 28
+    strategy: requests
+    strategy_threshold: 10
+    onsite: false
+    capability: SCN
+    mobilization_cost: 0
+    mobilization_days: 21
+    speed: 22.22
+    max_windspeed_transport: 99
+    max_windspeed_repair: 99
+    max_waveheight_transport: 1.5
+    max_waveheight_repair: 1.5
+    crew_transfer_time: 0.5
+    n_crews: 1
+    crew:
+      day_rate: 0  # crew comes with vessel
+      n_day_rate: 0
+      hourly_rate: 0
+      n_hourly_rate: 0
+  ctv:
+    name: Crew Transfer Vessel
+    equipment_rate: 3500
+    start_month: 1
+    start_day: 1
+    end_month: 12
+    end_day: 31
+    start_year: 1996
+    end_year: 2015
+    onsite: True
+    capability: CTV
+    workday_start: 7
+    workday_end: 18
+    max_severity: 10
+    mobilization_cost: 0
+    mobilization_days: 0
+    speed: 40.74
+    max_windspeed_transport: 16
+    max_windspeed_repair: 16
+    max_waveheight_transport: 2
+    max_waveheight_repair: 2
+    strategy: scheduled
+    crew_transfer_time: 0.25
+    n_crews: 1
+    crew:
+      day_rate: 0  # crew comes with vessel
+      n_day_rate: 0
+      hourly_rate: 0
+      n_hourly_rate: 0

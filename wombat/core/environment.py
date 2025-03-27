@@ -20,7 +20,10 @@ import pyarrow.csv  # pylint: disable=W0611
 from simpy.events import Event
 
 import wombat  # pylint: disable=W0611
-from wombat.utilities import hours_until_future_hour
+from wombat.utilities import (
+    hours_until_future_hour,
+    calculate_windfarm_operational_level,
+)
 from wombat.core.data_classes import parse_date
 
 
@@ -501,7 +504,7 @@ class WombatEnvironment(simpy.Environment):
                 .fillna(0.0)
                 .set_index("datetime")
                 .sort_index()
-                .resample("h")
+                .resample("H")
                 .interpolate(limit_direction="both")  # , limit=5)
                 .reset_index(drop=False)
             )
@@ -764,44 +767,6 @@ class WombatEnvironment(simpy.Environment):
         )
         return log_df
 
-    def _calculate_windfarm_total(
-        self, op: pd.DataFrame, prod: pd.DataFrame | None = None
-    ) -> pd.DataFrame:
-        """Calculates the overall wind farm operational level, accounting for substation
-        downtime by multiplying the sum of all downstream turbine operational levels by
-        the substation's operational level.
-
-        Parameters
-        ----------
-        op : pd.DataFrame
-            The turbine and substation operational level DataFrame.
-
-        Notes
-        -----
-        This is a crude cap on the operations, and so a smarter way of capping
-        the availability should be added in the future.
-
-        Returns
-        -------
-        pd.DataFrame
-            The aggregate wind farm operational level.
-        """
-        t_id = self.windfarm.turbine_id
-        turbines = self.windfarm.turbine_weights[t_id].values * op[t_id]
-        total = np.sum(
-            [
-                np.array(
-                    [
-                        [math.fsum(row)]
-                        for _, row in turbines[val["turbines"]].iterrows()
-                    ]
-                ).reshape(-1, 1)
-                for sub, val in self.windfarm.substation_turbine_map.items()
-            ],
-            axis=0,
-        )
-        return total
-
     def _calculate_adjusted_production(
         self, op: pd.DataFrame, prod: pd.DataFrame
     ) -> pd.DataFrame:
@@ -860,7 +825,12 @@ class WombatEnvironment(simpy.Environment):
             log_df[val["turbines"]] *= log_df[[sub]].values
 
         # Calculate the wind farm aggregate operational value
-        log_df["windfarm"] = self._calculate_windfarm_total(log_df)
+        log_df["windfarm"] = calculate_windfarm_operational_level(
+            operations=log_df,
+            turbine_id=self.windfarm.turbine_id,
+            turbine_weights=self.windfarm.turbine_weights,
+            substation_turbine_map=self.windfarm.substation_turbine_map,
+        )
         return log_df
 
     def power_production_potential_to_csv(  # type: ignore
@@ -911,7 +881,7 @@ class WombatEnvironment(simpy.Environment):
             env_datetime=operations.env_datetime.values,
         )
         pa.csv.write_csv(
-            pa.Table.from_pandas(potential_df),
+            pa.Table.from_pandas(potential_df, preserve_index=False),
             self.power_potential_fname,
             write_options=write_options,
         )
@@ -924,7 +894,7 @@ class WombatEnvironment(simpy.Environment):
             operations, production_df
         )
         pa.csv.write_csv(
-            pa.Table.from_pandas(production_df),
+            pa.Table.from_pandas(production_df, preserve_index=False),
             self.power_production_fname,
             write_options=write_options,
         )

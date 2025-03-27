@@ -302,7 +302,7 @@ reset in addition to a higher equipment cost.
 
 In addition to a variety of servicing equipment types, there is support for
 3 different equipment-level dispatch strategies, as described below. For a set of
-example scenarios, please see the [strategy demonstration](strategy_demonstration.ipynb).
+example scenarios, please see the [strategy demonstration](strategy_demonstration.md).
 
 scheduled
 : dispatch servicing equipment for a specified date range each year
@@ -339,6 +339,13 @@ defintions require a dictionary-style input with keys to match the severity leve
 given failure. For more details on the complete subassembly definition, please visit the
 [Subassembly API documentation](types:windfarm:subassembly).
 
+```{important}
+As of v0.10, failure configurations (`failures`) require a list-based definition. To
+convert older cable, subastation, and turbine configuration failues, use the
+library function `convert_failure_data` as shown in the
+[helpers API documentation](importing-and-converting-from-old-versions).
+```
+
 ```{code-block} yaml
 generator:
   name: generator  # doesn't need to match the subassembly key that becomes System.id
@@ -350,7 +357,7 @@ generator:
     frequency: 365
     operation_reduction: 0  # default value
   failures:
-    1:
+    -
       scale: 0.1333
       shape: 1
       time: 3
@@ -392,7 +399,7 @@ transformer:
       service_equipment: CTV
       frequency: 0
   failures:
-    1:
+    -
       scale: 0
       shape: 0
       time: 0
@@ -466,7 +473,7 @@ maintenance:
     service_equipment: CTV
     frequency: 0
 failures:
-  1:
+  -
     scale: 0
     shape: 0
     time: 0
@@ -492,10 +499,6 @@ If a custom library is being used, the `library_path` must be the full path name
 location of the folder where the configuration data is contained.
 ```
 
-```{warning}
-In v0.6, a new library structure
-```
-
 ```{code-cell} ipython3
 library_path = DINWOODIE  # or user-defined path for an external data library
 ```
@@ -512,6 +515,11 @@ the primary inputs for a simulation. Below the base configuration is loaded and 
 with comments to show where each of files are located in the library structure. WOMBAT
 will know where to go for these pointers when the simulation is initialized so the data
 is constructed and validated correctly.
+
+```{note}
+As of veraion 0.10, all non-CSV file inputs can be difined in a single configuration
+file. Please see [the configuration API details](simulation-api:config) for details.
+```
 
 ```{code-cell} ipython3
 config = load_yaml(library_path / "project/config", "base.yaml")
@@ -541,6 +549,52 @@ project_capacity: 240
 # port: base_port.yaml  <- When running a tow-to-port simulation the port configuration
 #                          pointer is provided here and located in: dinwoodie / project / port
 ```
+
+```{note}
+As of v0.10, multiple vessels can be modeled with a single configuration, and vessel,
+turbine, cable, and substation configurations can be included directly in the contents
+of the primary configuration.
+```
+
+Alternatively, the configuration can be simplified to be of the following form to utilize
+repeated vessel configurations and the single file configuration. The new keys for where
+to embed the data directly correspond to the folder names where the files originally
+resided. For instance, below embedding `<library>/vessels/ctv.yaml` into the
+main configuration means that we need a new key called `vessels`, with a subkey
+underneath called `ctv`.
+
+```{code-block} yaml
+name: dinwoodie_base
+weather: alpha_ventus_weather_2002_2014.csv  # located in: dinwoodie / weather
+service_equipment:
+# YAML-encoded list, but could also be created in standard Python list notation with
+# square brackets: [ctv1.yaml, ctv2.yaml, ..., hlv_requests.yaml]
+# All below equipment configurations are located in: dinwoodie / vessels
+  - [ctv, 3]
+  - fsv_requests.yaml
+  - hlv_requests.yaml
+layout: layout.csv  # located in: dinwoodie / windfarm
+inflation_rate: 0
+fixed_costs: fixed_costs.yaml  # located in: dinwoodie / project / config
+workday_start: 7
+workday_end: 19
+start_year: 2003
+end_year: 2012
+project_capacity: 240
+vessels:
+  ctv:
+    ... # contents of ctv1.yaml without the numbered naming which is created automatically
+turbines:
+  ...
+cables:
+  ...
+substations:
+  ...
+```
+
+For a complete example of this, please see the
+`library/corewind/project/config/morro_bay_in_situ_consolidated.yaml` configuration
+file.
 
 ## Create a simulation
 
@@ -626,10 +680,9 @@ timing = end - start
 print(f"Run time: {timing / 60:,.2f} minutes")
 ```
 
-
 ## Metric computation
 
-For a more complete view of what metrics can be compiled, please see the [metrics notebook](metrics_demonstration.ipynb), though for the sake of demonstration a few methods will
+For a more complete view of what metrics can be compiled, please see the [metrics notebook](metrics_demonstration.md), though for the sake of demonstration a few methods will
 be shown here
 
 ```{code-cell} ipython3

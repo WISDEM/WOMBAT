@@ -1,22 +1,19 @@
 name: export cable
 maintenance:
-  -
-    description: export cable subsea inspection
-    time: 12
-    materials: 500
-    service_equipment: DSV
-    frequency: 730
-    level: 1
-    # n_technicians: 5
+- description: export cable subsea inspection
+  time: 12
+  materials: 500
+  service_equipment: DSV
+  frequency: 730
+  level: 1
 failures:
-  6:
-    scale: 50
-    shape: 1
-    time: 60
-    materials: 30000
-    operation_reduction: 0
-    service_equipment: [CAB]
-    replacement: false
-    level: 4
-    description: export cable major repair
-    # n_technicians: 5
+- scale: 50
+  shape: 1
+  time: 60
+  materials: 30000
+  operation_reduction: 0
+  service_equipment:
+  - CAB
+  replacement: false
+  level: 2
+  description: export cable major repair
