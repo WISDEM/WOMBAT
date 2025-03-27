@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## v0.10 [26 March 2025]
 
 ### Features
 
