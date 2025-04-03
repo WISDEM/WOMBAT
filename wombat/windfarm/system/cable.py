@@ -105,7 +105,7 @@ class Cable:
         self.broken.succeed()
 
         # TODO: need to get the time scale of a distribution like this
-        self.processes = dict(self._create_processes())
+        self.processes = dict(self._create_processes(first=True))
 
     def set_string_details(self, start_node: str, substation: str):
         """Sets the starting turbine for the string to be used for traversing the
