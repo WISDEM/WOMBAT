@@ -147,8 +147,15 @@ class Cable:
         self.upstream_nodes = turbines
         self.upstream_cables = cables
 
-    def _create_processes(self):
+    def _create_processes(self, *, first: bool = False):
         """Creates the processes for each of the failure and maintenance types.
+
+        Parameters
+        ----------
+        first : bool, optional
+            Indicate if this is the initial creation (True), or a recreation following
+            a replacement event (False). When True, the maintenance data are updated
+            from their original inputs to a simulation-ready format.
 
         Yields
         ------
@@ -156,14 +163,19 @@ class Cable:
             Creates a dictionary to keep track of the running processes within the
             subassembly.
         """
+        if first:
+            for maintenance in self.data.maintenance:
+                maintenance._update_event_timing(
+                    self.env.start_datetime,
+                    self.env.end_datetime,
+                    self.env.max_run_time,
+                )
+
         for failure in self.data.failures:
             desc = failure.description
             yield desc, self.env.process(self.run_single_failure(failure))
 
-        for i, maintenance in enumerate(self.data.maintenance):
-            maintenance._update_event_timing(
-                self.env.start_datetime, self.env.end_datetime, self.env.max_run_time
-            )
+        for maintenance in self.data.maintenance:
             desc = maintenance.description
             yield desc, self.env.process(self.run_single_maintenance(maintenance))
 
