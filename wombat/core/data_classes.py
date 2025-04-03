@@ -565,7 +565,7 @@ class Maintenance(FromDictMixin):
             diff = relativedelta(hours=max_run_time)
             object.__setattr__(self, "frequency", diff)
             object.__setattr__(self, "frequency_basis", "date-hours")
-            object.__setattr__(self, "event_dates", [end + relativedelta(hours=1)])
+            object.__setattr__(self, "event_dates", [end + relativedelta(days=2)])
             return
 
         if not date_based:
@@ -622,7 +622,7 @@ class Maintenance(FromDictMixin):
         for date in self.event_dates:
             if date > now_date:
                 return convert_dt_to_hours(date - now_date)
-
+        print(self.description)
         raise RuntimeError("Setup did not produce an extra event for safety.")
 
     def hours_to_next_event(self, now_date: datetime.datetime) -> tuple[float, bool]:
