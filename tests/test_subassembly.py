@@ -251,7 +251,6 @@ def test_timeouts_for_zeroed_out(env_setup):
         if subassembly.id == "generator":
             continue
         for process in subassembly.processes.values():
-            print(subassembly.id)
             assert process._target._delay in (ENV.max_run_time, ENV.max_run_time + 23)
 
     # Catastrophic failure at 284508.82985483576
