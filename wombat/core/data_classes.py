@@ -565,7 +565,7 @@ class Maintenance(FromDictMixin):
             diff = relativedelta(hours=max_run_time)
             object.__setattr__(self, "frequency", diff)
             object.__setattr__(self, "frequency_basis", "date-hours")
-            object.__setattr__(self, "event_dates", [end + relativedelta(days=2)])
+            object.__setattr__(self, "event_dates", [end + relativedelta(days=1)])
             return
 
         if not date_based:

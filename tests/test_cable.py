@@ -1,5 +1,7 @@
 """Test the Cable system and subassembly classes."""
 
+import pytest
+
 from wombat.core import RepairManager
 from wombat.windfarm import Windfarm
 from wombat.windfarm.system import Cable
@@ -82,13 +84,20 @@ def test_cable_failures(env_setup):
     assert cable.broken
     assert cable.operating_level == 0
 
-    # Assert that all items that are timed are non existent or set to the very end
+    # Assert that all items that are timed are non existent or set to the end + buffer
+    # from pprint import pprint
     # for p in cable.processes.values():
     #     pprint(p._target.__dict__)
-    assert getattr(list(cable.processes.values())[0]._target, "_delay", None) is None
-    assert (
-        getattr(list(cable.processes.values())[1]._target, "_delay", None)
-        == env.max_run_time - catastrophic_timeout
+    non_modeled_timeout = getattr(
+        list(cable.processes.values())[0]._target, "_delay", None
+    )
+    assert non_modeled_timeout is None
+
+    post_sim_timeout = getattr(
+        list(cable.processes.values())[1]._target, "_delay", None
+    )
+    assert post_sim_timeout == pytest.approx(
+        env.max_run_time - catastrophic_timeout + 23
     )
 
     # Check the failure was submitted and no other items exist for this cable

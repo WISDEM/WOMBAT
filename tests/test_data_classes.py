@@ -433,8 +433,8 @@ def test_Maintenance_no_events():
     assert cls.frequency == relativedelta(hours=max_run_time)
     assert cls.frequency_basis == "date-hours"
     assert cls.start_date == start
-    assert cls.event_dates == [end + relativedelta(hours=1)]
-    assert cls.hours_to_next_event(start) == (max_run_time + 1, True)
+    assert cls.event_dates == [end + relativedelta(days=1)]
+    assert cls.hours_to_next_event(start) == (max_run_time + 24, True)
     assert cls.service_equipment == ["CTV"]
     assert cls.operation_reduction == class_data["operation_reduction"].default
     assert cls.system_value == 0
