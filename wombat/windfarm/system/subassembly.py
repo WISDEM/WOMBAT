@@ -56,10 +56,17 @@ class Subassembly:
         self.broken = self.env.event()
         self.broken.succeed()  # start the event as inactive
 
-        self.processes = dict(self._create_processes())
+        self.processes = dict(self._create_processes(first=True))
 
-    def _create_processes(self):
+    def _create_processes(self, *, first: bool = False):
         """Creates the processes for each of the failure and maintenance types.
+
+        Parameters
+        ----------
+        first : bool, optional
+            Indicate if this is the initial creation (True), or a recreation following
+            a replacement event (False). When True, the maintenance data are updated
+            from their original inputs to a simulation-ready format.
 
         Yields
         ------
@@ -67,10 +74,13 @@ class Subassembly:
             Creates a dictionary to keep track of the running processes within the
             subassembly.
         """
-        for maintenance in self.data.maintenance:
-            maintenance._update_event_timing(
-                self.env.start_datetime, self.env.end_datetime, self.env.max_run_time
-            )
+        if first:
+            for maintenance in self.data.maintenance:
+                maintenance._update_event_timing(
+                    self.env.start_datetime,
+                    self.env.end_datetime,
+                    self.env.max_run_time,
+                )
 
         for failure in self.data.failures:
             level = failure.level

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.10.1 [4 April 2025]
+
+Patch release addressing improper setup logic for the new date-based
+maintenance following subassembly replacements.
+
 ## v0.10 [26 March 2025]
 
 ### Features

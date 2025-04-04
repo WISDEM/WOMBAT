@@ -25,13 +25,13 @@ IMPORTANT NOTES
 <!--The title should clearly define your contribution succinctly.-->
 # Add meaningful title here
 
-<!-- Describe your feature here. Please include any code snippets or examples in this section. -->
+<!-- Describe your contribution here. Please include any code snippets or examples in this section. -->
 
 
 ## PR Checklist
 
 <!--Tick these boxes if they are complete, or format them as "[x]" for the markdown to render. -->
-- [ ] `RELEASE.md` has been updated to describe the changes made in this PR
+- [ ] `CHANGELOG.md` has been updated to describe the changes made in this PR
 - [ ] Documentation
   - [ ] Docstrings are up-to-date
   - [ ] Related `docs/` files are up-to-date, or added when necessary
