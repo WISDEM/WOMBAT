@@ -622,7 +622,6 @@ class Maintenance(FromDictMixin):
         for date in self.event_dates:
             if date > now_date:
                 return convert_dt_to_hours(date - now_date)
-        print(self.description)
         raise RuntimeError("Setup did not produce an extra event for safety.")
 
     def hours_to_next_event(self, now_date: datetime.datetime) -> tuple[float, bool]:
