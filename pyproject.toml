@@ -11,7 +11,7 @@ description = "Windfarm operations and maintenance cost-benefit analysis tool"
 requires-python = ">=3.10, <3.13"
 license = {file = "LICENSE"}
 dependencies = [
-    "attrs>=21",
+    "attrs>=24.1.0",
     "numpy>=1.21",
     "scipy>=1.8",
     "pandas>=2",

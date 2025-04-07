@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.10.2 [7 April 2025]
+
+Patch release to ensure user environments are compatible with the required minimum
+attrs version (24.1.0 for the new usage of `attrs.Converter`).
+
 ## v0.10.1 [4 April 2025]
 
 Patch release addressing improper setup logic for the new date-based
