@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+- Fix a bug in `Metrics.component_costs` where the materials costs are excluded when results are
+  broken down by action.
+- Add `WombatEnvironment.simulation_years` to easily retrieve the number of years simulated.
+
 ## v0.10.2 [7 April 2025]
 
 Patch release to ensure user environments are compatible with the required minimum
