@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## v0.10.3 (24 April 2025)
 
 - Fix a bug in `Metrics.component_costs` where the materials costs are excluded when results are
   broken down by action.
