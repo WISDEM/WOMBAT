@@ -581,6 +581,15 @@ class WombatEnvironment(simpy.Environment):
         column_order.insert(0, column_order.pop(column_order.index("datetime")))
         column_order.insert(0, column_order.pop(column_order.index("index")))
 
+        if weather["datetime"].dt.is_leap_year().sum() > 0:
+            self.simulation_years = round(
+                (self.end_datetime - self.start_datetime).days / 365.25, 2
+            )
+        else:
+            self.simulation_years = round(
+                (self.env.end_datetime - self.start_datetime).days / 365, 2
+            )
+
         # Ensure the columns are ordered correctly and re-compute pandas-compatible ix
         return weather.select(column_order).drop("index").with_row_index()
 
