@@ -587,7 +587,7 @@ class WombatEnvironment(simpy.Environment):
             )
         else:
             self.simulation_years = round(
-                (self.env.end_datetime - self.start_datetime).days / 365, 2
+                (self.end_datetime - self.start_datetime).days / 365, 2
             )
 
         # Ensure the columns are ordered correctly and re-compute pandas-compatible ix
