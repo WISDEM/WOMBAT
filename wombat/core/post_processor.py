@@ -1802,14 +1802,14 @@ class Metrics:
 
         if by_action:
             repair_map = {
-                val: "repair" for val in ("repair request", "repair", "repair_complete")
+                val: "repair" for val in ("repair request", "repair", "repair complete")
             }
             maintenance_map = {
                 val: "maintenance"
                 for val in (
                     "maintenance request",
                     "maintenance",
-                    "maintenance_complete",
+                    "maintenance complete",
                 )
             }
             delay_map = {"delay": "delay"}
