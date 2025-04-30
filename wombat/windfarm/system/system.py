@@ -47,8 +47,8 @@ class System:
         subassemblies : dict
             The dictionary of subassemblies required for the system/asset.
         system : str
-            The identifier should be one of "turbine" or "substation" to indicate the
-            type of system this will be.
+            The identifier should be one of "turbine", "substation", or "electrolyzer"
+            to indicate the type of system this will be.
 
         Raises
         ------
@@ -72,18 +72,17 @@ class System:
 
         system = system.lower().strip()
         self._calculate_system_value(subassemblies)
-        if system not in ("turbine", "substation"):
-            raise ValueError("'system' must be one of 'turbine' or 'substation'!")
+        if system not in ("turbine", "substation", "electrolyzer"):
+            msg = "'system' must be one of 'turbine', 'substation', or 'electrolyzer'!"
+            raise ValueError(msg)
 
         self._create_subassemblies(subassemblies, system)
 
     def _calculate_system_value(self, subassemblies: dict) -> None:
-        """Calculates the turbine's value based its capex_kw and capacity.
+        """Calculates the system's value based its capex_kw and capacity.
 
         Parameters
         ----------
-        system : str
-            One of "turbine" or "substation".
         subassemblies : dict
             Dictionary of subassemblies.
         """
