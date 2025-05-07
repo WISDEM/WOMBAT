@@ -9,7 +9,7 @@ from functools import reduce
 import numpy as np
 import pandas as pd
 
-from wombat.core import RepairManager, WombatEnvironment
+from wombat.core import SystemType, RepairManager, WombatEnvironment
 from wombat.utilities import IEC_power_curve
 from wombat.windfarm.system import Subassembly
 from wombat.utilities.utilities import create_variable_from_string
@@ -72,8 +72,8 @@ class System:
 
         system = system.lower().strip()
         self._calculate_system_value(subassemblies)
-        if system not in ("turbine", "substation", "electrolyzer"):
-            msg = "'system' must be one of 'turbine', 'substation', or 'electrolyzer'!"
+        if system not in SystemType.types():
+            msg = f"'system' must be one of: {SystemType.types()}."
             raise ValueError(msg)
 
         self._create_subassemblies(subassemblies, system)
@@ -98,8 +98,8 @@ class System:
             Dictionary providing the maintenance and failure definitions for at least
             one subassembly named
         system : str
-            One of "turbine" or "substation" to indicate if the power curves should also
-            be created, or not.
+            One of "turbine", "substation", or "electrolyzer to indicate if the power
+            curves should also be created, or not.
         """
         # Set the subassembly data variables from the remainder of the keys in the
         # system configuration file/dictionary
@@ -130,7 +130,7 @@ class System:
         )
 
         # If the system is a turbine, create the power curve, if available
-        if system == "turbine":
+        if system is SystemType.TURBINE:
             self._initialize_power_curve(subassembly_data.get("power_curve", None))
 
     def _initialize_power_curve(self, power_curve_dict: dict | None) -> None:

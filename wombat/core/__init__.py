@@ -13,6 +13,8 @@ from .data_classes import (
     EquipmentMap,
     StrategyMap,
     PortConfig,
+    SystemType,
+    EquipmmentClass,
 )
 from .mixins import RepairsMixin
 from .environment import WombatEnvironment
