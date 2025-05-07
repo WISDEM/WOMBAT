@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## Unreleased
+
+### Deprecations
+
+- The layout file must have a "type" specified for every system in the layout.
+
+### Features
+
+- Electrolyzers are now an included system model. They act similarly to a substation,
+  but should be upstream from the substations in the layout model.
+
 ## v0.10.3 (24 April 2025)
 
 - Fix a bug in `Metrics.component_costs` where the materials costs are excluded when results are
