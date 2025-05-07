@@ -126,7 +126,7 @@ class Windfarm:
 
         # Create a mapping for each substation to all connected turbines (subgraphs)
         substations = layout[substation_filter].copy()
-        turbines = layout[~substation_filter].copy()
+        turbines = layout[turbine_filter].copy()
         substation_sections = [
             turbines[turbines.substation_id == substation]
             for substation in substations.id
@@ -148,11 +148,22 @@ class Windfarm:
         for substation in self.substation_id:
             row = layout.loc[layout.id == substation]
             windfarm.add_edge(
-                row.substation_id.values[0],
+                row.substation_id.squeeze(),
                 substation,
-                length=row.distance.values[0],
-                cable=row.upstream_cable.values[0],
+                length=row.distance.squeeze(),
+                cable=row.upstream_cable.squeeze(),
             )
+
+        # Connect the electrolzers
+        if electrolyzer_filter.sum() > 0:
+            electrolyzers = layout.loc[electrolyzer_filter]
+            for _, row in electrolyzers.iterrows():
+                windfarm.add_edge(
+                    row.id,
+                    row.substation_id,
+                    length=row.distance,
+                    cable=row.upstream_cable,
+                )
 
         self.graph: nx.DiGraph = windfarm
         self.layout_df = layout
