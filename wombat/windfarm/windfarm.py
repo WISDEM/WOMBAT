@@ -16,7 +16,13 @@ from geopy import distance
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.core.library import load_yaml
 from wombat.windfarm.system import Cable, System
-from wombat.core.data_classes import String, SubString, WindFarmMap, SubstationMap
+from wombat.core.data_classes import (
+    String,
+    SubString,
+    SystemType,
+    WindFarmMap,
+    SubstationMap,
+)
 
 
 class Windfarm:
@@ -33,6 +39,7 @@ class Windfarm:
         substations: dict[str, dict] | None = None,
         turbines: dict[str, dict] | None = None,
         cables: dict[str, dict] | None = None,
+        electrolyzers: dict[str, dict] | None = None,
     ) -> None:
         self.env = env
         self.repair_manager = repair_manager
@@ -41,11 +48,13 @@ class Windfarm:
         self._inputs: dict[str, dict | None] = {
             "turbine": turbines,
             "substation": substations,
+            "electrolyzer": electrolyzers,
             "cable": cables,
         }
-        self.configs: dict[str, dict] = {"turbine": {}, "substation": {}, "cable": {}}
+        self.configs: dict[str, dict] = {el: {} for el in SystemType.types()}
+        self.configs["cable"] = {}
         self._create_graph_layout(windfarm_layout)
-        self._create_turbines_and_substations()
+        self._create_systems()
         self._create_cables()
         self.capacity: int | float = sum(
             self.system(turb).capacity for turb in self.turbine_id
@@ -92,26 +101,22 @@ class Windfarm:
         for col in ("name", "latitude", "longitude", "subassembly"):
             nx.set_node_attributes(windfarm, dict(layout[["id", col]].values), name=col)
 
-        # Determine which nodes are substations and which are turbines
-        if "type" in layout.columns:
-            # Extract the type directly from the layout file
-            if layout.loc[~layout.type.isin(("substation", "turbine"))].size > 0:
-                raise ValueError(
-                    "At least one value in the 'type' column are not one of:"
-                    " 'substation' or 'turbine'."
-                )
-            substation_filter = layout.type == "substation"
-            nx.set_node_attributes(
-                windfarm, dict(layout[["id", "type"]].values), name="type"
-            )
-        else:
-            # Deduce substations by their self-connected setting for interconnection
-            substation_filter = layout.id == layout.substation_id
-            _type = {True: "substation", False: "turbine"}
-            d = {i: _type[val] for i, val in zip(layout.id, substation_filter.values)}
-            nx.set_node_attributes(windfarm, d, name="type")
+        if "type" not in layout.columns:
+            raise KeyError("Missing columng 'type' to specify system types")
 
-        self.turbine_id: np.ndarray = layout.loc[~substation_filter, "id"].values
+        if (valid := layout["type"].isin(SystemType.types())).sum() != layout.shape[0]:
+            invalid_names = layout.loc[~valid, "name"].values.tolist()
+            msg = f"Inputs for {invalid_names} must be one of: {SystemType.types()}."
+            raise ValueError(msg)
+
+        substation_filter = layout.type == SystemType.SUBSTATION
+        turbine_filter = layout.type == SystemType.TURBINE
+        electrolyzer_filter = layout.type == SystemType.ELECTROLYZER
+        nx.set_node_attributes(
+            windfarm, dict(layout[["id", "type"]].values), name="type"
+        )
+
+        self.turbine_id: np.ndarray = layout.loc[turbine_filter, "id"].values
 
         self.substation_id = layout.loc[substation_filter, "id"].values
         for substation in self.substation_id:
@@ -152,7 +157,7 @@ class Windfarm:
         self.graph: nx.DiGraph = windfarm
         self.layout_df = layout
 
-    def _create_turbines_and_substations(self) -> None:
+    def _create_systems(self) -> None:
         """Instantiates the turbine and substation models as defined in the
         user-provided layout file, and connects these models to the appropriate graph
         nodes to create a fully representative windfarm network model.

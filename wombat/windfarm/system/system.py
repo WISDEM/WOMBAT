@@ -16,8 +16,8 @@ from wombat.utilities.utilities import create_variable_from_string
 
 
 class System:
-    """Can either be a turbine or substation, but is meant to be something that consists
-    of 'Subassembly' pieces.
+    """Can either be a turbine, substation, or electrolyzer, but is meant to be
+    something that consists of 'Subassembly' pieces.
 
     See `here <https://www.sciencedirect.com/science/article/pii/S1364032117308985>`_
     for more information.
