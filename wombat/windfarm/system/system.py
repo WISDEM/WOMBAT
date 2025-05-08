@@ -70,9 +70,9 @@ class System:
         self.servicing_queue.succeed()
         self.cable_failure.succeed()
 
+        self.value = self._calculate_system_value(subassemblies)
         self.system_type = SystemType(system)
         self._create_subassemblies(subassemblies, self.system_type)
-        self.value = self._calculate_system_value(subassemblies)
 
     def _calculate_system_value(self, subassemblies: dict) -> float:
         """Calculates the system's value based its capex_kw and capacity.
