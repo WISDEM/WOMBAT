@@ -2273,6 +2273,7 @@ class WindFarmMap:
 
     substation_map: dict[str, SubstationMap]
     export_cables: list[tuple[str, str]]
+    electrolyzers: list[str] | None = field(default=None)
 
     def get_upstream_connections(
         self, substation: str, string_start: str, node: str, return_cables: bool = True

@@ -117,8 +117,9 @@ class Windfarm:
         )
 
         self.turbine_id: np.ndarray = layout.loc[turbine_filter, "id"].values
-
         self.substation_id = layout.loc[substation_filter, "id"].values
+        self.electrolyzer_id = layout.loc[electrolyzer_filter, "id"].values
+
         for substation in self.substation_id:
             windfarm.nodes[substation]["connection"] = layout.loc[
                 layout.id == substation, "substation_id"
@@ -282,10 +283,10 @@ class Windfarm:
                 ).km
 
             # Encode whether it is an array cable or an export cable
-            if self.graph.nodes[end_node]["type"] == "substation":
-                data["type"] = "export"
-            else:
+            if self.graph.nodes[end_node]["type"] is SystemType.TURBINE:
                 data["type"] = "array"
+            else:
+                data["type"] = "export"
 
             # Create the Cable simulation object
             data["cable"] = Cable(
@@ -364,7 +365,11 @@ class Windfarm:
         graph = self.graph
         wind_map = dict(zip(substations, itertools.repeat({})))
 
-        export = [el for el in graph.edges if el[1] in substations]
+        export = [
+            el
+            for el in graph.edges([*substations, *self.electrolyzer_id])
+            if graph.edges[el]["type"] == "export"
+        ]
         for cable_tuple in export:
             self.cable(cable_tuple).set_string_details(*cable_tuple[::-1])
 
@@ -410,6 +415,7 @@ class Windfarm:
         self.wind_farm_map = WindFarmMap(
             substation_map=wind_map,
             export_cables=export,  # type: ignore
+            electrolyzers=self.electrolyzer_id,
         )
 
     def finish_setup(self) -> None:
