@@ -72,16 +72,22 @@ class System:
 
         self.system_type = SystemType(system)
         self._create_subassemblies(subassemblies, self.system_type)
+        self.value = self._calculate_system_value(subassemblies)
 
-    def _calculate_system_value(self, subassemblies: dict) -> None:
+    def _calculate_system_value(self, subassemblies: dict) -> float:
         """Calculates the system's value based its capex_kw and capacity.
 
         Parameters
         ----------
         subassemblies : dict
             Dictionary of subassemblies.
+
+        Returns
+        -------
+        float
+            The total system CapEx.
         """
-        self.value = subassemblies["capacity_kw"] * subassemblies["capex_kw"]
+        return subassemblies["capacity_kw"] * subassemblies["capex_kw"]
 
     def _create_subassemblies(self, subassembly_data: dict, system: SystemType) -> None:
         """Creates each subassembly as a separate attribute and also a list for quick
