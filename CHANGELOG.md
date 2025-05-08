@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## Unreleased
+
+### Updates
+
+- Metrics.component_costs has been refactored, and now includes two additional breakdowns:
+  - `by_task`: toggles the inclusion of the individual repair and maintenance tasks.
+  - `include_travel`: tooggles the inclusion of intrasite and port-to-site travel.
+
 ## v0.10.3 (24 April 2025)
 
 - Fix a bug in `Metrics.component_costs` where the materials costs are excluded when results are
