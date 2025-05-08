@@ -98,10 +98,72 @@ class SystemType(StrEnum):
     SUBSTATION = auto()
     ELECTROLYZER = auto()
 
+    @classmethod
+    def _missing_(cls, value: str):  # type: ignore[override]
+        """Correct inconsistent casing and remove white space, and reattempt creation.
+
+        Parameters
+        ----------
+        value : str
+            User input for a system type.
+
+        Returns
+        -------
+        SystemType
+            If string cleanup is successful, a :py:class:`SystemType` is returned.
+
+        Raises
+        ------
+        ValueError
+            Raised if :py:attr:`value` could not be found in :py:class:`SystemType`.
+        """
+        value = value.lower().strip()
+        for member in cls:
+            if member.value == value:
+                return member
+        raise ValueError(f"Systems must be one of: {cls.types()}")
+
     @staticmethod
     def types() -> list[str]:
         """Generate a list of the valid input strings."""
         return [*SystemType._value2member_map_]
+
+
+class CableType(StrEnum):
+    """Validate the cable types. Values must be one of "array" or "export"."""
+
+    ARRAY = auto()
+    EXPORT = auto()
+
+    @staticmethod
+    def types() -> list[str]:
+        """Generate a list of the valid input strings."""
+        return [*CableType._value2member_map_]
+
+    @classmethod
+    def _missing_(cls, value: str):  # type: ignore[override]
+        """Correct inconsistent casing and remove white space, and reattempt creation.
+
+        Parameters
+        ----------
+        value : str
+            User input for a cable type.
+
+        Returns
+        -------
+        CableType
+            If string cleanup is successful, a :py:class:`CableType` is returned.
+
+        Raises
+        ------
+        ValueError
+            Raised if :py:attr:`value` could not be found in :py:class:`CableType`.
+        """
+        value = value.lower().strip()
+        for member in cls:
+            if member.value == value:
+                return member
+        raise ValueError(f"Systems must be one of: {cls.types()}")
 
 
 def convert_to_list(

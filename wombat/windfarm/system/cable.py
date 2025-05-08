@@ -11,6 +11,7 @@ import simpy
 
 from wombat.core import (
     Failure,
+    CableType,
     Maintenance,
     RepairRequest,
     SubassemblyData,
@@ -72,17 +73,11 @@ class Cable:
         """
         self.env = env
         self.windfarm = windfarm
-        self.connection_type = connection_type
+        self.connection_type = CableType(connection_type)
         self.start_node = start_node
         self.end_node = end_node
         self.id = f"cable::{start_node}::{end_node}"
         self.system = windfarm.system(start_node)
-
-        if self.connection_type not in ("array", "export"):
-            raise ValueError(
-                f"Input to `connection_type` for {self.id} must be one of 'array'"
-                " or 'export'."
-            )
 
         cable_data = {
             **cable_data,

@@ -70,13 +70,8 @@ class System:
         self.servicing_queue.succeed()
         self.cable_failure.succeed()
 
-        system = system.lower().strip()
-        self._calculate_system_value(subassemblies)
-        if system not in SystemType.types():
-            msg = f"'system' must be one of: {SystemType.types()}."
-            raise ValueError(msg)
-
-        self._create_subassemblies(subassemblies, system)
+        self.system_type = SystemType(system)
+        self._create_subassemblies(subassemblies, self.system_type)
 
     def _calculate_system_value(self, subassemblies: dict) -> None:
         """Calculates the system's value based its capex_kw and capacity.
@@ -88,7 +83,7 @@ class System:
         """
         self.value = subassemblies["capacity_kw"] * subassemblies["capex_kw"]
 
-    def _create_subassemblies(self, subassembly_data: dict, system: str) -> None:
+    def _create_subassemblies(self, subassembly_data: dict, system: SystemType) -> None:
         """Creates each subassembly as a separate attribute and also a list for quick
         access.
 
@@ -97,7 +92,7 @@ class System:
         subassembly_data : dict
             Dictionary providing the maintenance and failure definitions for at least
             one subassembly named
-        system : str
+        system : SystemType
             One of "turbine", "substation", or "electrolyzer to indicate if the power
             curves should also be created, or not.
         """
