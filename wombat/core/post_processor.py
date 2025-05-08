@@ -1723,7 +1723,13 @@ class Metrics:
         return equipment_usage
 
     def component_costs(
-        self, frequency: str, by_category: bool = False, by_action: bool = False
+        self,
+        frequency: str,
+        by_category: bool = False,
+        by_action: bool = False,
+        by_task: bool = False,
+        *,
+        include_travel: bool = False,
     ) -> pd.DataFrame:
         """Calculates the component costs for the simulation at a project, annual, or
         monthly level that can be broken out by cost categories. This will not sum to
@@ -1745,6 +1751,12 @@ class Metrics:
             Indicates whether component costs are going to be further broken out by the
             action being performed--repair, maintenance, and delay--(True) or not
             (False), by default False.
+        by_task : bool, optional
+            Indicates if each repair or maintenance task type should be broken out for
+            each of the components, by default False.
+        include_travel : bool, optional
+            Indicates if travel costs associated with this repair should be included, by
+            default False.
 
         Returns
         -------
@@ -1755,6 +1767,7 @@ class Metrics:
             - year (if appropriate for frequency)
             - month (if appropriate for frequency)
             - component
+            - task (if broken out)
             - action (if broken out)
             - materials_cost (if broken out)
             - total_labor_cost (if broken out)
@@ -1767,21 +1780,45 @@ class Metrics:
             If ``frequency`` is not one of "project", "annual", "monthly", or
             "month-year".
         ValueError
-            If ``by_category`` is not one of ``True`` or ``False``.
+            If :py:attr:`by_category` is not one of ``True`` or ``False``.
         ValueError
-            If ``by_action`` is not one of ``True`` or ``False``.
+            If :py:attr:`by_action` is not one of ``True`` or ``False``.
+        ValueError
+            If :py:attr:`by_task` is not one of ``True`` or ``False``.
+        ValueError
+            If :py:attr:`include_travel` is not one of ``True`` or ``False``.
         """
         frequency = _check_frequency(frequency, which="all")
         if not isinstance(by_category, bool):
             raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
         if not isinstance(by_action, bool):
-            raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
+            raise ValueError("``by_action`` must be one of ``True`` or ``False``")
+        if not isinstance(by_task, bool):
+            raise ValueError("``by_task`` must be one of ``True`` or ``False``")
+        if not isinstance(include_travel, bool):
+            raise ValueError("``include_travel`` must be one of ``True`` or ``False``")
 
-        part_filter = ~self.events.part_id.isna() & ~self.events.part_id.isin([""])
-        events = self.events.loc[part_filter].copy()
+        cost_cols = [self._total_cost]
+        if by_category:
+            cost_cols[0:0] = [
+                self._materials_cost,
+                self._labor_cost,
+                self._equipment_cost,
+            ]
 
-        # Need to simplify the cable identifiers to exclude the connection information
-        events.loc[:, "component"] = [el.split("::")[0] for el in events.part_id.values]
+        part_group = (
+            self.events.loc[
+                self.events.action.str.contains("request")
+                & self.events.request_id.str.startswith(("RPR", "MNT")),
+                ["agent", "reason", "request_id", "system_name"],
+            ]
+            .groupby(["agent", "reason", "request_id"])
+            .count()
+            .reset_index(level=["agent", "reason"], drop=False)
+            .drop(columns="system_name")
+            .sort_index()
+            .rename(columns={"agent": "component", "reason": "task"})
+        )
 
         group_filter = []
         if frequency == "annual":
@@ -1790,104 +1827,44 @@ class Metrics:
             group_filter.extend(["month"])
         elif frequency == "month-year":
             group_filter.extend(["year", "month"])
-
         group_filter.append("component")
-        cost_cols = ["total_cost"]
-        if by_category:
-            cost_cols[0:0] = [
-                self._materials_cost,
-                self._labor_cost,
-                self._equipment_cost,
-            ]
-
+        if by_task:
+            group_filter.append("task")
         if by_action:
-            repair_map = {
-                val: "repair" for val in ("repair request", "repair", "repair complete")
-            }
-            maintenance_map = {
-                val: "maintenance"
-                for val in (
-                    "maintenance request",
-                    "maintenance",
-                    "maintenance complete",
-                )
-            }
-            delay_map = {"delay": "delay"}
-            action_map = {**repair_map, **maintenance_map, **delay_map}
-            events.action = events.action.map(action_map)
             group_filter.append("action")
 
-        month_year = frequency == "month-year"
-        zeros = np.zeros(len(cost_cols)).tolist()
-        costs = (
-            events[group_filter + cost_cols].groupby(group_filter).sum().reset_index()
+        cost_group = (
+            self.events.loc[
+                self.events.request_id.str.startswith(("RPR", "MNT"))
+                & self.events[self._total_cost].gt(0),
+                ["year", "month", "request_id", "action", *cost_cols],
+            ]
+            .replace(
+                {
+                    "repair complete": "repair",
+                    "maintenance complete": "maintenance",
+                    "transferring crew": "travel",
+                    "traveling": "travel",
+                }
+            )
+            .groupby(["year", "month", "request_id", "action"])
+            .sum()
+            .reset_index(["year", "month", "action"], drop=False)
+            .sort_index()
         )
-        if not by_action:
-            costs.loc[:, "action"] = np.zeros(costs.shape[0])
-            cols = costs.columns.to_list()
-            _ix = cols.index("component") + 1
-            cols[_ix:_ix] = ["action"]
-            cols.pop(-1)
-            costs = costs.loc[:, cols]
+        if not include_travel:
+            cost_group = cost_group.loc[cost_group.action.ne("travel")]
 
-        comparison_values: (
-            product[tuple[Any, Any]]
-            | product[tuple[Any, Any, Any]]
-            | product[tuple[Any, Any, Any, Any]]
+        component_costs = (
+            part_group.join(cost_group, how="outer")
+            .loc[:, [*group_filter, *cost_cols]]
+            .reset_index(drop=True)
+            .convert_dtypes()
+            .groupby(group_filter)
+            .sum()
+            .sort_index(level=group_filter)
         )
-        if frequency in ("annual", "month-year"):
-            years = costs.year.unique()
-            components = costs.component.unique()
-            actions = costs.action.unique()
-            comparison_values = product(years, components, actions)
-            if month_year:
-                months = costs.month.unique()
-                comparison_values = product(years, months, components, actions)
-
-            for _year, *_month, _component, _action in comparison_values:
-                row_filter = costs.year.values == _year
-                row_filter &= costs.component.values == _component
-                row_filter &= costs.action.values == _action
-                row = [_year, _component, _action] + zeros
-                if month_year:
-                    _month = _month[0]
-                    row_filter &= costs.month.values == _month
-                    row = [_year, _month, _component, _action] + zeros
-
-                if costs.loc[row_filter].size > 0:
-                    continue
-                costs.loc[costs.shape[0]] = row
-        elif frequency == "monthly":
-            months = costs.month.unique()
-            components = costs.component.unique()
-            actions = costs.action.unique()
-            comparison_values = product(months, actions, components)
-            for _month, _action, _component in comparison_values:
-                row_filter = costs.month.values == _month
-                row_filter &= costs.component.values == _component
-                row_filter &= costs.action.values == _action
-                row = [_month, _component, _action] + zeros
-                if costs.loc[row_filter].size > 0:
-                    continue
-                costs.loc[costs.shape[0]] = row
-        elif frequency == "project":
-            components = costs.component.unique()
-            actions = costs.action.unique()
-            comparison_values = product(actions, components)
-            for _action, _component in comparison_values:
-                row_filter = costs.component.values == _component
-                row_filter &= costs.action.values == _action
-                row = [_component, _action] + zeros
-                if costs.loc[row_filter].size > 0:
-                    continue
-                costs.loc[costs.shape[0]] = row
-        sort_cols = group_filter + cost_cols
-        if group_filter != []:
-            costs = costs.sort_values(group_filter)
-        if sort_cols != []:
-            costs = costs.loc[:, sort_cols]
-        costs = costs.reset_index(drop=True)
-        return costs if group_filter == [] else costs.set_index(group_filter)
+        return component_costs
 
     def port_fees(self, frequency: str) -> pd.DataFrame:
         """Calculates the port fees for the simulation at a project, annual, or monthly
