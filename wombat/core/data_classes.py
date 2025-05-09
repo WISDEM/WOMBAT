@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime
 from copy import deepcopy
+from enum import StrEnum, auto
 from math import fsum
 from typing import TYPE_CHECKING, Any, Callable
 from pathlib import Path
@@ -42,6 +43,79 @@ VALID_EQUIPMENT = (
 # Define the valid unscheduled and valid strategies
 UNSCHEDULED_STRATEGIES = ("requests", "downtime")
 VALID_STRATEGIES = tuple(["scheduled"] + list(UNSCHEDULED_STRATEGIES))
+
+
+class Frequency(StrEnum):
+    """Frequency validation for "project", "annual", "monthly", and "month-year"."""
+
+    PROJECT = auto()
+    ANNUAL = auto()
+    MONTHLY = auto()
+    MONTH_YEAR = auto()
+    ALL = auto()
+
+    @classmethod
+    def _missing_(cls, value: str):  # type: ignore[override]
+        """Correct inconsistent casing, word separators, remove white space, and
+        reattempt creation.
+
+        Parameters
+        ----------
+        value : str
+            User input for a system type.
+
+        Returns
+        -------
+        Frequency
+            If string cleanup is successful, a :py:class:`Frequency` is returned.
+
+        Raises
+        ------
+        ValueError
+            Raised if :py:attr:`value` could not be found in :py:class:`Frequency`.
+        """
+        value = value.lower().strip().replace("-", "_").replace(" ", "_")
+        for member in cls:
+            if member.value == value:
+                return member
+        raise ValueError(f"Systems must be one of: {cls.types()}")
+
+    @staticmethod
+    def types() -> list[str]:
+        """Generate a list of the valid input strings."""
+        return [*Frequency._value2member_map_]
+
+    @staticmethod
+    def options(which: str) -> list[str]:
+        """Generate a list of the valid input strings given a maximum resolution
+        constraint.
+
+        Parameters
+        ----------
+        which : str
+            The maximum resolution allowed.
+
+        Returns
+        -------
+        list[str]
+            A list of the valid input strings, given :py:attr:`which`.
+        """
+        which = Frequency(which)
+        options = Frequency.types()
+        if which in (Frequency.ALL, Frequency.MONTH_YEAR):
+            return options
+
+        options.pop(0)
+        options.pop(-1)
+        if which == Frequency.MONTHLY:
+            return options
+
+        options.pop(-1)
+        if which == Frequency.ANNUAL:
+            return options
+
+        options.pop(-1)
+        return options
 
 
 def convert_to_list(
