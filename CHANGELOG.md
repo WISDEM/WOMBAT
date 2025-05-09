@@ -2,9 +2,14 @@
 
 ## Unreleased
 
+## New Features
+
+- `Metrics.dispatch_summary` is now available to provide the number of mobilizations and average
+  charter period across the whole project, or broken down by year and month, as requested.
+
 ### Updates
 
-- Metrics.component_costs has been refactored, and now includes two additional breakdowns:
+- `Metrics.component_costs` has been refactored, and now includes two additional breakdowns:
   - `by_task`: toggles the inclusion of the individual repair and maintenance tasks.
   - `include_travel`: tooggles the inclusion of intrasite and port-to-site travel.
 
