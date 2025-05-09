@@ -1361,7 +1361,7 @@ class Metrics:
                 charter_days=(charter_days.leaving - charter_days.mobilized) / 24
             ).drop(columns=["mobilized", "leaving"])
             average_charter_days.append(charter_days.groupby(group_cols).mean())
-        average_charter_days = pd.concat(average_charter_days)
+        average_charter_days = pd.concat(average_charter_days).sort_index()
 
         return average_charter_days
 
