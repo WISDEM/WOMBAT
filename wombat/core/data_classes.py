@@ -117,6 +117,17 @@ class Frequency(StrEnum):
         options.pop(-1)
         return options
 
+    @property
+    def group_cols(self) -> list[str]:
+        """Return the list of time-based grouping columns given the frequency value."""
+        if self is Frequency.PROJECT:
+            return []
+        if self is Frequency.ANNUAL:
+            return ["year"]
+        if self is Frequency.MONTHLY:
+            return ["month"]
+        return ["year", "month"]
+
 
 def convert_to_list(
     value: Sequence | str | int | float,

@@ -17,7 +17,7 @@ from wombat.utilities import calculate_windfarm_operational_level
 from wombat.core.library import load_yaml
 
 
-def _check_frequency(frequency: str, which: str = "all") -> str:
+def _check_frequency(frequency: str, which: str = "all") -> Frequency:
     """Checks the frequency input to ensure it meets the correct criteria according
     to the ``which`` flag.
 
@@ -31,8 +31,8 @@ def _check_frequency(frequency: str, which: str = "all") -> str:
 
     Returns
     -------
-    str
-        The lower-case, input with white spaces removed.
+    Frequency
+        A :py:obj:`StrEnum` for the lower-case, input with white spaces removed.
 
     Raises
     ------
@@ -1306,7 +1306,64 @@ class Metrics:
             return total_tows[columns].set_index(time_cols)
         return total_tows[columns]
 
-    def dispatch_summary(self, frequency: str) -> pd.DataFrame: ...
+    def dispatch_summary(self, frequency: str) -> pd.DataFrame:
+        """Calculates the total number of mobilizations for each servicing equipment
+        and the average number of charter days for each dispatching.
+
+        Parameters
+        ----------
+        frequency : str
+            One of "project", "annual", "monthly", or "month-year".
+
+        Returns
+        -------
+        pd.DataFrame
+            Data frame of each servicing equipment and its number of mobilizations and
+            their average chartering length.
+        """
+        frequency = _check_frequency(frequency, which="all")
+
+        ev = self.events
+        group_cols = [*frequency.group_cols, "agent"]
+        average_charter_days = []
+        for name in self.service_equipment_names:
+            mobilizations = (
+                ev.loc[
+                    (
+                        ev.action.eq("mobilization")
+                        & ev.reason.str.contains("arrived on site")
+                    )
+                    & ev.agent.eq(name),
+                    [*group_cols, "env_time"],
+                ]
+                .reset_index(drop=True)
+                .rename(columns={"env_time": "mobilized"})
+            )
+            leaving = (
+                ev.loc[ev.action.eq("leaving site") & ev.agent.eq(name), ["env_time"]]
+                .reset_index(drop=True)
+                .rename(columns={"env_time": "leaving"})
+            )
+            if leaving.shape[0] == 0:
+                leaving = (
+                    ev.loc[ev.agent.eq(name), ["env_time"]]
+                    .tail(1)
+                    .reset_index(drop=True)
+                    .rename(columns={"env_time": "leaving"})
+                )
+            if mobilizations.shape[0] - leaving.shape[0] == 1:
+                mobilizations = mobilizations.iloc[:-1]
+            charter_days = pd.concat(
+                [mobilizations.reset_index(drop=True), leaving.reset_index(drop=True)],
+                axis=1,
+            )
+            charter_days = charter_days.assign(
+                charter_days=(charter_days.leaving - charter_days.mobilized) / 24
+            ).drop(columns=["mobilized", "leaving"])
+            average_charter_days.append(charter_days.groupby(group_cols).mean())
+        average_charter_days = pd.concat(average_charter_days)
+
+        return average_charter_days
 
     def labor_costs(
         self, frequency: str, by_type: bool = False
