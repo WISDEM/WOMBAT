@@ -1357,10 +1357,19 @@ class Metrics:
                 [mobilizations.reset_index(drop=True), leaving.reset_index(drop=True)],
                 axis=1,
             )
-            charter_days = charter_days.assign(
-                charter_days=(charter_days.leaving - charter_days.mobilized) / 24
-            ).drop(columns=["mobilized", "leaving"])
-            average_charter_days.append(charter_days.groupby(group_cols).mean())
+            charter_days = (
+                charter_days.assign(
+                    charter_days=(charter_days.leaving - charter_days.mobilized) / 24
+                )
+                .drop(columns=["mobilized", "leaving"])
+                .groupby(group_cols)
+                .agg(["count", "mean"])
+                .droplevel(0, axis=1)
+                .rename(
+                    columns={"count": "N Mobilizations", "mean": "Average Charter Days"}
+                )
+            )
+            average_charter_days.append(charter_days)
         average_charter_days = pd.concat(average_charter_days).sort_index()
 
         return average_charter_days
