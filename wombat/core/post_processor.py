@@ -40,8 +40,8 @@ def _check_frequency(frequency: str, which: str = "all") -> Frequency:
         Raised if an invalid value was raised
     """
     frequency = Frequency(frequency)
-    if frequency not in (options := Frequency.options("all")):
-        raise ValueError(f"``frequency`` must be one of {options}.")
+    if frequency not in (options := Frequency.options(which)):
+        raise ValueError(f"`frequency` must be one of {options}.")
     return frequency
 
 

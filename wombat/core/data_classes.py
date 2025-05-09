@@ -105,7 +105,7 @@ class Frequency(StrEnum):
         if which in (Frequency.ALL, Frequency.MONTH_YEAR):
             return options
 
-        options.pop(0)
+        options.pop(-1)
         options.pop(-1)
         if which == Frequency.MONTHLY:
             return options
