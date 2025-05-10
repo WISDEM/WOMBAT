@@ -12,12 +12,12 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 
-from wombat.core import FixedCosts
+from wombat.core import Frequency, FixedCosts
 from wombat.utilities import calculate_windfarm_operational_level
 from wombat.core.library import load_yaml
 
 
-def _check_frequency(frequency: str, which: str = "all") -> str:
+def _check_frequency(frequency: str, which: str = "all") -> Frequency:
     """Checks the frequency input to ensure it meets the correct criteria according
     to the ``which`` flag.
 
@@ -31,24 +31,17 @@ def _check_frequency(frequency: str, which: str = "all") -> str:
 
     Returns
     -------
-    str
-        The lower-case, input with white spaces removed.
+    Frequency
+        A :py:obj:`StrEnum` for the lower-case, input with white spaces removed.
 
     Raises
     ------
     ValueError
         Raised if an invalid value was raised
     """
-    opts: tuple[str, ...]
-    if which == "all":
-        opts = ("project", "annual", "monthly", "month-year")
-    elif which == "monthly":
-        opts = ("project", "annual", "monthly")
-    elif which == "annual":
-        opts = ("project", "annual")
-    frequency = frequency.lower().strip()
-    if frequency not in opts:
-        raise ValueError(f"``frequency`` must be one of {opts}.")
+    frequency = Frequency(frequency)
+    if frequency not in (options := Frequency.options(which)):
+        raise ValueError(f"`frequency` must be one of {options}.")
     return frequency
 
 
@@ -468,7 +461,7 @@ class Metrics:
         # TODO: The below should be better summarized as:
         # (availability > 0).groupby().sum() / groupby().count()
 
-        if frequency == "project":
+        if frequency is Frequency.PROJECT:
             availability = _calculate_time_availability(hourly, by_turbine=by_turbine)
             if not by_turbine:
                 return pd.DataFrame([availability], columns=["windfarm"])
@@ -479,7 +472,7 @@ class Metrics:
                 availability.reshape(1, -1), columns=self.turbine_id
             )
             return availability
-        elif frequency == "annual":
+        elif frequency is Frequency.ANNUAL:
             date_time = turbine_operations[["year"]]
             counts = turbine_operations.groupby(by="year").count()
             counts = counts[self.turbine_id] if by_turbine else counts[["windfarm"]]
@@ -491,7 +484,7 @@ class Metrics:
                 for year in counts.index
             ]
             return pd.DataFrame(annual, index=counts.index, columns=counts.columns)
-        elif frequency == "monthly":
+        elif frequency is Frequency.MONTHLY:
             date_time = turbine_operations[["month"]]
             counts = turbine_operations.groupby(by="month").count()
             counts = counts[self.turbine_id] if by_turbine else counts[["windfarm"]]
@@ -503,7 +496,7 @@ class Metrics:
                 for month in counts.index
             ]
             return pd.DataFrame(monthly, index=counts.index, columns=counts.columns)
-        elif frequency == "month-year":
+        elif frequency is Frequency.MONTH_YEAR:
             date_time = turbine_operations[["year", "month"]]
             counts = turbine_operations.groupby(by=["year", "month"]).count()
             counts = counts[self.turbine_id] if by_turbine else counts[["windfarm"]]
@@ -550,7 +543,7 @@ class Metrics:
             production = self.production[["windfarm"]].copy()
             potential = self.potential[["windfarm"]].copy()
 
-        if frequency == "project":
+        if frequency is Frequency.PROJECT:
             production = production.values
             potential = potential.values
             if (potential == 0).sum() > 0:
@@ -568,22 +561,14 @@ class Metrics:
         potential["year"] = potential.index.year.values
         potential["month"] = potential.index.month.values
 
-        group_cols = deepcopy(self.turbine_id) if by_turbine else ["windfarm"]
-        if frequency == "annual":
-            group_cols.insert(0, "year")
-            production = production[group_cols].groupby("year").sum()
-            potential = potential[group_cols].groupby("year").sum()
-
-        elif frequency == "monthly":
-            group_cols.insert(0, "month")
-            production = production[group_cols].groupby("month").sum()
-            potential = potential[group_cols].groupby("month").sum()
-
-        elif frequency == "month-year":
-            group_cols.insert(0, "year")
-            group_cols.insert(0, "month")
-            production = production[group_cols].groupby(["year", "month"]).sum()
-            potential = potential[group_cols].groupby(["year", "month"]).sum()
+        time_cols = frequency.group_cols
+        group_cols = deepcopy(time_cols)
+        group_cols += deepcopy(self.turbine_id) if by_turbine else ["windfarm"]
+        print(time_cols)
+        print(group_cols)
+        if frequency is not Frequency.PROJECT:
+            production = production[group_cols].groupby(time_cols).sum()
+            potential = potential[group_cols].groupby(time_cols).sum()
 
         if (potential.values == 0).sum() > 0:
             potential.loc[potential.values == 0] = 1
@@ -630,7 +615,7 @@ class Metrics:
         production = self.production if which == "net" else self.potential
         production = production.loc[:, self.turbine_id]
 
-        if frequency == "project":
+        if frequency is Frequency.PROJECT:
             if not by_turbine:
                 potential = production.shape[0] * self.project_capacity * 1000.0
                 production = production.values.sum()
@@ -642,13 +627,7 @@ class Metrics:
         production["year"] = production.index.year.values
         production["month"] = production.index.month.values
 
-        if frequency == "annual":
-            group_cols = ["year"]
-        elif frequency == "monthly":
-            group_cols = ["month"]
-        elif frequency == "month-year":
-            group_cols = ["year", "month"]
-
+        group_cols = frequency.group_cols
         potential = production[group_cols + self.turbine_id].groupby(group_cols).count()
         production = production[group_cols + self.turbine_id].groupby(group_cols).sum()
 
@@ -706,7 +685,7 @@ class Metrics:
             self.events.action.isin(completion_filter), cols
         ].reset_index(drop=True)
 
-        if frequency == "project":
+        if frequency is Frequency.PROJECT:
             if requests.shape[0] == 0:
                 return pd.DataFrame([0.0], columns=["windfarm"])
             return pd.DataFrame(
@@ -719,17 +698,15 @@ class Metrics:
         completions["year"] = completions.env_datetime.dt.year.values
         completions["month"] = completions.env_datetime.dt.month.values
 
-        if frequency == "annual":
-            group_filter = ["year"]
+        group_filter = frequency.group_cols
+        if frequency is Frequency.ANNUAL:
             indices = self.operations.year.unique()
-        elif frequency == "monthly":
-            group_filter = ["month"]
+        elif frequency is Frequency.MONTHLY:
             indices = self.operations.month.unique()
-        elif frequency == "month-year":
-            group_filter = ["year", "month"]
+        elif frequency is Frequency.MONTH_YEAR:
             indices = (
                 self.operations[["year", "month"]]
-                .groupby(["year", "month"])
+                .groupby(group_filter)
                 .value_counts()
                 .index.tolist()
             )
@@ -802,17 +779,12 @@ class Metrics:
         if not isinstance(by_equipment, bool):
             raise ValueError("`by_equipment` must be one of `True` or `False`")
 
-        if frequency == "annual":
-            col_filter = ["year"]
-        elif frequency == "monthly":
-            col_filter = ["month"]
-        elif frequency == "month-year":
-            col_filter = ["year", "month"]
+        col_filter = frequency.group_cols
 
         cost_col = [self._equipment_cost]
         events = self.events.loc[self.events.action != "monthly lease fee"]
         if by_equipment:
-            if frequency == "project":
+            if frequency is Frequency.PROJECT:
                 costs = (
                     events.loc[events[self._equipment_cost] > 0, cost_col + ["agent"]]
                     .groupby(["agent"])
@@ -847,7 +819,7 @@ class Metrics:
             )
             return costs.fillna(value=0)
 
-        if frequency == "project":
+        if frequency is Frequency.PROJECT:
             return pd.DataFrame([events[cost_col].sum()], columns=cost_col)
 
         costs = events[cost_col + col_filter].groupby(col_filter).sum()
@@ -933,7 +905,7 @@ class Metrics:
                 )
                 total_df = pd.concat([total_df, missing], axis=0).sort_index()
 
-        if frequency == "project":
+        if frequency is Frequency.PROJECT:
             operating_df = operating_df.reset_index().sum()[
                 self.service_equipment_names
             ]
@@ -1030,7 +1002,7 @@ class Metrics:
             columns = ["Total Crew Hours at Sea"]
             at_sea = at_sea.groupby(["year", "month"]).sum()[["duration"]].reset_index()
 
-        if frequency == "project":
+        if frequency is Frequency.PROJECT:
             total_hours = pd.DataFrame([[0]], columns=["duration"])
             if by_equipment:
                 total_hours = (
@@ -1045,16 +1017,12 @@ class Metrics:
                 return pd.DataFrame(at_sea.sum()[["duration"]]).T.rename(
                     columns={"duration": "Total Crew Hours at Sea"}
                 )
-
-        elif frequency == "annual":
-            additional_cols = ["year"]
-            total_hours = total_hours.groupby("year")[["N"]].sum()
-        elif frequency == "monthly":
-            additional_cols = ["month"]
-            total_hours = total_hours.groupby("month")[["N"]].sum()
-        elif frequency == "month-year":
-            additional_cols = ["year", "month"]
-            total_hours = total_hours.groupby(["year", "month"])[["N"]].sum()
+        additional_cols = frequency.group_cols
+        total_hours = (
+            total_hours.drop(columns=frequency.drop_cols)
+            .groupby(group_cols)[["N"]]
+            .sum()
+        )
 
         columns = additional_cols + columns
         group_cols.extend(additional_cols)
@@ -1154,164 +1122,170 @@ class Metrics:
             columns.extend(tug_columns)
 
         # Count the total number of tows by each possibly category
-        n_tows = towing.groupby(["agent", "year", "month", "direction"]).count()
-        n_tows = n_tows.rename(columns={"env_time": "N"})["N"].reset_index()
-
-        # Create a shell for the total tows
-        total_tows = (
-            self.events[["env_time", "year", "month"]]
-            .groupby(["year", "month"])
-            .count()["env_time"]
+        time_cols = frequency.group_cols
+        group_cols = deepcopy(time_cols)
+        if by_tug:
+            group_cols.append("agent")
+        if by_direction:
+            group_cols.append("direction")
+        if not group_cols:
+            group_cols = ["agent"]
+        n_tows = (
+            towing[[*group_cols, "env_time"]]
+            .groupby(group_cols)
+            .count()
+            .rename(columns={"env_time": "N"})
         )
-        total_tows = total_tows.reset_index().rename(columns={"env_time": "N"})
-        total_tows.N = 0
 
         # Create the correct time frequency for the number of tows and shell total
-        group_cols = ["agent", "direction"]
-        if frequency == "project":
-            time_cols = []
-            n_tows = n_tows[group_cols + ["N"]].groupby(group_cols).sum()
-
+        if frequency is Frequency.PROJECT:
             # If no further work is required, then return the sum as a 1x1 data frame
             if not by_tug and not by_direction:
                 return pd.DataFrame(
                     [n_tows.reset_index().N.sum()], columns=["total_tows"]
                 )
 
-            total_tows = pd.DataFrame([[0]], columns=["N"])
-        elif frequency == "annual":
-            time_cols = ["year"]
-            columns = time_cols + columns
-            group_cols.extend(time_cols)
-            n_tows = n_tows.groupby(group_cols).sum()[["N"]]
-            total_tows = (
-                total_tows[["year", "N"]].groupby(time_cols).sum().reset_index()
-            )
-        elif frequency == "monthly":
-            time_cols = ["month"]
-            columns = time_cols + columns
-            group_cols.extend(time_cols)
-            n_tows = n_tows[group_cols + ["N"]].groupby(group_cols).sum()
-            total_tows = (
-                total_tows[["month", "N"]].groupby(time_cols).sum().reset_index()
-            )
-        elif frequency == "month-year":
-            # Already have month-year by default, so skip the n_tows refinement
-            time_cols = ["year", "month"]
-            columns = time_cols + columns
-            group_cols.extend(time_cols)
-            n_tows = n_tows.set_index(group_cols, drop=True)
+        if not by_tug and not by_direction:
+            return n_tows.rename(columns={"N": "total_tows"})
 
-        # Create a list of the columns needed for creating the broken down totals
-        if frequency == "project":
-            total_cols = ["N"]
-        else:
-            total_cols = total_tows.drop(columns=["N"]).columns.tolist()
-
-        # Sum the number of tows by tugboat, if needed
-        if by_tug:
-            tug_sums = []
-            for tug in tugboats:
-                tug_sum = n_tows.loc[tug]
-                tug_sums.append(tug_sum.rename(columns={"N": tug}))
-            tug_sums_by_direction = pd.concat(tug_sums, axis=1).fillna(0)
-
-            if frequency == "project":
-                tug_sums = pd.DataFrame(tug_sums_by_direction.sum()).T
-            else:
-                tug_sums = tug_sums_by_direction.reset_index().groupby(total_cols).sum()
-            if TYPE_CHECKING:
-                assert isinstance(tug_sums, pd.DataFrame)  # mypy checking
-            tug_sums = tug_sums.rename(
-                columns={t: f"{t}_total_tows" for t in tug_sums.columns}
-            )
-            if TYPE_CHECKING:
-                assert isinstance(tug_sums, pd.DataFrame)  # mypy checking
-            total = pd.DataFrame(
-                tug_sums.sum(axis=1), columns=["total_tows"]
-            ).reset_index()
-        else:
-            if not by_direction:
-                # Sum the totals, then merge the results with the shell data frame,
-                # and cleanup the columns
-                total = n_tows.reset_index().groupby(total_cols).sum().reset_index()
-                total_tows = total_tows.merge(total, on=total_cols, how="outer")
-                total_tows = total_tows.fillna(0).rename(columns={"N_y": "total_tows"})
-                total_tows = total_tows[columns]
-                if time_cols:
-                    return total_tows.set_index(time_cols)
-                return total_tows
-            else:
-                total = (
-                    n_tows.groupby(total_cols)
-                    .sum()
-                    .reset_index()
-                    .rename(columns={"N": "total_tows"})
+        if by_tug and not by_direction:
+            if frequency is Frequency.PROJECT:
+                n_tows = (
+                    n_tows.assign(total="total")
+                    .set_index("total", append=True)
+                    .swaplevel("agent", "total")
                 )
-
-        # Create the full total tows data
-        if frequency == "project":
-            if "index" in total.columns:
-                total_tows = total.drop(columns=["index"])
-        else:
-            total_tows = (
-                total_tows.merge(total, how="outer").drop(columns=["N"]).fillna(0)
-            )
-            total_tows = total_tows.set_index(total_cols)
-
-        # Get the sums by each direction towed, if needed
-        if by_direction:
-            if frequency == "project":
-                direction_sums = n_tows.reset_index().groupby("direction").sum()
-                for s in direction_suffix:
-                    total_tows.loc[:, f"total_tows_{s}"] = direction_sums.loc[s, "N"]
-            else:
-                direction_sums = (
-                    n_tows.reset_index().groupby(["direction"] + total_cols).sum()
-                )
-                for s in direction_suffix:
-                    total_tows = total_tows.join(
-                        direction_sums.loc[s].rename(columns={"N": f"total_tows_{s}"})
-                    ).fillna(0)
-
-            # Add in the tugboat breakdown as needed
-            if by_tug:
-                total_tows = total_tows.join(tug_sums, how="outer").fillna(0)
-                for s in direction_suffix:
-                    if frequency == "project":
-                        _total = pd.DataFrame(
-                            tug_sums_by_direction.loc[s]
-                        ).T.reset_index(drop=True)
-                    else:
-                        _total = tug_sums_by_direction.loc[s]
-                    total_tows = total_tows.join(
-                        _total.rename(columns={t: f"{t}_{s}" for t in tugboats}),
-                        how="outer",
-                    ).fillna(0)
-                total_tows = total_tows.reset_index()[columns]
-                if time_cols:
-                    return total_tows.set_index(time_cols)
-                else:
-                    return total_tows
-            total_tows = total_tows.assign(N=total_tows.sum(axis=1))
-            total_tows = total_tows.rename(columns={"N": "total_tows"}).reset_index()[
-                columns
-            ]
-            if time_cols:
-                return total_tows.set_index(time_cols)
+            total_tows = n_tows.unstack().droplevel(0, axis=1).fillna(0)
+            total_tows["total_tows"] = total_tows.sum(axis=1)
+            total_tows = total_tows.rename(
+                columns={t: f"{t}_total_tows" for t in tugboats}
+            )[columns]
+            total_tows.columns.name = None
             return total_tows
 
-        if by_tug:
-            total_tows = (
-                total_tows.join(tug_sums, how="outer").fillna(0).reset_index()[columns]
-            )
-            if time_cols:
-                return total_tows.set_index(time_cols)
+        if not by_tug and by_direction:
+            if frequency is Frequency.PROJECT:
+                n_tows = (
+                    n_tows.assign(total="total")
+                    .set_index("total", append=True)
+                    .swaplevel("direction", "total")
+                )
+            total_tows = n_tows.unstack().droplevel(0, axis=1).fillna(0)
+            total_tows["total_tows"] = total_tows.sum(axis=1)
+            total_tows = total_tows.rename(
+                columns={s: f"total_tows_{s}" for s in direction_suffix}
+            )[columns]
+            total_tows.columns.name = None
             return total_tows
 
-        if time_cols:
-            return total_tows[columns].set_index(time_cols)
-        return total_tows[columns]
+        if frequency is Frequency.PROJECT:
+            n_tows = (
+                n_tows.assign(total="total")
+                .set_index("total", append=True)
+                .swaplevel("direction", "total")
+                .swaplevel("agent", "total")
+            )
+            time_cols = ["total"]
+        tug_sums = (
+            n_tows.swaplevel("agent", "direction")
+            .unstack()
+            .droplevel(0, axis=1)
+            .fillna(0)
+        )
+        tug_sums["total_tows"] = tug_sums.sum(axis=1)
+        tug_sums = (
+            tug_sums.rename(columns={t: f"{t}_total_tows" for t in tugboats})
+            .droplevel("direction")
+            .reset_index(drop=False)
+            .groupby(time_cols)
+            .sum()
+        )
+
+        dir_sums = (
+            n_tows.unstack()
+            .droplevel(0, axis=1)
+            .fillna(0)
+            .rename(columns={s: f"total_tows_{s}" for s in direction_suffix})
+            .droplevel("agent")
+            .reset_index(drop=False)
+            .groupby(time_cols)
+            .sum()
+        )
+        tug_dir_sums = n_tows.unstack().droplevel(0, axis=1).fillna(0).unstack()
+        tugs = tug_dir_sums.columns.get_level_values("agent")
+        dirs = tug_dir_sums.columns.get_level_values("direction")
+        cols = ["_".join(el) for el in zip(tugs, dirs)]
+        tug_dir_sums.columns = cols
+
+        return pd.concat([tug_sums, dir_sums, tug_dir_sums], axis=1)[columns]
+
+    def dispatch_summary(self, frequency: str) -> pd.DataFrame:
+        """Calculates the total number of mobilizations for each servicing equipment
+        and the average number of charter days for each dispatching.
+
+        Parameters
+        ----------
+        frequency : str
+            One of "project", "annual", "monthly", or "month-year".
+
+        Returns
+        -------
+        pd.DataFrame
+            Data frame of each servicing equipment and its number of mobilizations and
+            their average chartering length.
+        """
+        frequency = _check_frequency(frequency, which="all")
+
+        ev = self.events
+        group_cols = [*frequency.group_cols, "agent"]
+        average_charter_days = []
+        for name in self.service_equipment_names:
+            mobilizations = (
+                ev.loc[
+                    (
+                        ev.action.eq("mobilization")
+                        & ev.reason.str.contains("arrived on site")
+                    )
+                    & ev.agent.eq(name),
+                    [*group_cols, "env_time"],
+                ]
+                .reset_index(drop=True)
+                .rename(columns={"env_time": "mobilized"})
+            )
+            leaving = (
+                ev.loc[ev.action.eq("leaving site") & ev.agent.eq(name), ["env_time"]]
+                .reset_index(drop=True)
+                .rename(columns={"env_time": "leaving"})
+            )
+            if leaving.shape[0] == 0:
+                leaving = (
+                    ev.loc[ev.agent.eq(name), ["env_time"]]
+                    .tail(1)
+                    .reset_index(drop=True)
+                    .rename(columns={"env_time": "leaving"})
+                )
+            if mobilizations.shape[0] - leaving.shape[0] == 1:
+                mobilizations = mobilizations.iloc[:-1]
+            charter_days = pd.concat(
+                [mobilizations.reset_index(drop=True), leaving.reset_index(drop=True)],
+                axis=1,
+            )
+            charter_days = (
+                charter_days.assign(
+                    charter_days=(charter_days.leaving - charter_days.mobilized) / 24
+                )
+                .drop(columns=["mobilized", "leaving"])
+                .groupby(group_cols)
+                .agg(["count", "mean"])
+                .droplevel(0, axis=1)
+                .rename(
+                    columns={"count": "N Mobilizations", "mean": "Average Charter Days"}
+                )
+            )
+            average_charter_days.append(charter_days)
+        average_charter_days = pd.concat(average_charter_days).sort_index()
+
+        return average_charter_days
 
     def labor_costs(
         self, frequency: str, by_type: bool = False
@@ -1353,7 +1327,7 @@ class Metrics:
             raise ValueError("``by_type`` must be one of ``True`` or ``False``")
 
         labor_cols = [self._hourly_cost, self._salary_cost, self._labor_cost]
-        if frequency == "project":
+        if frequency is Frequency.PROJECT:
             costs = pd.DataFrame(
                 self.events[labor_cols].sum(axis=0).values.reshape(1, -1),
                 columns=labor_cols,
@@ -1362,12 +1336,7 @@ class Metrics:
                 return costs[[self._labor_cost]]
             return costs
 
-        if frequency == "annual":
-            group_filter = ["year"]
-        elif frequency == "monthly":
-            group_filter = ["month"]
-        elif frequency == "month-year":
-            group_filter = ["year", "month"]
+        group_filter = frequency.group_cols
 
         costs = (
             self.events.loc[:, labor_cols + group_filter]
@@ -1431,15 +1400,10 @@ class Metrics:
         if not isinstance(by_equipment, bool):
             raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
 
-        group_filter = ["action", "reason", "additional"]
+        group_filter = frequency.group_cols
         if by_equipment:
-            group_filter.insert(0, "agent")
-        if frequency in ("annual", "month-year"):
-            group_filter.insert(0, "year")
-        elif frequency == "monthly":
-            group_filter.insert(0, "month")
-        if frequency == "month-year":
-            group_filter.insert(1, "month")
+            group_filter.append("agent")
+        group_filter.extend(["action", "reason", "additional"])
 
         action_list = [
             "delay",
@@ -1537,7 +1501,7 @@ class Metrics:
                 if costs.loc[row_filter].size > 0:
                     continue
                 costs.loc[costs.shape[0]] = row
-        elif frequency == "monthly":
+        elif frequency is Frequency.MONTHLY:
             months = costs.month.unique()
             reasons = costs.reason.unique()
             comparison_values = product(months, reasons)
@@ -1568,15 +1532,7 @@ class Metrics:
             costs = costs.loc[costs.index.get_level_values("agent").isin(equipment)]
             costs.index = costs.index.set_names({"agent": "equipment_name"})
             sort_order = ["equipment_name", "reason"]
-        if frequency == "project":
-            return costs.sort_values(by=sort_order)
-        if frequency == "annual":
-            sort_order = ["year"] + sort_order
-            return costs.sort_values(by=sort_order)
-        if frequency == "monthly":
-            sort_order = ["month"] + sort_order
-            return costs.sort_values(by=sort_order)
-        sort_order = ["year", "month"] + sort_order
+        sort_order = frequency.group_cols + sort_order
         return costs.sort_values(by=sort_order)
 
     def emissions(
@@ -1723,7 +1679,13 @@ class Metrics:
         return equipment_usage
 
     def component_costs(
-        self, frequency: str, by_category: bool = False, by_action: bool = False
+        self,
+        frequency: str,
+        by_category: bool = False,
+        by_action: bool = False,
+        by_task: bool = False,
+        *,
+        include_travel: bool = False,
     ) -> pd.DataFrame:
         """Calculates the component costs for the simulation at a project, annual, or
         monthly level that can be broken out by cost categories. This will not sum to
@@ -1745,6 +1707,12 @@ class Metrics:
             Indicates whether component costs are going to be further broken out by the
             action being performed--repair, maintenance, and delay--(True) or not
             (False), by default False.
+        by_task : bool, optional
+            Indicates if each repair or maintenance task type should be broken out for
+            each of the components, by default False.
+        include_travel : bool, optional
+            Indicates if travel costs associated with this repair should be included, by
+            default False.
 
         Returns
         -------
@@ -1754,7 +1722,8 @@ class Metrics:
 
             - year (if appropriate for frequency)
             - month (if appropriate for frequency)
-            - component
+            - subassembly
+            - task (if broken out)
             - action (if broken out)
             - materials_cost (if broken out)
             - total_labor_cost (if broken out)
@@ -1767,32 +1736,25 @@ class Metrics:
             If ``frequency`` is not one of "project", "annual", "monthly", or
             "month-year".
         ValueError
-            If ``by_category`` is not one of ``True`` or ``False``.
+            If :py:attr:`by_category` is not one of ``True`` or ``False``.
         ValueError
-            If ``by_action`` is not one of ``True`` or ``False``.
+            If :py:attr:`by_action` is not one of ``True`` or ``False``.
+        ValueError
+            If :py:attr:`by_task` is not one of ``True`` or ``False``.
+        ValueError
+            If :py:attr:`include_travel` is not one of ``True`` or ``False``.
         """
         frequency = _check_frequency(frequency, which="all")
         if not isinstance(by_category, bool):
             raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
         if not isinstance(by_action, bool):
-            raise ValueError("``by_equipment`` must be one of ``True`` or ``False``")
+            raise ValueError("``by_action`` must be one of ``True`` or ``False``")
+        if not isinstance(by_task, bool):
+            raise ValueError("``by_task`` must be one of ``True`` or ``False``")
+        if not isinstance(include_travel, bool):
+            raise ValueError("``include_travel`` must be one of ``True`` or ``False``")
 
-        part_filter = ~self.events.part_id.isna() & ~self.events.part_id.isin([""])
-        events = self.events.loc[part_filter].copy()
-
-        # Need to simplify the cable identifiers to exclude the connection information
-        events.loc[:, "component"] = [el.split("::")[0] for el in events.part_id.values]
-
-        group_filter = []
-        if frequency == "annual":
-            group_filter.extend(["year"])
-        elif frequency == "monthly":
-            group_filter.extend(["month"])
-        elif frequency == "month-year":
-            group_filter.extend(["year", "month"])
-
-        group_filter.append("component")
-        cost_cols = ["total_cost"]
+        cost_cols = [self._total_cost]
         if by_category:
             cost_cols[0:0] = [
                 self._materials_cost,
@@ -1800,94 +1762,59 @@ class Metrics:
                 self._equipment_cost,
             ]
 
+        part_group = (
+            self.events.loc[
+                self.events.action.str.contains("request")
+                & self.events.request_id.str.startswith(("RPR", "MNT")),
+                ["agent", "reason", "request_id", "system_name"],
+            ]
+            .groupby(["agent", "reason", "request_id"])
+            .count()
+            .reset_index(level=["agent", "reason"], drop=False)
+            .drop(columns="system_name")
+            .sort_index()
+            .rename(columns={"agent": "subassembly", "reason": "task"})
+        )
+
+        group_filter = frequency.group_cols
+        group_filter.append("subassembly")
+        if by_task:
+            group_filter.append("task")
         if by_action:
-            repair_map = {
-                val: "repair" for val in ("repair request", "repair", "repair complete")
-            }
-            maintenance_map = {
-                val: "maintenance"
-                for val in (
-                    "maintenance request",
-                    "maintenance",
-                    "maintenance complete",
-                )
-            }
-            delay_map = {"delay": "delay"}
-            action_map = {**repair_map, **maintenance_map, **delay_map}
-            events.action = events.action.map(action_map)
             group_filter.append("action")
 
-        month_year = frequency == "month-year"
-        zeros = np.zeros(len(cost_cols)).tolist()
-        costs = (
-            events[group_filter + cost_cols].groupby(group_filter).sum().reset_index()
+        cost_group = (
+            self.events.loc[
+                self.events.request_id.str.startswith(("RPR", "MNT"))
+                & self.events[self._total_cost].gt(0),
+                ["year", "month", "request_id", "action", *cost_cols],
+            ]
+            .replace(
+                {
+                    "repair complete": "repair",
+                    "maintenance complete": "maintenance",
+                    "transferring crew": "travel",
+                    "traveling": "travel",
+                }
+            )
+            .groupby(["year", "month", "request_id", "action"])
+            .sum()
+            .reset_index(["year", "month", "action"], drop=False)
+            .sort_index()
         )
-        if not by_action:
-            costs.loc[:, "action"] = np.zeros(costs.shape[0])
-            cols = costs.columns.to_list()
-            _ix = cols.index("component") + 1
-            cols[_ix:_ix] = ["action"]
-            cols.pop(-1)
-            costs = costs.loc[:, cols]
+        if not include_travel:
+            cost_group = cost_group.loc[cost_group.action.ne("travel")]
 
-        comparison_values: (
-            product[tuple[Any, Any]]
-            | product[tuple[Any, Any, Any]]
-            | product[tuple[Any, Any, Any, Any]]
+        component_costs = (
+            part_group.join(cost_group, how="outer")
+            .loc[:, [*group_filter, *cost_cols]]
+            .reset_index(drop=True)
+            .convert_dtypes()
+            .groupby(group_filter)
+            .sum()
+            .sort_index(level=group_filter)
         )
-        if frequency in ("annual", "month-year"):
-            years = costs.year.unique()
-            components = costs.component.unique()
-            actions = costs.action.unique()
-            comparison_values = product(years, components, actions)
-            if month_year:
-                months = costs.month.unique()
-                comparison_values = product(years, months, components, actions)
-
-            for _year, *_month, _component, _action in comparison_values:
-                row_filter = costs.year.values == _year
-                row_filter &= costs.component.values == _component
-                row_filter &= costs.action.values == _action
-                row = [_year, _component, _action] + zeros
-                if month_year:
-                    _month = _month[0]
-                    row_filter &= costs.month.values == _month
-                    row = [_year, _month, _component, _action] + zeros
-
-                if costs.loc[row_filter].size > 0:
-                    continue
-                costs.loc[costs.shape[0]] = row
-        elif frequency == "monthly":
-            months = costs.month.unique()
-            components = costs.component.unique()
-            actions = costs.action.unique()
-            comparison_values = product(months, actions, components)
-            for _month, _action, _component in comparison_values:
-                row_filter = costs.month.values == _month
-                row_filter &= costs.component.values == _component
-                row_filter &= costs.action.values == _action
-                row = [_month, _component, _action] + zeros
-                if costs.loc[row_filter].size > 0:
-                    continue
-                costs.loc[costs.shape[0]] = row
-        elif frequency == "project":
-            components = costs.component.unique()
-            actions = costs.action.unique()
-            comparison_values = product(actions, components)
-            for _action, _component in comparison_values:
-                row_filter = costs.component.values == _component
-                row_filter &= costs.action.values == _action
-                row = [_component, _action] + zeros
-                if costs.loc[row_filter].size > 0:
-                    continue
-                costs.loc[costs.shape[0]] = row
-        sort_cols = group_filter + cost_cols
-        if group_filter != []:
-            costs = costs.sort_values(group_filter)
-        if sort_cols != []:
-            costs = costs.loc[:, sort_cols]
-        costs = costs.reset_index(drop=True)
-        return costs if group_filter == [] else costs.set_index(group_filter)
+        return component_costs
 
     def port_fees(self, frequency: str) -> pd.DataFrame:
         """Calculates the port fees for the simulation at a project, annual, or monthly
@@ -1920,16 +1847,11 @@ class Metrics:
         if port_fee.shape[0] == 0:
             return pd.DataFrame([[0]], columns=[column])
 
-        if frequency == "project":
+        if frequency is Frequency.PROJECT:
             return pd.DataFrame([port_fee.sum(axis=0).loc[column]], columns=[column])
-        elif frequency == "annual":
-            return port_fee[["year"] + [column]].groupby(["year"]).sum()
-        elif frequency == "monthly":
-            return port_fee[["month"] + [column]].groupby(["month"]).sum()
-        elif frequency == "month-year":
-            return (
-                port_fee[["year", "month"] + [column]].groupby(["year", "month"]).sum()
-            )
+
+        group_filter = frequency.group_cols
+        return port_fee[group_filter + [column]].groupby(group_filter).sum()
 
     def project_fixed_costs(self, frequency: str, resolution: str) -> pd.DataFrame:
         """Calculates the fixed costs of a project at the project and annual frequencies
@@ -2001,12 +1923,15 @@ class Metrics:
         )
         costs *= adjusted_inflation.reshape(-1, 1)
 
-        if frequency == "project":
-            costs = pd.DataFrame(costs.reset_index(drop=True).sum()).T
-        elif frequency == "annual":
-            costs = costs.reset_index().groupby("year").sum().drop(columns=["month"])
-        elif frequency == "monthly":
-            costs = costs.reset_index().groupby("month").sum().drop(columns=["year"])
+        if frequency is Frequency.PROJECT:
+            return pd.DataFrame(costs.reset_index(drop=True).sum()).T
+
+        costs = (
+            costs.reset_index(drop=False)
+            .drop(columns=frequency.drop_cols)
+            .groupby(frequency.group_cols)
+            .sum()
+        )
 
         return costs
 
@@ -2033,15 +1958,10 @@ class Metrics:
         # Get the materials costs and remove the component-level breakdown
         materials = self.component_costs(frequency=frequency, by_category=True)
         materials = materials.loc[:, ["materials_cost"]].reset_index()
-        if frequency == "project":
+        if frequency is Frequency.PROJECT:
             materials = pd.DataFrame(materials.loc[:, ["materials_cost"]].sum()).T
         else:
-            if frequency == "annual":
-                group_col = ["year"]
-            elif frequency == "monthly":
-                group_col = ["month"]
-            elif frequency == "month-year":
-                group_col = ["year", "month"]
+            group_col = frequency.group_cols
             materials = (
                 materials[group_col + ["materials_cost"]].groupby(group_col).sum()
             )
@@ -2233,18 +2153,11 @@ class Metrics:
             divisor = 1
             label = "Project Energy Production (kWh)"
 
-        if frequency == "annual":
-            group_cols = ["year"]
-        elif frequency == "monthly":
-            group_cols = ["month"]
-        elif frequency == "month-year":
-            group_cols = ["year", "month"]
-
         col_filter = ["windfarm"]
         if by_turbine:
             col_filter.extend(self.turbine_id)
 
-        if frequency == "project":
+        if frequency is Frequency.PROJECT:
             production = self.production[col_filter].sum(axis=0)
             production = (
                 pd.DataFrame(
@@ -2255,10 +2168,13 @@ class Metrics:
                 / divisor
             )
             return production
-        return (
+
+        group_cols = frequency.group_cols
+        production = (
             self.production[group_cols + col_filter].groupby(by=group_cols).sum()
             / divisor
         )
+        return production
 
     # Windfarm Financials
 
@@ -2300,10 +2216,16 @@ class Metrics:
         npv.loc[:, "NPV"] = (npv.revenue.values - npv.OpEx.values) / npv.discount.values
 
         # Aggregate the results to the required resolution
-        if frequency == "project":
+        if frequency is Frequency.PROJECT:
             return pd.DataFrame(npv.reset_index().sum()).T[["NPV"]]
-        elif frequency == "annual":
-            return npv.reset_index().groupby("year").sum()[["NPV"]]
-        elif frequency == "monthly":
-            return npv.reset_index().groupby("month").sum()[["NPV"]]
-        return npv[["NPV"]]
+
+        if frequency is Frequency.MONTH_YEAR:
+            return npv[["NPV"]]
+
+        npv = (
+            npv.reset_index()
+            .drop(columns=frequency.drop_cols)
+            .groupby(frequency.group_cols)
+            .sum()[["NPV"]]
+        )
+        return npv

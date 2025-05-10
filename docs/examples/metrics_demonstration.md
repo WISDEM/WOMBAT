@@ -70,6 +70,7 @@ is, and how it should be computed.
 - [Vessel-Crew Hours at Sea](metrics-demo:vessel-crew-hours): Number of crew or vessel hours
   spent at sea
 - [Number of Tows](metrics-demo:n-tows): Number of tows breakdowns
+- [Dispatch Summary](metrics-demo:dispatch-summary): Mobilization and charter period breakdown
 - [Labor Costs](metrics-demo:labor-costs): Breakdown of labor costs
 - [Equipment and Labor Costs](metrics-demo:equipment-labor-costs): Combined servicing equipment
   and labor cost breakdown
@@ -387,6 +388,26 @@ documentation, see the API docs here:
 style(metrics.number_of_tows(frequency="project"))
 ```
 
+(metrics-demo:dispatch-summary)=
+## Dispatch Summary
+
+The number of mobilizations and the average length of their charter during the
+simulation for each piece of servicing equipment. For further documentation, see the API
+docs here: {py:meth}`wombat.core.post_processor.Metrics.dispatch_summary`.
+
+**Inputs**:
+
+- `frequency`, as explained [above](metrics-demo:common-parameters), options: "project",
+  "annual", "monthly", and "month-year"
+
+**Example Usage**:
+
+```{code-cell} ipython3
+:tags: ["output_scroll"]
+# Project Total
+style(metrics.dispatch_summary(frequency="project"))
+```
+
 (metrics-demo:labor-costs)=
 ## Labor Costs
 
@@ -535,12 +556,18 @@ tied to a repair. For further documentation, see the API docs here:
 - `frequency`, as explained [above](metrics-demo:common-parameters), options: "project",
   "annual", "monthly", and "month-year"
 - `by_category`
-  - `True`: Computed across each cost category
-  - `False`: Aggregated to the sum of all categories
+  - `True`: Computed across each subassembly
+  - `False`: (default) Aggregated to the sum of all subassemblies
 - `by_action`
   - `True`: Computed by each of "repair", "maintenance", and "delay", and is included in
     the MultiIndex
-  - `False`: Aggregated as the sum of all actions
+  - `False`: (default) Aggregated as the sum of all actions
+- `by_task`
+  - `True`: Computed by each repair and maintenance task for each subassembly
+  - `False`: (default) Aggregated as the sum of all tasks
+- `include_travel`
+  - `True`: Include intrasite and port-to-site travel costs in the repair summary.
+  - `False`: (default) Exclude travel from the cost summary
 
 `action` definitions:
 
@@ -548,6 +575,8 @@ tied to a repair. For further documentation, see the API docs here:
 - repair: unscheduled maintenance, ranging from inspections to replacements
 - delay: Any delays caused by unsafe weather conditions or not being able to finish a
   process within a single shift
+- travel: Any travel to and from the site between shifts or traveling to the system for
+  initial repair, including crew transfer time.
 
 **Example Usage**:
 

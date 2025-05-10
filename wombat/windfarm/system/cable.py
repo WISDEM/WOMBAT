@@ -68,7 +68,7 @@ class Cable:
         cable_data : dict
             The dictionary defining the cable segment.
         name : str | None
-            The name of the cable to use during logging.
+            A unique name used in the ``system_name`` during logging.
         """
         self.env = env
         self.windfarm = windfarm
@@ -90,6 +90,7 @@ class Cable:
             "rng": self.env.random_generator,
         }
         self.data = SubassemblyData.from_dict(cable_data)
+        self.system_name = self.data.name
         self.name = self.data.name if name is None else name
 
         self.operating_level = 1.0
@@ -307,7 +308,7 @@ class Cable:
             system_id=self.id,
             system_name=self.name,
             subassembly_id=self.id,
-            subassembly_name=self.name,
+            subassembly_name=self.system_name,
             severity_level=action.level,
             details=action,
             cable=True,
@@ -320,10 +321,10 @@ class Cable:
             system_id=self.id,
             system_name=self.name,
             part_id=self.id,
-            part_name=self.name,
+            part_name=self.system_name,
             system_ol=self.operating_level,
             part_ol=self.operating_level,
-            agent=self.name,
+            agent=self.system_name,
             action=f"{which} request",
             reason=action.description,
             additional=f"severity level {action.level}",
