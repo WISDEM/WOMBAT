@@ -98,6 +98,11 @@ class SystemType(StrEnum):
     SUBSTATION = auto()
     ELECTROLYZER = auto()
 
+    @staticmethod
+    def types() -> list[str]:
+        """Generate a list of the valid input strings."""
+        return [*SystemType._value2member_map_]
+
     @classmethod
     def _missing_(cls, value: str):  # type: ignore[override]
         """Correct inconsistent casing and remove white space, and reattempt creation.
@@ -122,11 +127,6 @@ class SystemType(StrEnum):
             if member.value == value:
                 return member
         raise ValueError(f"Systems must be one of: {cls.types()}")
-
-    @staticmethod
-    def types() -> list[str]:
-        """Generate a list of the valid input strings."""
-        return [*SystemType._value2member_map_]
 
 
 class CableType(StrEnum):
@@ -164,6 +164,100 @@ class CableType(StrEnum):
             if member.value == value:
                 return member
         raise ValueError(f"Systems must be one of: {cls.types()}")
+
+
+class Frequency(StrEnum):
+    """Frequency validation for "project", "annual", "monthly", and "month-year"."""
+
+    PROJECT = auto()
+    ANNUAL = auto()
+    MONTHLY = auto()
+    MONTH_YEAR = auto()
+    ALL = auto()
+
+    @classmethod
+    def _missing_(cls, value: str):  # type: ignore[override]
+        """Correct inconsistent casing, word separators, remove white space, and
+        reattempt creation.
+
+        Returns
+        -------
+        Frequency
+            If string cleanup is successful, a :py:class:`Frequency` is returned.
+
+        Raises
+        ------
+        ValueError
+            Raised if :py:attr:`value` could not be found in :py:class:`Frequency`.
+        """
+        value = value.lower().strip().replace("-", "_").replace(" ", "_")
+        for member in cls:
+            if member.value == value:
+                return member
+        types = cls.types()
+        types.pop(-1)  # ensure "all" is not given as a valid user input
+        raise ValueError(f"`frequency` must be one of: {types}")
+
+    @staticmethod
+    def types() -> list[str]:
+        """Generate a list of the valid input strings."""
+        return [*Frequency._value2member_map_]
+
+    @staticmethod
+    def options(which: str) -> list[str]:
+        """Generate a list of the valid input strings given a maximum resolution
+        constraint.
+
+        Parameters
+        ----------
+        which : str
+            The maximum resolution allowed.
+
+        Returns
+        -------
+        list[str]
+            A list of the valid input strings, given :py:attr:`which`.
+        """
+        which = Frequency(which)
+        options = Frequency.types()
+        if which in (Frequency.ALL, Frequency.MONTH_YEAR):
+            return options
+
+        options.pop(-1)
+        options.pop(-1)
+        if which == Frequency.MONTHLY:
+            return options
+
+        options.pop(-1)
+        if which == Frequency.ANNUAL:
+            return options
+
+        options.pop(-1)
+        return options
+
+    @property
+    def group_cols(self) -> list[str]:
+        """Return the list of time-based grouping columns given the frequency value."""
+        if self is Frequency.PROJECT:
+            return []
+        if self is Frequency.ANNUAL:
+            return ["year"]
+        if self is Frequency.MONTHLY:
+            return ["month"]
+        return ["year", "month"]
+
+    @property
+    def drop_cols(self) -> list[str]:
+        """Return the list of time-based grouping columns that need to be dropped given
+        the frequency value.
+        """
+        if self is Frequency.PROJECT:
+            return ["year", "month"]
+        if self is Frequency.ANNUAL:
+            return ["month"]
+        if self is Frequency.MONTHLY:
+            return ["year"]
+        return []
 
 
 def convert_to_list(

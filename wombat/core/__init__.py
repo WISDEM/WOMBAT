@@ -16,6 +16,7 @@ from .data_classes import (
     EquipmmentClass,
     SystemType,
     CableType,
+    Frequency,
 )
 from .mixins import RepairsMixin
 from .environment import WombatEnvironment

@@ -4,12 +4,21 @@
 
 ### Deprecations
 
+- Drops support for Python 3.10.
 - The layout file must have a "type" specified for every system in the layout.
 
 ### Features
 
 - Electrolyzers are now an included system model. They act similarly to a substation,
   but should be upstream from the substations in the layout model.
+- `Metrics.dispatch_summary` is now available to provide the number of mobilizations and average
+  charter period across the whole project, or broken down by year and month, as requested.
+
+### Updates
+
+- `Metrics.component_costs` has been refactored, and now includes two additional breakdowns:
+  - `by_task`: toggles the inclusion of the individual repair and maintenance tasks.
+  - `include_travel`: tooggles the inclusion of intrasite and port-to-site travel.
 
 ## v0.10.3 (24 April 2025)
 
