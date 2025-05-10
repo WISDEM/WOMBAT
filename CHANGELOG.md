@@ -9,6 +9,7 @@
 
 ### Updates
 
+- Drops support for Python 3.10.
 - `Metrics.component_costs` has been refactored, and now includes two additional breakdowns:
   - `by_task`: toggles the inclusion of the individual repair and maintenance tasks.
   - `include_travel`: tooggles the inclusion of intrasite and port-to-site travel.
