@@ -78,7 +78,9 @@ class Frequency(StrEnum):
         for member in cls:
             if member.value == value:
                 return member
-        raise ValueError(f"Systems must be one of: {cls.types()}")
+        types = cls.types()
+        types.pop(-1)  # ensure "all" is not given as a valid user input
+        raise ValueError(f"`frequency` must be one of: {types}")
 
     @staticmethod
     def types() -> list[str]:
@@ -127,6 +129,19 @@ class Frequency(StrEnum):
         if self is Frequency.MONTHLY:
             return ["month"]
         return ["year", "month"]
+
+    @property
+    def drop_cols(self) -> list[str]:
+        """Return the list of time-based grouping columns that need to be dropped given
+        the frequency value.
+        """
+        if self is Frequency.PROJECT:
+            return ["year", "month"]
+        if self is Frequency.ANNUAL:
+            return ["month"]
+        if self is Frequency.MONTHLY:
+            return ["year"]
+        return []
 
 
 def convert_to_list(

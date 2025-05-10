@@ -388,7 +388,6 @@ documentation, see the API docs here:
 style(metrics.number_of_tows(frequency="project"))
 ```
 
-
 (metrics-demo:dispatch-summary)=
 ## Dispatch Summary
 
