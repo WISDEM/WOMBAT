@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v0.10.4 (12 May 2025)
+
+- Fix a bug where tow-to-port strategies can result in vessels being dispatched and
+  accruing wasted costs when a repair is handed off to a report. An additional check
+  is added where if there are no requests, but the servicing equipment has not yet been
+  mobilized, the servicing equipment dispatch is canceled.
+- Update an end of simulation timing check to ensure compatibility with PolaRS and
+  Python datetime stamps that causes the simulation to fail when an action cannot
+  be completed before the end of the simulation.
+
 ## v0.10.3 (24 April 2025)
 
 - Fix a bug in `Metrics.component_costs` where the materials costs are excluded when results are
