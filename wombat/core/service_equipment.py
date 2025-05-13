@@ -908,7 +908,7 @@ class ServiceEquipment(RepairsMixin):
             # that it's not due to having reached the end of the simulation. If so,
             # return the max amount of time, but if that's not the case re-raise the
             # error.
-            if self.env.end_datetime in dt:
+            if (self.env.end_datetime == dt).any():
                 ix_hours = distance_traveled.shape[0] - 1
             else:
                 raise e
@@ -1756,6 +1756,10 @@ class ServiceEquipment(RepairsMixin):
         while True and self.env.now < charter_end_env_time:
             _, request = self.get_next_request()
             if request is None:
+                if not self.onsite:
+                    self.dispatched = False
+                    return
+
                 yield self.env.process(
                     self.wait_until_next_shift(
                         **{
