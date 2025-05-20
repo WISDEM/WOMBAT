@@ -87,6 +87,11 @@ class Configuration(FromDictMixin):
     end_year : int
         Final year of the simulation. The exact date will be determined by
         the last valid date of this year in ``weather``.
+    maintenance_start : str | datetime.datetime | None
+        Universalized starting date to set the cadence of all maintenance activity that
+        has not been individually set. For instance, this enables maintenance activity
+        to be automatically set to start in clear weather months, rather than timed
+        with the start of a simulation.
     non_operational_start : str | datetime.datetime | None
         The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
         period of prohibited operations. When defined at the environment level, an
@@ -150,6 +155,7 @@ class Configuration(FromDictMixin):
     start_year: int = field(default=None)
     end_year: int = field(default=None)
     port_distance: int | float = field(default=None)
+    maintenance_start: str | datetime.datetime | None = field(default=None)
     non_operational_start: str | datetime.datetime | None = field(default=None)
     non_operational_end: str | datetime.datetime | None = field(default=None)
     reduced_speed_start: str | datetime.datetime | None = field(default=None)
@@ -372,6 +378,7 @@ class Simulation(FromDictMixin):
             start_year=self.config.start_year,
             end_year=self.config.end_year,
             port_distance=self.config.port_distance,
+            maintenance_start=self.config.maintenance_start,
             non_operational_start=self.config.non_operational_start,
             non_operational_end=self.config.non_operational_end,
             reduced_speed_start=self.config.reduced_speed_start,

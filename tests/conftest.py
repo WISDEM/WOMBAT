@@ -1,5 +1,6 @@
 """Unit tests configuration file."""
 
+import datetime
 from pathlib import Path
 
 import numpy as np
@@ -86,6 +87,7 @@ RNG = np.random.default_rng(seed=34)
 GENERATOR_SUBASSEMBLY = {
     "name": "generator",
     "system_value": 39000000,
+    "maintenance_start": datetime.datetime(2000, 6, 1),
     "maintenance": [
         {
             "description": "annual service",
