@@ -12,7 +12,10 @@
 - Drops support for Python 3.10.
 - `Metrics.component_costs` has been refactored, and now includes two additional breakdowns:
   - `by_task`: toggles the inclusion of the individual repair and maintenance tasks.
-  - `include_travel`: tooggles the inclusion of intrasite and port-to-site travel.
+  - `include_travel`: toggles the inclusion of intrasite and port-to-site travel.
+- Improved cable, subassembly, and servicing equipment error handling to show which of
+  the cables, substations, turbines, or vessels produced the intialization error for
+  easier input debugging.
 
 ## v0.10.4 (12 May 2025)
 

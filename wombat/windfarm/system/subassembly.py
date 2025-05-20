@@ -49,7 +49,11 @@ class Subassembly:
             "system_value": self.system.value,
             "rng": self.env.random_generator,
         }
-        self.data = SubassemblyData.from_dict(subassembly_data)
+        try:
+            self.data = SubassemblyData.from_dict(subassembly_data)
+        except Exception as e:
+            msg = f"Could not create {s_id} for {system.system_type}: {system.id}"
+            raise ValueError(msg) from e
         self.name = self.data.name
 
         self.operating_level = 1.0
