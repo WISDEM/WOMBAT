@@ -120,6 +120,7 @@ def test_setup():
         workday_start=8,
         workday_end=16,
         simulation_name="testing_setup",
+        maintenance_start="6/1/2002",
         random_seed=2022,
     )
     assert env.workday_start == 8
@@ -128,6 +129,7 @@ def test_setup():
     assert isinstance(env.weather, pl.DataFrame)
     assert env.start_datetime == datetime.datetime(2002, 1, 1, 0, 0)
     assert env.end_datetime == datetime.datetime(2003, 12, 31, 23, 0)
+    assert env.maintenance_start == datetime.datetime(2002, 6, 1, 0, 0)
     assert env.max_run_time == 8760 * 2  # 2 year data file
 
     assert Path(env.events_log_fname).is_file()
@@ -162,6 +164,7 @@ def test_setup():
         end_year=2002,
         random_seed=2022,
     )
+    assert env.maintenance_start is None
     assert env.start_datetime == datetime.datetime(2002, 1, 1, 0, 0)
     assert env.end_datetime == datetime.datetime(2002, 12, 31, 23, 0)
     env.cleanup_log_files()  # delete the logged data
@@ -203,9 +206,16 @@ def test_timing():
         workday_end=16,
         simulation_name="testing_setup",
         random_seed=2022,
+        maintenance_start="01/06/2002",
     )
     manager = RepairManager(env)
-    Windfarm(env, "layout.csv", manager)
+    wf = Windfarm(env, "layout.csv", manager)
+
+    # Ensure maintenance start has passed through to the generator maintenance task
+    for tid in wf.turbine_id:
+        turb = wf.system(tid)
+        gen, *_ = (el for el in turb.subassemblies if el.data.name == "generator")
+        assert gen.data.maintenance[0].start_date == env.maintenance_start
 
     # Run for 96 hours from the start to this point in the data
     # 1/5/02 0:00,8.238614098,0.37854216

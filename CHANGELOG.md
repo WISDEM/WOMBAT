@@ -13,6 +13,12 @@
   but should be upstream from the substations in the layout model.
 - `Metrics.dispatch_summary` is now available to provide the number of mobilizations and average
   charter period across the whole project, or broken down by year and month, as requested.
+- Universalized maintenance starting dates are now able to be set through the primary
+  configuration file as `maintenance_start`. This will enable the universalized
+  staggering of the first instance of a maintenance task to align with a different
+  season than that of the start of the weather profile. This is particularly helpful
+  for Northern Hemisphere projects where winter months can cause significant weather
+  delays.
 
 ### Updates
 

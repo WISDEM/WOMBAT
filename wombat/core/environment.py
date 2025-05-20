@@ -98,6 +98,11 @@ class WombatEnvironment(simpy.Environment):
         should be used as a base setting when multiple or all servicing equipment
         will be operating out of the same base location, but can be individually
         modified.
+    maintenance_start : str | datetime.datetime | None
+        Universalized starting date to set the cadence of all maintenance activity that
+        has not been individually set. For instance, this enables maintenance activity
+        to be automatically set to start in clear weather months, rather than timed
+        with the start of a simulation.
     non_operational_start : str | datetime.datetime | None
         The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
         period of prohibited operations. When defined at the environment level,
@@ -147,6 +152,7 @@ class WombatEnvironment(simpy.Environment):
         start_year: int | None = None,
         end_year: int | None = None,
         port_distance: int | float | None = None,
+        maintenance_start: str | dt.datetime | None = None,
         non_operational_start: str | dt.datetime | None = None,
         non_operational_end: str | dt.datetime | None = None,
         reduced_speed_start: str | dt.datetime | None = None,
@@ -181,6 +187,7 @@ class WombatEnvironment(simpy.Environment):
         self.shift_length = self.workday_end - self.workday_start
 
         # Set the environmental consideration parameters
+        self.maintenance_start = parse_date(maintenance_start)
         self.non_operational_start = parse_date(non_operational_start)
         self.non_operational_end = parse_date(non_operational_end)
         self.reduced_speed_start = parse_date(reduced_speed_start)

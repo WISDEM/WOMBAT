@@ -1,6 +1,7 @@
 """Test the API functionality."""
 
 import sys
+import datetime
 
 import pytest
 
@@ -14,6 +15,7 @@ def test_simulation_file_setup():
     """Test that a primarily file-defined simulation initializes correctly."""
     sim = Simulation.from_config(TEST_DATA, "base.yml")
 
+    assert sim.env.maintenance_start == datetime.datetime(2002, 6, 1)
     assert len(sim.service_equipment) == 5
     assert len(sim.windfarm.turbine_id) == 6
     assert len(sim.windfarm.substation_id) == 1
