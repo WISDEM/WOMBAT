@@ -93,7 +93,7 @@ class Cable:
             self.data = SubassemblyData.from_dict(cable_data)
         except Exception as e:
             msg = f"Could not create {self.id}"
-            raise RuntimeError(msg) from e
+            raise ValueError(msg) from e
 
         self.system_name = self.data.name
         self.name = self.data.name if name is None else name
