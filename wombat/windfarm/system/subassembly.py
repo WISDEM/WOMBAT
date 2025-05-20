@@ -53,7 +53,7 @@ class Subassembly:
             self.data = SubassemblyData.from_dict(subassembly_data)
         except Exception as e:
             msg = f"Could not create {s_id} for {self.system.id}"
-            raise RuntimeError(msg) from e
+            raise ValueError(msg) from e
         self.name = self.data.name
 
         self.operating_level = 1.0
