@@ -243,8 +243,11 @@ class ServiceEquipment(RepairsMixin):
             # Ignores for unscheduled maintenace equipment that won't have this input
             pass
 
-        # NOTE: mypy is not caught up with attrs yet :(
-        self.settings = ServiceEquipmentData(data).determine_type()  # type: ignore
+        try:
+            self.settings = ServiceEquipmentData(data).determine_type()  # type: ignore
+        except Exception as e:
+            msg = f"Could not create {data['name']}"
+            raise ValueError(msg) from e
 
         # Register servicing equipment with the repair manager if it is using an
         # unscheduled maintenance scenario, so it can be dispatched as needed
