@@ -88,6 +88,7 @@ class Cable:
             **cable_data,
             "system_value": self.system.value,
             "rng": self.env.random_generator,
+            "maintenance_start": self.env.maintenance_start,
         }
         try:
             self.data = SubassemblyData.from_dict(cable_data)

@@ -356,7 +356,7 @@ def convert_maintenance_list(value: list[dict], self_) -> list[Maintenance]:
     """Converts a list of ``Maintenance`` configuration dictionaries to a list of
     ``Maintenance`` objects.
     """
-    kw = {"system_value": self_.system_value}
+    kw = {"system_value": self_.system_value, "start_date": self_.maintenance_start}
     [el.update(kw) for el in value]
     return [Maintenance.from_dict(el) for el in value]
 
@@ -881,10 +881,14 @@ class SubassemblyData(FromDictMixin):
     system_value : int | float
         Turbine's cost of replacement. Used in case percentages of turbine cost are used
         in place of an absolute cost.
+    maintenance_start : datetime.datetime | None
+        The WombatEnvironment maintenance starting date, which will set the cadence for
+        all maintenance activity this is not otherwise specified.
     """
 
     name: str = field(converter=str)
     system_value: int | float = field(converter=float)
+    maintenance_start: datetime.datetime | None = field()
     rng: np.random._generator.Generator = field(
         validator=attrs.validators.instance_of(np.random._generator.Generator)
     )
