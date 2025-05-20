@@ -283,7 +283,7 @@ class Windfarm:
                 ).km
 
             # Encode whether it is an array cable or an export cable
-            if self.graph.nodes[end_node]["type"] is SystemType.TURBINE:
+            if self.graph.nodes[end_node]["type"] == SystemType.TURBINE:
                 data["type"] = "array"
             else:
                 data["type"] = "export"
