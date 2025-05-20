@@ -85,7 +85,12 @@ class Cable:
             "system_value": self.system.value,
             "rng": self.env.random_generator,
         }
-        self.data = SubassemblyData.from_dict(cable_data)
+        try:
+            self.data = SubassemblyData.from_dict(cable_data)
+        except Exception as e:
+            msg = f"Could not create {self.id}"
+            raise RuntimeError(msg) from e
+
         self.system_name = self.data.name
         self.name = self.data.name if name is None else name
 
