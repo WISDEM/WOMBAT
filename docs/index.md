@@ -63,6 +63,14 @@ pages.
 * On this site: https://wisdem.github.io/WOMBAT/changelog.html
 * On GitHub: https://github.com/WISDEM/WOMBAT/blob/main/CHANGELOG.md
 
+## Part of the WETO Stack
+
+WOMBAT is primarily developed with the support of the U.S. Department of Energy and is part of the [WETO Software Stack](https://nrel.github.io/WETOStack). For more information and other integrated modeling software, see:
+- [Portfolio Overview](https://nrel.github.io/WETOStack/portfolio_analysis/overview.html)
+- [Entry Guide](https://nrel.github.io/WETOStack/_static/entry_guide/index.html)
+- [Techno-Economic Modeling Workshop](https://nrel.github.io/WETOStack/workshops/user_workshops_2024.html#tea-and-cost-modeling)
+- [Systems Engineering Workshop](https://nrel.github.io/WETOStack/workshops/user_workshops_2024.html#systems-engineering)
+
 ## The Model in 30 Seconds Or Less
 
 In general, the model has 2 overarching branches: the wind farm itself (the technology
