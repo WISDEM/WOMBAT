@@ -1970,8 +1970,10 @@ class Metrics:
         # it with the appropriate dimension
         port_fees = self.port_fees(frequency=frequency)
         if frequency != "project" and port_fees.shape == (1, 1):
-            port_fees = pd.DataFrame([], columns=["port_fees"], index=materials.index)
-            port_fees = port_fees.fillna(0)
+            port_fees = pd.DataFrame(
+                [], columns=["port_fees"], index=materials.index, dtype=float
+            )
+            port_fees = port_fees.astype(float).fillna(0)
 
         # Create a list of data frames for the OpEx components
         opex_items = [
