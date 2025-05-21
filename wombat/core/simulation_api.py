@@ -475,6 +475,7 @@ class Simulation(FromDictMixin):
             fixed_costs=self.config.fixed_costs,  # type: ignore
             substation_id=self.windfarm.substation_id.tolist(),
             turbine_id=self.windfarm.turbine_id.tolist(),
+            electrolyzer_id=self.windfarm.electrolyzer_id.tolist(),
             substation_turbine_map=substation_turbine_map,
             service_equipment_names=[*self.service_equipment],  # type: ignore
         )
@@ -501,6 +502,7 @@ class Simulation(FromDictMixin):
             "fixed_costs": self.config.fixed_costs,
             "substation_id": self.windfarm.substation_id.tolist(),
             "turbine_id": self.windfarm.turbine_id.tolist(),
+            "electrolyzer_id": self.windfarm.electrolyzer_id.tolist(),
             "substation_turbine_map": substation_turbine_map,
             "service_equipment_names": [*self.service_equipment],
         }

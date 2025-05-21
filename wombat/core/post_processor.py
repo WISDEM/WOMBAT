@@ -102,6 +102,7 @@ class Metrics:
         turbine_capacities: list[float],
         substation_id: str | list[str],
         turbine_id: str | list[str],
+        electrolyzer_id: str | list[str],
         substation_turbine_map: dict[str, dict[str, list[str]]],
         service_equipment_names: str | list[str],
         fixed_costs: str | None = None,
@@ -136,6 +137,8 @@ class Metrics:
             The substation id(s).
         turbine_id : str | list[str]
             The turbine id(s).
+        electrolyzer_id : str | list[str]
+            The electrolyzer id(s).
         substation_turbine_map : dict[str, dict[str, list[str]]]
             A copy of ``Windfarm.substation_turbine_map``. This is a dictionary mapping
             of the subation IDs (keys) and a nested dictionary of its associated turbine
@@ -173,6 +176,10 @@ class Metrics:
         if isinstance(turbine_id, str):
             turbine_id = [turbine_id]
         self.turbine_id = turbine_id
+
+        if isinstance(electrolyzer_id, str):
+            electrolyzer_id = [electrolyzer_id]
+        self.electrolyzer_id = electrolyzer_id
 
         self.substation_turbine_map = substation_turbine_map
         self.turbine_weights = (
@@ -240,6 +247,7 @@ class Metrics:
             "production",
             "service_equipment_names",
             "turbine_id",
+            "electrolyzer_id",
             "substation_id",
             "fixed_costs",
             "turbine_capacities",
