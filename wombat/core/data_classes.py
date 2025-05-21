@@ -38,7 +38,7 @@ VALID_EQUIPMENT = (
     "TOW",  # Tugboat or support vessel for moving a turbine to a repair facility
     "AHV",  # Anchor handling vessel, typically a tugboat, w/o trigger tow-to-port
     "VSG",  # Vessel support group, any group of vessels required for a single operation
-    "OFF",  # Offsite equipment for interconnection or electrolyzer
+    "OFS",  # Offsite equipment for interconnection or electrolyzer
 )
 
 # Define the valid unscheduled and valid strategies
@@ -63,7 +63,7 @@ class EquipmmentClass(StrEnum):
         "VSG",
         "Vessel support group, any group of vessels required for a single operation",
     )
-    OFF = "OFF", "Offsite equipment for interconnection or electrolyzer"
+    OFS = "OFS", "Offsite equipment for interconnection or electrolyzer"
 
     def __new__(cls, value, description):
         """Define the equipment classification values."""
@@ -640,7 +640,7 @@ class Maintenance(FromDictMixin):
         - TOW: tugboat or towing equipment
         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
         - VSG: vessel support group (group of vessels required for single operation)
-        - OFF: offsite equipment for interconnection or electrolyzer
+        - OFS: offsite equipment for interconnection or electrolyzer
     system_value : Union[int, float]
         Turbine replacement value. Used if the materials cost is a proportional cost.
     description : str
@@ -901,7 +901,7 @@ class Failure(FromDictMixin):
         - TOW: tugboat or towing equipment
         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
         - VSG: vessel support group (group of vessels required for single operation)
-        - OFF: offsite equipment for interconnection or electrolyzer
+        - OFS: offsite equipment for interconnection or electrolyzer
     system_value : Union[int, float]
         Turbine replacement value. Used if the materials cost is a proportional cost.
     replacement : bool
@@ -1391,7 +1391,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         - DSV: diving support vessel
         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
         - VSG: vessel support group (group of vessels required for single operation)
-        - OFF: offsite equipment for interconnection or electrolyzer
+        - OFS: offsite equipment for interconnection or electrolyzer
 
         Please note that "TOW" is unavailable for scheduled servicing equipment
     mobilization_cost : float
@@ -1584,7 +1584,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
         - TOW: tugboat or towing equipment
         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
         - VSG: vessel support group (group of vessels required for single operation)
-        - OFF: offsite equipment for interconnection or electrolyzer
+        - OFS: offsite equipment for interconnection or electrolyzer
     speed : float
         Maximum transit speed, km/hr.
     tow_speed : float
@@ -1884,7 +1884,7 @@ class StrategyMap:
     TOW: list[EquipmentMap] = field(factory=list)
     AHV: list[EquipmentMap] = field(factory=list)
     VSG: list[EquipmentMap] = field(factory=list)
-    OFF: list[EquipmentMap] = field(factory=list)
+    OFS: list[EquipmentMap] = field(factory=list)
     is_running: bool = field(default=False, init=False)
 
     def update(
@@ -1934,8 +1934,8 @@ class StrategyMap:
             self.AHV.append(EquipmentMap(threshold, equipment))  # type: ignore
         elif capability == "VSG":
             self.VSG.append(EquipmentMap(threshold, equipment))  # type: ignore
-        elif capability == "OFF":
-            self.OFF.append(EquipmentMap(threshold, equipment))  # type: ignore
+        elif capability == "OFS":
+            self.OFS.append(EquipmentMap(threshold, equipment))  # type: ignore
         else:
             # This should not even be able to be reached
             raise ValueError(
@@ -1979,8 +1979,8 @@ class StrategyMap:
             return self.AHV
         if capability == "VSG":
             return self.VSG
-        if capability == "OFF":
-            return self.OFF
+        if capability == "OFS":
+            return self.OFS
         # This should not even be able to be reached
         raise ValueError(
             f"Invalid servicing equipmen capability '{capability}' has been provided!"
@@ -2020,8 +2020,8 @@ class StrategyMap:
             self.AHV.append(self.AHV.pop(ix))
         elif capability == "VSG":
             self.VSG.append(self.VSG.pop(ix))
-        elif capability == "OFF":
-            self.OFF.append(self.OFF.pop(ix))
+        elif capability == "OFS":
+            self.OFS.append(self.OFS.pop(ix))
         else:
             # This should not even be able to be reached
             raise ValueError(
