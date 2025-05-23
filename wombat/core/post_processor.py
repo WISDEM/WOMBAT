@@ -446,7 +446,7 @@ class Metrics:
         frequency : str
             One of "project", "annual", "monthly", or "month-year".
         by : str
-            One of "windfarm" or "turbine".
+            One of "windfarm", "turbine", or "electrolyzer".
 
         Returns
         -------
@@ -456,8 +456,10 @@ class Metrics:
         frequency = _check_frequency(frequency, which="all")
 
         by = by.lower().strip()
-        if by not in ("windfarm", "turbine"):
-            raise ValueError('``by`` must be one of "windfarm" or "turbine".')
+        if by not in ("windfarm", "turbine", "electrolyzer"):
+            raise ValueError(
+                '`by` must be one of "windfarm", "turbine", or "electrolyzer".'
+            )
         by_turbine = by == "turbine"
 
         # Determine the operational capacity of each turbine with substation downtime
