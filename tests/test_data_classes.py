@@ -333,6 +333,8 @@ def test_Maintenance_frequency():
         datetime.datetime(2000, 7, 1),
         datetime.datetime(2000, 10, 1),
         datetime.datetime(2001, 1, 1),
+        datetime.datetime(2001, 4, 1),
+        datetime.datetime(2001, 7, 1),
     ]
     current_dt = datetime.datetime(2000, 12, 1)
     expected_dt = datetime.datetime(2001, 1, 1)
@@ -366,6 +368,7 @@ def test_Maintenance_frequency():
     assert cls.event_dates == [
         datetime.datetime(2002, 6, 30),
         datetime.datetime(2006, 6, 30),
+        datetime.datetime(2010, 6, 30),
     ]
 
     # Days and prior start date
@@ -381,6 +384,7 @@ def test_Maintenance_frequency():
         datetime.datetime(2000, 6, 28),
         datetime.datetime(2000, 12, 25),
         datetime.datetime(2001, 6, 23),
+        datetime.datetime(2001, 12, 20),
     ]
 
 
