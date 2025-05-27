@@ -1764,7 +1764,10 @@ class Metrics:
 
         part_group = (
             self.events.loc[
-                self.events.action.str.contains("request")
+                (
+                    self.events.action.eq("repair request")
+                    | self.events.action.eq("maintenance request")
+                )
                 & self.events.request_id.str.startswith(("RPR", "MNT")),
                 ["agent", "reason", "request_id", "system_name"],
             ]
