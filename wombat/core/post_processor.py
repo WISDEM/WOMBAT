@@ -564,8 +564,6 @@ class Metrics:
         time_cols = frequency.group_cols
         group_cols = deepcopy(time_cols)
         group_cols += deepcopy(self.turbine_id) if by_turbine else ["windfarm"]
-        print(time_cols)
-        print(group_cols)
         if frequency is not Frequency.PROJECT:
             production = production[group_cols].groupby(time_cols).sum()
             potential = potential[group_cols].groupby(time_cols).sum()
