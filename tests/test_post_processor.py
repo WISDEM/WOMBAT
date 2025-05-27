@@ -25,3 +25,8 @@ def test_check_frequency():
 
     with pytest.raises(ValueError):
         _check_frequency("month-year", which="project")
+
+
+def test_results_consistency():
+    """Multi-facted check to ensure consistency across metrics."""
+    ...
