@@ -815,13 +815,13 @@ class Metrics:
                 ],
                 axis=1,
             )
-            return costs.fillna(value=0)
+            return costs.fillna(value=0).sort_index()
 
         if frequency is Frequency.PROJECT:
             return pd.DataFrame([events[cost_col].sum()], columns=cost_col)
 
         costs = events[cost_col + col_filter].groupby(col_filter).sum()
-        return costs.fillna(0)
+        return costs.fillna(0).sort_index()
 
     def service_equipment_utilization(self, frequency: str) -> pd.DataFrame:
         """Calculates the utilization rate for each of the service equipment in the
