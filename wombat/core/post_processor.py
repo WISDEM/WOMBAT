@@ -1413,6 +1413,8 @@ class Metrics:
             "transferring crew",
             "traveling",
             "towing",
+            "unmooring",
+            "mooring reconnection",
         ]
         equipment = self.events[self.events[self._equipment_cost] > 0].agent.unique()
         costs = (
@@ -1455,6 +1457,7 @@ class Metrics:
         )
         costs.loc[costs.action == "traveling", "display_reason"] = "Site Travel"
         costs.loc[costs.action == "towing", "display_reason"] = "Towing"
+        costs.loc[costs.action.str.contains("mooring"), "display_reason"] = "Connection"
         costs.loc[costs.action == "mobilization", "display_reason"] = "Mobilization"
         costs.loc[costs.additional.isin(weather_hours), "display_reason"] = (
             "Weather Delay"
