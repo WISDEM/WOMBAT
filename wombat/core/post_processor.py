@@ -1771,6 +1771,7 @@ class Metrics:
                 & self.events.request_id.str.startswith(("RPR", "MNT")),
                 ["agent", "reason", "request_id", "system_name"],
             ]
+            .drop_duplicates(subset=["request_id"], keep="first")
             .groupby(["agent", "reason", "request_id"])
             .count()
             .reset_index(level=["agent", "reason"], drop=False)
