@@ -55,9 +55,10 @@ def test_results_consistency(setup_ttp):
         .sum()
         .convert_dtypes()
     )
-    pdt.assert_frame_equal(
-        equipment, equipment_expected, check_dtype=False, check_index_type=False
-    )
+    with check:
+        pdt.assert_frame_equal(
+            equipment, equipment_expected, check_dtype=False, check_index_type=False
+        )
 
     labor = metrics.labor_costs("project", by_type=True).total_labor_cost.sum()
     labor_expected = ev.total_labor_cost.sum()
@@ -72,11 +73,14 @@ def test_results_consistency(setup_ttp):
         .groupby("equipment_name")
         .sum()
     )
-    pdt.assert_frame_equal(
-        equipment_labor[["equipment_cost"]], equipment_expected, check_dtype=False
-    )
+    eql_subset = equipment_labor.loc[
+        equipment_labor.equipment_cost > 0, ["equipment_cost"]
+    ]
+    eql_subset.index.name = "agent"
+    with check:
+        pdt.assert_frame_equal(eql_subset, equipment_expected, check_dtype=False)
     check.equal(equipment_labor.total_labor_cost.sum(), labor_expected)
 
     opex = metrics.opex("project", by_category=True).convert_dtypes()
-    check.equal(opex.total_labor_cost, labor_expected)
-    check.equal(opex.total_equipment_cost, equipment_expected.equipment_cost.sum())
+    check.equal(opex.total_labor_cost.squeeze(), labor_expected)
+    check.equal(opex.equipment_cost.squeeze(), equipment_expected.equipment_cost.sum())
