@@ -457,6 +457,8 @@ class Simulation(FromDictMixin):
             both set to ``True``.
         """
         self.env.run(until=until)
+        self.env.convert_logs_to_pqt()
+
         if create_metrics:
             self.initialize_metrics()
         if delete_logs:
@@ -474,7 +476,6 @@ class Simulation(FromDictMixin):
         """Instantiates the ``metrics`` attribute after the simulation is run."""
         events = self.env.load_events_log_dataframe()
         operations = self.env.load_operations_log_dataframe()
-        self.env.convert_logs_to_pqt()
         power_potential, power_production = self.env.power_production_potential_to_pqt(
             windfarm=self.windfarm, operations=operations, return_df=True
         )
