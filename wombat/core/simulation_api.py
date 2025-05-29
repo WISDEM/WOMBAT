@@ -456,6 +456,13 @@ class Simulation(FromDictMixin):
             Raised when :py:attr:`delete_log_files` :py:attr:`save_metrics_inputs` are
             both set to ``True``.
         """
+        if delete_logs and save_metrics_inputs:
+            msg = (
+                "Cannot save references to deleted files. Use `delete_logs=False`"
+                " (default option) to save the metrics inputs."
+            )
+            raise ValueError(msg)
+
         self.env.run(until=until)
         self.env.convert_logs_to_pqt()
 
@@ -464,12 +471,6 @@ class Simulation(FromDictMixin):
         if delete_logs:
             self.env.cleanup_log_files()
         if save_metrics_inputs:
-            if delete_logs:
-                msg = (
-                    "Cannot save references to deleted files. Use `delete_logs=False`"
-                    " (default option) to save the metrics inputs."
-                )
-                raise ValueError(msg)
             self.save_metrics_inputs()
 
     def initialize_metrics(self) -> None:
