@@ -12,6 +12,9 @@
   season than that of the start of the weather profile. This is particularly helpful
   for Northern Hemisphere projects where winter months can cause significant weather
   delays.
+- `Simulation.run()` has a new parameter called `delete_logs` (defaults to False) that
+  allows the user to automatically delete the logging files that are created after the
+  `Metrics` object is initialized.
 
 ### Updates
 
@@ -22,6 +25,8 @@
 - Improved cable, subassembly, and servicing equipment error handling to show which of
   the cables, substations, turbines, or vessels produced the intialization error for
   easier input debugging.
+- Post-results log files have been converted from a CSV to Parquet file format for
+  faster I/O and a smaller memory footprint.
 
 ## v0.10.4 (12 May 2025)
 
