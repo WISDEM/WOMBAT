@@ -71,8 +71,11 @@ the results of the tests, including code coverage results, if the tests pass.
 
 ```bash
 # From the top level of the repository
-pytest tests/
+pytest
 ```
+
+Users can also pass `--unit` or `--regression` to run either the unit test or regression
+test suite only.
 
 ### For documentation
 

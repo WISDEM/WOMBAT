@@ -50,10 +50,9 @@ def test_simulation_consolidated_setup():
 def test_metrics_save_load():
     """Tests that the saved metrics data can be reused."""
     sim = Simulation.from_config(TEST_DATA, "base_consolidated.yml")
-    sim.run()
+    sim.run(save_metrics_inputs=True)
 
     metrics = sim.metrics
-    sim.save_metrics_inputs()
 
     metrics_reloaded = Metrics.from_simulation_outputs(
         fpath=TEST_DATA / "results", fname=sim.env.metrics_input_fname

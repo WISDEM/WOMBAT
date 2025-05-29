@@ -114,17 +114,17 @@ class Metrics:
         data_dir : str | Path
             This should be the same as was used for running the analysis.
         events : str | pd.DataFrame
-            Either a pandas ``DataFrame`` or filename to be used to read the csv log
+            Either a pandas ``DataFrame`` or filename to be used to read the .pqt log
             data.
         operations : str | pd.DataFrame
-            Either a pandas ``DataFrame`` or filename to be used to read the csv log
+            Either a pandas ``DataFrame`` or filename to be used to read the .pqt log
             data.
         potential : str | pd.DataFrame
-            Either a pandas ``DataFrame`` or a filename to be used to read the csv
+            Either a pandas ``DataFrame`` or a filename to be used to read the .pqt
             potential power production data.
         production : str | pd.DataFrame
-            Either a pandas ``DataFrame`` or a filename to be used to read the csv power
-            production data.
+            Either a pandas ``DataFrame`` or a filename to be used to read the .pqt
+            power production data.
         inflation_rate : float
             The inflation rate to be applied to all dollar amounts from the analysis
             starting year to ending year.
@@ -328,13 +328,13 @@ class Metrics:
         return metrics
 
     def _tidy_data(self, data: pd.DataFrame) -> pd.DataFrame:
-        """Tidies the "raw" csv-converted data to be able to be used among the
+        """Tidies the "raw" parquet-converted data to be able to be used among the
         ``Metrics`` class.
 
         Parameters
         ----------
         data : pd.DataFrame
-            The csv log data.
+            The tabular log data.
 
         Returns
         -------
@@ -362,51 +362,19 @@ class Metrics:
         return data
 
     def _read_data(self, fname: str) -> pd.DataFrame:
-        """Reads the csv log data from library. This is intended to be used for the
-        events or operations data.
+        """Reads the Parquet log data from library's results folder.
 
         Parameters
         ----------
-        path : str
-            Path to the simulation library.
         fname : str
-            Filename of the csv data.
+            Filename of the parquet data.
 
         Returns
         -------
         pd.DataFrame
             Dataframe of either the events or operations data.
         """
-        if "events" in fname:
-            data = (
-                pd.read_csv(
-                    self.data_dir / "outputs" / "logs" / fname,
-                    delimiter="|",
-                    engine="pyarrow",
-                    dtype={
-                        "agent": "string",
-                        "action": "string",
-                        "reason": "string",
-                        "additional": "string",
-                        "system_id": "string",
-                        "system_name": "string",
-                        "part_id": "string",
-                        "part_name": "string",
-                        "request_id": "string",
-                        "location": "string",
-                    },
-                )
-                .set_index("datetime")
-                .sort_index()
-            )
-            return data
-
-        data = pd.read_csv(
-            self.data_dir / "outputs" / "logs" / fname,
-            delimiter="|",
-            engine="pyarrow",
-        )
-        return data
+        return pd.read_parquet(self.data_dir / "results" / fname)
 
     def _apply_inflation_rate(self, events: pd.DataFrame) -> pd.DataFrame:
         """Adjusts the cost data for compounding inflation.
@@ -574,8 +542,6 @@ class Metrics:
         time_cols = frequency.group_cols
         group_cols = deepcopy(time_cols)
         group_cols += deepcopy(self.turbine_id) if by_turbine else ["windfarm"]
-        print(time_cols)
-        print(group_cols)
         if frequency is not Frequency.PROJECT:
             production = production[group_cols].groupby(time_cols).sum()
             potential = potential[group_cols].groupby(time_cols).sum()
@@ -827,13 +793,13 @@ class Metrics:
                 ],
                 axis=1,
             )
-            return costs.fillna(value=0)
+            return costs.fillna(value=0).sort_index()
 
         if frequency is Frequency.PROJECT:
             return pd.DataFrame([events[cost_col].sum()], columns=cost_col)
 
         costs = events[cost_col + col_filter].groupby(col_filter).sum()
-        return costs.fillna(0)
+        return costs.fillna(0).sort_index()
 
     def service_equipment_utilization(self, frequency: str) -> pd.DataFrame:
         """Calculates the utilization rate for each of the service equipment in the
@@ -1423,6 +1389,8 @@ class Metrics:
             "transferring crew",
             "traveling",
             "towing",
+            "unmooring",
+            "mooring reconnection",
         ]
         equipment = self.events[self.events[self._equipment_cost] > 0].agent.unique()
         costs = (
@@ -1465,6 +1433,7 @@ class Metrics:
         )
         costs.loc[costs.action == "traveling", "display_reason"] = "Site Travel"
         costs.loc[costs.action == "towing", "display_reason"] = "Towing"
+        costs.loc[costs.action.str.contains("mooring"), "display_reason"] = "Connection"
         costs.loc[costs.action == "mobilization", "display_reason"] = "Mobilization"
         costs.loc[costs.additional.isin(weather_hours), "display_reason"] = (
             "Weather Delay"
@@ -1774,10 +1743,14 @@ class Metrics:
 
         part_group = (
             self.events.loc[
-                self.events.action.str.contains("request")
+                (
+                    self.events.action.eq("repair request")
+                    | self.events.action.eq("maintenance request")
+                )
                 & self.events.request_id.str.startswith(("RPR", "MNT")),
                 ["agent", "reason", "request_id", "system_name"],
             ]
+            .drop_duplicates(subset=["request_id"], keep="first")
             .groupby(["agent", "reason", "request_id"])
             .count()
             .reset_index(level=["agent", "reason"], drop=False)

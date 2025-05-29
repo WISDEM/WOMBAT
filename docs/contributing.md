@@ -188,13 +188,19 @@ To run the tests you can use any of the following commands, depending on your ne
 1. All the tests and check for test coverage:
 
    ```bash
-   pytest --cov=WOMBAT
+   pytest
    ```
 
-2. All the tests:
+2. Unit tests only:
 
    ```bash
-   pytest
+   pytest --unit
+   ```
+
+3. Regression tests only:
+
+   ```bash
+   pytest --regression
    ```
 
 (contributing:pull-request)=

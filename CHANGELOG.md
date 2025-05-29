@@ -19,6 +19,9 @@
   season than that of the start of the weather profile. This is particularly helpful
   for Northern Hemisphere projects where winter months can cause significant weather
   delays.
+- `Simulation.run()` has a new parameter called `delete_logs` (defaults to False) that
+  allows the user to automatically delete the logging files that are created after the
+  `Metrics` object is initialized.
 
 ### Updates
 
@@ -28,6 +31,14 @@
 - Improved cable, subassembly, and servicing equipment error handling to show which of
   the cables, substations, turbines, or vessels produced the intialization error for
   easier input debugging.
+- Basic tests are now included for limited set of the `Metrics` class with a focus
+  cost summaries.
+- Tests are now roughly split between unit tests and regression tests, where regression
+  tests focus on event timing checks and results checking. Users can now run
+  `pytest --unit` or `pytest --regression` if a subset of the tests are needing to be
+  run with `pytest` still running the entire test suite.
+- Post-results log files have been converted from a CSV to Parquet file format for
+  faster I/O and a smaller memory footprint.
 
 ## v0.10.4 (12 May 2025)
 

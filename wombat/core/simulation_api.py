@@ -425,6 +425,7 @@ class Simulation(FromDictMixin):
         until: int | float | Event | None = None,
         create_metrics: bool = True,
         save_metrics_inputs: bool = True,
+        delete_logs: bool = False,
     ):
         """Calls ``WombatEnvironment.run()`` and gathers the results for
         post-processing. See ``wombat.simulation.WombatEnvironment.run`` or
@@ -442,18 +443,41 @@ class Simulation(FromDictMixin):
             If True, the metrics inputs data will be saved to a yaml file, with file
             references to any larger data structures that can be reloaded later. If
             False, the data will not be saved, by default True.
+        delete_logs : bool, optional
+            If True, automatically run ``Simulation.env.cleanup_log_files()`` after
+            creating and saving any necessary files. If False, the log files will not
+            be deleted. This method should not be used when
+            :py:attr:`save_metrics_inputs` is ``True`` because the files referenced
+            will be deleted.
+
+        Raises
+        ------
+        ValueError
+            Raised when :py:attr:`delete_log_files` :py:attr:`save_metrics_inputs` are
+            both set to ``True``.
         """
+        if delete_logs and save_metrics_inputs:
+            msg = (
+                "Cannot save references to deleted files. Use `delete_logs=False`"
+                " (default option) to save the metrics inputs."
+            )
+            raise ValueError(msg)
+
         self.env.run(until=until)
-        if save_metrics_inputs:
-            self.save_metrics_inputs()
+        self.env.convert_logs_to_pqt()
+
         if create_metrics:
             self.initialize_metrics()
+        if delete_logs:
+            self.env.cleanup_log_files()
+        if save_metrics_inputs:
+            self.save_metrics_inputs()
 
     def initialize_metrics(self) -> None:
         """Instantiates the ``metrics`` attribute after the simulation is run."""
         events = self.env.load_events_log_dataframe()
         operations = self.env.load_operations_log_dataframe()
-        power_potential, power_production = self.env.power_production_potential_to_csv(
+        power_potential, power_production = self.env.power_production_potential_to_pqt(
             windfarm=self.windfarm, operations=operations, return_df=True
         )
         substation_turbine_map = {

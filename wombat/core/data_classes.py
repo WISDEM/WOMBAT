@@ -809,11 +809,14 @@ class Maintenance(FromDictMixin):
 
         _event_dates = [self.start_date + diff * i for i in range(periods + 2)]
         event_dates = []
+        buffer = False
         for date in _event_dates:
             if date > start:
                 event_dates.append(date)
-                if date >= end:
-                    break
+                if date > end:
+                    if buffer:
+                        break
+                    buffer = True
 
         object.__setattr__(self, "frequency", diff)
         object.__setattr__(self, "event_dates", event_dates)

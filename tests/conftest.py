@@ -7,12 +7,46 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from wombat.core import Metrics, WombatEnvironment
+from wombat.core import Metrics, Simulation, WombatEnvironment
 from wombat.utilities import IEC_power_curve
 from wombat.core.library import load_yaml
 
 
-TEST_DATA = Path(__file__).resolve().parent / "library"
+ROOT = Path(__file__).parent
+TEST_DATA = ROOT / "library"
+
+
+def pytest_addoption(parser):  # noqa: D103
+    parser.addoption(
+        "--unit", action="store_true", default=False, help="run tests in test/unit/."
+    )
+    parser.addoption(
+        "--regression",
+        action="store_true",
+        default=False,
+        help="run tests in test/regression/.",
+    )
+
+
+def pytest_configure(config):  # noqa: D103
+    # Check for the options
+    unit = config.getoption("--unit")
+    regression = config.getoption("--regression")
+
+    # Provide the appropriate directories
+    unit_tests = [el for el in (ROOT / "unit").iterdir() if el.suffix == ".py"]
+    regression_tests = [
+        el for el in (ROOT / "regression").iterdir() if el.suffix == ".py"
+    ]
+
+    # If both, run them all; if neither skip any modifications; otherwise run just the
+    # appropriate subset
+    if regression and unit:
+        config.args = unit_tests + regression_tests
+    elif regression:
+        config.args = regression_tests
+    elif unit:
+        config.args = unit_tests
 
 
 def pytest_assertrepr_compare(op, left, right):
@@ -51,6 +85,14 @@ def env_setup_full_profile():
     )
     yield env
     env.cleanup_log_files()
+
+
+@pytest.fixture
+def setup_ttp():
+    """Create a full weather profile environment with proper teardown."""
+    sim = Simulation("COREWIND", "morro_bay_tow_to_port.yaml", random_seed=2022)
+    yield sim
+    sim.env.cleanup_log_files()
 
 
 SUBSTATION = load_yaml(TEST_DATA / "substations", "offshore_substation.yaml")

@@ -66,6 +66,7 @@ dev = [
     "isort>=5.10",
     "pytest>=7",
     "pytest-cov>=4",
+    "pytest-check",
     "mypy",
     "ruff>=0.2",
     "pyupgrade",
