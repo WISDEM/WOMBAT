@@ -406,15 +406,14 @@ class Metrics:
         """Calculates the time-based availabiliy over a project's lifetime as a single
         value, annual average, or monthly average for the whole windfarm or by turbine.
 
-        .. note:: This currently assumes that if there are multiple substations, that
-          the turbines are all connected to multiple.
-
         Parameters
         ----------
         frequency : str
             One of "project", "annual", "monthly", or "month-year".
         by : str
-            One of "windfarm", "turbine", or "electrolyzer".
+            One of "windfarm", "turbine", or "electrolyzer". Electrolyzer results are
+            not incorporated into the overall wind farm availability levels. As such,
+            only electrolyzer outputs are provided for the electrolyzer.
 
         Returns
         -------
@@ -428,64 +427,42 @@ class Metrics:
             raise ValueError(
                 '`by` must be one of "windfarm", "turbine", or "electrolyzer".'
             )
+
         by_turbine = by == "turbine"
+        by_windfarm = by == "windfarm"
+        by_electrolyzer = by == "electrolyzer"
 
-        # Determine the operational capacity of each turbine with substation downtime
-        operations_cols = ["year", "month", "day", "windfarm"] + self.turbine_id
-        turbine_operations = self.operations[operations_cols].copy()
+        match frequency:
+            case Frequency.PROJECT:
+                time_cols = []
+            case Frequency.ANNUAL:
+                time_cols = ["year"]
+            case Frequency.MONTHLY:
+                time_cols = ["month"]
+            case _:
+                time_cols = ["year", "month"]
 
-        hourly = turbine_operations.loc[:, self.turbine_id]
+        if by_electrolyzer:
+            _id = self.electrolyzer_id
+        elif by_turbine:
+            _id = self.turbine_id
 
-        # TODO: The below should be better summarized as:
-        # (availability > 0).groupby().sum() / groupby().count()
+        if by_windfarm:
+            operations_cols = [*time_cols, *self.turbine_id]
+            operations = self.operations[operations_cols].copy()
+        else:
+            operations_cols = [*time_cols, *_id]
+            operations = self.operations[operations_cols].copy()
 
         if frequency is Frequency.PROJECT:
-            availability = _calculate_time_availability(hourly, by_turbine=by_turbine)
-            if not by_turbine:
-                return pd.DataFrame([availability], columns=["windfarm"])
+            if by_windfarm:
+                availability = pd.DataFrame([operations.values.sum() / operations.size], columns=["windfarm"], index=["time_availability"])
+                return availability
+            return operations.sum(axis=0).to_frame("time availability").T / operations.shape[0]
 
-            if TYPE_CHECKING:
-                assert isinstance(availability, np.ndarray)
-            availability = pd.DataFrame(
-                availability.reshape(1, -1), columns=self.turbine_id
-            )
-            return availability
-        elif frequency is Frequency.ANNUAL:
-            date_time = turbine_operations[["year"]]
-            counts = turbine_operations.groupby(by="year").count()
-            counts = counts[self.turbine_id] if by_turbine else counts[["windfarm"]]
-            annual = [
-                _calculate_time_availability(
-                    hourly[date_time.year == year],
-                    by_turbine=by_turbine,
-                )
-                for year in counts.index
-            ]
-            return pd.DataFrame(annual, index=counts.index, columns=counts.columns)
-        elif frequency is Frequency.MONTHLY:
-            date_time = turbine_operations[["month"]]
-            counts = turbine_operations.groupby(by="month").count()
-            counts = counts[self.turbine_id] if by_turbine else counts[["windfarm"]]
-            monthly = [
-                _calculate_time_availability(
-                    hourly[date_time.month == month],
-                    by_turbine=by_turbine,
-                )
-                for month in counts.index
-            ]
-            return pd.DataFrame(monthly, index=counts.index, columns=counts.columns)
-        elif frequency is Frequency.MONTH_YEAR:
-            date_time = turbine_operations[["year", "month"]]
-            counts = turbine_operations.groupby(by=["year", "month"]).count()
-            counts = counts[self.turbine_id] if by_turbine else counts[["windfarm"]]
-            month_year = [
-                _calculate_time_availability(
-                    hourly[(date_time.year == year) & (date_time.month == month)],
-                    by_turbine=by_turbine,
-                )
-                for year, month in counts.index
-            ]
-            return pd.DataFrame(month_year, index=counts.index, columns=counts.columns)
+        if by_windfarm:
+            return operations.groupby(time_cols).sum().sum(axis=1).to_frame("windfarm") / operations.groupby(time_cols).count().sum(axis=1).to_frame("windfarm")
+        return operations.groupby(time_cols).sum() / operations.groupby(time_cols).count()
 
     def production_based_availability(self, frequency: str, by: str) -> pd.DataFrame:
         """Calculates the production-based availabiliy over a project's lifetime as a
