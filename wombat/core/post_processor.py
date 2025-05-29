@@ -462,18 +462,21 @@ class Metrics:
                     index=["time_availability"],
                 )
                 return availability
-            return (
+            availability = (
                 operations.sum(axis=0).to_frame("time availability").T
                 / operations.shape[0]
             )
+            return availability
 
         if by_windfarm:
-            return operations.groupby(time_cols).sum().sum(axis=1).to_frame(
+            availability = operations.groupby(time_cols).sum().sum(axis=1).to_frame(
                 "windfarm"
             ) / operations.groupby(time_cols).count().sum(axis=1).to_frame("windfarm")
-        return (
+            return availability
+        availability = (
             operations.groupby(time_cols).sum() / operations.groupby(time_cols).count()
         )
+        return availability
 
     def production_based_availability(self, frequency: str, by: str) -> pd.DataFrame:
         """Calculates the production-based availabiliy over a project's lifetime as a
