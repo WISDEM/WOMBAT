@@ -402,7 +402,6 @@ class Metrics:
                 '`by` must be one of "windfarm", "turbine", or "electrolyzer".'
             )
 
-        by_turbine = by == "turbine"
         by_windfarm = by == "windfarm"
         by_electrolyzer = by == "electrolyzer"
 
@@ -418,17 +417,12 @@ class Metrics:
 
         if by_electrolyzer:
             _id = self.electrolyzer_id
-        elif by_turbine:
+        else:
             _id = self.turbine_id
 
-        if by_windfarm:
-            operations_cols = [*time_cols, *self.turbine_id]
-            operations = self.operations[operations_cols].copy()
-        else:
-            operations_cols = [*time_cols, *_id]
-            operations = self.operations[operations_cols].copy()
-
-        operations = operations > 0
+        operations_cols = time_cols + _id
+        operations = self.operations.loc[:, operations_cols]
+        operations.loc[:, _id] = operations[_id] > 0
 
         if frequency is Frequency.PROJECT:
             if by_windfarm:
@@ -439,7 +433,7 @@ class Metrics:
                 )
                 return availability
             availability = (
-                operations.sum(axis=0).to_frame("time availability").T
+                operations.sum(axis=0).to_frame("time_availability").T
                 / operations.shape[0]
             )
             return availability
@@ -455,19 +449,20 @@ class Metrics:
         return availability
 
     def production_based_availability(self, frequency: str, by: str) -> pd.DataFrame:
-        """Calculates the production-based availabiliy over a project's lifetime as a
-        single value, annual average, or monthly average for the whole windfarm or by
-        turbine.
+        """Calculates the production-based availabiliy over a project's lifetime for the
+        wind farm, turbine(s) or electrolyzer(s). Production-based availability is the
+        produced energy divided by the potential energy.
 
-        .. note:: This currently assumes that if there are multiple substations, that
-          the turbines are all connected to multiple.
+        .. note:: There is not currently a power curve model for electrolyzers, so the
+            power potential at each time step is 100%, and the power production is the
+            operational capacity.
 
         Parameters
         ----------
         frequency : str
             One of "project", "annual", "monthly", or "month-year".
         by : str
-            One of "windfarm" or "turbine".
+            One of "windfarm", "turbine", or "electrolyzer".
 
         Returns
         -------
@@ -477,50 +472,68 @@ class Metrics:
         frequency = _check_frequency(frequency, which="all")
 
         by = by.lower().strip()
-        if by not in ("windfarm", "turbine"):
-            raise ValueError('``by`` must be one of "windfarm" or "turbine".')
-        by_turbine = by == "turbine"
+        if by not in ("windfarm", "turbine", "electrolyzer"):
+            raise ValueError(
+                '`by` must be one of "windfarm", "turbine", or "electrolyzer".'
+            )
 
-        if by_turbine:
-            production = self.production.loc[:, self.turbine_id]
-            potential = self.potential.loc[:, self.turbine_id]
+        by_windfarm = by == "windfarm"
+        by_electrolyzer = by == "electrolyzer"
+
+        match frequency:
+            case Frequency.PROJECT:
+                time_cols = []
+            case Frequency.ANNUAL:
+                time_cols = ["year"]
+            case Frequency.MONTHLY:
+                time_cols = ["month"]
+            case _:
+                time_cols = ["year", "month"]
+
+        if by_electrolyzer:
+            operations_cols = time_cols + self.electrolyzer_id
+            production = self.operations.loc[:, operations_cols]
+            potential = production.copy()
+            potential.loc[:, self.electrolyzer_id] = 1.0
         else:
-            production = self.production[["windfarm"]].copy()
-            potential = self.potential[["windfarm"]].copy()
+            operations_cols = time_cols + self.turbine_id
+            production = self.production.loc[:, operations_cols]
+            potential = self.potential.loc[:, operations_cols]
 
         if frequency is Frequency.PROJECT:
-            production = production.values
-            potential = potential.values
-            if (potential == 0).sum() > 0:
-                potential[potential == 0] = 1
+            if by_windfarm:
+                production = production.values.sum()
+                potential = potential.values.sum()
+                potential = 1 if potential == 0 else potential
+                availability = pd.DataFrame(
+                    [production / potential],
+                    columns=["windfarm"],
+                    index=["energy_availability"],
+                )
+                return availability
 
-            availability = production.sum(axis=0) / potential.sum(axis=0)
-            if by_turbine:
-                return pd.DataFrame([availability], columns=self.turbine_id)
-            else:
-                return pd.DataFrame([availability], columns=["windfarm"])
+            production = production.sum(axis=0).to_frame("energy_availability").T
+            potential = (
+                potential.sum(axis=0).to_frame("energy_availability").T.replace(0, 1)
+            )
+            return production / potential
 
-        production["year"] = production.index.year.values
-        production["month"] = production.index.month.values
+        if by_windfarm:
+            potential = (
+                potential.groupby(time_cols)
+                .sum()
+                .sum(axis=1)
+                .to_frame("windfarm")
+                .replace(0, 1)
+            )
+            production = (
+                production.groupby(time_cols).sum().sum(axis=1).to_frame("windfarm")
+            )
+            return production / potential
 
-        potential["year"] = potential.index.year.values
-        potential["month"] = potential.index.month.values
-
-        time_cols = frequency.group_cols
-        group_cols = deepcopy(time_cols)
-        group_cols += deepcopy(self.turbine_id) if by_turbine else ["windfarm"]
-        if frequency is not Frequency.PROJECT:
-            production = production[group_cols].groupby(time_cols).sum()
-            potential = potential[group_cols].groupby(time_cols).sum()
-
-        if (potential.values == 0).sum() > 0:
-            potential.loc[potential.values == 0] = 1
-        columns = self.turbine_id
-        if not by_turbine:
-            production = production.sum(axis=1)
-            potential = potential.sum(axis=1)
-            columns = [by]
-        return pd.DataFrame(production / potential, columns=columns)
+        production = production.groupby(time_cols).sum()
+        potential = potential.groupby(time_cols).sum().replace(0, 1)
+        return production / potential
 
     def capacity_factor(self, which: str, frequency: str, by: str) -> pd.DataFrame:
         """Calculates the capacity factor over a project's lifetime as a single value,
