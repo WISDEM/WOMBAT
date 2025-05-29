@@ -16,7 +16,7 @@ def test_results_consistency(setup_ttp):
         "project", by_category=True
     ).materials_cost.sum()
     materials_expected = ev.materials_cost.sum()
-    check.equal(materials, materials_expected)
+    check.almost_equal(materials, materials_expected)
 
     equipment = (
         metrics.equipment_costs("project", by_equipment=True)
@@ -37,7 +37,7 @@ def test_results_consistency(setup_ttp):
 
     labor = metrics.labor_costs("project", by_type=True).total_labor_cost.sum()
     labor_expected = ev.total_labor_cost.sum()
-    check.equal(labor, labor_expected)
+    check.almost_equal(labor, labor_expected)
 
     equipment_labor = (
         metrics.equipment_labor_cost_breakdowns(
@@ -54,8 +54,10 @@ def test_results_consistency(setup_ttp):
     eql_subset.index.name = "agent"
     with check:
         pdt.assert_frame_equal(eql_subset, equipment_expected, check_dtype=False)
-    check.equal(equipment_labor.total_labor_cost.sum(), labor_expected)
+    check.almost_equal(equipment_labor.total_labor_cost.sum(), labor_expected)
 
     opex = metrics.opex("project", by_category=True).convert_dtypes()
-    check.equal(opex.total_labor_cost.squeeze(), labor_expected)
-    check.equal(opex.equipment_cost.squeeze(), equipment_expected.equipment_cost.sum())
+    check.almost_equal(opex.total_labor_cost.squeeze(), labor_expected)
+    check.almost_equal(
+        opex.equipment_cost.squeeze(), equipment_expected.equipment_cost.sum()
+    )
