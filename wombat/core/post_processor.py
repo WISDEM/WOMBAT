@@ -45,33 +45,6 @@ def _check_frequency(frequency: str, which: str = "all") -> Frequency:
     return frequency
 
 
-def _calculate_time_availability(
-    availability: pd.DataFrame,
-    by_turbine: bool = False,
-) -> float | np.ndarray:
-    """Calculates the availability ratio of the whole timeseries or the whole
-    timeseries, by turbine.
-
-    Parameters
-    ----------
-    availability : pd.DataFrame
-        Timeseries array of operating ratios for all turbines.
-    by_turbine : bool, optional
-        If True, calculates the availability rate of each column, otherwise across the
-        whole array, by default False.
-
-    Returns
-    -------
-    float | np.ndarray
-        Availability ratio across the whole timeseries, or broken out by column
-        (turbine).
-    """
-    availability = availability > 0
-    if by_turbine:
-        return availability.values.sum(axis=0) / availability.shape[0]
-    return availability.values.sum() / availability.size
-
-
 class Metrics:
     """The metric computation class for storing logs and compiling results."""
 
@@ -403,8 +376,9 @@ class Metrics:
         return events
 
     def time_based_availability(self, frequency: str, by: str) -> pd.DataFrame:
-        """Calculates the time-based availabiliy over a project's lifetime as a single
-        value, annual average, or monthly average for the whole windfarm or by turbine.
+        """Calculates the time-based availabiliy over a project's lifetime for the
+        wind farm, turbine(s) or electrolyzer(s). Time-based availability is the
+        proportion of total uptime, regardless of operational capacity.
 
         Parameters
         ----------
@@ -453,6 +427,8 @@ class Metrics:
         else:
             operations_cols = [*time_cols, *_id]
             operations = self.operations[operations_cols].copy()
+
+        operations = operations > 0
 
         if frequency is Frequency.PROJECT:
             if by_windfarm:
