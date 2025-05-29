@@ -456,13 +456,24 @@ class Metrics:
 
         if frequency is Frequency.PROJECT:
             if by_windfarm:
-                availability = pd.DataFrame([operations.values.sum() / operations.size], columns=["windfarm"], index=["time_availability"])
+                availability = pd.DataFrame(
+                    [operations.values.sum() / operations.size],
+                    columns=["windfarm"],
+                    index=["time_availability"],
+                )
                 return availability
-            return operations.sum(axis=0).to_frame("time availability").T / operations.shape[0]
+            return (
+                operations.sum(axis=0).to_frame("time availability").T
+                / operations.shape[0]
+            )
 
         if by_windfarm:
-            return operations.groupby(time_cols).sum().sum(axis=1).to_frame("windfarm") / operations.groupby(time_cols).count().sum(axis=1).to_frame("windfarm")
-        return operations.groupby(time_cols).sum() / operations.groupby(time_cols).count()
+            return operations.groupby(time_cols).sum().sum(axis=1).to_frame(
+                "windfarm"
+            ) / operations.groupby(time_cols).count().sum(axis=1).to_frame("windfarm")
+        return (
+            operations.groupby(time_cols).sum() / operations.groupby(time_cols).count()
+        )
 
     def production_based_availability(self, frequency: str, by: str) -> pd.DataFrame:
         """Calculates the production-based availabiliy over a project's lifetime as a
