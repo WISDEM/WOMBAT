@@ -564,8 +564,6 @@ class Metrics:
         time_cols = frequency.group_cols
         group_cols = deepcopy(time_cols)
         group_cols += deepcopy(self.turbine_id) if by_turbine else ["windfarm"]
-        print(time_cols)
-        print(group_cols)
         if frequency is not Frequency.PROJECT:
             production = production[group_cols].groupby(time_cols).sum()
             potential = potential[group_cols].groupby(time_cols).sum()
@@ -817,13 +815,13 @@ class Metrics:
                 ],
                 axis=1,
             )
-            return costs.fillna(value=0)
+            return costs.fillna(value=0).sort_index()
 
         if frequency is Frequency.PROJECT:
             return pd.DataFrame([events[cost_col].sum()], columns=cost_col)
 
         costs = events[cost_col + col_filter].groupby(col_filter).sum()
-        return costs.fillna(0)
+        return costs.fillna(0).sort_index()
 
     def service_equipment_utilization(self, frequency: str) -> pd.DataFrame:
         """Calculates the utilization rate for each of the service equipment in the
@@ -1767,7 +1765,10 @@ class Metrics:
 
         part_group = (
             self.events.loc[
-                self.events.action.str.contains("request")
+                (
+                    self.events.action.eq("repair request")
+                    | self.events.action.eq("maintenance request")
+                )
                 & self.events.request_id.str.startswith(("RPR", "MNT")),
                 ["agent", "reason", "request_id", "system_name"],
             ]
