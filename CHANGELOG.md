@@ -25,9 +25,19 @@
 
 ### Updates
 
-- `Metrics.component_costs` has been refactored, and now includes two additional breakdowns:
-  - `by_task`: toggles the inclusion of the individual repair and maintenance tasks.
-  - `include_travel`: toggles the inclusion of intrasite and port-to-site travel.
+- `Metrics` improvements and updates
+  - `component_costs()` has been refactored, and now includes two additional breakdowns:
+    - `by_task`: toggles the inclusion of the individual repair and maintenance tasks.
+    - `include_travel`: toggles the inclusion of intrasite and port-to-site travel.
+  - `time_based_availability()`
+    - Additional option for `by="electrolyzer"`.
+    - `by="turbine"` no longer includes the "windfarm" column for results
+  - `production_based_availability()`
+    - Additional option for `by="electrolyzer"`.
+    - `by="turbine"` no longer includes the "windfarm" column for results
+  - `capacity_factor()`
+    - Additional option for `by="electrolyzer"`.
+    - `by="turbine"` no longer includes the "windfarm" column for results
 - Improved cable, subassembly, and servicing equipment error handling to show which of
   the cables, substations, turbines, or vessels produced the intialization error for
   easier input debugging.
