@@ -73,6 +73,7 @@ class Metrics:
         inflation_rate: float,
         project_capacity: float,
         turbine_capacities: list[float],
+        electrolyzer_capacities: list[float],
         substation_id: str | list[str],
         turbine_id: str | list[str],
         electrolyzer_id: str | list[str],
@@ -104,8 +105,11 @@ class Metrics:
         project_capacity : float
             The project's rated capacity, in MW.
         turbine_capacities : Union[float, List[float]]
-            The capacity of each individual turbine corresponding to ``turbine_id``, in
-            kW.
+            The capacity of each individual turbine corresponding to
+            :py:attr`turbine_id`, in kW.
+        electrolyzer_capacities : Union[float, List[float]]
+            The capacity of each individual turbine corresponding to
+            :py:attr:`electrolyzer_id`, in kW.
         substation_id : str | list[str]
             The substation id(s).
         turbine_id : str | list[str]
@@ -168,6 +172,10 @@ class Metrics:
         if isinstance(turbine_capacities, (float, int)):
             turbine_capacities = [turbine_capacities]
         self.turbine_capacities = turbine_capacities
+
+        if isinstance(electrolyzer_capacities, (float, int)):
+            electrolyzer_capacities = [electrolyzer_capacities]
+        self.electrolyzer_capacities = electrolyzer_capacities
 
         if isinstance(events, str):
             events = self._read_data(events)
@@ -405,15 +413,7 @@ class Metrics:
         by_windfarm = by == "windfarm"
         by_electrolyzer = by == "electrolyzer"
 
-        match frequency:
-            case Frequency.PROJECT:
-                time_cols = []
-            case Frequency.ANNUAL:
-                time_cols = ["year"]
-            case Frequency.MONTHLY:
-                time_cols = ["month"]
-            case _:
-                time_cols = ["year", "month"]
+        time_cols = frequency.group_cols
 
         if by_electrolyzer:
             _id = self.electrolyzer_id
@@ -480,15 +480,7 @@ class Metrics:
         by_windfarm = by == "windfarm"
         by_electrolyzer = by == "electrolyzer"
 
-        match frequency:
-            case Frequency.PROJECT:
-                time_cols = []
-            case Frequency.ANNUAL:
-                time_cols = ["year"]
-            case Frequency.MONTHLY:
-                time_cols = ["month"]
-            case _:
-                time_cols = ["year", "month"]
+        time_cols = frequency.group_cols
 
         if by_electrolyzer:
             operations_cols = time_cols + self.electrolyzer_id
@@ -550,7 +542,7 @@ class Metrics:
         frequency : str
             One of "project", "annual", "monthly", or "month-year".
         by : str
-            One of "windfarm" or "turbine".
+            One of "windfarm", "turbine", or "electrolyzer".
 
         Returns
         -------
@@ -562,40 +554,60 @@ class Metrics:
             raise ValueError('``which`` must be one of "net" or "gross".')
 
         frequency = _check_frequency(frequency, which="all")
+        time_cols = frequency.group_cols
 
         by = by.lower().strip()
-        if by not in ("windfarm", "turbine"):
-            raise ValueError('``by`` must be one of "windfarm" or "turbine".')
-        by_turbine = by == "turbine"
+        if by not in ("windfarm", "turbine", "electrolyzer"):
+            raise ValueError(
+                '`by` must be one of "windfarm", "turbine", or "electrolyzer".'
+            )
 
+        by_windfarm = by == "windfarm"
+        by_electrolyzer = by == "electrolyzer"
+
+        if by_electrolyzer:
+            _id = self.electrolyzer_id
+            capacities = self.electrolyzer_capacities
+        else:
+            _id = self.turbine_id
+            capacities = self.turbine_capacities
+
+        cols = time_cols + _id
         production = self.production if which == "net" else self.potential
-        production = production.loc[:, self.turbine_id]
+        production = production.loc[:, cols]
+        capacity = production.copy()
+        capacity.loc[:, _id] = np.full(production.loc[:, _id].shape, capacities)
 
         if frequency is Frequency.PROJECT:
-            if not by_turbine:
-                potential = production.shape[0] * self.project_capacity * 1000.0
-                production = production.values.sum()
-                return pd.DataFrame([production / potential], columns=["windfarm"])
+            name = f"{which}_capacity_factor"
+            if by_windfarm:
+                cf = pd.DataFrame(
+                    [production.values.sum() / capacity.values.sum()],
+                    columns=["windfarm"],
+                    index=[name],
+                )
+                return cf
 
-            potential = production.shape[0] * np.array(self.turbine_capacities)
-            return pd.DataFrame(production.sum(axis=0) / potential).T
+            production = production.sum(axis=0).to_frame(name).T
+            capacity = capacity.sum(axis=0).to_frame(name).T.replace(0, 1)
+            return production / capacity
 
-        production["year"] = production.index.year.values
-        production["month"] = production.index.month.values
+        if by_windfarm:
+            production = (
+                production.groupby(time_cols)
+                .sum()
+                .sum(axis=1)
+                .to_frame("windfarm")
+                .replace(0, 1)
+            )
+            capacity = (
+                capacity.groupby(time_cols).sum().sum(axis=1).to_frame("windfarm")
+            )
+            return production / capacity
 
-        group_cols = frequency.group_cols
-        potential = production[group_cols + self.turbine_id].groupby(group_cols).count()
-        production = production[group_cols + self.turbine_id].groupby(group_cols).sum()
-
-        if by_turbine:
-            capacity = np.array(self.turbine_capacities, dtype=float)
-            columns = self.turbine_id
-            potential *= capacity
-        else:
-            capacity = self.project_capacity
-            production = production.sum(axis=1)
-            columns = [by]
-        return pd.DataFrame(production / potential, columns=columns)
+        production = production.groupby(time_cols).sum()
+        capacity = capacity.groupby(time_cols).sum().replace(0, 1)
+        return production / capacity
 
     def task_completion_rate(self, which: str, frequency: str) -> float | pd.DataFrame:
         """Calculates the task completion rate (including tasks that are canceled after
