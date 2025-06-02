@@ -50,6 +50,8 @@
   run with `pytest` still running the entire test suite.
 - Post-results log files have been converted from a CSV to Parquet file format for
   faster I/O and a smaller memory footprint.
+- Servicing equipment code checking is replaced with a `StrEnum` throughout for more
+  robust and streamlined data validation.
 
 ## v0.10.4 (12 May 2025)
 
