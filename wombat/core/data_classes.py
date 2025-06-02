@@ -298,8 +298,8 @@ def convert_to_list(
     return list(value)
 
 
-convert_to_list_upper = partial(convert_to_list, manipulation=str.upper)
-update_wrapper(convert_to_list_upper, convert_to_list)
+convert_to_equipment_list = partial(convert_to_list, manipulation=EquipmmentClass)
+update_wrapper(convert_to_equipment_list, convert_to_list)
 
 convert_to_list_lower = partial(convert_to_list, manipulation=str.lower)
 update_wrapper(convert_to_list_lower, convert_to_list)
@@ -700,13 +700,7 @@ class Maintenance(FromDictMixin):
     time: float = field(converter=float)
     materials: float = field(converter=float)
     frequency: relativedelta | int = field(converter=int)
-    service_equipment: list[str] = field(
-        converter=convert_to_list_upper,
-        validator=attrs.validators.deep_iterable(
-            member_validator=attrs.validators.in_(EquipmmentClass.types()),
-            iterable_validator=attrs.validators.instance_of(list),
-        ),
-    )
+    service_equipment: list[str] = field(converter=convert_to_equipment_list)
     system_value: int | float = field(converter=float)
     description: str = field(default="routine maintenance", converter=str)
     frequency_basis: str = field(
@@ -939,13 +933,7 @@ class Failure(FromDictMixin):
     materials: float = field(converter=float)
     operation_reduction: float = field(converter=float)
     level: int = field(converter=int)
-    service_equipment: list[str] | str = field(
-        converter=convert_to_list_upper,
-        validator=attrs.validators.deep_iterable(
-            member_validator=attrs.validators.in_(EquipmmentClass.types()),
-            iterable_validator=attrs.validators.instance_of(list),
-        ),
-    )
+    service_equipment: list[str] | str = field(converter=convert_to_equipment_list)
     system_value: int | float = field(converter=float)
     rng: np.random._generator.Generator = field(
         eq=False,
@@ -1475,13 +1463,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     equipment_rate: float = field(converter=float)
     n_crews: int = field(converter=int)
     crew: ServiceCrew = field(converter=ServiceCrew.from_dict)
-    capability: list[str] = field(
-        converter=convert_to_list_upper,
-        validator=attrs.validators.deep_iterable(
-            member_validator=attrs.validators.in_(EquipmmentClass.types()),
-            iterable_validator=attrs.validators.instance_of(list),
-        ),
-    )
+    capability: list[str] = field(converter=convert_to_equipment_list)
     speed: float = field(converter=float, validator=attrs.validators.gt(0))
     max_windspeed_transport: float = field(converter=float)
     max_windspeed_repair: float = field(converter=float)
@@ -1696,13 +1678,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     equipment_rate: float = field(converter=float)
     n_crews: int = field(converter=int)
     crew: ServiceCrew = field(converter=ServiceCrew.from_dict)
-    capability: list[str] = field(
-        converter=convert_to_list_upper,
-        validator=attrs.validators.deep_iterable(
-            member_validator=attrs.validators.in_(EquipmmentClass.types()),
-            iterable_validator=attrs.validators.instance_of(list),
-        ),
-    )
+    capability: list[str] = field(converter=convert_to_equipment_list)
     speed: float = field(converter=float, validator=attrs.validators.gt(0))
     max_windspeed_transport: float = field(converter=float)
     max_windspeed_repair: float = field(converter=float)
