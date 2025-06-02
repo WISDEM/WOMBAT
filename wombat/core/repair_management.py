@@ -15,6 +15,7 @@ from wombat.core import (
     Maintenance,
     StrategyMap,
     RepairRequest,
+    EquipmmentClass,
     WombatEnvironment,
     UnscheduledServiceEquipmentData,
 )
@@ -190,7 +191,7 @@ class RepairManager(FilterStore):
 
         # Port-based servicing equipment should be handled by the port and does not
         # have an operating reduction threshold to meet at this time
-        if "TOW" in request.details.service_equipment:
+        if EquipmmentClass.TOW in request.details.service_equipment:
             if request.system_id not in self.port.invalid_systems:
                 system = self.windfarm.system(request.system_id)
                 yield system.servicing_queue & system.servicing
@@ -253,7 +254,7 @@ class RepairManager(FilterStore):
 
         # Port-based servicing equipment should be handled by the port and does not have
         # a requests-based threshold to meet at this time
-        if "TOW" in request.details.service_equipment:
+        if EquipmmentClass.TOW in request.details.service_equipment:
             if request.system_id not in self.port.invalid_systems:
                 self.systems_waiting_for_tow.append(request.system_id)
                 system = self.windfarm.system(request.system_id)
@@ -718,7 +719,9 @@ class RepairManager(FilterStore):
         # unless a separate subassembly required the tow
         if sid in self.systems_waiting_for_tow:
             other_subassembly_match = [
-                r for r in system_requests if "TOW" in r.details.service_equipment
+                r
+                for r in system_requests
+                if EquipmmentClass.TOW in r.details.service_equipment
             ]
             if sid not in self.systems_in_tow and other_subassembly_match == []:
                 _ = self.systems_waiting_for_tow.pop(

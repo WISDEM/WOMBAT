@@ -25,7 +25,12 @@ from wombat.core.mixins import RepairsMixin
 from wombat.core.library import load_yaml
 from wombat.utilities.time import hours_until_future_hour
 from wombat.core.environment import WombatEnvironment
-from wombat.core.data_classes import PortConfig, Maintenance, RepairRequest
+from wombat.core.data_classes import (
+    PortConfig,
+    Maintenance,
+    RepairRequest,
+    EquipmmentClass,
+)
 from wombat.core.repair_management import RepairManager
 from wombat.core.service_equipment import ServiceEquipment
 
@@ -419,7 +424,7 @@ class Port(RepairsMixin, FilterStore):
         tugboat = yield self.service_equipment_manager.get(
             lambda x: x.at_port
             and (not x.dispatched)
-            and "TOW" in x.settings.capability
+            and EquipmmentClass.TOW in x.settings.capability
         )
 
         # Check that there is enough time to complete towing, connection, and repairs
@@ -462,7 +467,7 @@ class Port(RepairsMixin, FilterStore):
         tugboat = yield self.service_equipment_manager.get(
             lambda x: x.at_port
             and (not x.dispatched)
-            and "TOW" in x.settings.capability
+            and EquipmmentClass.TOW in x.settings.capability
         )
         self.turbine_manager.release(turbine_request)
         self.subassembly_resets[system_id] = list(
@@ -525,7 +530,7 @@ class Port(RepairsMixin, FilterStore):
         vessel = yield self.service_equipment_manager.get(
             lambda x: x.at_port
             and (not x.dispatched)
-            and x.settings.capability != ["TOW"]
+            and x.settings.capability != [EquipmmentClass.TOW]
         )
         if TYPE_CHECKING:
             assert isinstance(vessel, ServiceEquipment)
