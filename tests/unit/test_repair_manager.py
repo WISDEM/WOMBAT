@@ -5,10 +5,10 @@ import pytest
 
 from wombat.core.library import load_yaml
 from wombat.core.data_classes import (
-    VALID_EQUIPMENT,
     StrategyMap,
     EquipmentMap,
     RepairRequest,
+    EquipmentClass,
     ServiceEquipmentData,
 )
 from wombat.windfarm.windfarm import Windfarm
@@ -201,7 +201,7 @@ def test_get_requests(env_setup):
     env = env_setup
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout_single_subassembly.csv", manager)
-    capability_list = VALID_EQUIPMENT
+    capability_list = EquipmentClass.types()
     turbine1 = windfarm.system("WTG001")
     turbine2 = windfarm.system("WTG002")
     turbine3 = windfarm.system("WTG003")

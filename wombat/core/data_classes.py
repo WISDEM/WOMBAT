@@ -30,7 +30,7 @@ UNSCHEDULED_STRATEGIES = ("requests", "downtime")
 VALID_STRATEGIES = tuple(["scheduled"] + list(UNSCHEDULED_STRATEGIES))
 
 
-class EquipmmentClass(StrEnum):
+class EquipmentClass(StrEnum):
     """Servicing equipment classification and validation."""
 
     CTV = "CTV", "Crew Transfer Vessel/Vehicle"
@@ -62,14 +62,14 @@ class EquipmmentClass(StrEnum):
 
         Returns
         -------
-        EquipmmentClass
-            If string cleanup is successful, a :py:class:`EquipmmentClass` is returned.
+        EquipmentClass
+            If string cleanup is successful, a :py:class:`EquipmentClass` is returned.
 
         Raises
         ------
         ValueError
             Raised if :py:attr:`value` could not be found in
-            :py:class:`EquipmmentClass`.
+            :py:class:`EquipmentClass`.
         """
         value = value.upper().strip()
         for member in cls:
@@ -82,10 +82,10 @@ class EquipmmentClass(StrEnum):
     @staticmethod
     def types() -> list[str]:
         """Generate a list of the valid input strings."""
-        return [*EquipmmentClass._value2member_map_]
+        return [*EquipmentClass._value2member_map_]
 
     @classmethod
-    def assign(cls, equipment: str) -> EquipmmentClass:
+    def assign(cls, equipment: str) -> EquipmentClass:
         """Create a new ``EquipmentClass`` object from the :py:attr:`eqipment` string.
 
         Parameters
@@ -298,7 +298,7 @@ def convert_to_list(
     return list(value)
 
 
-convert_to_equipment_list = partial(convert_to_list, manipulation=EquipmmentClass)
+convert_to_equipment_list = partial(convert_to_list, manipulation=EquipmentClass)
 update_wrapper(convert_to_equipment_list, convert_to_list)
 
 convert_to_list_lower = partial(convert_to_list, manipulation=str.lower)
@@ -1903,34 +1903,34 @@ class StrategyMap:
             be reached.
         """
         match capability:
-            case EquipmmentClass.CTV:
+            case EquipmentClass.CTV:
                 self.CTV.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
-            case EquipmmentClass.SCN:
+            case EquipmentClass.SCN:
                 self.SCN.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
-            case EquipmmentClass.MCN:
+            case EquipmentClass.MCN:
                 self.MCN.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
-            case EquipmmentClass.LCN:
+            case EquipmentClass.LCN:
                 self.LCN.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
-            case EquipmmentClass.CAB:
+            case EquipmentClass.CAB:
                 self.CAB.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
-            case EquipmmentClass.RMT:
+            case EquipmentClass.RMT:
                 self.RMT.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
-            case EquipmmentClass.DRN:
+            case EquipmentClass.DRN:
                 self.DRN.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
-            case EquipmmentClass.DSV:
+            case EquipmentClass.DSV:
                 self.DSV.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
-            case EquipmmentClass.TOW:
+            case EquipmentClass.TOW:
                 self.TOW.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
-            case EquipmmentClass.AHV:
+            case EquipmentClass.AHV:
                 self.AHV.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
-            case EquipmmentClass.VSG:
+            case EquipmentClass.VSG:
                 self.VSG.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
-            case EquipmmentClass.OFS:
+            case EquipmentClass.OFS:
                 self.OFS.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
             case _:
                 msg = (
                     f"Invalid servicing equipment '{capability}' has been provided,"
-                    f" must be one of {EquipmmentClass.types()}."
+                    f" must be one of {EquipmentClass.types()}."
                 )
                 raise ValueError(msg)
         self.is_running = True
@@ -1950,34 +1950,34 @@ class StrategyMap:
             Returns the matching mapping of available servicing equipment.
         """
         match capability:
-            case EquipmmentClass.CTV:
+            case EquipmentClass.CTV:
                 return self.CTV
-            case EquipmmentClass.SCN:
+            case EquipmentClass.SCN:
                 return self.SCN
-            case EquipmmentClass.MCN:
+            case EquipmentClass.MCN:
                 return self.MCN
-            case EquipmmentClass.LCN:
+            case EquipmentClass.LCN:
                 return self.LCN
-            case EquipmmentClass.CAB:
+            case EquipmentClass.CAB:
                 return self.CAB
-            case EquipmmentClass.RMT:
+            case EquipmentClass.RMT:
                 return self.RMT
-            case EquipmmentClass.DRN:
+            case EquipmentClass.DRN:
                 return self.DRN
-            case EquipmmentClass.DSV:
+            case EquipmentClass.DSV:
                 return self.DSV
-            case EquipmmentClass.TOW:
+            case EquipmentClass.TOW:
                 return self.TOW
-            case EquipmmentClass.AHV:
+            case EquipmentClass.AHV:
                 return self.AHV
-            case EquipmmentClass.VSG:
+            case EquipmentClass.VSG:
                 return self.VSG
-            case EquipmmentClass.OFS:
+            case EquipmentClass.OFS:
                 return self.OFS
             case _:
                 msg = (
                     f"Invalid servicing equipment '{capability}' has been provided,"
-                    f" must be one of {EquipmmentClass.types()}."
+                    f" must be one of {EquipmentClass.types()}."
                 )
                 raise ValueError(msg)
 
@@ -1994,34 +1994,34 @@ class StrategyMap:
             The index of the used servicing equipent.
         """
         match capability:
-            case EquipmmentClass.CTV:
+            case EquipmentClass.CTV:
                 self.CTV.append(self.CTV.pop(ix))
-            case EquipmmentClass.SCN:
+            case EquipmentClass.SCN:
                 self.SCN.append(self.SCN.pop(ix))
-            case EquipmmentClass.MCN:
+            case EquipmentClass.MCN:
                 self.LCN.append(self.MCN.pop(ix))
-            case EquipmmentClass.LCN:
+            case EquipmentClass.LCN:
                 self.LCN.append(self.LCN.pop(ix))
-            case EquipmmentClass.CAB:
+            case EquipmentClass.CAB:
                 self.CAB.append(self.CAB.pop(ix))
-            case EquipmmentClass.RMT:
+            case EquipmentClass.RMT:
                 self.RMT.append(self.RMT.pop(ix))
-            case EquipmmentClass.DRN:
+            case EquipmentClass.DRN:
                 self.DRN.append(self.DRN.pop(ix))
-            case EquipmmentClass.DSV:
+            case EquipmentClass.DSV:
                 self.DSV.append(self.DSV.pop(ix))
-            case EquipmmentClass.TOW:
+            case EquipmentClass.TOW:
                 self.TOW.append(self.TOW.pop(ix))
-            case EquipmmentClass.AHV:
+            case EquipmentClass.AHV:
                 self.AHV.append(self.AHV.pop(ix))
-            case EquipmmentClass.VSG:
+            case EquipmentClass.VSG:
                 self.VSG.append(self.VSG.pop(ix))
-            case EquipmmentClass.OFS:
+            case EquipmentClass.OFS:
                 self.OFS.append(self.OFS.pop(ix))
             case _:
                 msg = (
                     f"Invalid servicing equipment '{capability}' has been provided,"
-                    f" must be one of {EquipmmentClass.types()}."
+                    f" must be one of {EquipmentClass.types()}."
                 )
                 raise ValueError(msg)
 
