@@ -160,10 +160,14 @@ def test_register_request_and_submit_request_and_get_request(env_setup):
 
     # Get the failure request back to ensure it's still the same object
     # NOTE: this will also purge it from the system
-    retrieved_request = manager.get_request_by_system(["CTV"], system_id=turbine.id)
+    retrieved_request = manager.get_request_by_system(
+        [EquipmentClass.CTV], system_id=turbine.id
+    )
     assert retrieved_request.value == repair_request_failure
 
-    retrieved_request = manager.get_request_by_system(["CTV"], system_id=turbine.id)
+    retrieved_request = manager.get_request_by_system(
+        [EquipmentClass.CTV], system_id=turbine.id
+    )
     assert retrieved_request.value is repair_request_maintenance
 
     assert manager.items == []
@@ -181,7 +185,11 @@ def test_request_map(env_setup):
     assert manager.request_map == {}
 
     # Test that all the failures and maintenance tasks are registered correctly
-    correct_request_map = {"CTV": 4, "SCN": 1, "LCN": 1}
+    correct_request_map = {
+        EquipmentClass("CTV"): 4,
+        EquipmentClass("SCN"): 1,
+        EquipmentClass("LCN"): 1,
+    }
     # Submit a request for all of the maintenance and failure objects in the generator
     for repair in generator.data.maintenance + generator.data.failures:
         repair_request = RepairRequest(
@@ -201,7 +209,7 @@ def test_get_requests(env_setup):
     env = env_setup
     manager = RepairManager(env)
     windfarm = Windfarm(env, "layout_single_subassembly.csv", manager)
-    capability_list = EquipmentClass.types()
+    capability_list = [*EquipmentClass]
     turbine1 = windfarm.system("WTG001")
     turbine2 = windfarm.system("WTG002")
     turbine3 = windfarm.system("WTG003")
@@ -324,7 +332,7 @@ def test_get_requests(env_setup):
     assert request is None
     manager.enable_requests_for_system(turbine2)
 
-    request = manager.get_request_by_system(["CTV"], turbine2.id)
+    request = manager.get_request_by_system([EquipmentClass.CTV], turbine2.id)
     manager.invalidate_system(turbine2)
     manager.interrupt_system(turbine2)
     assert request.value == annual_reset2
