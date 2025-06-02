@@ -56,6 +56,14 @@ class EquipmentClass(StrEnum):
         obj.description = description  # type: ignore
         return obj
 
+    def __eq__(self, other):
+        """Equality test between the self and another."""
+        return self.value == other.value
+
+    def __hash__(self):
+        """Creates a hash of the instance's value."""
+        return hash(self.value)
+
     @classmethod
     def _missing_(cls, value: str):  # type: ignore[override]
         """Correct inconsistent casing, remove white space, and reattempt creation.
@@ -949,11 +957,6 @@ class Failure(FromDictMixin):
         """
         object.__setattr__(
             self,
-            "service_equipment",
-            convert_to_list(self.service_equipment, str.upper),
-        )
-        object.__setattr__(
-            self,
             "materials",
             convert_ratio_to_absolute(self.materials, self.system_value),
         )
@@ -1463,7 +1466,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     equipment_rate: float = field(converter=float)
     n_crews: int = field(converter=int)
     crew: ServiceCrew = field(converter=ServiceCrew.from_dict)
-    capability: list[str] = field(converter=convert_to_equipment_list)
+    capability: list[EquipmentClass] = field(converter=convert_to_equipment_list)
     speed: float = field(converter=float, validator=attrs.validators.gt(0))
     max_windspeed_transport: float = field(converter=float)
     max_windspeed_repair: float = field(converter=float)
@@ -1678,7 +1681,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     equipment_rate: float = field(converter=float)
     n_crews: int = field(converter=int)
     crew: ServiceCrew = field(converter=ServiceCrew.from_dict)
-    capability: list[str] = field(converter=convert_to_equipment_list)
+    capability: list[EquipmentClass] = field(converter=convert_to_equipment_list)
     speed: float = field(converter=float, validator=attrs.validators.gt(0))
     max_windspeed_transport: float = field(converter=float)
     max_windspeed_repair: float = field(converter=float)
@@ -1880,7 +1883,7 @@ class StrategyMap:
 
     def update(
         self,
-        capability: str,
+        capability: EquipmentClass,
         threshold: int | float,
         equipment: ServiceEquipment,  # noqa: F821
     ) -> None:
@@ -1889,8 +1892,8 @@ class StrategyMap:
 
         Parameters
         ----------
-        capability : str
-            The ``equipment``'s capability.
+        capability : ServiceEquipment
+            The :py:attr:`equipment`'s capability.
         threshold : int | float
             The threshold for ``equipment``'s strategy.
         equipment : ServiceEquipment
@@ -1898,10 +1901,14 @@ class StrategyMap:
 
         Raises
         ------
+        TypeError
+            Raised if :py:attr:`caability` is not an ``EquipmentClass`.
         ValueError
             Raised if there is an invalid capability, though this shouldn't be able to
             be reached.
         """
+        if not isinstance(capability, EquipmentClass):
+            raise TypeError("`StrategyMap.update()` only takes a single capability.")
         match capability:
             case EquipmentClass.CTV:
                 self.CTV.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
