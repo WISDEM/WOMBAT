@@ -383,7 +383,7 @@ class RepairManager(FilterStore):
             self.env.process(self._run_equipment_requests(request))
 
     def get_request_by_system(
-        self, equipment_capability: list[str], system_id: str | None = None
+        self, equipment_capability: list[EquipmentClass], system_id: str | None = None
     ) -> FilterStoreGet | None:
         """Gets all repair requests for a certain turbine with given a sequence of
         ``equipment_capability`` as long as it isn't registered as unable to be
@@ -391,7 +391,7 @@ class RepairManager(FilterStore):
 
         Parameters
         ----------
-        equipment_capability : list[str]
+        equipment_capability : list[EquipmentClass]
             The capability of the servicing equipment requesting repairs to process.
         system_id : Optional[str], optional
             ID of the turbine or OSS; should correspond to ``System.id``, by default
@@ -442,7 +442,7 @@ class RepairManager(FilterStore):
 
     def get_request_by_severity(
         self,
-        equipment_capability: list[str] | set[str],
+        equipment_capability: list[EquipmentClass] | set[EquipmentClass],
         severity_level: int | None = None,
     ) -> FilterStoreGet | None:
         """Gets the next repair request by ``severity_level``.
