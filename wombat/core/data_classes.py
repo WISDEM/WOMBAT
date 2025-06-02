@@ -25,22 +25,6 @@ if TYPE_CHECKING:
     from wombat.core import ServiceEquipment
 
 
-# Define the valid servicing equipment types
-VALID_EQUIPMENT = (
-    "CTV",  # Crew tranfer vessel or onsite vehicle
-    "SCN",  # Small crane
-    "MCN",  # Medium crane
-    "LCN",  # Large crane
-    "CAB",  # Cabling equipment
-    "RMT",  # Remote reset or anything performed remotely
-    "DRN",  # Drone
-    "DSV",  # Diving support vessel
-    "TOW",  # Tugboat or support vessel for moving a turbine to a repair facility
-    "AHV",  # Anchor handling vessel, typically a tugboat, w/o trigger tow-to-port
-    "VSG",  # Vessel support group, any group of vessels required for a single operation
-    "OFS",  # Offsite equipment for interconnection or electrolyzer
-)
-
 # Define the valid unscheduled and valid strategies
 UNSCHEDULED_STRATEGIES = ("requests", "downtime")
 VALID_STRATEGIES = tuple(["scheduled"] + list(UNSCHEDULED_STRATEGIES))
@@ -71,6 +55,34 @@ class EquipmmentClass(StrEnum):
         obj._value_ = value
         obj.description = description  # type: ignore
         return obj
+
+    @classmethod
+    def _missing_(cls, value: str):  # type: ignore[override]
+        """Correct inconsistent casing, word separators, remove white space, and
+        reattempt creation.
+
+        Returns
+        -------
+        Frequency
+            If string cleanup is successful, a :py:class:`Frequency` is returned.
+
+        Raises
+        ------
+        ValueError
+            Raised if :py:attr:`value` could not be found in :py:class:`Frequency`.
+        """
+        value = value.upper().strip()
+        for member in cls:
+            if member.value == value:
+                return member
+        types = cls.types()
+        types.pop(-1)  # ensure "all" is not given as a valid user input
+        raise ValueError(f"`frequency` must be one of: {types}")
+
+    @staticmethod
+    def types() -> list[str]:
+        """Generate a list of the valid input strings."""
+        return [*EquipmmentClass._value2member_map_]
 
     @classmethod
     def assign(cls, equipment: str) -> EquipmmentClass:
@@ -691,7 +703,7 @@ class Maintenance(FromDictMixin):
     service_equipment: list[str] = field(
         converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
-            member_validator=attrs.validators.in_(VALID_EQUIPMENT),
+            member_validator=attrs.validators.in_(EquipmmentClass.types()),
             iterable_validator=attrs.validators.instance_of(list),
         ),
     )
@@ -930,7 +942,7 @@ class Failure(FromDictMixin):
     service_equipment: list[str] | str = field(
         converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
-            member_validator=attrs.validators.in_(VALID_EQUIPMENT),
+            member_validator=attrs.validators.in_(EquipmmentClass.types()),
             iterable_validator=attrs.validators.instance_of(list),
         ),
     )
@@ -1466,7 +1478,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     capability: list[str] = field(
         converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
-            member_validator=attrs.validators.in_(VALID_EQUIPMENT),
+            member_validator=attrs.validators.in_(EquipmmentClass.types()),
             iterable_validator=attrs.validators.instance_of(list),
         ),
     )
@@ -1687,7 +1699,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     capability: list[str] = field(
         converter=convert_to_list_upper,
         validator=attrs.validators.deep_iterable(
-            member_validator=attrs.validators.in_(VALID_EQUIPMENT),
+            member_validator=attrs.validators.in_(EquipmmentClass.types()),
             iterable_validator=attrs.validators.instance_of(list),
         ),
     )
