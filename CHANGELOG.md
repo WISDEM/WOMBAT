@@ -10,7 +10,8 @@
 ### Features
 
 - Electrolyzers are now an included system model. They act similarly to a substation,
-  but should be upstream from the substations in the layout model.
+  but should be upstream from the substations in the layout model. Unlike turbine's
+  an electrolyzer will only connect to the substation as a downstream system.
 - `Metrics.dispatch_summary` is now available to provide the number of mobilizations and average
   charter period across the whole project, or broken down by year and month, as requested.
 - Universalized maintenance starting dates are now able to be set through the primary
