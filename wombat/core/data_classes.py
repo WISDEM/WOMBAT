@@ -58,18 +58,18 @@ class EquipmmentClass(StrEnum):
 
     @classmethod
     def _missing_(cls, value: str):  # type: ignore[override]
-        """Correct inconsistent casing, word separators, remove white space, and
-        reattempt creation.
+        """Correct inconsistent casing, remove white space, and reattempt creation.
 
         Returns
         -------
-        Frequency
-            If string cleanup is successful, a :py:class:`Frequency` is returned.
+        EquipmmentClass
+            If string cleanup is successful, a :py:class:`EquipmmentClass` is returned.
 
         Raises
         ------
         ValueError
-            Raised if :py:attr:`value` could not be found in :py:class:`Frequency`.
+            Raised if :py:attr:`value` could not be found in
+            :py:class:`EquipmmentClass`.
         """
         value = value.upper().strip()
         for member in cls:
