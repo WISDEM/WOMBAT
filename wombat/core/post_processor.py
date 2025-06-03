@@ -2094,6 +2094,75 @@ class Metrics:
         # Return only the categorically summed data
         return timing.groupby("category").sum().sort_index()
 
+    def request_summary(self) -> pd.DataFrame:
+        """Calculate the number of repair and maintenance requets that have been
+        submitted, cancelled, and completed.
+
+        Returns
+        -------
+        pd.DataFrame
+            Data frame with a :py:class`pandas.MultiIndex` of the subassembly and
+            task description, with columns "total_request", "canceled_request", and
+            "completed_requests".
+        """
+        canceled_requests = self.events.loc[
+            self.events.action.isin(("repair canceled", "maintenance canceled")),
+            "request_id",
+        ]
+        summary = (
+            self.events.loc[
+                self.events.action.isin(("repair request", "maintenance request")),
+                ["part_name", "reason", "request_id"],
+            ]
+            .rename(
+                columns={
+                    "part_name": "subassembly",
+                    "reason": "task",
+                    "request_id": "total requests",
+                }
+            )
+            .groupby(["subassembly", "task"])
+            .count()
+            .join(
+                self.events.loc[
+                    self.events.action.isin(("repair request", "maintenance request"))
+                    & self.events.request_id.isin(canceled_requests),
+                    ["part_name", "reason", "request_id"],
+                ]
+                .rename(
+                    columns={
+                        "part_name": "subassembly",
+                        "reason": "task",
+                        "request_id": "canceled requests",
+                    }
+                )
+                .groupby(["subassembly", "task"])
+                .count(),
+                how="left",
+            )
+            .join(
+                self.events.loc[
+                    self.events.action.isin(
+                        ("repair complete", "maintenance complete")
+                    ),
+                    ["part_name", "reason", "request_id"],
+                ]
+                .rename(
+                    columns={
+                        "part_name": "subassembly",
+                        "reason": "task",
+                        "request_id": "completed requests",
+                    }
+                )
+                .groupby(["subassembly", "task"])
+                .count(),
+                how="left",
+            )
+            .fillna(0)
+            .astype(int)
+        )
+        return summary
+
     def power_production(
         self, frequency: str, by: str = "windfarm", units: str = "gwh"
     ) -> float | pd.DataFrame:
