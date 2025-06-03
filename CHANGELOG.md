@@ -35,6 +35,8 @@
   faster I/O and a smaller memory footprint.
 - Fixes a bug in `Metrics.process_times()` where canceled requests are counted towards
   the event timing and count.
+- `Metrics.process_times` has a new flag `include_incompletes` to either summarize all
+  maintenance activity (`False`) or only the completed maintenance activity (`True`).
 
 ## v0.10.4 (12 May 2025)
 
