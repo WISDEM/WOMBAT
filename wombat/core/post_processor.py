@@ -1978,7 +1978,14 @@ class Metrics:
          - downtime: total number of hours where the operations were below 100%.
          - N: total number of processes in the category.
         """
-        events_valid = self.events.loc[self.events.request_id != "na"]
+        canceled_requests = self.events.loc[
+            ~self.events.action.isin(("repair canceled", "maintenance canceled")),
+            "request_id",
+        ]
+        events_valid = self.events.loc[
+            self.events.request_id
+            != "na" & ~self.events.request_id.isin(canceled_requests)
+        ]
 
         # Summarize all the requests data
         request_df = (
