@@ -1979,12 +1979,12 @@ class Metrics:
          - N: total number of processes in the category.
         """
         canceled_requests = self.events.loc[
-            ~self.events.action.isin(("repair canceled", "maintenance canceled")),
+            self.events.action.isin(("repair canceled", "maintenance canceled")),
             "request_id",
         ]
         events_valid = self.events.loc[
-            self.events.request_id
-            != "na" & ~self.events.request_id.isin(canceled_requests)
+            self.events.request_id.ne("na")
+            & ~self.events.request_id.isin(canceled_requests)
         ]
 
         # Summarize all the requests data
