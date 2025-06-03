@@ -33,6 +33,8 @@
   run with `pytest` still running the entire test suite.
 - Post-results log files have been converted from a CSV to Parquet file format for
   faster I/O and a smaller memory footprint.
+- Fixes a bug in `Metrics.process_times()` where canceled requests are counted towards
+  the event timing and count.
 
 ## v0.10.4 (12 May 2025)
 
