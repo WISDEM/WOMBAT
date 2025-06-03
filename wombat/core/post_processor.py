@@ -566,9 +566,6 @@ class Metrics:
         by_electrolyzer = by == "electrolyzer"
 
         if by_electrolyzer:
-            raise NotImplementedError("Electrolyzer power curves not yet implemented.")
-
-        if by_electrolyzer:
             _id = self.electrolyzer_id
             capacities = self.electrolyzer_capacities
         else:
