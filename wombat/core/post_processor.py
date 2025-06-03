@@ -1963,9 +1963,17 @@ class Metrics:
             return opex
         return opex[[column]]
 
-    def process_times(self) -> pd.DataFrame:
+    def process_times(self, include_incompletes: bool = True) -> pd.DataFrame:
         """Calculates the time, in hours, to complete a repair/maintenance request, on
         both a request to completion basis, and the actual time to complete the repair.
+
+        Parameters
+        ----------
+        include_incompletes : bool, optional
+            Boolean flag to include the incomplete repair and maintenance requests. If
+            True, this will summarize all submitted requests that have not been
+            canceled, but if False, this will only summary the process timing for
+            the completed requests, by default True.
 
         Returns
         -------
@@ -1986,6 +1994,12 @@ class Metrics:
             self.events.request_id.ne("na")
             & ~self.events.request_id.isin(canceled_requests)
         ]
+        if not include_incompletes:
+            completed = self.events.loc[
+                self.events.action.isin(("repair complete", "maintenance complete")),
+                "request_id",
+            ]
+            events_valid = events_valid.loc[events_valid.request_id.isin(completed)]
 
         # Summarize all the requests data
         request_df = (
