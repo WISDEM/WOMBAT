@@ -4,7 +4,7 @@
 
 ## New Features
 
-- `Metrics.dispatch_summary` is now available to provide the number of mobilizations and average
+- `Metrics.dispatch_summary()` is now available to provide the number of mobilizations and average
   charter period across the whole project, or broken down by year and month, as requested.
 - Universalized maintenance starting dates are now able to be set through the primary
   configuration file as `maintenance_start`. This will enable the universalized
@@ -15,6 +15,9 @@
 - `Simulation.run()` has a new parameter called `delete_logs` (defaults to False) that
   allows the user to automatically delete the logging files that are created after the
   `Metrics` object is initialized.
+- `Metrics.request_summary()` is now available to provide the total number of repair
+  and maintenance requests, number of canceled requests, and the total number of
+  completed requests.
 
 ### Updates
 
