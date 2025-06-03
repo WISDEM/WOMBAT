@@ -828,6 +828,7 @@ class Metrics:
         total_days = []
         operating_actions = [
             "traveling",  # traveling between port/site or on-site
+            "transferring crew",
             "repair",
             "maintenance",
             "delay",  # performing work
