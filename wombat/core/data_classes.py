@@ -1023,6 +1023,27 @@ class SubassemblyData(FromDictMixin):
         converter=attrs.Converter(convert_failure_list, takes_self=True)
     )
 
+    @name.validator  # type: ignore [attr-defined]
+    def check(self, attribute: attrs.Attribute, value: str) -> None:
+        """Checks :py:attr:`name` for the reserved names in the ``Subassembly``."""
+        invalid = (
+            "env",
+            "repair_manager",
+            "id",
+            "name",
+            "capacity",
+            "subassemblies",
+            "servicing",
+            "servicing_queue",
+            "cable_failure",
+            "value",
+            "system_type",
+            "power",
+            "power_curve",
+        )
+        if value in invalid:
+            raise ValueError(f"Input subassembly name cannot be used: {value}.")
+
 
 @define(frozen=True, auto_attribs=True)
 class RepairRequest(FromDictMixin):
