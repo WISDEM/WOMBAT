@@ -30,7 +30,7 @@ UNSCHEDULED_STRATEGIES = ("requests", "downtime")
 VALID_STRATEGIES = tuple(["scheduled"] + list(UNSCHEDULED_STRATEGIES))
 
 
-class EquipmmentClass(StrEnum):
+class EquipmentClass(StrEnum):
     """Servicing equipment classification and validation."""
 
     CTV = "CTV", "Crew Transfer Vessel/Vehicle"
@@ -56,20 +56,28 @@ class EquipmmentClass(StrEnum):
         obj.description = description  # type: ignore
         return obj
 
+    def __eq__(self, other):
+        """Equality test between the self and another."""
+        return self.value == other.value
+
+    def __hash__(self):
+        """Creates a hash of the instance's value."""
+        return hash(self.value)
+
     @classmethod
     def _missing_(cls, value: str):  # type: ignore[override]
-        """Correct inconsistent casing, word separators, remove white space, and
-        reattempt creation.
+        """Correct inconsistent casing, remove white space, and reattempt creation.
 
         Returns
         -------
-        Frequency
-            If string cleanup is successful, a :py:class:`Frequency` is returned.
+        EquipmentClass
+            If string cleanup is successful, a :py:class:`EquipmentClass` is returned.
 
         Raises
         ------
         ValueError
-            Raised if :py:attr:`value` could not be found in :py:class:`Frequency`.
+            Raised if :py:attr:`value` could not be found in
+            :py:class:`EquipmentClass`.
         """
         value = value.upper().strip()
         for member in cls:
@@ -82,10 +90,10 @@ class EquipmmentClass(StrEnum):
     @staticmethod
     def types() -> list[str]:
         """Generate a list of the valid input strings."""
-        return [*EquipmmentClass._value2member_map_]
+        return [*EquipmentClass._value2member_map_]
 
     @classmethod
-    def assign(cls, equipment: str) -> EquipmmentClass:
+    def assign(cls, equipment: str) -> EquipmentClass:
         """Create a new ``EquipmentClass`` object from the :py:attr:`eqipment` string.
 
         Parameters
@@ -298,8 +306,8 @@ def convert_to_list(
     return list(value)
 
 
-convert_to_list_upper = partial(convert_to_list, manipulation=str.upper)
-update_wrapper(convert_to_list_upper, convert_to_list)
+convert_to_equipment_list = partial(convert_to_list, manipulation=EquipmentClass)
+update_wrapper(convert_to_equipment_list, convert_to_list)
 
 convert_to_list_lower = partial(convert_to_list, manipulation=str.lower)
 update_wrapper(convert_to_list_lower, convert_to_list)
@@ -700,13 +708,7 @@ class Maintenance(FromDictMixin):
     time: float = field(converter=float)
     materials: float = field(converter=float)
     frequency: relativedelta | int = field(converter=int)
-    service_equipment: list[str] = field(
-        converter=convert_to_list_upper,
-        validator=attrs.validators.deep_iterable(
-            member_validator=attrs.validators.in_(EquipmmentClass.types()),
-            iterable_validator=attrs.validators.instance_of(list),
-        ),
-    )
+    service_equipment: list[str] = field(converter=convert_to_equipment_list)
     system_value: int | float = field(converter=float)
     description: str = field(default="routine maintenance", converter=str)
     frequency_basis: str = field(
@@ -939,13 +941,7 @@ class Failure(FromDictMixin):
     materials: float = field(converter=float)
     operation_reduction: float = field(converter=float)
     level: int = field(converter=int)
-    service_equipment: list[str] | str = field(
-        converter=convert_to_list_upper,
-        validator=attrs.validators.deep_iterable(
-            member_validator=attrs.validators.in_(EquipmmentClass.types()),
-            iterable_validator=attrs.validators.instance_of(list),
-        ),
-    )
+    service_equipment: list[str] | str = field(converter=convert_to_equipment_list)
     system_value: int | float = field(converter=float)
     rng: np.random._generator.Generator = field(
         eq=False,
@@ -959,11 +955,6 @@ class Failure(FromDictMixin):
         """Create the actual Weibull distribution and converts equipment requirements
         to a list.
         """
-        object.__setattr__(
-            self,
-            "service_equipment",
-            convert_to_list(self.service_equipment, str.upper),
-        )
         object.__setattr__(
             self,
             "materials",
@@ -1475,13 +1466,7 @@ class ScheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     equipment_rate: float = field(converter=float)
     n_crews: int = field(converter=int)
     crew: ServiceCrew = field(converter=ServiceCrew.from_dict)
-    capability: list[str] = field(
-        converter=convert_to_list_upper,
-        validator=attrs.validators.deep_iterable(
-            member_validator=attrs.validators.in_(EquipmmentClass.types()),
-            iterable_validator=attrs.validators.instance_of(list),
-        ),
-    )
+    capability: list[EquipmentClass] = field(converter=convert_to_equipment_list)
     speed: float = field(converter=float, validator=attrs.validators.gt(0))
     max_windspeed_transport: float = field(converter=float)
     max_windspeed_repair: float = field(converter=float)
@@ -1696,13 +1681,7 @@ class UnscheduledServiceEquipmentData(FromDictMixin, DateLimitsMixin):
     equipment_rate: float = field(converter=float)
     n_crews: int = field(converter=int)
     crew: ServiceCrew = field(converter=ServiceCrew.from_dict)
-    capability: list[str] = field(
-        converter=convert_to_list_upper,
-        validator=attrs.validators.deep_iterable(
-            member_validator=attrs.validators.in_(EquipmmentClass.types()),
-            iterable_validator=attrs.validators.instance_of(list),
-        ),
-    )
+    capability: list[EquipmentClass] = field(converter=convert_to_equipment_list)
     speed: float = field(converter=float, validator=attrs.validators.gt(0))
     max_windspeed_transport: float = field(converter=float)
     max_windspeed_repair: float = field(converter=float)
@@ -1904,7 +1883,7 @@ class StrategyMap:
 
     def update(
         self,
-        capability: str,
+        capability: EquipmentClass,
         threshold: int | float,
         equipment: ServiceEquipment,  # noqa: F821
     ) -> None:
@@ -1913,8 +1892,8 @@ class StrategyMap:
 
         Parameters
         ----------
-        capability : str
-            The ``equipment``'s capability.
+        capability : ServiceEquipment
+            The :py:attr:`equipment`'s capability.
         threshold : int | float
             The threshold for ``equipment``'s strategy.
         equipment : ServiceEquipment
@@ -1922,40 +1901,45 @@ class StrategyMap:
 
         Raises
         ------
+        TypeError
+            Raised if :py:attr:`caability` is not an ``EquipmentClass`.
         ValueError
             Raised if there is an invalid capability, though this shouldn't be able to
             be reached.
         """
-        # Using a mypy ignore because of an unpatched bug using data classes
-        if capability == "CTV":
-            self.CTV.append(EquipmentMap(threshold, equipment))  # type: ignore
-        elif capability == "SCN":
-            self.SCN.append(EquipmentMap(threshold, equipment))  # type: ignore
-        elif capability == "MCN":
-            self.MCN.append(EquipmentMap(threshold, equipment))  # type: ignore
-        elif capability == "LCN":
-            self.LCN.append(EquipmentMap(threshold, equipment))  # type: ignore
-        elif capability == "CAB":
-            self.CAB.append(EquipmentMap(threshold, equipment))  # type: ignore
-        elif capability == "RMT":
-            self.RMT.append(EquipmentMap(threshold, equipment))  # type: ignore
-        elif capability == "DRN":
-            self.DRN.append(EquipmentMap(threshold, equipment))  # type: ignore
-        elif capability == "DSV":
-            self.DSV.append(EquipmentMap(threshold, equipment))  # type: ignore
-        elif capability == "TOW":
-            self.TOW.append(EquipmentMap(threshold, equipment))  # type: ignore
-        elif capability == "AHV":
-            self.AHV.append(EquipmentMap(threshold, equipment))  # type: ignore
-        elif capability == "VSG":
-            self.VSG.append(EquipmentMap(threshold, equipment))  # type: ignore
-        elif capability == "OFS":
-            self.OFS.append(EquipmentMap(threshold, equipment))  # type: ignore
-        else:
-            # This should not even be able to be reached
-            raise ValueError(
-                f"Invalid servicing equipment '{capability}' has been provided!"
-            )
+        if not isinstance(capability, EquipmentClass):
+            raise TypeError("`StrategyMap.update()` only takes a single capability.")
+        match capability:
+            case EquipmentClass.CTV:
+                self.CTV.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
+            case EquipmentClass.SCN:
+                self.SCN.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
+            case EquipmentClass.MCN:
+                self.MCN.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
+            case EquipmentClass.LCN:
+                self.LCN.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
+            case EquipmentClass.CAB:
+                self.CAB.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
+            case EquipmentClass.RMT:
+                self.RMT.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
+            case EquipmentClass.DRN:
+                self.DRN.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
+            case EquipmentClass.DSV:
+                self.DSV.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
+            case EquipmentClass.TOW:
+                self.TOW.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
+            case EquipmentClass.AHV:
+                self.AHV.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
+            case EquipmentClass.VSG:
+                self.VSG.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
+            case EquipmentClass.OFS:
+                self.OFS.append(EquipmentMap(threshold, equipment))  # type: ignore [call-arg]
+            case _:
+                msg = (
+                    f"Invalid servicing equipment '{capability}' has been provided,"
+                    f" must be one of {EquipmentClass.types()}."
+                )
+                raise ValueError(msg)
         self.is_running = True
 
     def get_mapping(self, capability) -> list[EquipmentMap]:
@@ -1972,34 +1956,37 @@ class StrategyMap:
         list[EquipmentMap]
             Returns the matching mapping of available servicing equipment.
         """
-        if capability == "CTV":
-            return self.CTV
-        if capability == "SCN":
-            return self.SCN
-        if capability == "MCN":
-            return self.MCN
-        if capability == "LCN":
-            return self.LCN
-        if capability == "CAB":
-            return self.CAB
-        if capability == "RMT":
-            return self.RMT
-        if capability == "DRN":
-            return self.DRN
-        if capability == "DSV":
-            return self.DSV
-        if capability == "TOW":
-            return self.TOW
-        if capability == "AHV":
-            return self.AHV
-        if capability == "VSG":
-            return self.VSG
-        if capability == "OFS":
-            return self.OFS
-        # This should not even be able to be reached
-        raise ValueError(
-            f"Invalid servicing equipmen capability '{capability}' has been provided!"
-        )
+        match capability:
+            case EquipmentClass.CTV:
+                return self.CTV
+            case EquipmentClass.SCN:
+                return self.SCN
+            case EquipmentClass.MCN:
+                return self.MCN
+            case EquipmentClass.LCN:
+                return self.LCN
+            case EquipmentClass.CAB:
+                return self.CAB
+            case EquipmentClass.RMT:
+                return self.RMT
+            case EquipmentClass.DRN:
+                return self.DRN
+            case EquipmentClass.DSV:
+                return self.DSV
+            case EquipmentClass.TOW:
+                return self.TOW
+            case EquipmentClass.AHV:
+                return self.AHV
+            case EquipmentClass.VSG:
+                return self.VSG
+            case EquipmentClass.OFS:
+                return self.OFS
+            case _:
+                msg = (
+                    f"Invalid servicing equipment '{capability}' has been provided,"
+                    f" must be one of {EquipmentClass.types()}."
+                )
+                raise ValueError(msg)
 
     def move_equipment_to_end(self, capability: str, ix: int) -> None:
         """Moves a used equipment to the end of the mapping list to ensure a broader
@@ -2013,35 +2000,37 @@ class StrategyMap:
         ix : int
             The index of the used servicing equipent.
         """
-        if capability == "CTV":
-            self.CTV.append(self.CTV.pop(ix))
-        elif capability == "SCN":
-            self.SCN.append(self.SCN.pop(ix))
-        elif capability == "MCN":
-            self.LCN.append(self.MCN.pop(ix))
-        elif capability == "LCN":
-            self.LCN.append(self.LCN.pop(ix))
-        elif capability == "CAB":
-            self.CAB.append(self.CAB.pop(ix))
-        elif capability == "RMT":
-            self.RMT.append(self.RMT.pop(ix))
-        elif capability == "DRN":
-            self.DRN.append(self.DRN.pop(ix))
-        elif capability == "DSV":
-            self.DSV.append(self.DSV.pop(ix))
-        elif capability == "TOW":
-            self.TOW.append(self.TOW.pop(ix))
-        elif capability == "AHV":
-            self.AHV.append(self.AHV.pop(ix))
-        elif capability == "VSG":
-            self.VSG.append(self.VSG.pop(ix))
-        elif capability == "OFS":
-            self.OFS.append(self.OFS.pop(ix))
-        else:
-            # This should not even be able to be reached
-            raise ValueError(
-                f"Invalid servicing equipmen capability {capability} has been provided!"
-            )
+        match capability:
+            case EquipmentClass.CTV:
+                self.CTV.append(self.CTV.pop(ix))
+            case EquipmentClass.SCN:
+                self.SCN.append(self.SCN.pop(ix))
+            case EquipmentClass.MCN:
+                self.LCN.append(self.MCN.pop(ix))
+            case EquipmentClass.LCN:
+                self.LCN.append(self.LCN.pop(ix))
+            case EquipmentClass.CAB:
+                self.CAB.append(self.CAB.pop(ix))
+            case EquipmentClass.RMT:
+                self.RMT.append(self.RMT.pop(ix))
+            case EquipmentClass.DRN:
+                self.DRN.append(self.DRN.pop(ix))
+            case EquipmentClass.DSV:
+                self.DSV.append(self.DSV.pop(ix))
+            case EquipmentClass.TOW:
+                self.TOW.append(self.TOW.pop(ix))
+            case EquipmentClass.AHV:
+                self.AHV.append(self.AHV.pop(ix))
+            case EquipmentClass.VSG:
+                self.VSG.append(self.VSG.pop(ix))
+            case EquipmentClass.OFS:
+                self.OFS.append(self.OFS.pop(ix))
+            case _:
+                msg = (
+                    f"Invalid servicing equipment '{capability}' has been provided,"
+                    f" must be one of {EquipmentClass.types()}."
+                )
+                raise ValueError(msg)
 
 
 @define(frozen=True, auto_attribs=True)

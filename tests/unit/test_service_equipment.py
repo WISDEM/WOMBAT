@@ -7,7 +7,7 @@ import numpy.testing as npt
 
 from wombat.windfarm import Windfarm
 from wombat.core.library import load_yaml
-from wombat.core.data_classes import VALID_EQUIPMENT, EquipmentMap
+from wombat.core.data_classes import EquipmentMap, EquipmentClass
 from wombat.core.repair_management import RepairManager
 from wombat.core.service_equipment import ServiceEquipment, consecutive_groups
 
@@ -115,8 +115,8 @@ def test_service_equipment_init(env_setup):
     assert manager.downtime_based_equipment.LCN == [
         EquipmentMap(hlv_dict["strategy_threshold"], hlv)
     ]
-    for capability in VALID_EQUIPMENT:
-        if capability == "LCN":
+    for capability in EquipmentClass.types():
+        if EquipmentClass(capability) is EquipmentClass.LCN:
             assert len(getattr(manager.downtime_based_equipment, capability)) == 1
         else:
             assert getattr(manager.downtime_based_equipment, capability) == []
@@ -150,19 +150,11 @@ def test_service_equipment_init(env_setup):
     assert manager.request_based_equipment.LCN == [
         EquipmentMap(hlv_dict["strategy_threshold"], hlv)
     ]
-    for capability in (
-        "CTV",
-        "SCN",
-        "MCN",
-        "CAB",
-        "RMT",
-        "DRN",
-        "DSV",
-        "AHV",
-        "TOW",
-        "VSG",
-    ):
-        assert getattr(manager.request_based_equipment, capability) == []
+    for capability in EquipmentClass.types():
+        if EquipmentClass(capability) is EquipmentClass.LCN:
+            assert len(getattr(manager.downtime_based_equipment, capability)) == 1
+        else:
+            assert getattr(manager.request_based_equipment, capability) == []
 
 
 def test_port_distance_setup(env_setup):

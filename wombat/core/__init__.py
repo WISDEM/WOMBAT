@@ -13,7 +13,7 @@ from .data_classes import (
     EquipmentMap,
     StrategyMap,
     PortConfig,
-    EquipmmentClass,
+    EquipmentClass,
     SystemType,
     CableType,
     Frequency,
