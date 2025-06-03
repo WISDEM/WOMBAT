@@ -105,9 +105,26 @@ class System:
         # Set the subassembly data variables from the remainder of the keys in the
         # system configuration file/dictionary
         exclude_keys = ["capacity_kw", "capex_kw", "power_curve"]
+        invalid = (
+            "env",
+            "repair_manager",
+            "id",
+            "name",
+            "capacity",
+            "subassemblies",
+            "servicing",
+            "servicing_queue",
+            "cable_failure",
+            "value",
+            "system_type",
+            "power",
+            "power_curve",
+        )
         for key, data in subassembly_data.items():
             if key in exclude_keys:
                 continue
+            if key.strip().lower() in invalid:
+                raise ValueError(f"Input subassembly `id` cannot be used: {key}.")
             name = create_variable_from_string(key)
             subassembly = Subassembly(self, self.env, name, data)
             setattr(self, name, subassembly)

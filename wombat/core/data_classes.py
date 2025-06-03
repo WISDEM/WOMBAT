@@ -1026,6 +1026,7 @@ class SubassemblyData(FromDictMixin):
     @name.validator  # type: ignore [attr-defined]
     def check(self, attribute: attrs.Attribute, value: str) -> None:
         """Checks :py:attr:`name` for the reserved names in the ``Subassembly``."""
+        value = value.lower().strip()
         invalid = (
             "env",
             "repair_manager",
