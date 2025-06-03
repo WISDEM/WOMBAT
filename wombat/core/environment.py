@@ -936,7 +936,7 @@ class WombatEnvironment(simpy.Environment):
                     windfarm.system(e_id).power(potential_df.windfarm)
                     for e_id in electrolyzers
                 ]
-            ).t
+            ).T
 
         potential_df.to_parquet(self.power_potential_fname)
 
