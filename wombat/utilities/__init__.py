@@ -11,6 +11,7 @@ from .time import (
 from .logging import setup_logger, format_events_log_message
 from .utilities import (
     IEC_power_curve,
+    calculate_hydrogen_production,
     _mean,
     create_variable_from_string,
     calculate_windfarm_operational_level,

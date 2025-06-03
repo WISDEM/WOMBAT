@@ -930,6 +930,14 @@ class WombatEnvironment(simpy.Environment):
             env_time=operations.env_time.values,
             env_datetime=operations.env_datetime.values,
         )
+        if electrolyzers := windfarm.electrolyzer_id:
+            potential_df[electrolyzers] = np.vstack(
+                [
+                    windfarm.system(e_id).power(potential_df.windfarm)
+                    for e_id in electrolyzers
+                ]
+            ).t
+
         potential_df.to_parquet(self.power_potential_fname)
 
         # TODO: The actual windfarm production needs to be clipped at each subgraph to
@@ -939,7 +947,11 @@ class WombatEnvironment(simpy.Environment):
         production_df.windfarm = self._calculate_adjusted_production(
             operations, production_df
         )
+        if electrolyzers:
+            potential_df[electrolyzers] *= operations[electrolyzers].values
+
         production_df.to_parquet(self.power_production_fname)
+
         if return_df:
             return potential_df, production_df
 

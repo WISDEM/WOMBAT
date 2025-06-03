@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 from wombat.core import SystemType, RepairManager, WombatEnvironment
-from wombat.utilities import IEC_power_curve
+from wombat.utilities import IEC_power_curve, calculate_hydrogen_production
 from wombat.windfarm.system import Subassembly
 from wombat.utilities.utilities import create_variable_from_string
 
@@ -134,10 +134,13 @@ class System:
         if system is SystemType.TURBINE:
             self._initialize_power_curve(subassembly_data.get("power_curve", None))
 
+        if system is SystemType.ELECTROLYZER:
+            self._initialize_production_curve(subassembly_data.get("power_curve", None))
+
     def _initialize_power_curve(self, power_curve_dict: dict | None) -> None:
-        """Creates the power curve function based on the ``power_curve`` input in the
-        ``subassembly_data`` dictionary. If there is no valid input, then 0 will always
-        be reutrned.
+        """Creates the power curve function based on the :py:attr:power_curve_dict`
+        input in the ``subassembly_data`` dictionary. If there is no valid input, then 0
+        will always be reutrned.
 
         Parameters
         ----------
@@ -161,6 +164,30 @@ class System:
                 windspeed_end=power_curve.windspeed_ms.max(),
                 bin_width=bin_width,
             )
+
+    def _initialize_production_curve(self, power_curve_dict: dict | None) -> None:
+        """Creates the H2 production curve function based on the
+        :py:attr:power_curve_dict` input to the  ``subassembly_data`` dictionary. If no
+        input, then a 0 will always be returned.
+        """
+        if power_curve_dict is None:
+            power_curve_dict = {}
+        p1 = power_curve_dict.get("p1", 0.0)
+        p2 = power_curve_dict.get("p2", 0.0)
+        p3 = power_curve_dict.get("p3", 0.0)
+        p4 = power_curve_dict.get("p4", 0.0)
+        p5 = power_curve_dict.get("p5", 0.0)
+        fe = power_curve_dict.get("FE", 0.9999999)
+        n_cells = power_curve_dict.get("n_cells", 135)
+        self.power_curve = calculate_hydrogen_production(
+            p1=p1,
+            p2=p2,
+            p3=p3,
+            p4=p4,
+            p5=p5,
+            FE=fe,
+            n_cells=n_cells,
+        )
 
     def interrupt_all_subassembly_processes(
         self, origin: Subassembly | None = None, replacement: str | None = None

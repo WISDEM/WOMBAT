@@ -71,25 +71,25 @@ def IEC_power_curve(
 
     Parameters
     ----------
-        windspeed_column : np.ndarray | pandas.Series
-            The power curve's windspeed values, in m/s.
-        power_column : np.ndarray | pandas.Series
-            The power curve's output power values, in kW.
-        bin_width : float
-            Width of windspeed bin, default is 0.5 m/s according to standard, by default
-            0.5.
-        windspeed_start : float
-            Left edge of first windspeed bin, where all proceeding values will be 0.0,
-            by default 0.0.
-        windspeed_end : float
-            Right edge of last windspeed bin, where all following values will be 0.0, by
-            default 30.0.
+    windspeed_column : np.ndarray | pandas.Series
+        The power curve's windspeed values, in m/s.
+    power_column : np.ndarray | pandas.Series
+        The power curve's output power values, in kW.
+    bin_width : float
+        Width of windspeed bin, default is 0.5 m/s according to standard, by default
+        0.5.
+    windspeed_start : float
+        Left edge of first windspeed bin, where all proceeding values will be 0.0,
+        by default 0.0.
+    windspeed_end : float
+        Right edge of last windspeed bin, where all following values will be 0.0, by
+        default 30.0.
 
     Returns
     -------
-        Callable
-            Python function of the power curve, of type (Array[float] -> Array[float]),
-            that maps input windspeed value(s) to ouptut power value(s).
+    Callable
+        Python function of the power curve, of type (Array[float] -> Array[float]),
+        that maps input windspeed value(s) to ouptut power value(s).
     """
     if not isinstance(windspeed_column, pd.Series):
         windspeed_column = pd.Series(windspeed_column)
@@ -123,6 +123,91 @@ def IEC_power_curve(
         return P
 
     return pc_iec
+
+
+def calculate_stack_current(
+    power: np.ndarray | pd.Series,
+    p1: int | float,
+    p2: int | float,
+    p3: int | float,
+    p4: int | float,
+    p5: int | float,
+) -> np.ndarray | pd.Series:
+    """Convert power produced, in kW to current, in amperes (I) using the efficiency
+    curve from the
+    `H2Integrage PEM electrolysis model <https://github.com/NREL/H2Integrate/blob/main/h2integrate/simulation/technologies/hydrogen/electrolysis/PEM_H2_LT_electrolyzer_Clusters.py>`_.
+
+    .. math::
+        i_{stack} = p1 * power^{3} + p2 * power^{2} + p3 * power + p4 * power^{1/2} + p5
+
+    Parameters
+    ----------
+    power : np.ndarray | pd.Series
+        Power produced, in kW.
+    p1 : int | float
+        First coefficient.
+    p2 : int | float
+        Second coefficient.
+    p3 : int | float
+        Third coefficient
+    p4 : int | float
+        Fourth coefficient.
+    p5 : int | float
+        Intercept.
+
+    Returns
+    -------
+    np.ndarray | pd.Series
+        Converted current from the farm's power production.
+    """
+    return p1 * power**3 + p2 * power**2 + p3 * power + p4 * np.sqrt(power) + p5
+
+
+def calculate_hydrogen_production(
+    p1: int | float,
+    p2: int | float,
+    p3: int | float,
+    p4: int | float,
+    p5: int | float,
+    FE: float = 0.9999999,
+    n_cells: int = 135,
+) -> Callable:
+    """Create the hydrogen production curve for an electrolyzer.
+
+    Parameters
+    ----------
+    p1 : int | float
+        First coefficient.
+    p2 : int | float
+        Second coefficient.
+    p3 : int | float
+        Third coefficient
+    p4 : int | float
+        Fourth coefficient.
+    p5 : int | float
+        Intercept.
+    FE : float, optional
+        Faradic efficiency, by default 0.9999999.
+    n_cells : int, optional
+        Number of cells per 1 MW stack, by default 135.
+
+    Returns
+    -------
+    Callable
+        Python function for the H2 production in kg/hr given an input power in kW/hr
+    """
+    F = 96485.34  # Faraday's Constant (C/mol)
+    SECONDS = 3600  # seconds per hour
+    molar_mass_h2 = 2.016  # molecular weight of H2 (grams/mol)
+
+    def h2(power):
+        i = calculate_stack_current(power, p1, p2, p3, p4, p5)
+        h2_rate_g_s = i * n_cells * FE * molar_mass_h2 / (2 * F)
+        h2_rate_kg_hr = h2_rate_g_s * SECONDS / 1e3
+        h2_rate_kg_hr[h2_rate_kg_hr < 0] = 0
+        return h2_rate_kg_hr
+
+    return h2
 
 
 def calculate_windfarm_operational_level(
