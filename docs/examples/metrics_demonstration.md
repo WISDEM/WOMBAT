@@ -694,9 +694,9 @@ style(metrics.process_times(include_incompletes=False))
 (metrics-demo:request-sumamry)=
 ## Request Summary
 
-Computes the total number of submitted, canceled, and completed repair and maintenance
-request by subassembly and task description. For further documentation, see the API docs
-here: {py:meth}`wombat.core.post_processor.Metrics.request_summary`.
+Computes the total number of submitted, canceled, incomplete, and completed repair and
+maintenance request by subassembly and task description. For further documentation, see
+the API docs here: {py:meth}`wombat.core.post_processor.Metrics.request_summary`.
 
 **Inputs**:
 

@@ -16,8 +16,8 @@
   allows the user to automatically delete the logging files that are created after the
   `Metrics` object is initialized.
 - `Metrics.request_summary()` is now available to provide the total number of repair
-  and maintenance requests, number of canceled requests, and the total number of
-  completed requests.
+  and maintenance requests, number of canceled requests, number of incomplete requests,
+  and the number of completed requests.
 
 ### Updates
 

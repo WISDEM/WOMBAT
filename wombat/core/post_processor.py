@@ -2096,15 +2096,19 @@ class Metrics:
 
     def request_summary(self) -> pd.DataFrame:
         """Calculate the number of repair and maintenance requets that have been
-        submitted, cancelled, and completed.
+        submitted, cancelled, not completed, and completed.
 
         Returns
         -------
         pd.DataFrame
             Data frame with a :py:class`pandas.MultiIndex` of the subassembly and
-            task description, with columns "total_request", "canceled_request", and
-            "completed_requests".
+            task description, with columns "total_request", "canceled_request",
+            "incomplete_requests", and "completed_requests".
         """
+        requests = self.events.loc[
+            self.events.action.isin(("repair request", "maintenance request")),
+            "request_id",
+        ]
         canceled_requests = self.events.loc[
             self.events.action.isin(("repair canceled", "maintenance canceled")),
             "request_id",
@@ -2113,55 +2117,44 @@ class Metrics:
             self.events.action.isin(("repair complete", "maintenance complete")),
             "request_id",
         ]
-        total_df = (
-            self.events.loc[
-                self.events.action.isin(("repair request", "maintenance request")),
-                ["part_name", "reason", "request_id"],
-            ]
-            .rename(
-                columns={
-                    "part_name": "subassembly",
-                    "reason": "task",
-                    "request_id": "total_requests",
-                }
-            )
-            .groupby(["subassembly", "task"])
-            .count()
+        incomplete_requests = requests.loc[
+            ~requests.isin(canceled_requests) & ~requests.isin(completed_requests)
+        ]
+        total_df = self.events.loc[
+            self.events.action.isin(("repair request", "maintenance request")),
+            ["part_name", "reason", "request_id"],
+        ].rename(
+            columns={
+                "part_name": "subassembly",
+                "reason": "task",
+            }
         )
         canceled_df = (
-            self.events.loc[
-                self.events.action.isin(("repair request", "maintenance request"))
-                & self.events.request_id.isin(canceled_requests),
-                ["part_name", "reason", "request_id"],
-            ]
-            .rename(
-                columns={
-                    "part_name": "subassembly",
-                    "reason": "task",
-                    "request_id": "canceled_requests",
-                }
-            )
+            total_df.loc[total_df.request_id.isin(canceled_requests)]
             .groupby(["subassembly", "task"])
             .count()
+            .rename(columns={"request_id": "canceled_requests"})
+        )
+        incomplete_df = (
+            total_df.loc[total_df.request_id.isin(incomplete_requests)]
+            .groupby(["subassembly", "task"])
+            .count()
+            .rename(columns={"request_id": "incomplete_requests"})
         )
         completed_df = (
-            self.events.loc[
-                self.events.action.isin(("repair request", "maintenance request"))
-                & self.events.request_id.isin(completed_requests),
-                ["part_name", "reason", "request_id"],
-            ]
-            .rename(
-                columns={
-                    "part_name": "subassembly",
-                    "reason": "task",
-                    "request_id": "completed_requests",
-                }
-            )
+            total_df.loc[total_df.request_id.isin(completed_requests)]
             .groupby(["subassembly", "task"])
             .count()
+            .rename(columns={"request_id": "completed_requests"})
+        )
+        total_df = (
+            total_df.groupby(["subassembly", "task"])
+            .count()
+            .rename(columns={"request_id": "total_requests"})
         )
         summary = (
             total_df.join(canceled_df, how="outer")
+            .join(incomplete_df, how="outer")
             .join(completed_df, how="outer")
             .fillna(0)
             .astype(int)
