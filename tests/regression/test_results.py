@@ -7,7 +7,6 @@ from pytest_check import check
 def test_results_consistency(setup_ttp):
     """Multi-facted check to ensure consistency across metrics."""
     sim = setup_ttp
-    sim.run(8760 * 5)
 
     metrics = sim.metrics
     ev = metrics.events
@@ -75,7 +74,9 @@ def test_event_summary_consistency(setup_ttp):
     requests = (
         metrics.request_summary()
         .droplevel("subassembly")
-        .rename(index={"subassembly": "category"})
+        .reset_index()
+        .rename(columns={"task": "category"})
+        .set_index("category")
     )
 
     combined = (
