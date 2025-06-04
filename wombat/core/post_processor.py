@@ -2118,7 +2118,7 @@ class Metrics:
                 columns={
                     "part_name": "subassembly",
                     "reason": "task",
-                    "request_id": "total requests",
+                    "request_id": "total_requests",
                 }
             )
             .groupby(["subassembly", "task"])
@@ -2133,7 +2133,7 @@ class Metrics:
                     columns={
                         "part_name": "subassembly",
                         "reason": "task",
-                        "request_id": "canceled requests",
+                        "request_id": "canceled_requests",
                     }
                 )
                 .groupby(["subassembly", "task"])
@@ -2151,7 +2151,7 @@ class Metrics:
                     columns={
                         "part_name": "subassembly",
                         "reason": "task",
-                        "request_id": "completed requests",
+                        "request_id": "completed_requests",
                     }
                 )
                 .groupby(["subassembly", "task"])
