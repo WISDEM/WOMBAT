@@ -87,10 +87,11 @@ def env_setup_full_profile():
     env.cleanup_log_files()
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def setup_ttp():
     """Create a full weather profile environment with proper teardown."""
     sim = Simulation("COREWIND", "morro_bay_tow_to_port.yaml", random_seed=2022)
+    sim.run(8760 * 5)
     yield sim
     sim.env.cleanup_log_files()
 
