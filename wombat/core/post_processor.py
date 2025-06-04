@@ -2109,6 +2109,10 @@ class Metrics:
             self.events.action.isin(("repair canceled", "maintenance canceled")),
             "request_id",
         ]
+        completed_requests = self.events.loc[
+            self.events.action.isin(("repair complete", "maintenance complete")),
+            "request_id",
+        ]
         total_df = (
             self.events.loc[
                 self.events.action.isin(("repair request", "maintenance request")),
@@ -2142,7 +2146,8 @@ class Metrics:
         )
         completed_df = (
             self.events.loc[
-                self.events.action.isin(("repair complete", "maintenance complete")),
+                self.events.action.isin(("repair request", "maintenance request"))
+                & self.events.request_id.isin(completed_requests),
                 ["part_name", "reason", "request_id"],
             ]
             .rename(
