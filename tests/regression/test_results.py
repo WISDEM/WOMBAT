@@ -89,8 +89,24 @@ def test_event_summary_consistency(setup_ttp):
 
     with check:
         pdt.assert_series_equal(
+            combined.total_requests,
+            combined.canceled_requests
+            + combined.incomplete_requests
+            + combined.completed_requests,
+            check_names=False,
+        )
+
+    with check:
+        pdt.assert_series_equal(
             combined.N,
             (combined.total_requests - combined.canceled_requests),
+            check_names=False,
+        )
+
+    with check:
+        pdt.assert_series_equal(
+            combined.N,
+            (combined.completed_requests + combined.incomplete_requests),
             check_names=False,
         )
 
