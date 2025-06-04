@@ -2109,7 +2109,7 @@ class Metrics:
             self.events.action.isin(("repair canceled", "maintenance canceled")),
             "request_id",
         ]
-        summary = (
+        total_df = (
             self.events.loc[
                 self.events.action.isin(("repair request", "maintenance request")),
                 ["part_name", "reason", "request_id"],
@@ -2123,41 +2123,41 @@ class Metrics:
             )
             .groupby(["subassembly", "task"])
             .count()
-            .join(
-                self.events.loc[
-                    self.events.action.isin(("repair request", "maintenance request"))
-                    & self.events.request_id.isin(canceled_requests),
-                    ["part_name", "reason", "request_id"],
-                ]
-                .rename(
-                    columns={
-                        "part_name": "subassembly",
-                        "reason": "task",
-                        "request_id": "canceled_requests",
-                    }
-                )
-                .groupby(["subassembly", "task"])
-                .count(),
-                how="left",
+        )
+        canceled_df = (
+            self.events.loc[
+                self.events.action.isin(("repair request", "maintenance request"))
+                & self.events.request_id.isin(canceled_requests),
+                ["part_name", "reason", "request_id"],
+            ]
+            .rename(
+                columns={
+                    "part_name": "subassembly",
+                    "reason": "task",
+                    "request_id": "canceled_requests",
+                }
             )
-            .join(
-                self.events.loc[
-                    self.events.action.isin(
-                        ("repair complete", "maintenance complete")
-                    ),
-                    ["part_name", "reason", "request_id"],
-                ]
-                .rename(
-                    columns={
-                        "part_name": "subassembly",
-                        "reason": "task",
-                        "request_id": "completed_requests",
-                    }
-                )
-                .groupby(["subassembly", "task"])
-                .count(),
-                how="left",
+            .groupby(["subassembly", "task"])
+            .count()
+        )
+        completed_df = (
+            self.events.loc[
+                self.events.action.isin(("repair complete", "maintenance complete")),
+                ["part_name", "reason", "request_id"],
+            ]
+            .rename(
+                columns={
+                    "part_name": "subassembly",
+                    "reason": "task",
+                    "request_id": "completed_requests",
+                }
             )
+            .groupby(["subassembly", "task"])
+            .count()
+        )
+        summary = (
+            total_df.join(canceled_df, how="outer")
+            .join(completed_df, how="outer")
             .fillna(0)
             .astype(int)
         )
