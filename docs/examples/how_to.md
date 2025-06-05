@@ -76,15 +76,16 @@ The above method call will produce the below folder and subfolder structure.
 ```
 <library>
   ├── project
-    ├── config     <- Project-level configuration files
-    ├── port       <- Port configuration files
-    ├── plant      <- Wind farm layout files
-  ├── cables       <- Export and Array cable configuration files
-  ├── substations  <- Substation configuration files
-  ├── turbines     <- Turbine configuration and power curve files
-  ├── vessels      <- Land-based and offshore servicing equipment configuration files
-  ├── weather      <- Weather profiles
-  ├── results      <- The analysis log files and any saved output data
+    ├── config      <- Project-level configuration files
+    ├── port        <- Port configuration files
+    ├── plant       <- Wind farm layout files
+  ├── cables        <- Export and Array cable configuration files
+  ├── substations   <- Substation configuration files
+  ├── turbines      <- Turbine configuration and power curve files
+  ├── electrolyzers <- Electrolyzer configuration files
+  ├── vessels       <- Land-based and offshore servicing equipment configuration files
+  ├── weather       <- Weather profiles
+  ├── results       <- The analysis log files and any saved output data
 ```
 
 As a convenience feature you can import the provided validation data libraries as
@@ -93,6 +94,54 @@ enabled.
 
 In practice, any folder location can be used so long as it follows the subfolder
 structure provided here.
+
+### v0.10 Update
+
+As of v0.10, a single YAML configuration is enabled for all YAML-based configuration
+files. The following structure (inputs based on the COREWIND in situ example) should
+be adopted for single-input files.
+
+```yaml
+name: COREWIND Morro Bay In Situ
+weather: central_ca.csv
+service_equipment:
+- - ctv
+  - 7
+- cab
+- dsv
+- ahv
+- hlv
+layout: morro_bay_9D_layout.csv
+port_distance: 60
+inflation_rate: 0
+workday_start: 6
+workday_end: 22
+start_year: 2002
+end_year: 2021
+project_capacity: 1200
+substations:
+  corewind_substation:
+  ...
+cables:
+  corewind_export:
+  ...
+  corewind_array:
+  ...
+turbines:
+  corewind_15MW:
+  ...
+vessels:
+  ctv:
+  ...
+  cab:
+  ...
+  dsv:
+  ...
+  ahv:
+  ...
+  hlv:
+  ...
+```
 
 (how_to:configure:layout)=
 ### Wind Farm Layout
@@ -112,9 +161,9 @@ substation_id (required)
 name (required)
 : A descriptive name for the turbine, if desired. This can be the same as `id`.
 
-type (optional)
-: One of "turbine" or "substation". This is required to accurately model a
-  multi-substation wind farm. The base assumption is that a substation connects to
+type (required)
+: One of "turbine", "substation", or "electrolyzer". This is required to accurately model
+  a multi-substation wind farm. The base assumption is that a substation connects to
   itself as a means to model the export cable connecting to the interconnection point,
   however, this is not always the case, as substations may be connected through their
   export systems. Using this filed allows for that connection to be modeled accurately.
@@ -172,6 +221,29 @@ later input reviews:
 | S00T79 | OSS1 | S00T79 | turbine | 0 | 0 | 0 | 78 | 0 | vestas_v90.yaml | array.yaml |
 | S00T80 | OSS1 | S00T80 | turbine | 0 | 0 | 0 | 79 | 0 | vestas_v90.yaml | array.yaml |
 </div>
+
+#### v0.10 Update
+
+v0.10 introduced the ability to define any YAML-based configuration file within the
+primary configuration file. To accommodate this change in the above example, each of
+`subassembly` and `upstream_cable` inputs would simply drop ".yaml" from their input,
+and the `Simulation` setup will automatically search for `vestas_v90`, `array`, `export`,
+or `offshore_substation` in the primary configuration file.
+
+#### v0.11 Update
+
+v0.11 introduced the electrolyzer model. To include an electrolyzer in the above definition,
+simply create a new row where the electrolyzer is connected to substation via an export
+cable. In the above example, the row would look like the following. In the case of
+multiple substations, attach it to the furthest downstream substation.
+
+<div style="overflow-y:auto;overflow-x:auto">
+
+| id | substation_id | name | type | longitude | latitude | string | order | distance | subassembly | upstream_cable |
+| :-- | :-- | :-- | :-- | --: | --: | --: | --: | --: | :-- | :-- |
+| ELC1 | OSS1 | ELC1 | electrolyzer | 1 | 0 |  |  |  | electrolyzer.yaml | export.yaml |
+</div>
+
 
 (how_to:configure:weather)=
 ### Weather Profile
@@ -412,9 +484,9 @@ transformer:
 
 #### Turbines
 
-The turbine has the most to define out of the three systems in the wind farm model.
-Similar to the substation, it relies mainly on the subassembly model with a few extra
-parameters, as defined here:
+The turbine has the most to define out of the three wind-based systems in the wind farm
+model. Similar to the substation, it relies mainly on the subassembly model with a few
+extra parameters, as defined here:
 
 capacity_kw
 : The capacity of the system. Only needed if a $/kw cost basis is being used.
@@ -483,6 +555,62 @@ failures:
     level: 1
     description: n/a
 ```
+
+## Electrolyzers
+
+New as of v0.11!
+
+The electrolyzer has the most to define out of all the systems. Similar to the turbine,
+it relies mainly on the subassembly model with a few extra parameters, as defined here:
+
+stack_capacity_kw
+: The capacity of each stack, required.
+
+n_stacks
+: The number of stacks in the electrolyzer, required.
+
+capex_kw
+: The $/kw cost of the machine, if not providing absolute costs.
+
+power_curve: p1, p2, p3, p4, and p5
+: Coefficients for the polynomial to convert the stack's input power to current.
+
+power_curve: FE
+: Faradic efficiency, defaults to 0.9999999.
+
+power_curve: n_cells
+: Number of cells in each stack to convert energy to H2.
+
+power_curve: n_cells
+: The minimum operating ratio for input power. For example, at 0.1 (10%), a 100 MW
+electrolyzer will not operate unless input power is at least 10 MW.
+
+An example data file provides the following definition in addition to the maintenance
+and failure definitions that were shown previously. The assumptions are based on the
+[H2 Integrate PEM electrolysis model](https://github.com/NREL/H2Integrate/blob/main/h2integrate/simulation/technologies/hydrogen/electrolysis/PEM_H2_LT_electrolyzer_Clusters.py)
+with CapEx and number of stacks being fabricated for example purposes.
+
+```{code-block} yaml
+stack_capacity_kw: 1000
+capex_kw: 800
+n_stacks: 120
+power_curve:
+  p1: 4.0519644766515644e-08
+  p2: -0.00026186723338675105
+  p3: 3.8985774154190334
+  p4: 7.615382921418666
+  p5: -20.075110413404484
+  FE: 0.9999999
+  n_cells: 135
+  turndown_ratio: 0.1
+```
+
+The power curve input requires the efficiency polynomial curve fit coefficients, though
+it is highly recommended to use those included in the above example. For implementation
+details, please see the [utilities API documentation](https://wisdem.github.io/WOMBAT/API/utilities.html#wombat.utilities.utilities)
+
+If there is a need/desire for additional power curve methodologies, then
+[please submit an issue on the GitHub](https://github.com/WISDEM/WOMBAT/issues)!
 
 ## Set Up the Simulation
 
@@ -672,7 +800,7 @@ end to quickly transition to results aggregation without any further code.
 # Timing for a demonstration of performance
 start = perf_counter()
 
-sim.run()
+sim.run(delete_logs=True, save_metrics_inputs=False)
 
 end = perf_counter()
 
@@ -714,3 +842,8 @@ automatically once you are done.
 ```{code-cell} ipython3
 sim.env.cleanup_log_files()
 ```
+
+For additional convenience, in `Simulation.run()`, `save_metrics_inputs=True` and
+`delete_logs=False` can be added to skip a secondary cleanup step. This is particularly
+useful when running a series of simulations where the log files will not be needed
+afterward.
