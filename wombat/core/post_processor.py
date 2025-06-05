@@ -1968,9 +1968,17 @@ class Metrics:
             return opex
         return opex[[column]]
 
-    def process_times(self) -> pd.DataFrame:
+    def process_times(self, include_incompletes: bool = True) -> pd.DataFrame:
         """Calculates the time, in hours, to complete a repair/maintenance request, on
         both a request to completion basis, and the actual time to complete the repair.
+
+        Parameters
+        ----------
+        include_incompletes : bool, optional
+            Boolean flag to include the incomplete repair and maintenance requests. If
+            True, this will summarize all submitted requests that have not been
+            canceled, but if False, this will only summary the process timing for
+            the completed requests, by default True.
 
         Returns
         -------
@@ -1983,7 +1991,20 @@ class Metrics:
          - downtime: total number of hours where the operations were below 100%.
          - N: total number of processes in the category.
         """
-        events_valid = self.events.loc[self.events.request_id != "na"]
+        canceled_requests = self.events.loc[
+            self.events.action.isin(("repair canceled", "maintenance canceled")),
+            "request_id",
+        ]
+        events_valid = self.events.loc[
+            self.events.request_id.ne("na")
+            & ~self.events.request_id.isin(canceled_requests)
+        ]
+        if not include_incompletes:
+            completed = self.events.loc[
+                self.events.action.isin(("repair complete", "maintenance complete")),
+                "request_id",
+            ]
+            events_valid = events_valid.loc[events_valid.request_id.isin(completed)]
 
         # Summarize all the requests data
         request_df = (
@@ -2077,6 +2098,73 @@ class Metrics:
 
         # Return only the categorically summed data
         return timing.groupby("category").sum().sort_index()
+
+    def request_summary(self) -> pd.DataFrame:
+        """Calculate the number of repair and maintenance requets that have been
+        submitted, cancelled, not completed, and completed.
+
+        Returns
+        -------
+        pd.DataFrame
+            Data frame with a :py:class`pandas.MultiIndex` of the subassembly and
+            task description, with columns "total_request", "canceled_request",
+            "incomplete_requests", and "completed_requests".
+        """
+        requests = self.events.loc[
+            self.events.action.isin(("repair request", "maintenance request")),
+            "request_id",
+        ]
+        canceled_requests = self.events.loc[
+            self.events.action.isin(("repair canceled", "maintenance canceled")),
+            "request_id",
+        ]
+        completed_requests = self.events.loc[
+            self.events.action.isin(("repair complete", "maintenance complete")),
+            "request_id",
+        ]
+        incomplete_requests = requests.loc[
+            ~requests.isin(canceled_requests) & ~requests.isin(completed_requests)
+        ]
+        total_df = self.events.loc[
+            self.events.action.isin(("repair request", "maintenance request")),
+            ["part_name", "reason", "request_id"],
+        ].rename(
+            columns={
+                "part_name": "subassembly",
+                "reason": "task",
+            }
+        )
+        canceled_df = (
+            total_df.loc[total_df.request_id.isin(canceled_requests)]
+            .groupby(["subassembly", "task"])
+            .count()
+            .rename(columns={"request_id": "canceled_requests"})
+        )
+        incomplete_df = (
+            total_df.loc[total_df.request_id.isin(incomplete_requests)]
+            .groupby(["subassembly", "task"])
+            .count()
+            .rename(columns={"request_id": "incomplete_requests"})
+        )
+        completed_df = (
+            total_df.loc[total_df.request_id.isin(completed_requests)]
+            .groupby(["subassembly", "task"])
+            .count()
+            .rename(columns={"request_id": "completed_requests"})
+        )
+        total_df = (
+            total_df.groupby(["subassembly", "task"])
+            .count()
+            .rename(columns={"request_id": "total_requests"})
+        )
+        summary = (
+            total_df.join(canceled_df, how="outer")
+            .join(incomplete_df, how="outer")
+            .join(completed_df, how="outer")
+            .fillna(0)
+            .astype(int)
+        )
+        return summary
 
     def power_production(
         self, frequency: str, by: str = "windfarm", units: str = "gwh"

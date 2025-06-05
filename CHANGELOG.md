@@ -12,7 +12,7 @@
 - Electrolyzers are now an included system model. They act similarly to a substation,
   but should be upstream from the substations in the layout model. Unlike turbine's
   an electrolyzer will only connect to the substation as a downstream system.
-- `Metrics.dispatch_summary` is now available to provide the number of mobilizations and average
+- `Metrics.dispatch_summary()` is now available to provide the number of mobilizations and average
   charter period across the whole project, or broken down by year and month, as requested.
 - Universalized maintenance starting dates are now able to be set through the primary
   configuration file as `maintenance_start`. This will enable the universalized
@@ -23,6 +23,9 @@
 - `Simulation.run()` has a new parameter called `delete_logs` (defaults to False) that
   allows the user to automatically delete the logging files that are created after the
   `Metrics` object is initialized.
+- `Metrics.request_summary()` is now available to provide the total number of repair
+  and maintenance requests, number of canceled requests, number of incomplete requests,
+  and the number of completed requests.
 
 ### Updates
 
@@ -52,6 +55,10 @@
   faster I/O and a smaller memory footprint.
 - Servicing equipment code checking is replaced with a `StrEnum` throughout for more
   robust and streamlined data validation.
+- Fixes a bug in `Metrics.process_times()` where canceled requests are counted towards
+  the event timing and count.
+- `Metrics.process_times` has a new flag `include_incompletes` to either summarize all
+  maintenance activity (`False`) or only the completed maintenance activity (`True`).
 
 ## v0.10.4 (12 May 2025)
 
