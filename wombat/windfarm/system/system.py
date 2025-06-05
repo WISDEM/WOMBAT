@@ -105,12 +105,12 @@ class System:
 
         Raises
         ------
-        ValueError
+        TypeError
             Raised if :py:attr:`capex_kw` is None.
         """
         if capex_kw is None or not isinstance(capex_kw, (float, int)):
             msg = f"Invalid `capex_kw` provided for {self.system_type}: {self.name}"
-            raise ValueError(msg)
+            raise TypeError(msg)
         return self.capacity * capex_kw
 
     def _create_subassemblies(self, subassembly_data: dict, system: SystemType) -> None:
