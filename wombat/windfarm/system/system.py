@@ -71,7 +71,7 @@ class System:
         else:
             self.capacity = subassemblies["capacity_kw"]
 
-        power_curve = subassemblies.get("power_curve", {})
+        power_curve = subassemblies.get("power_curve")
         if self.system_type is SystemType.TURBINE:
             self._initialize_power_curve(power_curve)
 

@@ -939,7 +939,7 @@ class WombatEnvironment(simpy.Environment):
             operations, production_df
         )
 
-        if electrolyzers := windfarm.electrolyzer_id:
+        if (electrolyzers := windfarm.electrolyzer_id).size > 0:
             potential_df[electrolyzers] = np.vstack(
                 [
                     windfarm.system(e_id).power(potential_df.windfarm)
