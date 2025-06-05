@@ -942,7 +942,7 @@ class WombatEnvironment(simpy.Environment):
         if electrolyzers := windfarm.electrolyzer_id:
             potential_df[electrolyzers] = np.vstack(
                 [
-                    windfarm.system(e_id).power(production_df.windfarm)
+                    windfarm.system(e_id).power(potential_df.windfarm)
                     for e_id in electrolyzers
                 ]
             ).T
