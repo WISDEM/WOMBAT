@@ -221,7 +221,7 @@ class System:
         p5 = power_curve_dict.get("p5", 0.0)
         fe = power_curve_dict.get("FE", 0.9999999)
         n_cells = power_curve_dict.get("n_cells", 135)
-        turn_down_ratio = power_curve_dict.get("turn_down_ratio", 0.1)
+        turndown_ratio = power_curve_dict.get("turn_down_ratio", 0.1)
         rated_capacity = self.capacity
         self.power_curve = calculate_hydrogen_production(
             p1=p1,
@@ -232,7 +232,7 @@ class System:
             rated_capacity=rated_capacity,
             FE=fe,
             n_cells=n_cells,
-            turndown_ratio=turn_down_ratio,
+            turndown_ratio=turndown_ratio,
         )
         self.rated_production, *_ = self.power_curve(np.array([rated_capacity]))
 
