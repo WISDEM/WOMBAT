@@ -661,6 +661,7 @@ class Maintenance(FromDictMixin):
         - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
         - VSG: vessel support group (group of vessels required for single operation)
         - OFS: offsite equipment for interconnection or electrolyzer
+
     system_value : Union[int, float]
         Turbine replacement value. Used if the materials cost is a proportional cost.
     description : str

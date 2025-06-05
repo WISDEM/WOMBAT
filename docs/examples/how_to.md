@@ -222,7 +222,7 @@ later input reviews:
 | S00T80 | OSS1 | S00T80 | turbine | 0 | 0 | 0 | 79 | 0 | vestas_v90.yaml | array.yaml |
 </div>
 
-#### v0.10 Update
+#### New in v0.10
 
 v0.10 introduced the ability to define any YAML-based configuration file within the
 primary configuration file. To accommodate this change in the above example, each of
@@ -230,7 +230,7 @@ primary configuration file. To accommodate this change in the above example, eac
 and the `Simulation` setup will automatically search for `vestas_v90`, `array`, `export`,
 or `offshore_substation` in the primary configuration file.
 
-#### v0.11 Update
+#### New in v0.11
 
 v0.11 introduced the electrolyzer model. To include an electrolyzer in the above definition,
 simply create a new row where the electrolyzer is connected to substation via an export
