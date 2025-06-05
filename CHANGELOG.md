@@ -10,8 +10,20 @@
 ### Features
 
 - Electrolyzers are now an included system model. They act similarly to a substation,
-  but should be upstream from the substations in the layout model. Unlike turbine's
-  an electrolyzer will only connect to the substation as a downstream system.
+  but should be downstream from the substations in the layout model. Unlike turbine's
+  an electrolyzer will only connect to the substation as a downstream system. Below
+  are some of the highlights and assumptions.
+  - The subassembly definition file requires 4 top-level inputs:
+    - `stack_capacity_kw`: The capacity of each stack
+    - `capex_kw`: The cost of the whole system, per kw.
+    - `n_stacks`: The number of stacks comprising the electrolyzer.
+    - `power_curve`: Includes variables `p1`, `p2`, `p3`, `p4`, `p5`, `FE` (Faradaic
+      efficiency), `n_cells` (per stack), and `turndown_ratio`.
+  - The production curve is based on the
+    [H2Integrate PEM electrolysis module](https://github.com/NREL/H2Integrate/blob/main/h2integrate/simulation/technologies/hydrogen/electrolysis/PEM_H2_LT_electrolyzer_Clusters.py).
+  - Electrolyzer downtime does not impact farm activities as it is assumed energy will
+    still flow through the export system to some other entity such as the grid.
+  - All stacks are currently modeled as a single entity.
 - `Metrics.dispatch_summary()` is now available to provide the number of mobilizations and average
   charter period across the whole project, or broken down by year and month, as requested.
 - Universalized maintenance starting dates are now able to be set through the primary
