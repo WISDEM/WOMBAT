@@ -141,7 +141,7 @@ def reset_system_operations(system: System, subassembly_resets: list[str]) -> No
     system : System
         The turbine to be reset.
     subassembly_resets : list[str]
-        The `subassembly_id`s to reset to good as new, if not assuming all
+        The ``subassembly_id`` to reset to good as new, if not assuming all
         subassemblies.
     """
     for subassembly in system.subassemblies:
@@ -1921,7 +1921,7 @@ class ServiceEquipment(RepairsMixin):
         request : RepairRequest
             The request the triggered the tow-to-port strategy.
         subassembly_resets : list[str]
-            The `subassembly_id`s to reset to good as new. Defaults to [].
+            The ``subassembly_id``s to reset to good as new. Defaults to [].
 
         Yields
         ------

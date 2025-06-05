@@ -2,8 +2,28 @@
 
 ## Unreleased
 
-## New Features
+### Deprecations
 
+- Drops support for Python 3.10.
+- The layout file must have a "type" specified for every system in the layout.
+
+### Features
+
+- Electrolyzers are now an included system model. They act similarly to a substation,
+  but should be downstream from the substations in the layout model. Unlike turbine's
+  an electrolyzer will only connect to the substation as a downstream system. Below
+  are some of the highlights and assumptions.
+  - The subassembly definition file requires 4 top-level inputs:
+    - `stack_capacity_kw`: The capacity of each stack
+    - `capex_kw`: The cost of the whole system, per kw.
+    - `n_stacks`: The number of stacks comprising the electrolyzer.
+    - `power_curve`: Includes variables `p1`, `p2`, `p3`, `p4`, `p5`, `FE` (Faradaic
+      efficiency), `n_cells` (per stack), and `turndown_ratio`.
+  - The production curve is based on the
+    [H2Integrate PEM electrolysis module](https://github.com/NREL/H2Integrate/blob/main/h2integrate/simulation/technologies/hydrogen/electrolysis/PEM_H2_LT_electrolyzer_Clusters.py).
+  - Electrolyzer downtime does not impact farm activities as it is assumed energy will
+    still flow through the export system to some other entity such as the grid.
+  - All stacks are currently modeled as a single entity.
 - `Metrics.dispatch_summary()` is now available to provide the number of mobilizations and average
   charter period across the whole project, or broken down by year and month, as requested.
 - Universalized maintenance starting dates are now able to be set through the primary
@@ -21,10 +41,19 @@
 
 ### Updates
 
-- Drops support for Python 3.10.
-- `Metrics.component_costs` has been refactored, and now includes two additional breakdowns:
-  - `by_task`: toggles the inclusion of the individual repair and maintenance tasks.
-  - `include_travel`: toggles the inclusion of intrasite and port-to-site travel.
+- `Metrics` improvements and updates
+  - `component_costs()` has been refactored, and now includes two additional breakdowns:
+    - `by_task`: toggles the inclusion of the individual repair and maintenance tasks.
+    - `include_travel`: toggles the inclusion of intrasite and port-to-site travel.
+  - `time_based_availability()`
+    - Additional option for `by="electrolyzer"`.
+    - `by="turbine"` no longer includes the "windfarm" column for results
+  - `production_based_availability()`
+    - Additional option for `by="electrolyzer"`.
+    - `by="turbine"` no longer includes the "windfarm" column for results
+  - `capacity_factor()`
+    - Additional option for `by="electrolyzer"`.
+    - `by="turbine"` no longer includes the "windfarm" column for results
 - Improved cable, subassembly, and servicing equipment error handling to show which of
   the cables, substations, turbines, or vessels produced the intialization error for
   easier input debugging.
@@ -36,6 +65,8 @@
   run with `pytest` still running the entire test suite.
 - Post-results log files have been converted from a CSV to Parquet file format for
   faster I/O and a smaller memory footprint.
+- Servicing equipment code checking is replaced with a `StrEnum` throughout for more
+  robust and streamlined data validation.
 - Fixes a bug in `Metrics.process_times()` where canceled requests are counted towards
   the event timing and count.
 - `Metrics.process_times` has a new flag `include_incompletes` to either summarize all

@@ -484,8 +484,12 @@ class Simulation(FromDictMixin):
             s_id: {k: v.tolist() for k, v in dict.items()}
             for s_id, dict in self.windfarm.substation_turbine_map.items()
         }
-        capacities = [
+        turbine_capacities = [
             self.windfarm.system(t).capacity for t in self.windfarm.turbine_id
+        ]
+        electrolyzer_capacities = [
+            self.windfarm.system(t).rated_production
+            for t in self.windfarm.electrolyzer_id
         ]
         self.metrics = Metrics(
             data_dir=self.library_path,
@@ -495,10 +499,12 @@ class Simulation(FromDictMixin):
             production=power_production,
             inflation_rate=self.config.inflation_rate,
             project_capacity=self.config.project_capacity,
-            turbine_capacities=capacities,
+            turbine_capacities=turbine_capacities,
+            electrolyzer_capacities=electrolyzer_capacities,
             fixed_costs=self.config.fixed_costs,  # type: ignore
             substation_id=self.windfarm.substation_id.tolist(),
             turbine_id=self.windfarm.turbine_id.tolist(),
+            electrolyzer_id=self.windfarm.electrolyzer_id.tolist(),
             substation_turbine_map=substation_turbine_map,
             service_equipment_names=[*self.service_equipment],  # type: ignore
         )
@@ -522,9 +528,14 @@ class Simulation(FromDictMixin):
             "turbine_capacities": [
                 self.windfarm.system(t_id).capacity for t_id in self.windfarm.turbine_id
             ],
+            "electrolyzer_capacities": [
+                self.windfarm.system(e_id).rated_production
+                for e_id in self.windfarm.electrolyzer_id
+            ],
             "fixed_costs": self.config.fixed_costs,
             "substation_id": self.windfarm.substation_id.tolist(),
             "turbine_id": self.windfarm.turbine_id.tolist(),
+            "electrolyzer_id": self.windfarm.electrolyzer_id.tolist(),
             "substation_turbine_map": substation_turbine_map,
             "service_equipment_names": [*self.service_equipment],
         }
