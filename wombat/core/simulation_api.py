@@ -488,7 +488,8 @@ class Simulation(FromDictMixin):
             self.windfarm.system(t).capacity for t in self.windfarm.turbine_id
         ]
         electrolyzer_capacities = [
-            self.windfarm.system(t).capacity for t in self.windfarm.electrolyzer_id
+            self.windfarm.system(t).rated_production
+            for t in self.windfarm.electrolyzer_id
         ]
         self.metrics = Metrics(
             data_dir=self.library_path,
@@ -528,7 +529,7 @@ class Simulation(FromDictMixin):
                 self.windfarm.system(t_id).capacity for t_id in self.windfarm.turbine_id
             ],
             "electrolyzer_capacities": [
-                self.windfarm.system(e_id).capacity
+                self.windfarm.system(e_id).rated_production
                 for e_id in self.windfarm.electrolyzer_id
             ],
             "fixed_costs": self.config.fixed_costs,

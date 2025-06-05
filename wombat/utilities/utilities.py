@@ -169,8 +169,10 @@ def calculate_hydrogen_production(
     p3: int | float,
     p4: int | float,
     p5: int | float,
+    rated_capacity: float,
     FE: float = 0.9999999,
     n_cells: int = 135,
+    turndown_ratio: float = 0.1,
 ) -> Callable:
     """Create the hydrogen production curve for an electrolyzer.
 
@@ -188,23 +190,39 @@ def calculate_hydrogen_production(
         Intercept.
     FE : float, optional
         Faradic efficiency, by default 0.9999999.
+    rated_capacity : float
+        Rated maximum input power of the electrolyzer, in kW.
     n_cells : int, optional
         Number of cells per 1 MW stack, by default 135.
+    turndown_ratio: float, optional
+        Minimum input power as a ratio of the rated capacity, by default 0.1
 
     Returns
     -------
     Callable
         Python function for the H2 production in kg/hr given an input power in kW/hr
+
+    Raises
+    ------
+    ValueError
+        Raised when :py:attr:`turndown_ratio` is outside the range [0, 1].
     """
+    if turndown_ratio > 1 or turndown_ratio < 0:
+        msg = f"`turndown_ratio` must be between 0 and 1, not: {turndown_ratio}"
+        raise ValueError(msg)
+
     F = 96485.34  # Faraday's Constant (C/mol)
     SECONDS = 3600  # seconds per hour
     molar_mass_h2 = 2.016  # molecular weight of H2 (grams/mol)
+    min_power = rated_capacity * turndown_ratio
 
     def h2(power):
+        power = np.where(power > rated_capacity, rated_capacity, power)
         i = calculate_stack_current(power, p1, p2, p3, p4, p5)
         h2_rate_g_s = i * n_cells * FE * molar_mass_h2 / (2 * F)
         h2_rate_kg_hr = h2_rate_g_s * SECONDS / 1e3
         h2_rate_kg_hr[h2_rate_kg_hr < 0] = 0
+        h2_rate_kg_hr[power < min_power] = 0
         return h2_rate_kg_hr
 
     return h2

@@ -59,11 +59,17 @@ class System:
         self.repair_manager = repair_manager
         self.id = t_id
         self.name = name
-        self.capacity = subassemblies["capacity_kw"]
+        self.system_type = SystemType(system)
         self.subassemblies: list[Subassembly] = []
         self.servicing = self.env.event()
         self.servicing_queue = self.env.event()
         self.cable_failure = self.env.event()
+
+        if self.system_type is SystemType.ELECTROLYZER:
+            self.n_stacks = subassemblies["n_stacks"]
+            self.capacity = self.n_stacks * subassemblies["stack_capacity_kw"]
+        else:
+            self.capacity = subassemblies["capacity_kw"]
 
         # Ensure servicing statuses starts as processed and inactive
         self.servicing.succeed()
@@ -71,7 +77,6 @@ class System:
         self.cable_failure.succeed()
 
         self.value = self._calculate_system_value(subassemblies)
-        self.system_type = SystemType(system)
         self._create_subassemblies(subassemblies, self.system_type)
 
     def _calculate_system_value(self, subassemblies: dict) -> float:
@@ -111,6 +116,7 @@ class System:
             "id",
             "name",
             "capacity",
+            "n_stacks",
             "subassemblies",
             "servicing",
             "servicing_queue",
@@ -119,6 +125,7 @@ class System:
             "system_type",
             "power",
             "power_curve",
+            "rated_production",
         )
         for key, data in subassembly_data.items():
             if key in exclude_keys:
@@ -196,15 +203,20 @@ class System:
         p5 = power_curve_dict.get("p5", 0.0)
         fe = power_curve_dict.get("FE", 0.9999999)
         n_cells = power_curve_dict.get("n_cells", 135)
+        turn_down_ratio = power_curve_dict.get("turn_down_ratio", 0.1)
+        rated_capacity = self.capacity
         self.power_curve = calculate_hydrogen_production(
             p1=p1,
             p2=p2,
             p3=p3,
             p4=p4,
             p5=p5,
+            rated_capacity=rated_capacity,
             FE=fe,
             n_cells=n_cells,
+            turndown_ratio=turn_down_ratio,
         )
+        self.rated_production = self.power_curve(rated_capacity)
 
     def interrupt_all_subassembly_processes(
         self, origin: Subassembly | None = None, replacement: str | None = None

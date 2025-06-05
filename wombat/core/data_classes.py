@@ -1033,6 +1033,7 @@ class SubassemblyData(FromDictMixin):
             "id",
             "name",
             "capacity",
+            "n_stacks",
             "subassemblies",
             "servicing",
             "servicing_queue",
@@ -1041,6 +1042,7 @@ class SubassemblyData(FromDictMixin):
             "system_type",
             "power",
             "power_curve",
+            "rated_production",
         )
         if value in invalid:
             raise ValueError(f"Input subassembly name cannot be used: {value}.")
