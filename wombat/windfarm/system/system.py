@@ -71,28 +71,47 @@ class System:
         else:
             self.capacity = subassemblies["capacity_kw"]
 
+        power_curve = subassemblies.get("power_curve", {})
+        if self.system_type is SystemType.TURBINE:
+            self._initialize_power_curve(power_curve)
+
+        if self.system_type is SystemType.ELECTROLYZER:
+            self._initialize_production_curve(power_curve)
+
+        self.value = self._calculate_system_value(subassemblies.get("capex_kw"))
+
         # Ensure servicing statuses starts as processed and inactive
         self.servicing.succeed()
         self.servicing_queue.succeed()
         self.cable_failure.succeed()
 
-        self.value = self._calculate_system_value(subassemblies)
         self._create_subassemblies(subassemblies, self.system_type)
 
-    def _calculate_system_value(self, subassemblies: dict) -> float:
-        """Calculates the system's value based its capex_kw and capacity.
+    def _calculate_system_value(self, capex_kw: int | float | None) -> int | float:
+        """Calculates the system's value based its :py:attr:`capex_kw` and either
+        :py:attr:`capacity`. For turbines this is the ``capacity_kw`, and for
+        electrolyzers, this is the ``rated_production`` based on the
+        `stack_capacit_kw``, ``n_stacks``, and production curve.
 
         Parameters
         ----------
-        subassemblies : dict
-            Dictionary of subassemblies.
+        capex_kw : int | float
+            The CapEx per kw of the system.
 
         Returns
         -------
-        float
+        int | float
             The total system CapEx.
+
+        Raises
+        ------
+        ValueError
+            Raised if :py:attr:`capex_kw` is None.
         """
-        return subassemblies["capacity_kw"] * subassemblies["capex_kw"]
+        if capex_kw is None or not isinstance(capex_kw, (float, int)):
+            msg = f"Invalid `capex_kw` provided for {self.system_type}: {self.name}"
+            raise ValueError(msg)
+        return self.capacity * capex_kw
 
     def _create_subassemblies(self, subassembly_data: dict, system: SystemType) -> None:
         """Creates each subassembly as a separate attribute and also a list for quick
@@ -109,7 +128,13 @@ class System:
         """
         # Set the subassembly data variables from the remainder of the keys in the
         # system configuration file/dictionary
-        exclude_keys = ["capacity_kw", "capex_kw", "power_curve"]
+        exclude_keys = [
+            "capacity_kw",
+            "capex_kw",
+            "power_curve",
+            "n_stacks",
+            "stack_capacity_kw",
+        ]
         invalid = (
             "env",
             "repair_manager",
@@ -153,13 +178,6 @@ class System:
             part_ol=1,
             additional="initialization",
         )
-
-        # If the system is a turbine, create the power curve, if available
-        if system is SystemType.TURBINE:
-            self._initialize_power_curve(subassembly_data.get("power_curve", None))
-
-        if system is SystemType.ELECTROLYZER:
-            self._initialize_production_curve(subassembly_data.get("power_curve", None))
 
     def _initialize_power_curve(self, power_curve_dict: dict | None) -> None:
         """Creates the power curve function based on the :py:attr:power_curve_dict`
@@ -216,7 +234,7 @@ class System:
             n_cells=n_cells,
             turndown_ratio=turn_down_ratio,
         )
-        self.rated_production = self.power_curve(rated_capacity)
+        self.rated_production, *_ = self.power_curve(np.array([rated_capacity]))
 
     def interrupt_all_subassembly_processes(
         self, origin: Subassembly | None = None, replacement: str | None = None
