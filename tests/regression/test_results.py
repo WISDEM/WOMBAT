@@ -7,7 +7,6 @@ from pytest_check import check
 def test_results_consistency(setup_ttp):
     """Multi-facted check to ensure consistency across metrics."""
     sim = setup_ttp
-    sim.run(8760 * 5)
 
     metrics = sim.metrics
     ev = metrics.events
@@ -61,3 +60,57 @@ def test_results_consistency(setup_ttp):
     check.almost_equal(
         opex.equipment_cost.squeeze(), equipment_expected.equipment_cost.sum()
     )
+
+
+def test_event_summary_consistency(setup_ttp):
+    """Tests the consistency of request counting."""
+    sim = setup_ttp
+    metrics = sim.metrics
+
+    timing_all = metrics.process_times(include_incompletes=True)
+    timing_sub = metrics.process_times(include_incompletes=False).rename(
+        columns={"N": "N_completed"}
+    )
+    requests = (
+        metrics.request_summary()
+        .droplevel("subassembly")
+        .reset_index()
+        .rename(columns={"task": "category"})
+        .set_index("category")
+    )
+
+    combined = (
+        timing_all[["N"]]
+        .join(timing_sub[["N_completed"]], how="outer")
+        .join(requests, how="outer")
+        .fillna(0)
+        .astype(int)
+    )
+
+    with check:
+        pdt.assert_series_equal(
+            combined.total_requests,
+            combined.canceled_requests
+            + combined.incomplete_requests
+            + combined.completed_requests,
+            check_names=False,
+        )
+
+    with check:
+        pdt.assert_series_equal(
+            combined.N,
+            (combined.total_requests - combined.canceled_requests),
+            check_names=False,
+        )
+
+    with check:
+        pdt.assert_series_equal(
+            combined.N,
+            (combined.completed_requests + combined.incomplete_requests),
+            check_names=False,
+        )
+
+    with check:
+        pdt.assert_series_equal(
+            combined.N_completed, combined.completed_requests, check_names=False
+        )

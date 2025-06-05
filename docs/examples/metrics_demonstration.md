@@ -79,6 +79,7 @@ is, and how it should be computed.
 - [Fixed Cost Impacts](metrics-demo:fixed-costs): Total fixed costs
 - [OpEx](metrics-demo:opex): Project OpEx
 - [Process Times](metrics-demo:process-times): Timing of various stages of repair and maintenance
+- [Request Summary](metrics-demo:request-summary): Total number of submitted, canceled, and completed repair and maintenance tasks
 - [Power Production](metrics-demo:power-production): Potential and actually produced power
 - [Net Present Value](metrics-demo:npv): Project NPV calculator
 
@@ -672,11 +673,42 @@ performing repairs, and the number of request for each repair category. For furt
 documentation, see the API docs here:
 {py:meth}`wombat.core.post_processor.Metrics.process_times`.
 
+**Inputs**:
+
+- `include_incompletes`
+  - `True`: include requests that have been submitted, but not completed.
+  - `False`: only include requests that have been completed.
+
 **Example Usage**:
 
 ```{code-cell} ipython3
 :tags: ["output_scroll"]
 style(metrics.process_times())
+```
+
+```{code-cell} ipython3
+:tags: ["output_scroll"]
+style(metrics.process_times(include_incompletes=False))
+```
+
+(metrics-demo:request-sumamry)=
+## Request Summary
+
+Computes the total number of submitted, canceled, incomplete, and completed repair and
+maintenance request by subassembly and task description. For further documentation, see
+the API docs here: {py:meth}`wombat.core.post_processor.Metrics.request_summary`.
+
+**Inputs**:
+
+- `include_incompletes`
+  - `True`: include requests that have been submitted, but not completed.
+  - `False`: only include requests that have been completed.
+
+**Example Usage**:
+
+```{code-cell} ipython3
+:tags: ["output_scroll"]
+style(metrics.request_summary())
 ```
 
 (metrics-demo:power-production)=
