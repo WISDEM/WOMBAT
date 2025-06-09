@@ -40,6 +40,14 @@
   the event timing and count.
 - `Metrics.process_times` has a new flag `include_incompletes` to either summarize all
   maintenance activity (`False`) or only the completed maintenance activity (`True`).
+- Small bug in `Subassembly.interrupt_processes()` is fixed by using a `try`/`except`
+  clause for all interruptions. This allows for the `ServiceEquipment.tow_to_site()` to
+  run without failure after replacing a subassembly. The cause of the failure stems
+  from the inability to interrupt a previously terminated process (caused by triggering
+  a tow-to-port repair).
+- COREWIND turbine failures have been split so that subassemblies only contain a single
+  component grouping to be more compatible with industry modeling assumptions. This
+  ultimately reduces teh resulting number of failures, and therefore costs.
 
 ## v0.10.4 (12 May 2025)
 
