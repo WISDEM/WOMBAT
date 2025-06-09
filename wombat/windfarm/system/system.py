@@ -70,12 +70,12 @@ class System:
         self.servicing_queue.succeed()
         self.cable_failure.succeed()
 
-        system = system.lower().strip()
+        self.system_type = system.lower().strip()
         self._calculate_system_value(subassemblies)
-        if system not in ("turbine", "substation"):
+        if self.system_type not in ("turbine", "substation"):
             raise ValueError("'system' must be one of 'turbine' or 'substation'!")
 
-        self._create_subassemblies(subassemblies, system)
+        self._create_subassemblies(subassemblies)
 
     def _calculate_system_value(self, subassemblies: dict) -> None:
         """Calculates the turbine's value based its capex_kw and capacity.
@@ -89,7 +89,7 @@ class System:
         """
         self.value = subassemblies["capacity_kw"] * subassemblies["capex_kw"]
 
-    def _create_subassemblies(self, subassembly_data: dict, system: str) -> None:
+    def _create_subassemblies(self, subassembly_data: dict) -> None:
         """Creates each subassembly as a separate attribute and also a list for quick
         access.
 
@@ -98,9 +98,6 @@ class System:
         subassembly_data : dict
             Dictionary providing the maintenance and failure definitions for at least
             one subassembly named
-        system : str
-            One of "turbine" or "substation" to indicate if the power curves should also
-            be created, or not.
         """
         # Set the subassembly data variables from the remainder of the keys in the
         # system configuration file/dictionary
@@ -131,7 +128,7 @@ class System:
         )
 
         # If the system is a turbine, create the power curve, if available
-        if system == "turbine":
+        if self.system_type == "turbine":
             self._initialize_power_curve(subassembly_data.get("power_curve", None))
 
     def _initialize_power_curve(self, power_curve_dict: dict | None) -> None:
