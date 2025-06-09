@@ -123,16 +123,17 @@ class Subassembly:
         cause = "failure"
         if self.id == replacement:
             cause = "replacement"
-        if origin is not None and id(origin) == id(self):
-            for _, process in self.processes.items():
-                try:
-                    process.interrupt(cause=cause)
-                except RuntimeError:  # Process initiating process can't be interrupted
-                    pass
-            return
+        # if origin is not None and id(origin) == id(self):
 
+        # Processes that initiate the process can't be interrupted, nor can replaced
+        # (already cancelled) processes
+        # TODO: better management of the process status is required
         for _, process in self.processes.items():
-            process.interrupt(cause=cause)
+            try:
+                process.interrupt(cause=cause)
+            except RuntimeError:
+                pass
+        return None
 
     def interrupt_all_subassembly_processes(self) -> None:
         """Thin wrapper for ``system.interrupt_all_subassembly_processes``."""
