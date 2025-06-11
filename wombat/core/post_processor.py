@@ -2188,7 +2188,7 @@ class Metrics:
         Returns
         -------
         float | pd.DataFrame
-            Returns either a float for whole project-level costs or a pandas
+            Returns either a float for whole project-level energy production or a pandas
             ``DataFrame`` with columns:
 
             - year (if appropriate for frequency)
@@ -2202,7 +2202,7 @@ class Metrics:
             If ``frequency`` is not one of "project", "annual", "monthly", or
             "month-year".
         ValueError
-            If ``by_turbine`` is not one of ``True`` or ``False``.
+            If :py:attr:`by` is not one of "turbine" or "windfarm".
         """
         frequency = _check_frequency(frequency, which="all")
 
@@ -2243,6 +2243,81 @@ class Metrics:
         production = (
             self.production[group_cols + col_filter].groupby(by=group_cols).sum()
             / divisor
+        )
+        return production
+
+    def h2_production(
+        self, frequency: str, by: str = "total", units: str = "kgh"
+    ) -> float | pd.DataFrame:
+        """Calculates the hydrogen production for the simulation at a project, annual,
+        or monthly level that can be broken out by electrolyzer.
+
+        Parameters
+        ----------
+        frequency : str
+            One of "project", "annual", "monthly", or "month-year".
+        by : str
+            One of "electrolyzer" or "total".
+        units : str
+            One of "kgh" (kilograms/hour), "th" (tonnes/hour).
+
+        Returns
+        -------
+        float | pd.DataFrame
+            Returns either a float for whole project-level hydrogen production or a
+            pandas ``DataFrame`` with columns:
+
+            - year (if appropriate for frequency)
+            - month (if appropriate for frequency)
+            - total_power_production
+            - <electrolyzer>_power_production (if broken out)
+
+        Raises
+        ------
+        ValueError
+            If :py:attr:`frequency` is not one of "project", "annual", "monthly", or
+            "month-year".
+        ValueError
+            If :py:attr:`by` is not one of "electrolyzer" or "total".
+        """
+        frequency = _check_frequency(frequency, which="all")
+
+        by = by.lower().strip()
+        if by not in ("electrolyzer", "total"):
+            raise ValueError('``by`` must be one of "total" or "electrolyzer".')
+        by_electrolyzer = by == "electrolyzer"
+
+        if units not in ("kgh", "th"):
+            raise ValueError('``units`` must be one of "kgh" or "th".')
+        if units == "th":
+            divisor = 1e3
+            label = "Project H2 Production (tonnes/hr)"
+        else:
+            divisor = 1
+            label = "Project H2 Production (kg/hr)"
+
+        col_filter = ["total"]
+        if by_electrolyzer:
+            col_filter.extend(self.electrolyzer_id)
+
+        production = self.production.copy()
+        production["total"] = production[self.electrolyzer_id].sum(axis=1)
+
+        if frequency is Frequency.PROJECT:
+            production = production[col_filter].sum(axis=0)
+            production = (
+                pd.DataFrame(
+                    production.values.reshape(1, -1),
+                    columns=col_filter,
+                    index=[label],
+                )
+                / divisor
+            )
+            return production
+
+        group_cols = frequency.group_cols
+        production = (
+            production[group_cols + col_filter].groupby(by=group_cols).sum() / divisor
         )
         return production
 
