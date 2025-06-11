@@ -171,11 +171,11 @@ class Metrics:
 
         if isinstance(turbine_capacities, (float, int)):
             turbine_capacities = [turbine_capacities]
-        self.turbine_capacities = turbine_capacities
+        self.turbine_capacities = np.array(turbine_capacities, dtype=float)
 
         if isinstance(electrolyzer_capacities, (float, int)):
             electrolyzer_capacities = [electrolyzer_capacities]
-        self.electrolyzer_capacities = electrolyzer_capacities
+        self.electrolyzer_capacities = np.array(electrolyzer_capacities, dtype=float)
 
         if isinstance(events, str):
             events = self._read_data(events)
@@ -198,6 +198,10 @@ class Metrics:
         if isinstance(production, str):
             production = self._read_data(production)
         self.production = self._tidy_data(production)
+
+        prod_cols = self.turbine_id + self.electrolyzer_id
+        self.potential[prod_cols] = self.potential[prod_cols].astype(float)
+        self.production[prod_cols] = self.production[prod_cols].astype(float)
 
     def __eq__(self, other) -> bool:
         """Check that the essential information is the same."""
@@ -2045,7 +2049,7 @@ class Metrics:
 
         reason_df = (
             events_valid.drop_duplicates(subset=["request_id"])[
-                ["request_id", "reason"]
+                ["request_id", "part_name", "reason"]
             ]
             .set_index("request_id")
             .sort_index()
@@ -2073,8 +2077,8 @@ class Metrics:
 
         # Create the timing dataframe
         timing = pd.DataFrame([], index=request_df_min.index)
-        timing = timing.join(reason_df[["reason"]]).rename(
-            columns={"reason": "category"}
+        timing = timing.join(reason_df[["part_name", "reason"]]).rename(
+            columns={"part_name": "subassembly", "reason": "task"}
         )
         timing = timing.join(
             request_df_min[["env_time"]]
@@ -2097,7 +2101,7 @@ class Metrics:
         timing["N"] = 1
 
         # Return only the categorically summed data
-        return timing.groupby("category").sum().sort_index()
+        return timing.groupby(["subassembly", "task"]).sum().sort_index()
 
     def request_summary(self) -> pd.DataFrame:
         """Calculate the number of repair and maintenance requets that have been
