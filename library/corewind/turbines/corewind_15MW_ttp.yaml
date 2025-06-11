@@ -3,8 +3,8 @@ capex_kw: 1300
 power_curve:
   file: 2020ATB_NREL_Reference_15MW_240.csv
   bin_width: 0.5
-electrical_system:
-  name: electrical_system
+power_converter:
+  name: power converter
   maintenance:
   - description: n/a
     time: 0
@@ -20,14 +20,6 @@ electrical_system:
     operation_reduction: 0.0
     level: 1
     description: power converter minor repair
-  - scale: 2.793
-    shape: 1
-    time: 10
-    materials: 1000
-    service_equipment: CTV
-    operation_reduction: 0.0
-    level: 1
-    description: power electrical system minor repair
   - scale: 2.959
     shape: 1
     time: 28
@@ -36,14 +28,6 @@ electrical_system:
     operation_reduction: 0.0
     level: 2
     description: power converter major repair
-  - scale: 62.5
-    shape: 1
-    time: 28
-    materials: 5000
-    service_equipment: TOW
-    operation_reduction: 0.0
-    level: 2
-    description: power electrical system major repair
   - scale: 12.99
     shape: 1
     time: 170
@@ -53,6 +37,31 @@ electrical_system:
     replacement: true
     level: 3
     description: power converter replacement
+electrical_system:
+  name: electrical system
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+  - scale: 2.793
+    shape: 1
+    time: 10
+    materials: 1000
+    service_equipment: CTV
+    operation_reduction: 0.0
+    level: 1
+    description: power electrical system minor repair
+  - scale: 62.5
+    shape: 1
+    time: 28
+    materials: 5000
+    service_equipment: TOW
+    operation_reduction: 0.0
+    level: 2
+    description: power electrical system major repair
   - scale: 500
     shape: 1
     time: 54
@@ -62,8 +71,8 @@ electrical_system:
     replacement: true
     level: 3
     description: power electrical system major replacement
-hydraulic_system:
-  name: hydraulic_system
+hydraulic_pitch_system:
+  name: hydraulic pitch system
   maintenance:
   - description: n/a
     time: 0
@@ -79,14 +88,6 @@ hydraulic_system:
     operation_reduction: 0
     level: 1
     description: minor pitch system repair
-  - scale: 100
-    shape: 1
-    time: 8
-    materials: 1000
-    service_equipment: CTV
-    operation_reduction: 0
-    level: 1
-    description: minor ballast pump repair
   - scale: 5.587
     shape: 1
     time: 38
@@ -104,6 +105,23 @@ hydraulic_system:
     replacement: true
     level: 3
     description: major pitch system replacement
+ballast_pump:
+  name: ballast pump
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+  - scale: 100
+    shape: 1
+    time: 8
+    materials: 1000
+    service_equipment: CTV
+    operation_reduction: 0
+    level: 1
+    description: minor ballast pump repair
 yaw_system:
   name: yaw_system
   maintenance:
@@ -220,6 +238,49 @@ supporting_structure:
     service_equipment: DSV
     frequency: 730
   failures:
+  - description: na
+    scale: 0
+    shape: 0
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    level: 0
+    operation_reduction: 0
+anchor:
+  name: anchor
+  maintenance:
+  - description: na
+    time: 0
+    materials: 0
+    service_equipment: DSV
+    frequency: 0
+  failures:
+  - scale: 66.67
+    shape: 1
+    time: 240
+    materials: 75000
+    service_equipment: AHV
+    operation_reduction: 0
+    level: 1
+    description: major anchor repair
+  - scale: 80
+    shape: 1
+    time: 360
+    materials: 512000
+    service_equipment: AHV
+    operation_reduction: 0
+    replacement: true
+    level: 2
+    description: anchor replacement
+mooring_lines:
+  name: mooring lines
+  maintenance:
+  - description: na
+    time: 0
+    materials: 0
+    service_equipment: DSV
+    frequency: 0
+  failures:
   - scale: 8.33
     shape: 1
     time: 40
@@ -231,28 +292,11 @@ supporting_structure:
   - scale: 66.67
     shape: 1
     time: 240
-    materials: 75000
-    service_equipment: AHV
-    operation_reduction: 0
-    level: 1
-    description: major anchor repair
-  - scale: 66.67
-    shape: 1
-    time: 240
     materials: 20000
     service_equipment: AHV
     operation_reduction: 0
     level: 2
     description: mooring line major repair
-  - scale: 80
-    shape: 1
-    time: 360
-    materials: 512000
-    service_equipment: AHV
-    operation_reduction: 0
-    replacement: true
-    level: 2
-    description: anchor replacement
   - scale: 80
     shape: 1
     time: 360
@@ -268,7 +312,7 @@ supporting_structure:
     materials: 100000
     service_equipment: CTV
     operation_reduction: 0
-    replacement: true
+    replacement: false
     level: 3
     description: buoyancy module replacement
 drive_train:

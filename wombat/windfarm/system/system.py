@@ -85,7 +85,7 @@ class System:
         self.servicing_queue.succeed()
         self.cable_failure.succeed()
 
-        self._create_subassemblies(subassemblies, self.system_type)
+        self._create_subassemblies(subassemblies)
 
     def _calculate_system_value(self, capex_kw: int | float | None) -> int | float:
         """Calculates the system's value based its :py:attr:`capex_kw` and either
@@ -113,7 +113,7 @@ class System:
             raise TypeError(msg)
         return self.capacity * capex_kw
 
-    def _create_subassemblies(self, subassembly_data: dict, system: SystemType) -> None:
+    def _create_subassemblies(self, subassembly_data: dict) -> None:
         """Creates each subassembly as a separate attribute and also a list for quick
         access.
 
@@ -122,9 +122,6 @@ class System:
         subassembly_data : dict
             Dictionary providing the maintenance and failure definitions for at least
             one subassembly named
-        system : SystemType
-            One of "turbine", "substation", or "electrolyzer to indicate if the power
-            curves should also be created, or not.
         """
         # Set the subassembly data variables from the remainder of the keys in the
         # system configuration file/dictionary
