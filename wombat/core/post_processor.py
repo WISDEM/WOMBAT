@@ -206,12 +206,16 @@ class Metrics:
     def __eq__(self, other) -> bool:
         """Check that the essential information is the same."""
         if isinstance(other, Metrics):
-            return all(
-                expected.equals(actual)
-                if isinstance(expected, pd.DataFrame)
-                else expected == actual
-                for _, expected, actual in self._yield_comparisons(other)
-            )
+            checks = []
+            for _, expected, actual in self._yield_comparisons(other):
+                match expected:
+                    case pd.DataFrame() | pd.Series():
+                        checks.append(expected.equals(actual))
+                    case np.ndarray():
+                        checks.append(np.array_equal(expected, actual))
+                    case _:
+                        checks.append(expected == actual)
+            return all(checks)
         return False
 
     def __ne__(self, other) -> bool:
@@ -236,6 +240,7 @@ class Metrics:
             "substation_id",
             "fixed_costs",
             "turbine_capacities",
+            "electrolyzer_capacities",
             "substation_turbine_map",
             "turbine_weights",
         ]
