@@ -588,7 +588,7 @@ electrolyzer will not operate unless input power is at least 10 MW.
 An example data file provides the following definition in addition to the maintenance
 and failure definitions that were shown previously. The assumptions are based on the
 [H2 Integrate PEM electrolysis model](https://github.com/NREL/H2Integrate/blob/main/h2integrate/simulation/technologies/hydrogen/electrolysis/PEM_H2_LT_electrolyzer_Clusters.py)
-with CapEx and number of stacks being fabricated for example purposes.
+with CapEx and number of stacks being arbitrarily chosen for example purposes.
 
 ```{code-block} yaml
 stack_capacity_kw: 1000

@@ -10,7 +10,7 @@
 ### Features
 
 - Electrolyzers are now an included system model. They act similarly to a substation,
-  but should be downstream from the substations in the layout model. Unlike turbine's
+  but should be downstream from the substations in the layout model. Unlike turbines
   an electrolyzer will only connect to the substation as a downstream system. Below
   are some of the highlights and assumptions.
   - The subassembly definition file requires 4 top-level inputs:

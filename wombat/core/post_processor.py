@@ -2254,7 +2254,7 @@ class Metrics:
         return production
 
     def h2_production(
-        self, frequency: str, by: str = "total", units: str = "kgh"
+        self, frequency: str, by: str = "total", units: str = "kgph"
     ) -> float | pd.DataFrame:
         """Calculates the hydrogen production for the simulation at a project, annual,
         or monthly level that can be broken out by electrolyzer.
@@ -2266,7 +2266,7 @@ class Metrics:
         by : str
             One of "electrolyzer" or "total".
         units : str
-            One of "kgh" (kilograms/hour), "th" (tonnes/hour).
+            One of "kph" (kilograms/hour), "tph" (tonnes/hour).
 
         Returns
         -------
@@ -2294,9 +2294,9 @@ class Metrics:
             raise ValueError('``by`` must be one of "total" or "electrolyzer".')
         by_electrolyzer = by == "electrolyzer"
 
-        if units not in ("kgh", "th"):
-            raise ValueError('``units`` must be one of "kgh" or "th".')
-        if units == "th":
+        if units not in ("kgph", "tph"):
+            raise ValueError('``units`` must be one of "kgph" or "tph".')
+        if units == "tph":
             divisor = 1e3
             label = "Project H2 Production (tonnes/hr)"
         else:
