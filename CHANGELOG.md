@@ -26,6 +26,8 @@
   - All stacks are currently modeled as a single entity.
 - `Metrics.dispatch_summary()` is now available to provide the number of mobilizations and average
   charter period across the whole project, or broken down by year and month, as requested.
+- `Metrics.h2_production()` is now available to provide to calculate the hydrogen production in
+  kg/hr or tonnes/hr.
 - Universalized maintenance starting dates are now able to be set through the primary
   configuration file as `maintenance_start`. This will enable the universalized
   staggering of the first instance of a maintenance task to align with a different
@@ -34,7 +36,8 @@
   delays.
 - `Simulation.run()` has a new parameter called `delete_logs` (defaults to False) that
   allows the user to automatically delete the logging files that are created after the
-  `Metrics` object is initialized.
+  `Metrics` object is initialized. To use `delete_logs=True`,  users must also set
+  `save_metrics_inputs=False`.
 - `Metrics.request_summary()` is now available to provide the total number of repair
   and maintenance requests, number of canceled requests, number of incomplete requests,
   and the number of completed requests.
@@ -54,6 +57,7 @@
   - `capacity_factor()`
     - Additional option for `by="electrolyzer"`.
     - `by="turbine"` no longer includes the "windfarm" column for results
+  - `process_times` now uses a `MultiIndex` with a `subassembly` and `task` column.
 - Improved cable, subassembly, and servicing equipment error handling to show which of
   the cables, substations, turbines, or vessels produced the intialization error for
   easier input debugging.
@@ -78,7 +82,7 @@
   a tow-to-port repair).
 - COREWIND turbine failures have been split so that subassemblies only contain a single
   component grouping to be more compatible with industry modeling assumptions. This
-  ultimately reduces teh resulting number of failures, and therefore costs.
+  ultimately reduces the resulting number of failures, and therefore costs.
 
 ## v0.10.4 (12 May 2025)
 
