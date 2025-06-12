@@ -73,7 +73,7 @@ class Metrics:
         inflation_rate: float,
         project_capacity: float,
         turbine_capacities: list[float],
-        electrolyzer_capacities: list[float],
+        electrolyzer_rated_production: list[float],
         substation_id: str | list[str],
         turbine_id: str | list[str],
         electrolyzer_id: str | list[str],
@@ -107,7 +107,7 @@ class Metrics:
         turbine_capacities : Union[float, List[float]]
             The capacity of each individual turbine corresponding to
             :py:attr`turbine_id`, in kW.
-        electrolyzer_capacities : Union[float, List[float]]
+        electrolyzer_rated_production : Union[float, List[float]]
             The rated production capacity of each individual electrolyzer corresponding
             to :py:attr:`electrolyzer_id`, in kg.
         substation_id : str | list[str]
@@ -173,9 +173,11 @@ class Metrics:
             turbine_capacities = [turbine_capacities]
         self.turbine_capacities = np.array(turbine_capacities, dtype=float)
 
-        if isinstance(electrolyzer_capacities, (float, int)):
-            electrolyzer_capacities = [electrolyzer_capacities]
-        self.electrolyzer_capacities = np.array(electrolyzer_capacities, dtype=float)
+        if isinstance(electrolyzer_rated_production, (float, int)):
+            electrolyzer_rated_production = [electrolyzer_rated_production]
+        self.electrolyzer_rated_production = np.array(
+            electrolyzer_rated_production, dtype=float
+        )
 
         if isinstance(events, str):
             events = self._read_data(events)
@@ -240,7 +242,7 @@ class Metrics:
             "substation_id",
             "fixed_costs",
             "turbine_capacities",
-            "electrolyzer_capacities",
+            "electrolyzer_rated_production",
             "substation_turbine_map",
             "turbine_weights",
         ]
@@ -576,7 +578,7 @@ class Metrics:
 
         if by_electrolyzer:
             _id = self.electrolyzer_id
-            capacities = self.electrolyzer_capacities
+            capacities = self.electrolyzer_rated_production
         else:
             _id = self.turbine_id
             capacities = self.turbine_capacities

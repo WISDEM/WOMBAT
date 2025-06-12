@@ -487,7 +487,7 @@ class Simulation(FromDictMixin):
         turbine_capacities = [
             self.windfarm.system(t).capacity for t in self.windfarm.turbine_id
         ]
-        electrolyzer_capacities = [
+        electrolyzer_rated_production = [
             self.windfarm.system(t).rated_production
             for t in self.windfarm.electrolyzer_id
         ]
@@ -500,7 +500,7 @@ class Simulation(FromDictMixin):
             inflation_rate=self.config.inflation_rate,
             project_capacity=self.config.project_capacity,
             turbine_capacities=turbine_capacities,
-            electrolyzer_capacities=electrolyzer_capacities,
+            electrolyzer_rated_production=electrolyzer_rated_production,
             fixed_costs=self.config.fixed_costs,  # type: ignore
             substation_id=self.windfarm.substation_id.tolist(),
             turbine_id=self.windfarm.turbine_id.tolist(),
@@ -528,7 +528,7 @@ class Simulation(FromDictMixin):
             "turbine_capacities": [
                 self.windfarm.system(t_id).capacity for t_id in self.windfarm.turbine_id
             ],
-            "electrolyzer_capacities": [
+            "electrolyzer_rated_production": [
                 self.windfarm.system(e_id).rated_production
                 for e_id in self.windfarm.electrolyzer_id
             ],
