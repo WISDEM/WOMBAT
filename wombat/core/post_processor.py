@@ -412,6 +412,12 @@ class Metrics:
         -------
         pd.DataFrame
             The time-based availability at the desired aggregation level.
+
+        Raises
+        ------
+        ValueError
+            Raised when :py:attr:`by` == "electrolyzer" and there were no simulated
+            electrolyzers.
         """
         frequency = _check_frequency(frequency, which="all")
 
@@ -423,6 +429,9 @@ class Metrics:
 
         by_windfarm = by == "windfarm"
         by_electrolyzer = by == "electrolyzer"
+
+        if by_electrolyzer and self.electrolyzer_rated_production.size == 0:
+            raise ValueError("No electrolyzers available to analyze.")
 
         time_cols = frequency.group_cols
 
@@ -479,6 +488,12 @@ class Metrics:
         -------
         pd.DataFrame
             The production-based availability at the desired aggregation level.
+
+        Raises
+        ------
+        ValueError
+            Raised when :py:attr:`by` == "electrolyzer" and there were no simulated
+            electrolyzers.
         """
         frequency = _check_frequency(frequency, which="all")
 
@@ -490,6 +505,9 @@ class Metrics:
 
         by_windfarm = by == "windfarm"
         by_electrolyzer = by == "electrolyzer"
+
+        if by_electrolyzer and self.electrolyzer_rated_production.size == 0:
+            raise ValueError("No electrolyzers available to analyze.")
 
         time_cols = frequency.group_cols
 
@@ -559,6 +577,12 @@ class Metrics:
         -------
         pd.DataFrame
             The capacity factor at the desired aggregation level.
+
+        Raises
+        ------
+        ValueError
+            Raised when :py:attr:`by` == "electrolyzer" and there were no simulated
+            electrolyzers.
         """
         which = which.lower().strip()
         if which not in ("net", "gross"):
@@ -575,6 +599,9 @@ class Metrics:
 
         by_windfarm = by == "windfarm"
         by_electrolyzer = by == "electrolyzer"
+
+        if by_electrolyzer and self.electrolyzer_rated_production.size == 0:
+            raise ValueError("No electrolyzers available to analyze.")
 
         if by_electrolyzer:
             _id = self.electrolyzer_id
@@ -2282,11 +2309,15 @@ class Metrics:
         Raises
         ------
         ValueError
+            Raised if there were no simulated electrolyzers.
+        ValueError
             If :py:attr:`frequency` is not one of "project", "annual", "monthly", or
             "month-year".
         ValueError
             If :py:attr:`by` is not one of "electrolyzer" or "total".
         """
+        if self.electrolyzer_rated_production.size == 0:
+            raise ValueError("No electrolyzers available to analyze.")
         frequency = _check_frequency(frequency, which="all")
 
         by = by.lower().strip()
