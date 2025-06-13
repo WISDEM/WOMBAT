@@ -211,11 +211,12 @@ class System:
         """
         if power_curve_dict is None:
             power_curve_dict = {}
-        p1 = power_curve_dict.get("p1", 0.0)
-        p2 = power_curve_dict.get("p2", 0.0)
-        p3 = power_curve_dict.get("p3", 0.0)
-        p4 = power_curve_dict.get("p4", 0.0)
-        p5 = power_curve_dict.get("p5", 0.0)
+        p1 = power_curve_dict.get("p1")
+        p2 = power_curve_dict.get("p2")
+        p3 = power_curve_dict.get("p3")
+        p4 = power_curve_dict.get("p4")
+        p5 = power_curve_dict.get("p5")
+        efficiency_rate = power_curve_dict.get("efficiency_rate")
         fe = power_curve_dict.get("FE", 0.9999999)
         n_cells = power_curve_dict.get("n_cells", 135)
         turndown_ratio = power_curve_dict.get("turndown_ratio", 0.1)
@@ -226,6 +227,7 @@ class System:
             p3=p3,
             p4=p4,
             p5=p5,
+            efficiency_rate=efficiency_rate,
             rated_capacity=rated_capacity,
             FE=fe,
             n_cells=n_cells,
