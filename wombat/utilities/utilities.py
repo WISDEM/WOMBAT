@@ -169,7 +169,6 @@ def calculate_hydrogen_production(
     n_cells: int = 135,
     turndown_ratio: float = 0.1,
     *,
-    use_efficiency: bool = False,
     efficiency_rate: float | None = None,
     p1: int | float | None = None,
     p2: int | float | None = None,
@@ -177,7 +176,10 @@ def calculate_hydrogen_production(
     p4: int | float | None = None,
     p5: int | float | None = None,
 ) -> Callable:
-    """Create the hydrogen production curve for an electrolyzer.
+    """Create the hydrogen production curve for an electrolyzer. One of
+    :py:attr:`efficiency_rate` or a complete set of polynomial values (:py:attr:`p1`,
+    :py:attr:`p2`, :py:attr:`p3`, :py:attr:`p4`, and :py:attr:`p5`) for the power
+    to current conversion must be provided.
 
     kWh are converted to current using the following efficiency formulation when the
     polynomial inputs are all provided, and the :py:attr:`efficiency_rate` is nonzero.
@@ -195,7 +197,7 @@ def calculate_hydrogen_production(
     turndown_ratio : float, optional
         Minimum input power as a ratio of the rated capacity, by default 0.1.
     efficiency_rate : float, optional
-        Energy efficiency in kWh per kg H₂. Required if ``p1`` through ``p5 are not
+        Energy efficiency in kWh per kg H2. Required if ``p1`` through ``p5 are not
         provided.
     p1 : int | float | None
         First coefficient of the efficiency polynomial curve. Required if

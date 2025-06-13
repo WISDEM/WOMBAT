@@ -5,6 +5,7 @@ import datetime
 import numpy as np
 import pytest
 import numpy.testing as nptest
+from pytest_check import check
 
 from wombat.utilities.time import convert_dt_to_hours, hours_until_future_hour
 from wombat.utilities.logging import format_events_log_message
@@ -177,11 +178,21 @@ def test_calculate_hydrogen_production():
     p4 = 7.615382921418666
     p5 = -20.075110413404484
 
+    efficiency_rate = 39.44
+
     rated_capacity = 10 * 1e3  # 10 x 1 MW stacks
     fe = 0.9999999
     n_cells = 135
     turndown_ratio = 0.1
-    pc = calculate_hydrogen_production(
+
+    pc_efficiency = calculate_hydrogen_production(
+        efficiency_rate=efficiency_rate,
+        rated_capacity=rated_capacity,
+        FE=fe,
+        n_cells=n_cells,
+        turndown_ratio=turndown_ratio,
+    )
+    pc_poly = calculate_hydrogen_production(
         p1=p1,
         p2=p2,
         p3=p3,
@@ -203,10 +214,84 @@ def test_calculate_hydrogen_production():
             rated_capacity * 0.1,
             rated_capacity,
             rated_capacity * 1.001,
+            rated_capacity * 2,
         ]
     )
-    expected_production = np.array(
-        [0.0, 0.0, 0.0, 19.791303299083083, 274.4812881223016, 274.4812881223016]
+
+    # Test polynomial efficiency curve
+    expected_polynomial_production = np.array(
+        [
+            0.0,
+            0.0,
+            0.0,
+            19.791303299083083,
+            274.4812881223016,
+            274.4812881223016,
+            274.4812881223016,
+        ]
     )
-    test_production = pc(test_power)
-    nptest.assert_array_equal(test_production, expected_production)
+    with check:
+        test_production = pc_poly(test_power)
+        nptest.assert_array_equal(test_production, expected_polynomial_production)
+
+    # Test linear efficiency curve
+    expected_efficiency_production = np.array(
+        [
+            0.0,
+            0.0,
+            0.0,
+            25.354969574036513,
+            253.54969574036514,
+            253.54969574036514,
+            253.54969574036514,
+        ]
+    )
+    with check:
+        test_production = pc_efficiency(test_power)
+        nptest.assert_array_equal(test_production, expected_efficiency_production)
+
+    # Test no efficiency inputs
+    with check.raises(ValueError):
+        calculate_hydrogen_production(
+            rated_capacity=rated_capacity,
+            FE=fe,
+            n_cells=n_cells,
+            turndown_ratio=turndown_ratio,
+        )
+
+    # Test incomplete polynomial
+    with check.raises(ValueError):
+        calculate_hydrogen_production(
+            rated_capacity=rated_capacity,
+            FE=fe,
+            n_cells=n_cells,
+            turndown_ratio=turndown_ratio,
+            p1=p1,
+        )
+
+    with check.raises(ValueError):
+        calculate_hydrogen_production(
+            rated_capacity=rated_capacity,
+            FE=fe,
+            n_cells=n_cells,
+            turndown_ratio=turndown_ratio,
+            p2=p2,
+            p3=p3,
+            p4=p4,
+            p5=p5,
+        )
+
+    # Test both linear and polynomial efficiency curve
+    with check.raises(ValueError):
+        calculate_hydrogen_production(
+            rated_capacity=rated_capacity,
+            FE=fe,
+            n_cells=n_cells,
+            turndown_ratio=turndown_ratio,
+            efficiency_rate=efficiency_rate,
+            p1=p1,
+            p2=p2,
+            p3=p3,
+            p4=p4,
+            p5=p5,
+        )
