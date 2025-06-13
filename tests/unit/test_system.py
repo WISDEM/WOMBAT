@@ -10,7 +10,9 @@ from wombat.windfarm.system import System
 from tests.conftest import (
     SUBSTATION,
     VESTAS_V90,
+    ELECTROLYZER_POLY,
     VESTAS_POWER_CURVE,
+    ELECTROLYZER_LINEAR,
     VESTAS_V90_1_SUBASSEMBLY,
     VESTAS_V90_NO_SUBASSEMBLY,
 )
@@ -53,9 +55,7 @@ def test_turbine_initialization_complete_setup(env_setup):
     ]
     for subassembly in subassemblies:
         assert hasattr(system, subassembly)
-
-    # Check that only the turbine subassemblies are created
-    assert not hasattr(system, "transformer")
+    assert [el.name for el in system.subassemblies] == subassemblies
 
     windspeed = np.arange(0, 30, 0.2)
     correct_power = VESTAS_POWER_CURVE(windspeed)
@@ -88,27 +88,8 @@ def test_turbine_initialization_minimal_setup(env_setup):
     assert system.capacity == VESTAS_V90["capacity_kw"]
     assert system.value == VESTAS_V90["capacity_kw"] * VESTAS_V90["capex_kw"]
 
-    # Test that only the generator subassembly was created
-    missing_subassemblies = [
-        "electrical_system",
-        "electronic_control",
-        "sensors",
-        "hydraulic_system",
-        "yaw_system",
-        "rotor_blades",
-        "mechanical_brake",
-        "rotor_hub",
-        "gearbox",
-        "supporting_structure",
-        "drive_train",
-    ]
-    for subassembly in missing_subassemblies:
-        assert not hasattr(system, subassembly)
-
     assert hasattr(system, "generator")
-
-    # Check that only the turbine subassemblies are created
-    assert not hasattr(system, "transformer")
+    assert [el.name for el in system.subassemblies] == ["generator"]
 
     # Check that there is no power curve defined, aside from all zero output
     windspeed = np.arange(0, 30, 0.2)
@@ -144,24 +125,87 @@ def test_substation_initialization(env_setup):
 
     # Check that only the turbine subassemblies are created
     assert hasattr(system, "transformer")
+    assert [el.name for el in system.subassemblies] == ["transformer"]
 
-    # Check that none of the turbine subassemblies are defined
-    subassemblies = [
-        "electrical_system",
-        "electronic_control",
-        "sensors",
-        "hydraulic_system",
-        "yaw_system",
-        "rotor_blades",
-        "mechanical_brake",
-        "rotor_hub",
-        "gearbox",
-        "generator",
-        "supporting_structure",
-        "drive_train",
-    ]
-    for subassembly in subassemblies:
-        assert not hasattr(system, subassembly)
+    # Test that we're starting at 100% operations
+    assert system.operating_level == 1.0
+
+
+def test_polynomial_electrolyzer_setup(env_setup):
+    """Tests a complete electrolyzer with polynomial efficiency curve setup."""
+    ENV = env_setup
+    MANAGER = RepairManager(ENV)
+    electrolyzer_id = "ELC1"
+    electrolyzer_name = "ELECTROLYZER - 001"
+
+    system = System(
+        env=ENV,
+        repair_manager=MANAGER,
+        t_id=electrolyzer_id,
+        name=electrolyzer_name,
+        subassemblies=ELECTROLYZER_POLY,
+        system="electrolyzer",
+    )
+    assert system.env == ENV
+    assert system.repair_manager == MANAGER
+    assert system.id == electrolyzer_id
+    assert system.name == electrolyzer_name
+    assert system.n_stacks == ELECTROLYZER_POLY["n_stacks"]
+    assert (
+        system.capacity
+        == ELECTROLYZER_POLY["n_stacks"] * ELECTROLYZER_POLY["stack_capacity_kw"]
+    )
+    assert (
+        system.value
+        == ELECTROLYZER_POLY["n_stacks"]
+        * ELECTROLYZER_POLY["stack_capacity_kw"]
+        * ELECTROLYZER_POLY["capex_kw"]
+    )
+    assert system.rated_production == 19.791303299083083
+
+    # Check that only the turbine subassemblies are created
+    assert hasattr(system, "power_system")
+    assert [el.name for el in system.subassemblies] == ["Power System"]
+
+    # Test that we're starting at 100% operations
+    assert system.operating_level == 1.0
+
+
+def test_linear_electrolyzer_setup(env_setup):
+    """Tests a complete electrolyzer with polynomial efficiency curve setup."""
+    ENV = env_setup
+    MANAGER = RepairManager(ENV)
+    electrolyzer_id = "ELC1"
+    electrolyzer_name = "ELECTROLYZER - 001"
+
+    system = System(
+        env=ENV,
+        repair_manager=MANAGER,
+        t_id=electrolyzer_id,
+        name=electrolyzer_name,
+        subassemblies=ELECTROLYZER_LINEAR,
+        system="electrolyzer",
+    )
+    assert system.env == ENV
+    assert system.repair_manager == MANAGER
+    assert system.id == electrolyzer_id
+    assert system.name == electrolyzer_name
+    assert system.n_stacks == ELECTROLYZER_LINEAR["n_stacks"]
+    assert (
+        system.capacity
+        == ELECTROLYZER_LINEAR["n_stacks"] * ELECTROLYZER_LINEAR["stack_capacity_kw"]
+    )
+    assert (
+        system.value
+        == ELECTROLYZER_LINEAR["n_stacks"]
+        * ELECTROLYZER_LINEAR["stack_capacity_kw"]
+        * ELECTROLYZER_LINEAR["capex_kw"]
+    )
+    assert system.rated_production == 25.354969574036513
+
+    # Check that only the turbine subassemblies are created
+    assert hasattr(system, "power_system")
+    assert [el.name for el in system.subassemblies] == ["Power System"]
 
     # Test that we're starting at 100% operations
     assert system.operating_level == 1.0
