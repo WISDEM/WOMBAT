@@ -130,12 +130,16 @@ class Configuration(FromDictMixin):
         file defintions, by default None.
     substations : dict[str, dict] | None
         A dictionary of substation configurations with the keys aligning with the layout
-        file's :py:attr:`upstream_cable` field, which would replace the need for YAML
+        file's :py:attr:`subassembly` field, which would replace the need for YAML
         file defintions, by default None.
     turbines : dict[str, dict] | None
         A dictionary of turbine configurations with the keys aligning with the layout
-        file's :py:attr:`upstream_cable` field, which would replace the need for YAML
+        file's :py:attr:`subassembly` field, which would replace the need for YAML
         file defintions, by default None.
+    electrolyzers : dict[str, dict] | None
+        A dictionary of electrolyzer configurations with the keys aligning with the
+        layout file's :py:attr:`subassembly` field, which would replace the need for
+        YAML file defintions, by default None.
     vessels : dict[str, dict] | None
         A dictionary of servicing equipment configurations with the keys aligning with
         entries of :py:attr:`service_equipment` field, which would replace the need for
@@ -170,6 +174,9 @@ class Configuration(FromDictMixin):
         default=None, validator=validators.instance_of((dict, type(None)))
     )
     turbines: dict[str, dict] | None = field(
+        default=None, validator=validators.instance_of((dict, type(None)))
+    )
+    electrolyzers: dict[str, dict] | None = field(
         default=None, validator=validators.instance_of((dict, type(None)))
     )
     vessels: dict[str, dict] | None = field(
@@ -394,6 +401,7 @@ class Simulation(FromDictMixin):
             repair_manager=self.repair_manager,
             substations=self.config.substations,
             turbines=self.config.turbines,
+            electrolyzers=self.config.electrolyzers,
             cables=self.config.cables,
         )
         self.service_equipment: dict[str, ServiceEquipment] = {}  # type: ignore

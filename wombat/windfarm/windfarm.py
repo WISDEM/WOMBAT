@@ -247,7 +247,7 @@ class Windfarm:
                 if name.endswith((".yml", ".yaml")):
                     cable_dict = load_yaml(self.env.data_dir / "cables", name)
                 else:
-                    if self._inputs["cables"] is None:
+                    if self._inputs["cable"] is None:
                         msg = (
                             f"cable configuration: '{name}' is not a file, and"
                             f" no configuration input to 'cables' was provided."
