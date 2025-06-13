@@ -45,33 +45,6 @@ def _check_frequency(frequency: str, which: str = "all") -> Frequency:
     return frequency
 
 
-def _calculate_time_availability(
-    availability: pd.DataFrame,
-    by_turbine: bool = False,
-) -> float | np.ndarray:
-    """Calculates the availability ratio of the whole timeseries or the whole
-    timeseries, by turbine.
-
-    Parameters
-    ----------
-    availability : pd.DataFrame
-        Timeseries array of operating ratios for all turbines.
-    by_turbine : bool, optional
-        If True, calculates the availability rate of each column, otherwise across the
-        whole array, by default False.
-
-    Returns
-    -------
-    float | np.ndarray
-        Availability ratio across the whole timeseries, or broken out by column
-        (turbine).
-    """
-    availability = availability > 0
-    if by_turbine:
-        return availability.values.sum(axis=0) / availability.shape[0]
-    return availability.values.sum() / availability.size
-
-
 class Metrics:
     """The metric computation class for storing logs and compiling results."""
 
@@ -100,8 +73,10 @@ class Metrics:
         inflation_rate: float,
         project_capacity: float,
         turbine_capacities: list[float],
+        electrolyzer_rated_production: list[float],
         substation_id: str | list[str],
         turbine_id: str | list[str],
+        electrolyzer_id: str | list[str],
         substation_turbine_map: dict[str, dict[str, list[str]]],
         service_equipment_names: str | list[str],
         fixed_costs: str | None = None,
@@ -130,12 +105,17 @@ class Metrics:
         project_capacity : float
             The project's rated capacity, in MW.
         turbine_capacities : Union[float, List[float]]
-            The capacity of each individual turbine corresponding to ``turbine_id``, in
-            kW.
+            The capacity of each individual turbine corresponding to
+            :py:attr`turbine_id`, in kW.
+        electrolyzer_rated_production : Union[float, List[float]]
+            The rated production capacity of each individual electrolyzer corresponding
+            to :py:attr:`electrolyzer_id`, in kg.
         substation_id : str | list[str]
             The substation id(s).
         turbine_id : str | list[str]
             The turbine id(s).
+        electrolyzer_id : str | list[str]
+            The electrolyzer id(s).
         substation_turbine_map : dict[str, dict[str, list[str]]]
             A copy of ``Windfarm.substation_turbine_map``. This is a dictionary mapping
             of the subation IDs (keys) and a nested dictionary of its associated turbine
@@ -174,6 +154,10 @@ class Metrics:
             turbine_id = [turbine_id]
         self.turbine_id = turbine_id
 
+        if isinstance(electrolyzer_id, str):
+            electrolyzer_id = [electrolyzer_id]
+        self.electrolyzer_id = electrolyzer_id
+
         self.substation_turbine_map = substation_turbine_map
         self.turbine_weights = (
             pd.concat([pd.DataFrame(val) for val in substation_turbine_map.values()])
@@ -187,7 +171,13 @@ class Metrics:
 
         if isinstance(turbine_capacities, (float, int)):
             turbine_capacities = [turbine_capacities]
-        self.turbine_capacities = turbine_capacities
+        self.turbine_capacities = np.array(turbine_capacities, dtype=float)
+
+        if isinstance(electrolyzer_rated_production, (float, int)):
+            electrolyzer_rated_production = [electrolyzer_rated_production]
+        self.electrolyzer_rated_production = np.array(
+            electrolyzer_rated_production, dtype=float
+        )
 
         if isinstance(events, str):
             events = self._read_data(events)
@@ -211,15 +201,23 @@ class Metrics:
             production = self._read_data(production)
         self.production = self._tidy_data(production)
 
+        prod_cols = self.turbine_id + self.electrolyzer_id
+        self.potential[prod_cols] = self.potential[prod_cols].astype(float)
+        self.production[prod_cols] = self.production[prod_cols].astype(float)
+
     def __eq__(self, other) -> bool:
         """Check that the essential information is the same."""
         if isinstance(other, Metrics):
-            return all(
-                expected.equals(actual)
-                if isinstance(expected, pd.DataFrame)
-                else expected == actual
-                for _, expected, actual in self._yield_comparisons(other)
-            )
+            checks = []
+            for _, expected, actual in self._yield_comparisons(other):
+                match expected:
+                    case pd.DataFrame() | pd.Series():
+                        checks.append(expected.equals(actual))
+                    case np.ndarray():
+                        checks.append(np.array_equal(expected, actual))
+                    case _:
+                        checks.append(expected == actual)
+            return all(checks)
         return False
 
     def __ne__(self, other) -> bool:
@@ -240,9 +238,11 @@ class Metrics:
             "production",
             "service_equipment_names",
             "turbine_id",
+            "electrolyzer_id",
             "substation_id",
             "fixed_costs",
             "turbine_capacities",
+            "electrolyzer_rated_production",
             "substation_turbine_map",
             "turbine_weights",
         ]
@@ -395,155 +395,166 @@ class Metrics:
         return events
 
     def time_based_availability(self, frequency: str, by: str) -> pd.DataFrame:
-        """Calculates the time-based availabiliy over a project's lifetime as a single
-        value, annual average, or monthly average for the whole windfarm or by turbine.
-
-        .. note:: This currently assumes that if there are multiple substations, that
-          the turbines are all connected to multiple.
+        """Calculates the time-based availabiliy over a project's lifetime for the
+        wind farm, turbine(s) or electrolyzer(s). Time-based availability is the
+        proportion of total uptime, regardless of operational capacity.
 
         Parameters
         ----------
         frequency : str
             One of "project", "annual", "monthly", or "month-year".
         by : str
-            One of "windfarm" or "turbine".
+            One of "windfarm", "turbine", or "electrolyzer". Electrolyzer results are
+            not incorporated into the overall wind farm availability levels. As such,
+            only electrolyzer outputs are provided for the electrolyzer.
 
         Returns
         -------
         pd.DataFrame
             The time-based availability at the desired aggregation level.
+
+        Raises
+        ------
+        ValueError
+            Raised when :py:attr:`by` == "electrolyzer" and there were no simulated
+            electrolyzers.
         """
         frequency = _check_frequency(frequency, which="all")
 
         by = by.lower().strip()
-        if by not in ("windfarm", "turbine"):
-            raise ValueError('``by`` must be one of "windfarm" or "turbine".')
-        by_turbine = by == "turbine"
+        if by not in ("windfarm", "turbine", "electrolyzer"):
+            raise ValueError(
+                '`by` must be one of "windfarm", "turbine", or "electrolyzer".'
+            )
 
-        # Determine the operational capacity of each turbine with substation downtime
-        operations_cols = ["year", "month", "day", "windfarm"] + self.turbine_id
-        turbine_operations = self.operations[operations_cols].copy()
+        by_windfarm = by == "windfarm"
+        by_electrolyzer = by == "electrolyzer"
 
-        hourly = turbine_operations.loc[:, self.turbine_id]
+        if by_electrolyzer and self.electrolyzer_rated_production.size == 0:
+            raise ValueError("No electrolyzers available to analyze.")
 
-        # TODO: The below should be better summarized as:
-        # (availability > 0).groupby().sum() / groupby().count()
+        time_cols = frequency.group_cols
+
+        if by_electrolyzer:
+            _id = self.electrolyzer_id
+        else:
+            _id = self.turbine_id
+
+        operations_cols = time_cols + _id
+        operations = self.operations.loc[:, operations_cols]
+        operations.loc[:, _id] = operations[_id] > 0
 
         if frequency is Frequency.PROJECT:
-            availability = _calculate_time_availability(hourly, by_turbine=by_turbine)
-            if not by_turbine:
-                return pd.DataFrame([availability], columns=["windfarm"])
-
-            if TYPE_CHECKING:
-                assert isinstance(availability, np.ndarray)
-            availability = pd.DataFrame(
-                availability.reshape(1, -1), columns=self.turbine_id
+            if by_windfarm:
+                availability = pd.DataFrame(
+                    [operations.values.sum() / operations.size],
+                    columns=["windfarm"],
+                    index=["time_availability"],
+                )
+                return availability
+            availability = (
+                operations.sum(axis=0).to_frame("time_availability").T
+                / operations.shape[0]
             )
             return availability
-        elif frequency is Frequency.ANNUAL:
-            date_time = turbine_operations[["year"]]
-            counts = turbine_operations.groupby(by="year").count()
-            counts = counts[self.turbine_id] if by_turbine else counts[["windfarm"]]
-            annual = [
-                _calculate_time_availability(
-                    hourly[date_time.year == year],
-                    by_turbine=by_turbine,
-                )
-                for year in counts.index
-            ]
-            return pd.DataFrame(annual, index=counts.index, columns=counts.columns)
-        elif frequency is Frequency.MONTHLY:
-            date_time = turbine_operations[["month"]]
-            counts = turbine_operations.groupby(by="month").count()
-            counts = counts[self.turbine_id] if by_turbine else counts[["windfarm"]]
-            monthly = [
-                _calculate_time_availability(
-                    hourly[date_time.month == month],
-                    by_turbine=by_turbine,
-                )
-                for month in counts.index
-            ]
-            return pd.DataFrame(monthly, index=counts.index, columns=counts.columns)
-        elif frequency is Frequency.MONTH_YEAR:
-            date_time = turbine_operations[["year", "month"]]
-            counts = turbine_operations.groupby(by=["year", "month"]).count()
-            counts = counts[self.turbine_id] if by_turbine else counts[["windfarm"]]
-            month_year = [
-                _calculate_time_availability(
-                    hourly[(date_time.year == year) & (date_time.month == month)],
-                    by_turbine=by_turbine,
-                )
-                for year, month in counts.index
-            ]
-            return pd.DataFrame(month_year, index=counts.index, columns=counts.columns)
+
+        if by_windfarm:
+            availability = operations.groupby(time_cols).sum().sum(axis=1).to_frame(
+                "windfarm"
+            ) / operations.groupby(time_cols).count().sum(axis=1).to_frame("windfarm")
+            return availability
+        availability = (
+            operations.groupby(time_cols).sum() / operations.groupby(time_cols).count()
+        )
+        return availability
 
     def production_based_availability(self, frequency: str, by: str) -> pd.DataFrame:
-        """Calculates the production-based availabiliy over a project's lifetime as a
-        single value, annual average, or monthly average for the whole windfarm or by
-        turbine.
+        """Calculates the production-based availabiliy over a project's lifetime for the
+        wind farm, turbine(s) or electrolyzer(s). Production-based availability is the
+        produced energy divided by the potential energy.
 
-        .. note:: This currently assumes that if there are multiple substations, that
-          the turbines are all connected to multiple.
+        .. note:: There is not currently a power curve model for electrolyzers, so the
+            power potential at each time step is 100%, and the power production is the
+            operational capacity.
 
         Parameters
         ----------
         frequency : str
             One of "project", "annual", "monthly", or "month-year".
         by : str
-            One of "windfarm" or "turbine".
+            One of "windfarm", "turbine", or "electrolyzer".
 
         Returns
         -------
         pd.DataFrame
             The production-based availability at the desired aggregation level.
+
+        Raises
+        ------
+        ValueError
+            Raised when :py:attr:`by` == "electrolyzer" and there were no simulated
+            electrolyzers.
         """
         frequency = _check_frequency(frequency, which="all")
 
         by = by.lower().strip()
-        if by not in ("windfarm", "turbine"):
-            raise ValueError('``by`` must be one of "windfarm" or "turbine".')
-        by_turbine = by == "turbine"
+        if by not in ("windfarm", "turbine", "electrolyzer"):
+            raise ValueError(
+                '`by` must be one of "windfarm", "turbine", or "electrolyzer".'
+            )
 
-        if by_turbine:
-            production = self.production.loc[:, self.turbine_id]
-            potential = self.potential.loc[:, self.turbine_id]
-        else:
-            production = self.production[["windfarm"]].copy()
-            potential = self.potential[["windfarm"]].copy()
+        by_windfarm = by == "windfarm"
+        by_electrolyzer = by == "electrolyzer"
 
-        if frequency is Frequency.PROJECT:
-            production = production.values
-            potential = potential.values
-            if (potential == 0).sum() > 0:
-                potential[potential == 0] = 1
-
-            availability = production.sum(axis=0) / potential.sum(axis=0)
-            if by_turbine:
-                return pd.DataFrame([availability], columns=self.turbine_id)
-            else:
-                return pd.DataFrame([availability], columns=["windfarm"])
-
-        production["year"] = production.index.year.values
-        production["month"] = production.index.month.values
-
-        potential["year"] = potential.index.year.values
-        potential["month"] = potential.index.month.values
+        if by_electrolyzer and self.electrolyzer_rated_production.size == 0:
+            raise ValueError("No electrolyzers available to analyze.")
 
         time_cols = frequency.group_cols
-        group_cols = deepcopy(time_cols)
-        group_cols += deepcopy(self.turbine_id) if by_turbine else ["windfarm"]
-        if frequency is not Frequency.PROJECT:
-            production = production[group_cols].groupby(time_cols).sum()
-            potential = potential[group_cols].groupby(time_cols).sum()
 
-        if (potential.values == 0).sum() > 0:
-            potential.loc[potential.values == 0] = 1
-        columns = self.turbine_id
-        if not by_turbine:
-            production = production.sum(axis=1)
-            potential = potential.sum(axis=1)
-            columns = [by]
-        return pd.DataFrame(production / potential, columns=columns)
+        if by_electrolyzer:
+            operations_cols = time_cols + self.electrolyzer_id
+            production = self.operations.loc[:, operations_cols]
+            potential = production.copy()
+            potential.loc[:, self.electrolyzer_id] = 1.0
+        else:
+            operations_cols = time_cols + self.turbine_id
+            production = self.production.loc[:, operations_cols]
+            potential = self.potential.loc[:, operations_cols]
+
+        if frequency is Frequency.PROJECT:
+            if by_windfarm:
+                production = production.values.sum()
+                potential = potential.values.sum()
+                potential = 1 if potential == 0 else potential
+                availability = pd.DataFrame(
+                    [production / potential],
+                    columns=["windfarm"],
+                    index=["energy_availability"],
+                )
+                return availability
+
+            production = production.sum(axis=0).to_frame("energy_availability").T
+            potential = (
+                potential.sum(axis=0).to_frame("energy_availability").T.replace(0, 1)
+            )
+            return production / potential
+
+        if by_windfarm:
+            potential = (
+                potential.groupby(time_cols)
+                .sum()
+                .sum(axis=1)
+                .to_frame("windfarm")
+                .replace(0, 1)
+            )
+            production = (
+                production.groupby(time_cols).sum().sum(axis=1).to_frame("windfarm")
+            )
+            return production / potential
+
+        production = production.groupby(time_cols).sum()
+        potential = potential.groupby(time_cols).sum().replace(0, 1)
+        return production / potential
 
     def capacity_factor(self, which: str, frequency: str, by: str) -> pd.DataFrame:
         """Calculates the capacity factor over a project's lifetime as a single value,
@@ -560,52 +571,81 @@ class Metrics:
         frequency : str
             One of "project", "annual", "monthly", or "month-year".
         by : str
-            One of "windfarm" or "turbine".
+            One of "windfarm", "turbine", or "electrolyzer".
 
         Returns
         -------
         pd.DataFrame
             The capacity factor at the desired aggregation level.
+
+        Raises
+        ------
+        ValueError
+            Raised when :py:attr:`by` == "electrolyzer" and there were no simulated
+            electrolyzers.
         """
         which = which.lower().strip()
         if which not in ("net", "gross"):
             raise ValueError('``which`` must be one of "net" or "gross".')
 
         frequency = _check_frequency(frequency, which="all")
+        time_cols = frequency.group_cols
 
         by = by.lower().strip()
-        if by not in ("windfarm", "turbine"):
-            raise ValueError('``by`` must be one of "windfarm" or "turbine".')
-        by_turbine = by == "turbine"
+        if by not in ("windfarm", "turbine", "electrolyzer"):
+            raise ValueError(
+                '`by` must be one of "windfarm", "turbine", or "electrolyzer".'
+            )
 
+        by_windfarm = by == "windfarm"
+        by_electrolyzer = by == "electrolyzer"
+
+        if by_electrolyzer and self.electrolyzer_rated_production.size == 0:
+            raise ValueError("No electrolyzers available to analyze.")
+
+        if by_electrolyzer:
+            _id = self.electrolyzer_id
+            capacities = self.electrolyzer_rated_production
+        else:
+            _id = self.turbine_id
+            capacities = self.turbine_capacities
+
+        cols = time_cols + _id
         production = self.production if which == "net" else self.potential
-        production = production.loc[:, self.turbine_id]
+        production = production.loc[:, cols]
+        capacity = production.copy()
+        capacity.loc[:, _id] = np.full(production.loc[:, _id].shape, capacities)
 
         if frequency is Frequency.PROJECT:
-            if not by_turbine:
-                potential = production.shape[0] * self.project_capacity * 1000.0
-                production = production.values.sum()
-                return pd.DataFrame([production / potential], columns=["windfarm"])
+            name = f"{which}_capacity_factor"
+            if by_windfarm:
+                cf = pd.DataFrame(
+                    [production.values.sum() / capacity.values.sum()],
+                    columns=["windfarm"],
+                    index=[name],
+                )
+                return cf
 
-            potential = production.shape[0] * np.array(self.turbine_capacities)
-            return pd.DataFrame(production.sum(axis=0) / potential).T
+            production = production.sum(axis=0).to_frame(name).T
+            capacity = capacity.sum(axis=0).to_frame(name).T.replace(0, 1)
+            return production / capacity
 
-        production["year"] = production.index.year.values
-        production["month"] = production.index.month.values
+        if by_windfarm:
+            production = (
+                production.groupby(time_cols)
+                .sum()
+                .sum(axis=1)
+                .to_frame("windfarm")
+                .replace(0, 1)
+            )
+            capacity = (
+                capacity.groupby(time_cols).sum().sum(axis=1).to_frame("windfarm")
+            )
+            return production / capacity
 
-        group_cols = frequency.group_cols
-        potential = production[group_cols + self.turbine_id].groupby(group_cols).count()
-        production = production[group_cols + self.turbine_id].groupby(group_cols).sum()
-
-        if by_turbine:
-            capacity = np.array(self.turbine_capacities, dtype=float)
-            columns = self.turbine_id
-            potential *= capacity
-        else:
-            capacity = self.project_capacity
-            production = production.sum(axis=1)
-            columns = [by]
-        return pd.DataFrame(production / potential, columns=columns)
+        production = production.groupby(time_cols).sum()
+        capacity = capacity.groupby(time_cols).sum().replace(0, 1)
+        return production / capacity
 
     def task_completion_rate(self, which: str, frequency: str) -> float | pd.DataFrame:
         """Calculates the task completion rate (including tasks that are canceled after
@@ -823,6 +863,7 @@ class Metrics:
         total_days = []
         operating_actions = [
             "traveling",  # traveling between port/site or on-site
+            "transferring crew",
             "repair",
             "maintenance",
             "delay",  # performing work
@@ -1943,8 +1984,10 @@ class Metrics:
         # it with the appropriate dimension
         port_fees = self.port_fees(frequency=frequency)
         if frequency != "project" and port_fees.shape == (1, 1):
-            port_fees = pd.DataFrame([], columns=["port_fees"], index=materials.index)
-            port_fees = port_fees.fillna(0)
+            port_fees = pd.DataFrame(
+                [], columns=["port_fees"], index=materials.index, dtype=float
+            )
+            port_fees = port_fees.astype(float).fillna(0)
 
         # Create a list of data frames for the OpEx components
         opex_items = [
@@ -2040,7 +2083,7 @@ class Metrics:
 
         reason_df = (
             events_valid.drop_duplicates(subset=["request_id"])[
-                ["request_id", "reason"]
+                ["request_id", "part_name", "reason"]
             ]
             .set_index("request_id")
             .sort_index()
@@ -2068,8 +2111,8 @@ class Metrics:
 
         # Create the timing dataframe
         timing = pd.DataFrame([], index=request_df_min.index)
-        timing = timing.join(reason_df[["reason"]]).rename(
-            columns={"reason": "category"}
+        timing = timing.join(reason_df[["part_name", "reason"]]).rename(
+            columns={"part_name": "subassembly", "reason": "task"}
         )
         timing = timing.join(
             request_df_min[["env_time"]]
@@ -2092,7 +2135,7 @@ class Metrics:
         timing["N"] = 1
 
         # Return only the categorically summed data
-        return timing.groupby("category").sum().sort_index()
+        return timing.groupby(["subassembly", "task"]).sum().sort_index()
 
     def request_summary(self) -> pd.DataFrame:
         """Calculate the number of repair and maintenance requets that have been
@@ -2179,7 +2222,7 @@ class Metrics:
         Returns
         -------
         float | pd.DataFrame
-            Returns either a float for whole project-level costs or a pandas
+            Returns either a float for whole project-level energy production or a pandas
             ``DataFrame`` with columns:
 
             - year (if appropriate for frequency)
@@ -2193,7 +2236,7 @@ class Metrics:
             If ``frequency`` is not one of "project", "annual", "monthly", or
             "month-year".
         ValueError
-            If ``by_turbine`` is not one of ``True`` or ``False``.
+            If :py:attr:`by` is not one of "turbine" or "windfarm".
         """
         frequency = _check_frequency(frequency, which="all")
 
@@ -2234,6 +2277,85 @@ class Metrics:
         production = (
             self.production[group_cols + col_filter].groupby(by=group_cols).sum()
             / divisor
+        )
+        return production
+
+    def h2_production(
+        self, frequency: str, by: str = "total", units: str = "kgph"
+    ) -> float | pd.DataFrame:
+        """Calculates the hydrogen production for the simulation at a project, annual,
+        or monthly level that can be broken out by electrolyzer.
+
+        Parameters
+        ----------
+        frequency : str
+            One of "project", "annual", "monthly", or "month-year".
+        by : str
+            One of "electrolyzer" or "total".
+        units : str
+            One of "kph" (kilograms/hour), "tph" (tonnes/hour).
+
+        Returns
+        -------
+        float | pd.DataFrame
+            Returns either a float for whole project-level hydrogen production or a
+            pandas ``DataFrame`` with columns:
+
+            - year (if appropriate for frequency)
+            - month (if appropriate for frequency)
+            - total_power_production
+            - <electrolyzer>_power_production (if broken out)
+
+        Raises
+        ------
+        ValueError
+            Raised if there were no simulated electrolyzers.
+        ValueError
+            If :py:attr:`frequency` is not one of "project", "annual", "monthly", or
+            "month-year".
+        ValueError
+            If :py:attr:`by` is not one of "electrolyzer" or "total".
+        """
+        if self.electrolyzer_rated_production.size == 0:
+            raise ValueError("No electrolyzers available to analyze.")
+        frequency = _check_frequency(frequency, which="all")
+
+        by = by.lower().strip()
+        if by not in ("electrolyzer", "total"):
+            raise ValueError('``by`` must be one of "total" or "electrolyzer".')
+        by_electrolyzer = by == "electrolyzer"
+
+        if units not in ("kgph", "tph"):
+            raise ValueError('``units`` must be one of "kgph" or "tph".')
+        if units == "tph":
+            divisor = 1e3
+            label = "Project H2 Production (tonnes/hr)"
+        else:
+            divisor = 1
+            label = "Project H2 Production (kg/hr)"
+
+        col_filter = ["total"]
+        if by_electrolyzer:
+            col_filter.extend(self.electrolyzer_id)
+
+        production = self.production.copy()
+        production["total"] = production[self.electrolyzer_id].sum(axis=1)
+
+        if frequency is Frequency.PROJECT:
+            production = production[col_filter].sum(axis=0)
+            production = (
+                pd.DataFrame(
+                    production.values.reshape(1, -1),
+                    columns=col_filter,
+                    index=[label],
+                )
+                / divisor
+            )
+            return production
+
+        group_cols = frequency.group_cols
+        production = (
+            production[group_cols + col_filter].groupby(by=group_cols).sum() / divisor
         )
         return production
 

@@ -1,0 +1,4 @@
+﻿id,substation_id,name,type,longitude,latitude,string,order,distance,subassembly,upstream_cable
+OSS1,OSS1,OSS1,substation,0,0,,,,offshore_substation,export
+ELC1,OSS1,ELC1,electrolyzer,0,0,,,,test_electrolyzer_linear,export
+S00T1,OSS1,WTG001,turbine,0,0,0,0,0,vestas_v90,array_33kv_630mm

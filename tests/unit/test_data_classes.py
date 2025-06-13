@@ -22,6 +22,7 @@ from wombat.core.data_classes import (
     EquipmentMap,
     FromDictMixin,
     RepairRequest,
+    EquipmentClass,
     SubassemblyData,
     ServiceEquipmentData,
     ScheduledServiceEquipmentData,
@@ -240,7 +241,7 @@ def test_Maintenance_conversion():
     assert cls.frequency_basis == "days"
     assert cls.start_date == datetime.datetime(2000, 2, 1)
     assert cls.hours_to_next_event(start) == (31 * 24, False)
-    assert cls.service_equipment == ["CTV"]
+    assert cls.service_equipment == [EquipmentClass.CTV]
     assert cls.operation_reduction == 0.5
     assert cls.system_value == 100000.0
 
@@ -411,7 +412,7 @@ def test_Maintenance_defaults():
     assert cls.start_date == start
     assert cls.event_dates == []
     assert cls.hours_to_next_event(start) == (200.0 * 24, False)
-    assert cls.service_equipment == ["CTV"]
+    assert cls.service_equipment == [EquipmentClass.CTV]
     assert cls.operation_reduction == class_data["operation_reduction"].default
     assert cls.system_value == 100000.0
 
@@ -439,7 +440,7 @@ def test_Maintenance_no_events():
     assert cls.start_date == start
     assert cls.event_dates == [end + relativedelta(days=1)]
     assert cls.hours_to_next_event(start) == (max_run_time + 24, True)
-    assert cls.service_equipment == ["CTV"]
+    assert cls.service_equipment == [EquipmentClass.CTV]
     assert cls.operation_reduction == class_data["operation_reduction"].default
     assert cls.system_value == 0
 
@@ -467,7 +468,7 @@ def test_Maintenance_proportional_materials():
     assert cls.materials == 25000.0
     assert cls.frequency == relativedelta(days=200)
     assert cls.hours_to_next_event(start) == (200.0 * 24, False)
-    assert cls.service_equipment == ["CTV", "DSV"]
+    assert cls.service_equipment == [EquipmentClass.CTV, EquipmentClass.DSV]
     assert cls.operation_reduction == 0.5
     assert cls.system_value == 100000.0
 
@@ -520,7 +521,7 @@ def test_Failure():
     assert cls.materials == 200.0
     assert cls.operation_reduction == 0.2
     assert cls.level == 0
-    assert cls.service_equipment == ["LCN"]
+    assert cls.service_equipment == [EquipmentClass.LCN]
     assert cls.system_value == 100000
     assert cls.description == "test"
     # TODO: UPDATE THIS BEFORE PR
@@ -546,7 +547,7 @@ def test_Failure():
     assert cls.materials == 200.0
     assert cls.operation_reduction == 0.2
     assert cls.level == 0
-    assert cls.service_equipment == ["LCN"]
+    assert cls.service_equipment == [EquipmentClass.LCN]
     assert cls.system_value == 100000
     assert cls.description == class_data["description"].default
 
@@ -570,7 +571,7 @@ def test_Failure():
     assert cls.materials == 1000.0
     assert cls.operation_reduction == 0.2
     assert cls.level == 0
-    assert cls.service_equipment == ["LCN"]
+    assert cls.service_equipment == [EquipmentClass.LCN]
     assert cls.system_value == 100000
     assert cls.description == class_data["description"].default
 
@@ -855,7 +856,7 @@ def test_ScheduledServiceEquipmentData():
     assert vessel.end_month == SCHEDULED_VESSEL["end_month"]
     assert vessel.end_day == SCHEDULED_VESSEL["end_day"]
     assert vessel.end_year == SCHEDULED_VESSEL["end_year"]
-    assert vessel.capability == [SCHEDULED_VESSEL["capability"].upper()]
+    assert vessel.capability == [EquipmentClass(SCHEDULED_VESSEL["capability"])]
     assert vessel.mobilization_cost == SCHEDULED_VESSEL["mobilization_cost"]
     assert vessel.mobilization_days == SCHEDULED_VESSEL["mobilization_days"]
     assert vessel.speed == SCHEDULED_VESSEL["speed"]
@@ -946,7 +947,9 @@ def test_UnscheduledServiceEquipmentData():
         vessel.crew.n_hourly_rate
         == UNSCHEDULED_VESSEL_REQUESTS["crew"]["n_hourly_rate"]
     )
-    assert vessel.capability == [UNSCHEDULED_VESSEL_REQUESTS["capability"].upper()]
+    assert vessel.capability == [
+        EquipmentClass(UNSCHEDULED_VESSEL_REQUESTS["capability"])
+    ]
     assert vessel.mobilization_cost == UNSCHEDULED_VESSEL_REQUESTS["mobilization_cost"]
     assert vessel.mobilization_days == UNSCHEDULED_VESSEL_REQUESTS["mobilization_days"]
     assert vessel.speed == UNSCHEDULED_VESSEL_REQUESTS["speed"]
@@ -1182,11 +1185,11 @@ def test_strategy_map(env_setup):
     hlv_map = EquipmentMap(hlv.strategy_threshold, hlv)
 
     # List of inputs will fail
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         mapping.update(hlv.capability, hlv.strategy_threshold, hlv)
 
     # Single bad input will fail
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         mapping.update("CRV", hlv.strategy_threshold, hlv)
 
     # Check that the update did not complete

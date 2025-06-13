@@ -28,6 +28,21 @@ def test_simulation_file_setup():
     sim.env.cleanup_log_files()
 
 
+def test_consolidated_config_simulation():
+    """Test that the consolidated configuration setup works for all possible setups."""
+    sim = Simulation(TEST_DATA, "poly_electrolyzer.yml")
+    assert isinstance(sim, Simulation)
+    assert len(sim.windfarm.turbine_id) == 1
+    assert len(sim.windfarm.substation_id) == 1
+    assert len(sim.windfarm.electrolyzer_id) == 1
+
+    sim = Simulation(TEST_DATA, "linear_electrolyzer.yml")
+    assert isinstance(sim, Simulation)
+    assert len(sim.windfarm.turbine_id) == 1
+    assert len(sim.windfarm.substation_id) == 1
+    assert len(sim.windfarm.electrolyzer_id) == 1
+
+
 def test_simulation_consolidated_setup():
     """Test that a primarily dictionary-defined simulation initializes correctly."""
     sim = Simulation.from_config(TEST_DATA, "base_consolidated.yml")

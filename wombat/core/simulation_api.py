@@ -130,12 +130,16 @@ class Configuration(FromDictMixin):
         file defintions, by default None.
     substations : dict[str, dict] | None
         A dictionary of substation configurations with the keys aligning with the layout
-        file's :py:attr:`upstream_cable` field, which would replace the need for YAML
+        file's :py:attr:`subassembly` field, which would replace the need for YAML
         file defintions, by default None.
     turbines : dict[str, dict] | None
         A dictionary of turbine configurations with the keys aligning with the layout
-        file's :py:attr:`upstream_cable` field, which would replace the need for YAML
+        file's :py:attr:`subassembly` field, which would replace the need for YAML
         file defintions, by default None.
+    electrolyzers : dict[str, dict] | None
+        A dictionary of electrolyzer configurations with the keys aligning with the
+        layout file's :py:attr:`subassembly` field, which would replace the need for
+        YAML file defintions, by default None.
     vessels : dict[str, dict] | None
         A dictionary of servicing equipment configurations with the keys aligning with
         entries of :py:attr:`service_equipment` field, which would replace the need for
@@ -170,6 +174,9 @@ class Configuration(FromDictMixin):
         default=None, validator=validators.instance_of((dict, type(None)))
     )
     turbines: dict[str, dict] | None = field(
+        default=None, validator=validators.instance_of((dict, type(None)))
+    )
+    electrolyzers: dict[str, dict] | None = field(
         default=None, validator=validators.instance_of((dict, type(None)))
     )
     vessels: dict[str, dict] | None = field(
@@ -394,6 +401,7 @@ class Simulation(FromDictMixin):
             repair_manager=self.repair_manager,
             substations=self.config.substations,
             turbines=self.config.turbines,
+            electrolyzers=self.config.electrolyzers,
             cables=self.config.cables,
         )
         self.service_equipment: dict[str, ServiceEquipment] = {}  # type: ignore
@@ -484,8 +492,12 @@ class Simulation(FromDictMixin):
             s_id: {k: v.tolist() for k, v in dict.items()}
             for s_id, dict in self.windfarm.substation_turbine_map.items()
         }
-        capacities = [
+        turbine_capacities = [
             self.windfarm.system(t).capacity for t in self.windfarm.turbine_id
+        ]
+        electrolyzer_rated_production = [
+            self.windfarm.system(t).rated_production
+            for t in self.windfarm.electrolyzer_id
         ]
         self.metrics = Metrics(
             data_dir=self.library_path,
@@ -495,10 +507,12 @@ class Simulation(FromDictMixin):
             production=power_production,
             inflation_rate=self.config.inflation_rate,
             project_capacity=self.config.project_capacity,
-            turbine_capacities=capacities,
+            turbine_capacities=turbine_capacities,
+            electrolyzer_rated_production=electrolyzer_rated_production,
             fixed_costs=self.config.fixed_costs,  # type: ignore
             substation_id=self.windfarm.substation_id.tolist(),
             turbine_id=self.windfarm.turbine_id.tolist(),
+            electrolyzer_id=self.windfarm.electrolyzer_id.tolist(),
             substation_turbine_map=substation_turbine_map,
             service_equipment_names=[*self.service_equipment],  # type: ignore
         )
@@ -522,9 +536,14 @@ class Simulation(FromDictMixin):
             "turbine_capacities": [
                 self.windfarm.system(t_id).capacity for t_id in self.windfarm.turbine_id
             ],
+            "electrolyzer_rated_production": [
+                self.windfarm.system(e_id).rated_production
+                for e_id in self.windfarm.electrolyzer_id
+            ],
             "fixed_costs": self.config.fixed_costs,
             "substation_id": self.windfarm.substation_id.tolist(),
             "turbine_id": self.windfarm.turbine_id.tolist(),
+            "electrolyzer_id": self.windfarm.electrolyzer_id.tolist(),
             "substation_turbine_map": substation_turbine_map,
             "service_equipment_names": [*self.service_equipment],
         }
