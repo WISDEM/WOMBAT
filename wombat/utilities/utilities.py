@@ -203,16 +203,16 @@ def calculate_hydrogen_production(
         First coefficient of the efficiency polynomial curve. Required if
         :py:attr:`efficiency_rate` is not provided, by default None.
     p2 : int | float | None
-        Second coefficientof the efficiency polynomial curve. Required if
+        Second coefficient of the efficiency polynomial curve. Required if
         :py:attr:`efficiency_rate` is not provided, by default None.
     p3 : int | float | None
-        Third coefficientof the efficiency polynomial curve. Required if
+        Third coefficient of the efficiency polynomial curve. Required if
         :py:attr:`efficiency_rate` is not provided, by default None.
     p4 : int | float | None
-        Fourth coefficientof the efficiency polynomial curve. Required if
+        Fourth coefficient of the efficiency polynomial curve. Required if
         :py:attr:`efficiency_rate` is not provided, by default None.
     p5 : int | float | None
-        Interceptof the efficiency polynomial curve. Required if
+        Intercept of the efficiency polynomial curve. Required if
         :py:attr:`efficiency_rate` is not provided, by default None.
 
     Returns
