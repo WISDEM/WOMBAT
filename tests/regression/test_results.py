@@ -71,13 +71,7 @@ def test_event_summary_consistency(setup_ttp):
     timing_sub = metrics.process_times(include_incompletes=False).rename(
         columns={"N": "N_completed"}
     )
-    requests = (
-        metrics.request_summary()
-        .droplevel("subassembly")
-        .reset_index()
-        .rename(columns={"task": "category"})
-        .set_index("category")
-    )
+    requests = metrics.request_summary()
 
     combined = (
         timing_all[["N"]]

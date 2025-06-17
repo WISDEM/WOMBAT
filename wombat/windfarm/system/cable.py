@@ -11,6 +11,8 @@ import simpy
 
 from wombat.core import (
     Failure,
+    CableType,
+    SystemType,
     Maintenance,
     RepairRequest,
     SubassemblyData,
@@ -72,17 +74,11 @@ class Cable:
         """
         self.env = env
         self.windfarm = windfarm
-        self.connection_type = connection_type
+        self.connection_type = CableType(connection_type)
         self.start_node = start_node
         self.end_node = end_node
         self.id = f"cable::{start_node}::{end_node}"
         self.system = windfarm.system(start_node)
-
-        if self.connection_type not in ("array", "export"):
-            raise ValueError(
-                f"Input to `connection_type` for {self.id} must be one of 'array'"
-                " or 'export'."
-            )
 
         cable_data = {
             **cable_data,
@@ -147,9 +143,16 @@ class Cable:
             turbines.extend(_turbines)
 
         if self.connection_type == "export":
-            turbines, cables = wf_map.get_upstream_connections_from_substation(
-                self.substation
-            )
+            if (
+                self.windfarm.system(self.start_node).system_type
+                is SystemType.SUBSTATION
+            ):
+                turbines, cables = wf_map.get_upstream_connections_from_substation(
+                    self.substation
+                )
+            else:
+                turbines = []
+                cables = []
 
         self.upstream_nodes = turbines
         self.upstream_cables = cables

@@ -16,7 +16,7 @@ from wombat.core import (
 
 
 class Subassembly:
-    """A major system composes the turbine or substation objects."""
+    """A major system composes the turbine, substation, and electrolyzer objects."""
 
     def __init__(
         self,

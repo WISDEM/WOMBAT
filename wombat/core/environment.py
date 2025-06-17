@@ -930,7 +930,6 @@ class WombatEnvironment(simpy.Environment):
             env_time=operations.env_time.values,
             env_datetime=operations.env_datetime.values,
         )
-        potential_df.to_parquet(self.power_potential_fname)
 
         # TODO: The actual windfarm production needs to be clipped at each subgraph to
         # the max of the substation's operating capacity and then summed.
@@ -939,7 +938,27 @@ class WombatEnvironment(simpy.Environment):
         production_df.windfarm = self._calculate_adjusted_production(
             operations, production_df
         )
+
+        if (electrolyzers := windfarm.electrolyzer_id).size > 0:
+            potential_df[electrolyzers] = np.vstack(
+                [
+                    windfarm.system(e_id).power(potential_df.windfarm)
+                    for e_id in electrolyzers
+                ]
+            ).T
+            production_df[electrolyzers] = (
+                np.vstack(
+                    [
+                        windfarm.system(e_id).power(production_df.windfarm)
+                        for e_id in electrolyzers
+                    ]
+                ).T
+                * operations[electrolyzers].values
+            )
+
+        potential_df.to_parquet(self.power_potential_fname)
         production_df.to_parquet(self.power_production_fname)
+
         if return_df:
             return potential_df, production_df
 

@@ -110,6 +110,12 @@ VESTAS_V90_TEST_TIMEOUTS = load_yaml(
 ARRAY_33KV_240MM = load_yaml(TEST_DATA / "cables", "array_33kv_240mm.yaml")
 ARRAY_33KV_630MM = load_yaml(TEST_DATA / "cables", "array_33kv_630mm.yaml")
 EXPORT = load_yaml(TEST_DATA / "cables", "export.yaml")
+ELECTROLYZER_POLY = load_yaml(TEST_DATA / "project/config", "poly_electrolyzer.yml")[
+    "electrolyzers"
+]["test_electrolyzer_poly"]
+ELECTROLYZER_LINEAR = load_yaml(
+    TEST_DATA / "project/config", "linear_electrolyzer.yml"
+)["electrolyzers"]["test_electrolyzer_linear"]
 
 
 power_curve = TEST_DATA / "turbines" / "vestas_v90_power_curve.csv"
@@ -295,39 +301,3 @@ SCHEDULED_VESSEL = {
         "n_hourly_rate": 0,
     },
 }
-
-# NOTE: This seems kind of useful, so I'm leaving it as a reference in case of later use
-# def pytest_addoption(parser):
-#     """Adds the ``run-category`` flag as a workaround to not being able to run some of
-#     the individual test modules due to issues with consistent random seeding.
-#     """
-#     parser.addoption(
-#         "--run-category",
-#         type=str,
-#         nargs="*",
-#         action="store",
-#         default="all",
-#         choices=["all", "subassembly", "cable", "service_equipment"],
-#         metavar="which",
-#         help=(
-#             "only run a specific subset of tests, takes one of 'subassembly',"
-#             " 'cable', 'service_equipment', and 'simulation'."
-#         ),
-#     )
-
-
-# def pytest_configure(config):
-#     """Registers the ``cat`` marker."""
-#     config.addinivalue_line(
-#         "markers", "cat(which): mark test to run only on named environment"
-#     )
-
-
-# def pytest_runtest_setup(item):
-#     """Determines which tests will get run depending on if they overlap with the
-#     user-passed category.
-#     """
-#     test_level = next(item.iter_markers(name="cat")).args
-#     req_level = item.config.getoption("--run-category")
-#     if all(tl not in req_level for tl in test_level):
-#         pytest.skip(f"Only tests in the category: {req_level}, were requested")

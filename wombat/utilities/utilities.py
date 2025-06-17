@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 from string import digits, punctuation
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 from functools import cache
 
 import numpy as np
@@ -71,25 +71,25 @@ def IEC_power_curve(
 
     Parameters
     ----------
-        windspeed_column : np.ndarray | pandas.Series
-            The power curve's windspeed values, in m/s.
-        power_column : np.ndarray | pandas.Series
-            The power curve's output power values, in kW.
-        bin_width : float
-            Width of windspeed bin, default is 0.5 m/s according to standard, by default
-            0.5.
-        windspeed_start : float
-            Left edge of first windspeed bin, where all proceeding values will be 0.0,
-            by default 0.0.
-        windspeed_end : float
-            Right edge of last windspeed bin, where all following values will be 0.0, by
-            default 30.0.
+    windspeed_column : np.ndarray | pandas.Series
+        The power curve's windspeed values, in m/s.
+    power_column : np.ndarray | pandas.Series
+        The power curve's output power values, in kW.
+    bin_width : float
+        Width of windspeed bin, default is 0.5 m/s according to standard, by default
+        0.5.
+    windspeed_start : float
+        Left edge of first windspeed bin, where all proceeding values will be 0.0,
+        by default 0.0.
+    windspeed_end : float
+        Right edge of last windspeed bin, where all following values will be 0.0, by
+        default 30.0.
 
     Returns
     -------
-        Callable
-            Python function of the power curve, of type (Array[float] -> Array[float]),
-            that maps input windspeed value(s) to ouptut power value(s).
+    Callable
+        Python function of the power curve, of type (Array[float] -> Array[float]),
+        that maps input windspeed value(s) to ouptut power value(s).
     """
     if not isinstance(windspeed_column, pd.Series):
         windspeed_column = pd.Series(windspeed_column)
@@ -123,6 +123,173 @@ def IEC_power_curve(
         return P
 
     return pc_iec
+
+
+def calculate_stack_current(
+    power: np.ndarray | pd.Series,
+    p1: int | float,
+    p2: int | float,
+    p3: int | float,
+    p4: int | float,
+    p5: int | float,
+) -> np.ndarray | pd.Series:
+    """Convert power produced, in kW to current, in amperes (I) using the efficiency
+    curve from the
+    `H2Integrage PEM electrolysis model <https://github.com/NREL/H2Integrate/blob/main/h2integrate/simulation/technologies/hydrogen/electrolysis/PEM_H2_LT_electrolyzer_Clusters.py>`_.
+
+    .. math::
+        i_{stack} = p1 * power^{3} + p2 * power^{2} + p3 * power + p4 * power^{1/2} + p5
+
+    Parameters
+    ----------
+    power : np.ndarray | pd.Series
+        Power produced, in kW.
+    p1 : int | float
+        First coefficient.
+    p2 : int | float
+        Second coefficient.
+    p3 : int | float
+        Third coefficient
+    p4 : int | float
+        Fourth coefficient.
+    p5 : int | float
+        Intercept.
+
+    Returns
+    -------
+    np.ndarray | pd.Series
+        Converted current from the farm's power production.
+    """
+    return p1 * power**3 + p2 * power**2 + p3 * power + p4 * np.sqrt(power) + p5
+
+
+def calculate_hydrogen_production(
+    rated_capacity: float,
+    FE: float = 0.9999999,
+    n_cells: int = 135,
+    turndown_ratio: float = 0.1,
+    *,
+    efficiency_rate: float | None = None,
+    p1: int | float | None = None,
+    p2: int | float | None = None,
+    p3: int | float | None = None,
+    p4: int | float | None = None,
+    p5: int | float | None = None,
+) -> Callable:
+    """Create the hydrogen production curve for an electrolyzer. One of
+    :py:attr:`efficiency_rate` or a complete set of polynomial values (:py:attr:`p1`,
+    :py:attr:`p2`, :py:attr:`p3`, :py:attr:`p4`, and :py:attr:`p5`) for the power
+    to current conversion must be provided.
+
+    kWh are converted to current using the following efficiency formulation when the
+    polynomial inputs are all provided, and the :py:attr:`efficiency_rate` is nonzero.
+    .. math::
+        i_{stack} = p1 * power^{3} + p2 * power^{2} + p3 * power + p4 * power^{1/2} + p5
+
+    Parameters
+    ----------
+    rated_capacity : float
+        Rated maximum input power of the electrolyzer, in kW.
+    FE : float, optional
+        Faradic efficiency, by default 0.9999999.
+    n_cells : int, optional
+        Number of cells per 1 MW stack, by default 135.
+    turndown_ratio : float, optional
+        Minimum input power as a ratio of the rated capacity, by default 0.1.
+    efficiency_rate : float, optional
+        Energy efficiency in kWh per kg H2. Required if ``p1`` through ``p5 are not
+        provided.
+    p1 : int | float | None
+        First coefficient of the efficiency polynomial curve. Required if
+        :py:attr:`efficiency_rate` is not provided, by default None.
+    p2 : int | float | None
+        Second coefficient of the efficiency polynomial curve. Required if
+        :py:attr:`efficiency_rate` is not provided, by default None.
+    p3 : int | float | None
+        Third coefficient of the efficiency polynomial curve. Required if
+        :py:attr:`efficiency_rate` is not provided, by default None.
+    p4 : int | float | None
+        Fourth coefficient of the efficiency polynomial curve. Required if
+        :py:attr:`efficiency_rate` is not provided, by default None.
+    p5 : int | float | None
+        Intercept of the efficiency polynomial curve. Required if
+        :py:attr:`efficiency_rate` is not provided, by default None.
+
+    Returns
+    -------
+    Callable
+        Function to calculate H₂ production (kg/hr) from power input (kW).
+
+    Raises
+    ------
+    ValueError
+        Raised when :py:attr:`turndown_ratio` is outside the range [0, 1].
+    ValueError
+        Raised when :py:attr:`efficiency_rate` is provided and less than or equal to 0.
+    ValueError
+        Raised when neither the :py:attr:`efficiency_rate` nor polynomial values (
+        :py:attr:`p1` through :py:attr:`p5`) are provided.
+    ValueError
+        Raised both the :py:attr:`efficiency_rate` and polynomial values (
+        :py:attr:`p1` through :py:attr:`p5`) are provided.
+    """
+    if turndown_ratio > 1 or turndown_ratio < 0:
+        msg = f"`turndown_ratio` must be between 0 and 1, not: {turndown_ratio}"
+        raise ValueError(msg)
+
+    use_efficiency = False
+    if efficiency_rate is not None:
+        if efficiency_rate > 0:
+            use_efficiency = True
+        else:
+            raise ValueError("`efficiency_rate` must be a positive number.")
+
+    poly_names = ("p1", "p2", "p3", "p4", "p5")
+    poly_vals = (p1, p2, p3, p4, p5)
+    invalid_polynomials = [n for n, v in zip(poly_names, poly_vals) if v is None]
+    use_polynomial = len(invalid_polynomials) == 0
+    if not use_efficiency and not use_polynomial:
+        msg = (
+            "One of `efficiency_rate` or all polynomial values (`p1`, `p2`, `p3`,"
+            f" `p4`, `p5`) must be provided. Received {efficiency_rate=},"
+            f" {p1=}, {p2=}, {p3=}, {p4=}, {p5=}."
+        )
+        raise ValueError(msg)
+    if use_efficiency and use_polynomial:
+        msg = (
+            "Only one of `efficiency_rate` or all polynomial values (`p1`, `p2`, `p3`,"
+            f" `p4`, `p5`) must be provided. Received {efficiency_rate=},"
+            f" {p1=}, {p2=}, {p3=}, {p4=}, {p5=}."
+        )
+        raise ValueError(msg)
+
+    F = 96485.34  # Faraday's Constant (C/mol)
+    SECONDS = 3600  # seconds per hour
+    molar_mass_h2 = 2.016  # molecular weight of H2 (grams/mol)
+    min_power = rated_capacity * turndown_ratio
+
+    def h2(power):
+        power = np.where(power > rated_capacity, rated_capacity, power)
+        h2_rate_kg_hr = np.zeros_like(power)
+
+        if use_efficiency:
+            h2_rate_kg_hr = power / efficiency_rate
+        else:
+            if TYPE_CHECKING:
+                assert isinstance(p1, int | float)
+                assert isinstance(p2, int | float)
+                assert isinstance(p3, int | float)
+                assert isinstance(p4, int | float)
+                assert isinstance(p5, int | float)
+            i = calculate_stack_current(power, p1, p2, p3, p4, p5)
+            h2_rate_g_s = i * n_cells * FE * molar_mass_h2 / (2 * F)
+            h2_rate_kg_hr = h2_rate_g_s * SECONDS / 1e3
+
+        h2_rate_kg_hr[h2_rate_kg_hr < 0] = 0
+        h2_rate_kg_hr[power < min_power] = 0
+        return h2_rate_kg_hr
+
+    return h2
 
 
 def calculate_windfarm_operational_level(
