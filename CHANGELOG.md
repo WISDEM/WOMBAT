@@ -83,6 +83,8 @@
 - COREWIND turbine failures have been split so that subassemblies only contain a single
   component grouping to be more compatible with industry modeling assumptions. This
   ultimately reduces the resulting number of failures, and therefore costs.
+- Simulation configuration dictionaries can now contain the wind farm layout as a Pandas
+  `DataFrame`, in addition to the existing file name string.
 
 ## v0.10.4 (12 May 2025)
 
