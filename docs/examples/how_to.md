@@ -30,8 +30,8 @@ from time import perf_counter  # timing purposes only
 import numpy as np
 import pandas as pd
 
-from wombat import Simulation
-from wombat.core.library import load_yaml, DINWOODIE
+from wombat import Simulation, load_yaml
+from wombat.core.library import DINWOODIE
 
 # Seed the random variable for consistently randomized results
 np.random.seed(0)
