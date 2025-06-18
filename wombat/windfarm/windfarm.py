@@ -34,7 +34,7 @@ class Windfarm:
     def __init__(
         self,
         env: WombatEnvironment,
-        windfarm_layout: str,
+        windfarm_layout: str | pd.DataFrame,
         repair_manager: RepairManager,
         substations: dict[str, dict] | None = None,
         turbines: dict[str, dict] | None = None,
@@ -73,7 +73,7 @@ class Windfarm:
         self.env._register_windfarm(self)
         self.env.process(self._log_operations())
 
-    def _create_graph_layout(self, windfarm_layout: str) -> None:
+    def _create_graph_layout(self, windfarm_layout: str | pd.DataFrame) -> None:
         """Creates a network layout of the windfarm start from the substation(s) to
         be able to capture downstream turbines that can be cut off in the event of a
         cable failure.
@@ -85,12 +85,15 @@ class Windfarm:
         """
         # Read in the layout CSV file, then sort it by string, then order to ensure
         # it can be traversed in sequential order later
-        layout_path = str(self.env.data_dir / "project/plant" / windfarm_layout)
-        layout = (
-            pd.read_csv(layout_path)
-            .sort_values(by=["string", "order"])
-            .reset_index(drop=True)
-        )
+        if isinstance(windfarm_layout, str):
+            layout_path = str(self.env.data_dir / "project/plant" / windfarm_layout)
+            layout = (
+                pd.read_csv(layout_path)
+                .sort_values(by=["string", "order"])
+                .reset_index(drop=True)
+            )
+        else:
+            layout = windfarm_layout.copy()
         layout.subassembly = layout.subassembly.fillna("")
         layout.upstream_cable = layout.upstream_cable.fillna("")
 

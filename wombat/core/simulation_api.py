@@ -53,8 +53,9 @@ class Configuration(FromDictMixin):
     ----------
     name: str
         Name of the simulation. Used for logging files.
-    layout : str
-        The windfarm layout file. See ``wombat.Windfarm`` for more details.
+    layout : str | pd.DataFrame
+        The windfarm layout file or Pandas DataFrame. See ``wombat.Windfarm`` for more
+        details.
     service_equipment : str | list[str | list[str, int]]
         The equpiment that will be used in the simulation. For multiple instances of a
         single vessel use a list of the file name/id and the number of vessels. See
@@ -147,7 +148,7 @@ class Configuration(FromDictMixin):
     """
 
     name: str
-    layout: str
+    layout: str | pd.DataFrame
     service_equipment: str | list[str] = field(converter=convert_to_list)
     weather: str | pd.DataFrame
     workday_start: int = field(converter=int)

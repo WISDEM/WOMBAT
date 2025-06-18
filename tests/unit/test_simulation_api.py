@@ -3,9 +3,10 @@
 import sys
 import datetime
 
+import pandas as pd
 import pytest
 
-from wombat import Simulation
+from wombat import Simulation, load_yaml
 from wombat.core import Metrics
 
 from tests.conftest import TEST_DATA
@@ -57,6 +58,17 @@ def test_simulation_consolidated_setup():
     assert isinstance(sim.metrics, Metrics)
 
     sim.env.cleanup_log_files()
+
+
+def test_simulation_df_layout():
+    """Test that the simulation successfully loads with a DataFrame layout."""
+    library_path = TEST_DATA
+    config = load_yaml(library_path / "project/config", "linear_electrolyzer.yml")
+    layout = pd.read_csv(library_path / "project/plant/layout_electrolyzer_linear.csv")
+    config["layout"] = layout
+
+    sim = Simulation(library_path, config)
+    sim.run(delete_logs=True, save_metrics_inputs=False)
 
 
 @pytest.mark.skipif(
