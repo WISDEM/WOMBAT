@@ -103,11 +103,15 @@ modeling assumptions as well as the basic operations of the maintenance and fail
     independently and not as a string of connected systems
   - The final export cable connecting a substation to the interconnection point can
     however shut down the entire wind farm
-- Electrolyzers
+- Electrolyzers (new in v0.11)
   - Similar to both the turbine model, except that they are only allowed to be connected
     to a substation. Electrolyzer downtime does not impact the rest of the farm.
   - Requires at least 1 turbine with a power curve and 1 substation to enable H2
-    production.
+    production. The turbine and substation may be modeled without any failures as a
+    method to model only an electrolyzer.
+  - **NOTE**: in a future version (likely v0.12) there will be a simplified
+    way to model only an electrolyzer, and provide an external power profile for a more
+    accurate assessment of the capacity factor and hydrogen production.
 
 ### Repair Modeling
 
