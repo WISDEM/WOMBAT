@@ -556,7 +556,7 @@ failures:
     description: n/a
 ```
 
-## Electrolyzers
+#### Electrolyzers
 
 New as of v0.11!
 
@@ -573,7 +573,12 @@ capex_kw
 : The $/kw cost of the machine, if not providing absolute costs.
 
 power_curve: p1, p2, p3, p4, and p5
-: Coefficients for the polynomial to convert the stack's input power to current.
+: Coefficients for the polynomial to convert the stack's input power to current. Either
+  the polynomial inputs here, or the `efficiency_rate` should be provided, but not both.
+
+power_curve: efficiency_rate
+  The linear efficiency rate that the electrolyzer can convert energy into hydrogen, in
+  kWh/kg.
 
 power_curve: FE
 : Faradic efficiency, defaults to 0.9999999.
@@ -581,7 +586,7 @@ power_curve: FE
 power_curve: n_cells
 : Number of cells in each stack to convert energy to H2.
 
-power_curve: n_cells
+power_curve: turndown_ratio
 : The minimum operating ratio for input power. For example, at 0.1 (10%), a 100 MW
 electrolyzer will not operate unless input power is at least 10 MW.
 
@@ -814,8 +819,8 @@ For a more complete view of what metrics can be compiled, please see the [metric
 be shown here
 
 ```{code-cell} ipython3
-net_cf = sim.metrics.capacity_factor(which="net", frequency="project", by="windfarm").values[0][0]
-gross_cf = sim.metrics.capacity_factor(which="gross", frequency="project", by="windfarm").values[0][0]
+net_cf = sim.metrics.capacity_factor(which="net", frequency="project", by="windfarm").squeeze()
+gross_cf = sim.metrics.capacity_factor(which="gross", frequency="project", by="windfarm").squeeze()
 print(f"  Net Capacity Factor: {net_cf:2.1%}")
 print(f"Gross Capacity Factor: {gross_cf:2.1%}")
 ```

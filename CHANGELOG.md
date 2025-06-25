@@ -85,6 +85,8 @@
   ultimately reduces the resulting number of failures, and therefore costs.
 - Simulation configuration dictionaries can now contain the wind farm layout as a Pandas
   `DataFrame`, in addition to the existing file name string.
+- Adds `examples/electrolyzer_example.ipynb` to demonstrate how to run a standalone
+  electrolyzer simulation without creating any intermediary files.
 
 ## v0.10.4 (12 May 2025)
 
