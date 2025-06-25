@@ -2281,7 +2281,7 @@ class Metrics:
         return production
 
     def h2_production(
-        self, frequency: str, by: str = "total", units: str = "kgph"
+        self, frequency: str, by: str = "total", units: str = "kg"
     ) -> float | pd.DataFrame:
         """Calculates the hydrogen production for the simulation at a project, annual,
         or monthly level that can be broken out by electrolyzer.
@@ -2293,7 +2293,7 @@ class Metrics:
         by : str
             One of "electrolyzer" or "total".
         units : str
-            One of "kph" (kilograms/hour), "tph" (tonnes/hour).
+            One of "kg" (kilograms) or "tn" (metric tonnes).
 
         Returns
         -------
@@ -2315,6 +2315,8 @@ class Metrics:
             "month-year".
         ValueError
             If :py:attr:`by` is not one of "electrolyzer" or "total".
+        ValueError
+            If :py:attr:`units` is not one of "kg" or "tn".
         """
         if self.electrolyzer_rated_production.size == 0:
             raise ValueError("No electrolyzers available to analyze.")
@@ -2325,14 +2327,14 @@ class Metrics:
             raise ValueError('``by`` must be one of "total" or "electrolyzer".')
         by_electrolyzer = by == "electrolyzer"
 
-        if units not in ("kgph", "tph"):
-            raise ValueError('``units`` must be one of "kgph" or "tph".')
-        if units == "tph":
+        if units not in ("kg", "tn"):
+            raise ValueError('``units`` must be one of "kg" or "tn".')
+        if units == "tn":
             divisor = 1e3
-            label = "Project H2 Production (tonnes/hr)"
+            label = "Project H2 Production (metric tonnes)"
         else:
             divisor = 1
-            label = "Project H2 Production (kg/hr)"
+            label = "Project H2 Production (kg)"
 
         col_filter = ["total"]
         if by_electrolyzer:
