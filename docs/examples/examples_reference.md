@@ -36,7 +36,17 @@ allows users to interact with the varying maintenance strategy models.
 This is the notebook used for the NAWEA WindTech 2023 Workshop. See
 [here](../workshops/nawea_wind_tech_2023.md) for details.
 
+### `electrolyzer_example.ipynb`
+
+Demonstrates how to set up and run a standalone electrolyzer simulation within WOMBAT's
+wind farm framework.
+
 ## Validation
+
+```{note}
+These example are no longer recalibrated for updated releases, and are merely kept up
+to date with WOMBAT's input changes.
+```
 
 ### `dinwoodie_validation.ipynb`
 

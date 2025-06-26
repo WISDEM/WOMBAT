@@ -46,6 +46,16 @@ a shortlist of the core functionality that WOMBAT can provide.
   and `non_operational_end` dictate an annual date range for when servicing equipment
   can't be active, or a port or the whole site is inaccessible. The same documentation
   pages as above can be referenced for more details.
+- Generalized maintenance start date. This enables the first occurrence for all
+  maintenance events to be set universally, if not specifically defined. If the date
+  is prior to the start of the simulation, it merely sets the cadence. The ability to
+  set a maintenance starting date allows for the staggering of the weather timeseries
+  and maintenance timing. For instance, a weather profile starting in January for the
+  Gulf of Maine, would have annual maintenance occurring in the middle of winter, likely
+  causing many unnecessary weather delays in accessing the site, so the cadence can
+  now start in the late spring or summer to ensure there are ideal weather conditions.
+  This feature is made available through the
+  [`Configuration.maintenance_start`](simulation-api:config) field,
 
 ### System and Subassembly Modeling
 
@@ -56,6 +66,10 @@ modeling assumptions as well as the basic operations of the maintenance and fail
 
 - Maintenance
   - `frequency`: based on an amount of time between events and a given starting date.
+  - `frequency_basis`: allows the input of frequency to be configured in days, months,
+    or years.
+  - `start_date`: enables the first occurrence of a maintenance event to be offset
+    from the weather profile, or even well after the start date of a simulation.
   - `operation_reduction`: the percentage of degradation the triggering of this event
     cause
 - Failure
@@ -89,6 +103,15 @@ modeling assumptions as well as the basic operations of the maintenance and fail
     independently and not as a string of connected systems
   - The final export cable connecting a substation to the interconnection point can
     however shut down the entire wind farm
+- Electrolyzers (new in v0.11)
+  - Similar to both the turbine model, except that they are only allowed to be connected
+    to a substation. Electrolyzer downtime does not impact the rest of the farm.
+  - Requires at least 1 turbine with a power curve and 1 substation to enable H2
+    production. The turbine and substation may be modeled without any failures as a
+    method to model only an electrolyzer.
+  - **NOTE**: in a future version (likely v0.12) there will be a simplified
+    way to model only an electrolyzer, and provide an external power profile for a more
+    accurate assessment of the capacity factor and hydrogen production.
 
 ### Repair Modeling
 
@@ -107,10 +130,14 @@ modeling assumptions as well as the basic operations of the maintenance and fail
     cost for both scheduled and unscheduled servicing equipment. For scheduled equipment,
     the mobilization is scheduled so that the equipment arrives at the site for the
     start of it's first scheduled day.
+  - Mooring disconnections and reconnections operate without considering shift timing
+    to ensure that these (typically) very long processes can find an optimal weather
+    window within the simulation. These typically only occur with tugboats.
   - A wide range of generalized capabilities can be specified for various modeling
     scenarios. It's important to note that outside of the "TOW" designation, there are
     no specific implementations of functionality.
     - CTV: crew transfer vessel/vehicle
+    - OFS: offsite equipment
     - SCN: small crane (i.e., field support vessel)
     - MCN: medium crane
     - LCN: large crane (i.e., heavy lift vessel)

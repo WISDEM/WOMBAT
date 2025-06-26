@@ -5,10 +5,15 @@ import datetime
 import numpy as np
 import pytest
 import numpy.testing as nptest
+from pytest_check import check
 
 from wombat.utilities.time import convert_dt_to_hours, hours_until_future_hour
 from wombat.utilities.logging import format_events_log_message
-from wombat.utilities.utilities import IEC_power_curve, _mean
+from wombat.utilities.utilities import (
+    IEC_power_curve,
+    _mean,
+    calculate_hydrogen_production,
+)
 
 
 def test_convert_dt_to_hours():
@@ -163,3 +168,130 @@ def test_IEC_power_curve():
     # Test all the valid windspeeds are equal
     valid_power = test_power[(test_windspeeds >= cut_in) & (test_windspeeds <= cut_out)]
     nptest.assert_array_equal(nrel_15mw_power, valid_power)
+
+
+def test_calculate_hydrogen_production():
+    """Test the hydrogen production calculation using H2Integrate assumptions."""
+    p1 = 4.0519644766515644e-08
+    p2 = -0.00026186723338675105
+    p3 = 3.8985774154190334
+    p4 = 7.615382921418666
+    p5 = -20.075110413404484
+
+    efficiency_rate = 39.44
+
+    rated_capacity = 10 * 1e3  # 10 x 1 MW stacks
+    fe = 0.9999999
+    n_cells = 135
+    turndown_ratio = 0.1
+
+    pc_efficiency = calculate_hydrogen_production(
+        efficiency_rate=efficiency_rate,
+        rated_capacity=rated_capacity,
+        FE=fe,
+        n_cells=n_cells,
+        turndown_ratio=turndown_ratio,
+    )
+    pc_poly = calculate_hydrogen_production(
+        p1=p1,
+        p2=p2,
+        p3=p3,
+        p4=p4,
+        p5=p5,
+        rated_capacity=rated_capacity,
+        FE=fe,
+        n_cells=n_cells,
+        turndown_ratio=turndown_ratio,
+    )
+
+    # Test values: First three are under the turn down ratio, next are at the minimum
+    # and maximum allowable power, and the last is just past the rated power
+    test_power = np.array(
+        [
+            0,
+            rated_capacity * 0.01,
+            rated_capacity * 0.09999,
+            rated_capacity * 0.1,
+            rated_capacity,
+            rated_capacity * 1.001,
+            rated_capacity * 2,
+        ]
+    )
+
+    # Test polynomial efficiency curve
+    expected_polynomial_production = np.array(
+        [
+            0.0,
+            0.0,
+            0.0,
+            19.791303299083083,
+            274.4812881223016,
+            274.4812881223016,
+            274.4812881223016,
+        ]
+    )
+    with check:
+        test_production = pc_poly(test_power)
+        nptest.assert_array_equal(test_production, expected_polynomial_production)
+
+    # Test linear efficiency curve
+    expected_efficiency_production = np.array(
+        [
+            0.0,
+            0.0,
+            0.0,
+            25.354969574036513,
+            253.54969574036514,
+            253.54969574036514,
+            253.54969574036514,
+        ]
+    )
+    with check:
+        test_production = pc_efficiency(test_power)
+        nptest.assert_array_equal(test_production, expected_efficiency_production)
+
+    # Test no efficiency inputs
+    with check.raises(ValueError):
+        calculate_hydrogen_production(
+            rated_capacity=rated_capacity,
+            FE=fe,
+            n_cells=n_cells,
+            turndown_ratio=turndown_ratio,
+        )
+
+    # Test incomplete polynomial
+    with check.raises(ValueError):
+        calculate_hydrogen_production(
+            rated_capacity=rated_capacity,
+            FE=fe,
+            n_cells=n_cells,
+            turndown_ratio=turndown_ratio,
+            p1=p1,
+        )
+
+    with check.raises(ValueError):
+        calculate_hydrogen_production(
+            rated_capacity=rated_capacity,
+            FE=fe,
+            n_cells=n_cells,
+            turndown_ratio=turndown_ratio,
+            p2=p2,
+            p3=p3,
+            p4=p4,
+            p5=p5,
+        )
+
+    # Test both linear and polynomial efficiency curve
+    with check.raises(ValueError):
+        calculate_hydrogen_production(
+            rated_capacity=rated_capacity,
+            FE=fe,
+            n_cells=n_cells,
+            turndown_ratio=turndown_ratio,
+            efficiency_rate=efficiency_rate,
+            p1=p1,
+            p2=p2,
+            p3=p3,
+            p4=p4,
+            p5=p5,
+        )

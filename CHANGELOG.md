@@ -1,5 +1,98 @@
 # CHANGELOG
 
+## Unreleased
+
+### Deprecations
+
+- Drops support for Python 3.10.
+- The layout file must have a "type" specified for every system in the layout.
+
+### Features
+
+- Electrolyzers are now an included system model. They act similarly to a substation,
+  but should be downstream from the substations in the layout model. Unlike turbines
+  an electrolyzer will only connect to the substation as a downstream system. Below
+  are some of the highlights and assumptions.
+  - The subassembly definition file requires 4 top-level inputs:
+    - `stack_capacity_kw`: The capacity of each stack
+    - `capex_kw`: The cost of the whole system, per kw.
+    - `n_stacks`: The number of stacks comprising the electrolyzer.
+    - `power_curve`: Includes variables `p1`, `p2`, `p3`, `p4`, `p5`, `FE` (Faradaic
+      efficiency), `n_cells` (per stack), and `turndown_ratio`.
+  - The production curve is based on the
+    [H2Integrate PEM electrolysis module](https://github.com/NREL/H2Integrate/blob/main/h2integrate/simulation/technologies/hydrogen/electrolysis/PEM_H2_LT_electrolyzer_Clusters.py).
+  - Electrolyzer downtime does not impact farm activities as it is assumed energy will
+    still flow through the export system to some other entity such as the grid.
+  - All stacks are currently modeled as a single entity.
+- `Metrics.dispatch_summary()` is now available to provide the number of mobilizations and average
+  charter period across the whole project, or broken down by year and month, as requested.
+- `Metrics.h2_production()` is now available to provide to calculate the hydrogen production in
+  kg/hr or tonnes/hr.
+- Universalized maintenance starting dates are now able to be set through the primary
+  configuration file as `maintenance_start`. This will enable the universalized
+  staggering of the first instance of a maintenance task to align with a different
+  season than that of the start of the weather profile. This is particularly helpful
+  for Northern Hemisphere projects where winter months can cause significant weather
+  delays.
+- `Simulation.run()` has a new parameter called `delete_logs` (defaults to False) that
+  allows the user to automatically delete the logging files that are created after the
+  `Metrics` object is initialized. To use `delete_logs=True`,  users must also set
+  `save_metrics_inputs=False`.
+- `Metrics.request_summary()` is now available to provide the total number of repair
+  and maintenance requests, number of canceled requests, number of incomplete requests,
+  and the number of completed requests.
+
+### Updates
+
+- `Metrics` improvements and updates
+  - `component_costs()` has been refactored, and now includes two additional breakdowns:
+    - `by_task`: toggles the inclusion of the individual repair and maintenance tasks.
+    - `include_travel`: toggles the inclusion of intrasite and port-to-site travel.
+  - `time_based_availability()`
+    - Additional option for `by="electrolyzer"`.
+    - `by="turbine"` no longer includes the "windfarm" column for results
+  - `production_based_availability()`
+    - Additional option for `by="electrolyzer"`.
+    - `by="turbine"` no longer includes the "windfarm" column for results
+  - `capacity_factor()`
+    - Additional option for `by="electrolyzer"`.
+    - `by="turbine"` no longer includes the "windfarm" column for results
+  - `process_times` now uses a `MultiIndex` with a `subassembly` and `task` column.
+- Improved cable, subassembly, and servicing equipment error handling to show which of
+  the cables, substations, turbines, or vessels produced the intialization error for
+  easier input debugging.
+- Basic tests are now included for limited set of the `Metrics` class with a focus
+  cost summaries.
+- Tests are now roughly split between unit tests and regression tests, where regression
+  tests focus on event timing checks and results checking. Users can now run
+  `pytest --unit` or `pytest --regression` if a subset of the tests are needing to be
+  run with `pytest` still running the entire test suite.
+- Post-results log files have been converted from a CSV to Parquet file format for
+  faster I/O and a smaller memory footprint.
+- Servicing equipment code checking is replaced with a `StrEnum` throughout for more
+  robust and streamlined data validation.
+- Fixes a bug in `Metrics.process_times()` where canceled requests are counted towards
+  the event timing and count.
+- `Metrics.process_times` has a new flag `include_incompletes` to either summarize all
+  maintenance activity (`False`) or only the completed maintenance activity (`True`).
+- Small bug in `Subassembly.interrupt_processes()` is fixed by using a `try`/`except`
+  clause for all interruptions. This allows for the `ServiceEquipment.tow_to_site()` to
+  run without failure after replacing a subassembly. The cause of the failure stems
+  from the inability to interrupt a previously terminated process (caused by triggering
+  a tow-to-port repair).
+- COREWIND turbine failures have been split so that subassemblies only contain a single
+  component grouping to be more compatible with industry modeling assumptions. This
+  ultimately reduces the resulting number of failures, and therefore costs.
+- Simulation configuration dictionaries can now contain the wind farm layout as a Pandas
+  `DataFrame`, in addition to the existing file name string.
+- Adds `examples/electrolyzer_example.ipynb` to demonstrate how to run a standalone
+  electrolyzer simulation without creating any intermediary files.
+- Mooring disconnections and reconnections do not consider the tugboat's shift set shift
+  timing considering this process can take multiple days.
+- All parameters starting from the first boolean parameter now must be passed as a
+  keyword argument with the name included (as `x=False` or `x=True, other="value"`), for
+  all methods, except for those in `Metrics` to maintain user workflow compatibility.
+
 ## v0.10.4 (12 May 2025)
 
 - Fix a bug where tow-to-port strategies can result in vessels being dispatched and

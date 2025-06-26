@@ -30,8 +30,8 @@ from time import perf_counter  # timing purposes only
 import numpy as np
 import pandas as pd
 
-from wombat import Simulation
-from wombat.core.library import load_yaml, DINWOODIE
+from wombat import Simulation, load_yaml
+from wombat.core.library import DINWOODIE
 
 # Seed the random variable for consistently randomized results
 np.random.seed(0)
@@ -76,15 +76,16 @@ The above method call will produce the below folder and subfolder structure.
 ```
 <library>
   ├── project
-    ├── config     <- Project-level configuration files
-    ├── port       <- Port configuration files
-    ├── plant      <- Wind farm layout files
-  ├── cables       <- Export and Array cable configuration files
-  ├── substations  <- Substation configuration files
-  ├── turbines     <- Turbine configuration and power curve files
-  ├── vessels      <- Land-based and offshore servicing equipment configuration files
-  ├── weather      <- Weather profiles
-  ├── results      <- The analysis log files and any saved output data
+    ├── config      <- Project-level configuration files
+    ├── port        <- Port configuration files
+    ├── plant       <- Wind farm layout files
+  ├── cables        <- Export and Array cable configuration files
+  ├── substations   <- Substation configuration files
+  ├── turbines      <- Turbine configuration and power curve files
+  ├── electrolyzers <- Electrolyzer configuration files
+  ├── vessels       <- Land-based and offshore servicing equipment configuration files
+  ├── weather       <- Weather profiles
+  ├── results       <- The analysis log files and any saved output data
 ```
 
 As a convenience feature you can import the provided validation data libraries as
@@ -93,6 +94,60 @@ enabled.
 
 In practice, any folder location can be used so long as it follows the subfolder
 structure provided here.
+
+### v0.10 Update
+
+As of v0.10, a single YAML configuration is enabled for all YAML-based configuration
+files. The following structure (inputs based on the COREWIND in situ example) should
+be adopted for single-input files.
+
+```{note}
+Electrolyzers can also be provided in the same manner as turbines, substations, cables,
+and vessels.
+```
+
+```yaml
+# WOMBAT/library/corewind/project/config/morro_bay_in_situ_consolidated.yaml
+name: COREWIND Morro Bay In Situ
+weather: central_ca.csv
+service_equipment:
+- - ctv
+  - 7
+- cab
+- dsv
+- ahv
+- hlv
+layout: morro_bay_9D_layout.csv
+port_distance: 60
+inflation_rate: 0
+workday_start: 6
+workday_end: 22
+start_year: 2002
+end_year: 2021
+project_capacity: 1200
+substations:
+  corewind_substation:
+  ...
+cables:
+  corewind_export:
+  ...
+  corewind_array:
+  ...
+turbines:
+  corewind_15MW:
+  ...
+vessels:
+  ctv:
+  ...
+  cab:
+  ...
+  dsv:
+  ...
+  ahv:
+  ...
+  hlv:
+  ...
+```
 
 (how_to:configure:layout)=
 ### Wind Farm Layout
@@ -112,9 +167,9 @@ substation_id (required)
 name (required)
 : A descriptive name for the turbine, if desired. This can be the same as `id`.
 
-type (optional)
-: One of "turbine" or "substation". This is required to accurately model a
-  multi-substation wind farm. The base assumption is that a substation connects to
+type (required)
+: One of "turbine", "substation", or "electrolyzer". This is required to accurately model
+  a multi-substation wind farm. The base assumption is that a substation connects to
   itself as a means to model the export cable connecting to the interconnection point,
   however, this is not always the case, as substations may be connected through their
   export systems. Using this filed allows for that connection to be modeled accurately.
@@ -172,6 +227,29 @@ later input reviews:
 | S00T79 | OSS1 | S00T79 | turbine | 0 | 0 | 0 | 78 | 0 | vestas_v90.yaml | array.yaml |
 | S00T80 | OSS1 | S00T80 | turbine | 0 | 0 | 0 | 79 | 0 | vestas_v90.yaml | array.yaml |
 </div>
+
+#### New in v0.10
+
+v0.10 introduced the ability to define any YAML-based configuration file within the
+primary configuration file. To accommodate this change in the above example, each of
+`subassembly` and `upstream_cable` inputs would simply drop ".yaml" from their input,
+and the `Simulation` setup will automatically search for `vestas_v90`, `array`, `export`,
+or `offshore_substation` in the primary configuration file.
+
+#### New in v0.11
+
+v0.11 introduced the electrolyzer model. To include an electrolyzer in the above definition,
+simply create a new row where the electrolyzer is connected to substation via an export
+cable. In the above example, the row would look like the following. In the case of
+multiple substations, attach it to the furthest downstream substation.
+
+<div style="overflow-y:auto;overflow-x:auto">
+
+| id | substation_id | name | type | longitude | latitude | string | order | distance | subassembly | upstream_cable |
+| :-- | :-- | :-- | :-- | --: | --: | --: | --: | --: | :-- | :-- |
+| ELC1 | OSS1 | ELC1 | electrolyzer | 1 | 0 |  |  |  | electrolyzer.yaml | export.yaml |
+</div>
+
 
 (how_to:configure:weather)=
 ### Weather Profile
@@ -262,6 +340,9 @@ DRN
 
 CTV
 : crew transfer vessel/onsite truck
+
+OFS
+: offsite equipment, such a CTV equivalent for servicing a separately located electrolyzer
 
 SCN
 : small crane (i.e., field support vessel or cherry picker)
@@ -412,9 +493,9 @@ transformer:
 
 #### Turbines
 
-The turbine has the most to define out of the three systems in the wind farm model.
-Similar to the substation, it relies mainly on the subassembly model with a few extra
-parameters, as defined here:
+The turbine has the most to define out of the three wind-based systems in the wind farm
+model. Similar to the substation, it relies mainly on the subassembly model with a few
+extra parameters, as defined here:
 
 capacity_kw
 : The capacity of the system. Only needed if a $/kw cost basis is being used.
@@ -483,6 +564,67 @@ failures:
     level: 1
     description: n/a
 ```
+
+#### Electrolyzers
+
+New as of v0.11!
+
+The electrolyzer has the most to define out of all the systems. Similar to the turbine,
+it relies mainly on the subassembly model with a few extra parameters, as defined here:
+
+stack_capacity_kw
+: The capacity of each stack, required.
+
+n_stacks
+: The number of stacks in the electrolyzer, required.
+
+capex_kw
+: The $/kw cost of the machine, if not providing absolute costs.
+
+power_curve: p1, p2, p3, p4, and p5
+: Coefficients for the polynomial to convert the stack's input power to current. Either
+  the polynomial inputs here, or the `efficiency_rate` should be provided, but not both.
+
+power_curve: efficiency_rate
+:  The linear efficiency rate that the electrolyzer can convert energy into hydrogen, in
+  kWh/kg. Do not use in conjunction with the above `p1` through `p5` parameters.
+
+power_curve: FE
+: Faradic efficiency, defaults to 0.9999999.
+
+power_curve: n_cells
+: Number of cells in each stack to convert energy to H2.
+
+power_curve: turndown_ratio
+: The minimum operating ratio for input power. For example, at 0.1 (10%), a 100 MW
+electrolyzer will not operate unless input power is at least 10 MW.
+
+An example data file provides the following definition in addition to the maintenance
+and failure definitions that were shown previously. The assumptions are based on the
+[H2 Integrate PEM electrolysis model](https://github.com/NREL/H2Integrate/blob/main/h2integrate/simulation/technologies/hydrogen/electrolysis/PEM_H2_LT_electrolyzer_Clusters.py)
+with CapEx and number of stacks being arbitrarily chosen for example purposes.
+
+```{code-block} yaml
+stack_capacity_kw: 1000
+capex_kw: 800
+n_stacks: 120
+power_curve:
+  p1: 4.0519644766515644e-08
+  p2: -0.00026186723338675105
+  p3: 3.8985774154190334
+  p4: 7.615382921418666
+  p5: -20.075110413404484
+  FE: 0.9999999
+  n_cells: 135
+  turndown_ratio: 0.1
+```
+
+The power curve input requires the efficiency polynomial curve fit coefficients, though
+it is highly recommended to use those included in the above example. For implementation
+details, please see the [utilities API documentation](https://wisdem.github.io/WOMBAT/API/utilities.html#wombat.utilities.utilities)
+
+If there is a need/desire for additional power curve methodologies, then
+[please submit an issue on the GitHub](https://github.com/WISDEM/WOMBAT/issues)!
 
 ## Set Up the Simulation
 
@@ -615,6 +757,11 @@ sim = Simulation.from_config(library_path=library_path, config=config)
 sim.env.cleanup_log_files()
 ```
 
+```{important}
+This option's workflow ends here, do not call `sim.run()` after calling the cleanup
+method. Note that a new simulation is loaded in the next example (Option 2).
+```
+
 ### Option 2: `Simulation()`
 
 Load the configuration file automatically given a library path and configuration file name.
@@ -635,7 +782,7 @@ sim = Simulation(
     library_path="DINWOODIE",  # automatically directs to the provided library
     config="base.yaml"
 )
-sim.env.cleanup_log_files()
+sim.env.cleanup_log_files()  # Ends the current demonstration
 ```
 
 ### Seeding the simulation random variable
@@ -650,8 +797,10 @@ sim = Simulation(
     config="base.yaml",
     random_seed=2023,  # integer value indicating how to seed the internally-created generator
 )
-sim.env.cleanup_log_files()
+sim.env.cleanup_log_files()  # Ends the current demonstration
+```
 
+```{code-cell} ipython3
 rng = np.random.default_rng(seed=2023)  # create the generator
 sim = Simulation(
     library_path="DINWOODIE",  # automatically directs to the provided library
@@ -672,7 +821,7 @@ end to quickly transition to results aggregation without any further code.
 # Timing for a demonstration of performance
 start = perf_counter()
 
-sim.run()
+sim.run(delete_logs=True, save_metrics_inputs=False)
 
 end = perf_counter()
 
@@ -680,14 +829,30 @@ timing = end - start
 print(f"Run time: {timing / 60:,.2f} minutes")
 ```
 
+### Optional: Delete the logging files
+
+In the case that a lot of simulations are going to be run, and the processed outputs
+are all that is required, then there is a convenience method to clean up these files
+automatically once you are done, if not using the `delete_logs=True` parameterization
+shown above.
+
+```{code-cell} ipython3
+sim.env.cleanup_log_files()
+```
+
+For additional convenience, in `Simulation.run()`, `save_metrics_inputs=True` and
+`delete_logs=False` can be added to skip a secondary cleanup step. This is particularly
+useful when running a series of simulations where the log files will not be needed
+afterward.
+
 ## Metric computation
 
 For a more complete view of what metrics can be compiled, please see the [metrics notebook](metrics_demonstration.md), though for the sake of demonstration a few methods will
 be shown here
 
 ```{code-cell} ipython3
-net_cf = sim.metrics.capacity_factor(which="net", frequency="project", by="windfarm").values[0][0]
-gross_cf = sim.metrics.capacity_factor(which="gross", frequency="project", by="windfarm").values[0][0]
+net_cf = sim.metrics.capacity_factor(which="net", frequency="project", by="windfarm").squeeze()
+gross_cf = sim.metrics.capacity_factor(which="gross", frequency="project", by="windfarm").squeeze()
 print(f"  Net Capacity Factor: {net_cf:2.1%}")
 print(f"Gross Capacity Factor: {gross_cf:2.1%}")
 ```
@@ -695,22 +860,12 @@ print(f"Gross Capacity Factor: {gross_cf:2.1%}")
 ```{code-cell} ipython3
 # Report back a subset of the metrics
 total = sim.metrics.time_based_availability(frequency="project", by="windfarm")
-print(f"  Project time-based availability: {total.windfarm[0]:.1%}")
+print(f"  Project time-based availability: {total.windfarm.squeeze():.1%}")
 
 total = sim.metrics.production_based_availability(frequency="project", by="windfarm")
-print(f"Project energy-based availability: {total.windfarm[0]:.1%}")
+print(f"Project energy-based availability: {total.windfarm.squeeze():.1%}")
 
 total = sim.metrics.equipment_costs(frequency="project", by_equipment=False)
-print(f"          Project equipment costs: ${total.values[0][0] / sim.metrics.project_capacity:,.2f}/MW")
+print(f"          Project equipment costs: ${total.values.squeeze() / sim.metrics.project_capacity:,.2f}/MW")
 
-```
-
-## Optional: Delete the logging files
-
-In the case that a lot of simulations are going to be run, and the processed outputs
-are all that is required, then there is a convenience method to clean up these files
-automatically once you are done.
-
-```{code-cell} ipython3
-sim.env.cleanup_log_files()
 ```

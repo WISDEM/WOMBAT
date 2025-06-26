@@ -9,15 +9,15 @@ from functools import reduce
 import numpy as np
 import pandas as pd
 
-from wombat.core import RepairManager, WombatEnvironment
-from wombat.utilities import IEC_power_curve
+from wombat.core import SystemType, RepairManager, WombatEnvironment
+from wombat.utilities import IEC_power_curve, calculate_hydrogen_production
 from wombat.windfarm.system import Subassembly
 from wombat.utilities.utilities import create_variable_from_string
 
 
 class System:
-    """Can either be a turbine or substation, but is meant to be something that consists
-    of 'Subassembly' pieces.
+    """Can either be a turbine, substation, or electrolyzer, but is meant to be
+    something that consists of 'Subassembly' pieces.
 
     See `here <https://www.sciencedirect.com/science/article/pii/S1364032117308985>`_
     for more information.
@@ -47,8 +47,8 @@ class System:
         subassemblies : dict
             The dictionary of subassemblies required for the system/asset.
         system : str
-            The identifier should be one of "turbine" or "substation" to indicate the
-            type of system this will be.
+            The identifier should be one of "turbine", "substation", or "electrolyzer"
+            to indicate the type of system this will be.
 
         Raises
         ------
@@ -59,37 +59,61 @@ class System:
         self.repair_manager = repair_manager
         self.id = t_id
         self.name = name
-        self.capacity = subassemblies["capacity_kw"]
+        self.system_type = SystemType(system)
         self.subassemblies: list[Subassembly] = []
         self.servicing = self.env.event()
         self.servicing_queue = self.env.event()
         self.cable_failure = self.env.event()
+
+        if self.system_type is SystemType.ELECTROLYZER:
+            self.n_stacks = subassemblies["n_stacks"]
+            self.capacity = self.n_stacks * subassemblies["stack_capacity_kw"]
+        else:
+            self.capacity = subassemblies["capacity_kw"]
+
+        power_curve = subassemblies.get("power_curve")
+        if self.system_type is SystemType.TURBINE:
+            self._initialize_power_curve(power_curve)
+
+        if self.system_type is SystemType.ELECTROLYZER:
+            self._initialize_production_curve(power_curve)
+
+        self.value = self._calculate_system_value(subassemblies.get("capex_kw"))
 
         # Ensure servicing statuses starts as processed and inactive
         self.servicing.succeed()
         self.servicing_queue.succeed()
         self.cable_failure.succeed()
 
-        system = system.lower().strip()
-        self._calculate_system_value(subassemblies)
-        if system not in ("turbine", "substation"):
-            raise ValueError("'system' must be one of 'turbine' or 'substation'!")
+        self._create_subassemblies(subassemblies)
 
-        self._create_subassemblies(subassemblies, system)
-
-    def _calculate_system_value(self, subassemblies: dict) -> None:
-        """Calculates the turbine's value based its capex_kw and capacity.
+    def _calculate_system_value(self, capex_kw: int | float | None) -> int | float:
+        """Calculates the system's value based its :py:attr:`capex_kw` and either
+        :py:attr:`capacity`. For turbines this is the ``capacity_kw`, and for
+        electrolyzers, this is the ``rated_production`` based on the
+        `stack_capacit_kw``, ``n_stacks``, and production curve.
 
         Parameters
         ----------
-        system : str
-            One of "turbine" or "substation".
-        subassemblies : dict
-            Dictionary of subassemblies.
-        """
-        self.value = subassemblies["capacity_kw"] * subassemblies["capex_kw"]
+        capex_kw : int | float
+            The CapEx per kw of the system.
 
-    def _create_subassemblies(self, subassembly_data: dict, system: str) -> None:
+        Returns
+        -------
+        int | float
+            The total system CapEx.
+
+        Raises
+        ------
+        TypeError
+            Raised if :py:attr:`capex_kw` is None.
+        """
+        if capex_kw is None or not isinstance(capex_kw, (float, int)):
+            msg = f"Invalid `capex_kw` provided for {self.system_type}: {self.name}"
+            raise TypeError(msg)
+        return self.capacity * capex_kw
+
+    def _create_subassemblies(self, subassembly_data: dict) -> None:
         """Creates each subassembly as a separate attribute and also a list for quick
         access.
 
@@ -98,16 +122,38 @@ class System:
         subassembly_data : dict
             Dictionary providing the maintenance and failure definitions for at least
             one subassembly named
-        system : str
-            One of "turbine" or "substation" to indicate if the power curves should also
-            be created, or not.
         """
         # Set the subassembly data variables from the remainder of the keys in the
         # system configuration file/dictionary
-        exclude_keys = ["capacity_kw", "capex_kw", "power_curve"]
+        exclude_keys = [
+            "capacity_kw",
+            "capex_kw",
+            "power_curve",
+            "n_stacks",
+            "stack_capacity_kw",
+        ]
+        invalid = (
+            "env",
+            "repair_manager",
+            "id",
+            "name",
+            "capacity",
+            "n_stacks",
+            "subassemblies",
+            "servicing",
+            "servicing_queue",
+            "cable_failure",
+            "value",
+            "system_type",
+            "power",
+            "power_curve",
+            "rated_production",
+        )
         for key, data in subassembly_data.items():
             if key in exclude_keys:
                 continue
+            if key.strip().lower() in invalid:
+                raise ValueError(f"Input subassembly `id` cannot be used: {key}.")
             name = create_variable_from_string(key)
             subassembly = Subassembly(self, self.env, name, data)
             setattr(self, name, subassembly)
@@ -130,14 +176,10 @@ class System:
             additional="initialization",
         )
 
-        # If the system is a turbine, create the power curve, if available
-        if system == "turbine":
-            self._initialize_power_curve(subassembly_data.get("power_curve", None))
-
     def _initialize_power_curve(self, power_curve_dict: dict | None) -> None:
-        """Creates the power curve function based on the ``power_curve`` input in the
-        ``subassembly_data`` dictionary. If there is no valid input, then 0 will always
-        be reutrned.
+        """Creates the power curve function based on the :py:attr:power_curve_dict`
+        input in the ``subassembly_data`` dictionary. If there is no valid input, then 0
+        will always be reutrned.
 
         Parameters
         ----------
@@ -161,6 +203,37 @@ class System:
                 windspeed_end=power_curve.windspeed_ms.max(),
                 bin_width=bin_width,
             )
+
+    def _initialize_production_curve(self, power_curve_dict: dict | None) -> None:
+        """Creates the H2 production curve function based on the
+        :py:attr:power_curve_dict` input to the  ``subassembly_data`` dictionary. If no
+        input, then a 0 will always be returned.
+        """
+        if power_curve_dict is None:
+            power_curve_dict = {}
+        p1 = power_curve_dict.get("p1")
+        p2 = power_curve_dict.get("p2")
+        p3 = power_curve_dict.get("p3")
+        p4 = power_curve_dict.get("p4")
+        p5 = power_curve_dict.get("p5")
+        efficiency_rate = power_curve_dict.get("efficiency_rate")
+        fe = power_curve_dict.get("FE", 0.9999999)
+        n_cells = power_curve_dict.get("n_cells", 135)
+        turndown_ratio = power_curve_dict.get("turndown_ratio", 0.1)
+        rated_capacity = self.capacity
+        self.power_curve = calculate_hydrogen_production(
+            p1=p1,
+            p2=p2,
+            p3=p3,
+            p4=p4,
+            p5=p5,
+            efficiency_rate=efficiency_rate,
+            rated_capacity=rated_capacity,
+            FE=fe,
+            n_cells=n_cells,
+            turndown_ratio=turndown_ratio,
+        )
+        self.rated_production, *_ = self.power_curve(np.array([rated_capacity]))
 
     def interrupt_all_subassembly_processes(
         self, origin: Subassembly | None = None, replacement: str | None = None

@@ -32,8 +32,7 @@ def parse_date(value: str | None | datetime.datetime) -> datetime.datetime | Non
     if isinstance(value, datetime.datetime):
         return value
 
-    # Ensure there is a common comparison year for all datetime values
-    return parse(value).replace(year=2022)
+    return parse(value)
 
 
 def convert_dt_to_hours(diff: datetime.timedelta) -> float:
@@ -119,7 +118,7 @@ def check_working_hours(
 
 
 def calculate_cost(
-    duration: int | float, rate: float, n_rate: int = 1, daily_rate: bool = False
+    duration: int | float, rate: float, n_rate: int = 1, *, daily_rate: bool = False
 ) -> float:
     """Calculates the equipment cost, or labor cost for either salaried or hourly
     employees.

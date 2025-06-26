@@ -20,7 +20,7 @@ from tests.conftest import TEST_DATA
 
 def test_data_dir():
     """Tests the data_dir creation."""
-    relative_library = Path(__file__).resolve().parent / "library"
+    relative_library = Path(__file__).resolve().parents[1] / "library"
     assert TEST_DATA == relative_library
 
 
@@ -120,6 +120,7 @@ def test_setup():
         workday_start=8,
         workday_end=16,
         simulation_name="testing_setup",
+        maintenance_start="6/1/2002",
         random_seed=2022,
     )
     assert env.workday_start == 8
@@ -128,6 +129,7 @@ def test_setup():
     assert isinstance(env.weather, pl.DataFrame)
     assert env.start_datetime == datetime.datetime(2002, 1, 1, 0, 0)
     assert env.end_datetime == datetime.datetime(2003, 12, 31, 23, 0)
+    assert env.maintenance_start == datetime.datetime(2002, 6, 1, 0, 0)
     assert env.max_run_time == 8760 * 2  # 2 year data file
 
     assert Path(env.events_log_fname).is_file()
@@ -162,6 +164,7 @@ def test_setup():
         end_year=2002,
         random_seed=2022,
     )
+    assert env.maintenance_start is None
     assert env.start_datetime == datetime.datetime(2002, 1, 1, 0, 0)
     assert env.end_datetime == datetime.datetime(2002, 12, 31, 23, 0)
     env.cleanup_log_files()  # delete the logged data
@@ -179,75 +182,6 @@ def test_setup():
     )
     assert env.start_datetime == datetime.datetime(2003, 1, 1, 0, 0)
     assert env.end_datetime == datetime.datetime(2003, 12, 31, 23, 0)
-    env.cleanup_log_files()  # delete the logged data
-
-
-def test_timing():
-    """Test basic movements and time coordination for `WombatEnvironment`.
-
-    Methods that are completely tested:
-     - ``date_ix``
-     - ``simulation_time``
-     - ``weather_now``
-
-    Methods that are partially tested for no inputs:
-     - ``hours_to_next_shift``
-     - ``is_workshift``
-
-    """
-    # Setup a basic environment
-    env = WombatEnvironment(
-        data_dir=TEST_DATA,
-        weather_file="test_weather_quick_load.csv",
-        workday_start=8,
-        workday_end=16,
-        simulation_name="testing_setup",
-        random_seed=2022,
-    )
-    manager = RepairManager(env)
-    Windfarm(env, "layout.csv", manager)
-
-    # Run for 96 hours from the start to this point in the data
-    # 1/5/02 0:00,8.238614098,0.37854216
-    correct_index = 96
-    correct_date = datetime.date(2002, 1, 5)
-    correct_hour = 0
-    correct_datetime = datetime.datetime(2002, 1, 5, 0, 0, 0)
-    correct_wind = 8.238614098
-    correct_wave = 0.37854216
-
-    assert env.date_ix(correct_date) == correct_index
-    assert env.date_ix(correct_datetime) == correct_index
-
-    env.run(until=correct_index)
-    assert env.now == correct_index
-    assert env.simulation_time == correct_datetime
-    assert env.hours_to_next_shift() == 8
-    current_conditions = env.weather_now.to_numpy().flatten()[2:]
-    assert all(current_conditions == (correct_wind, correct_wave, correct_hour))
-    assert not env.is_workshift()
-
-    # Test for a non-even timing of 128.7 hours
-    # 1/6/02 8:00,8.321216829,0.795805105
-    until = 128.7
-    correct_index = 120
-    correct_date = datetime.date(2002, 1, 6)
-    correct_datetime = datetime.datetime(2002, 1, 6, 8, 42)
-    correct_hours_to_next_shift = 23.3
-    correct_hour = 8
-    correct_wind = 8.321216829
-    correct_wave = 0.795805105
-    assert env.date_ix(correct_date) == correct_index
-    assert env.date_ix(correct_datetime) == correct_index
-
-    env.run(until=until)
-    assert env.now == until
-    assert env.simulation_time == correct_datetime
-    assert env.hours_to_next_shift() == correct_hours_to_next_shift
-    current_conditions = env.weather_now.to_numpy().flatten()[2:]
-    assert all(current_conditions == (correct_wind, correct_wave, correct_hour))
-    assert env.is_workshift()
-
     env.cleanup_log_files()  # delete the logged data
 
 

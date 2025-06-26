@@ -16,7 +16,13 @@ from geopy import distance
 from wombat.core import RepairManager, WombatEnvironment
 from wombat.core.library import load_yaml
 from wombat.windfarm.system import Cable, System
-from wombat.core.data_classes import String, SubString, WindFarmMap, SubstationMap
+from wombat.core.data_classes import (
+    String,
+    SubString,
+    SystemType,
+    WindFarmMap,
+    SubstationMap,
+)
 
 
 class Windfarm:
@@ -28,11 +34,12 @@ class Windfarm:
     def __init__(
         self,
         env: WombatEnvironment,
-        windfarm_layout: str,
+        windfarm_layout: str | pd.DataFrame,
         repair_manager: RepairManager,
         substations: dict[str, dict] | None = None,
         turbines: dict[str, dict] | None = None,
         cables: dict[str, dict] | None = None,
+        electrolyzers: dict[str, dict] | None = None,
     ) -> None:
         self.env = env
         self.repair_manager = repair_manager
@@ -41,11 +48,13 @@ class Windfarm:
         self._inputs: dict[str, dict | None] = {
             "turbine": turbines,
             "substation": substations,
+            "electrolyzer": electrolyzers,
             "cable": cables,
         }
-        self.configs: dict[str, dict] = {"turbine": {}, "substation": {}, "cable": {}}
+        self.configs: dict[str, dict] = {el: {} for el in SystemType.types()}
+        self.configs["cable"] = {}
         self._create_graph_layout(windfarm_layout)
-        self._create_turbines_and_substations()
+        self._create_systems()
         self._create_cables()
         self.capacity: int | float = sum(
             self.system(turb).capacity for turb in self.turbine_id
@@ -64,7 +73,7 @@ class Windfarm:
         self.env._register_windfarm(self)
         self.env.process(self._log_operations())
 
-    def _create_graph_layout(self, windfarm_layout: str) -> None:
+    def _create_graph_layout(self, windfarm_layout: str | pd.DataFrame) -> None:
         """Creates a network layout of the windfarm start from the substation(s) to
         be able to capture downstream turbines that can be cut off in the event of a
         cable failure.
@@ -76,12 +85,15 @@ class Windfarm:
         """
         # Read in the layout CSV file, then sort it by string, then order to ensure
         # it can be traversed in sequential order later
-        layout_path = str(self.env.data_dir / "project/plant" / windfarm_layout)
-        layout = (
-            pd.read_csv(layout_path)
-            .sort_values(by=["string", "order"])
-            .reset_index(drop=True)
-        )
+        if isinstance(windfarm_layout, str):
+            layout_path = str(self.env.data_dir / "project/plant" / windfarm_layout)
+            layout = (
+                pd.read_csv(layout_path)
+                .sort_values(by=["string", "order"])
+                .reset_index(drop=True)
+            )
+        else:
+            layout = windfarm_layout.copy()
         layout.subassembly = layout.subassembly.fillna("")
         layout.upstream_cable = layout.upstream_cable.fillna("")
 
@@ -92,28 +104,25 @@ class Windfarm:
         for col in ("name", "latitude", "longitude", "subassembly"):
             nx.set_node_attributes(windfarm, dict(layout[["id", col]].values), name=col)
 
-        # Determine which nodes are substations and which are turbines
-        if "type" in layout.columns:
-            # Extract the type directly from the layout file
-            if layout.loc[~layout.type.isin(("substation", "turbine"))].size > 0:
-                raise ValueError(
-                    "At least one value in the 'type' column are not one of:"
-                    " 'substation' or 'turbine'."
-                )
-            substation_filter = layout.type == "substation"
-            nx.set_node_attributes(
-                windfarm, dict(layout[["id", "type"]].values), name="type"
-            )
-        else:
-            # Deduce substations by their self-connected setting for interconnection
-            substation_filter = layout.id == layout.substation_id
-            _type = {True: "substation", False: "turbine"}
-            d = {i: _type[val] for i, val in zip(layout.id, substation_filter.values)}
-            nx.set_node_attributes(windfarm, d, name="type")
+        if "type" not in layout.columns:
+            raise KeyError("Missing columng 'type' to specify system types")
 
-        self.turbine_id: np.ndarray = layout.loc[~substation_filter, "id"].values
+        if (valid := layout["type"].isin(SystemType.types())).sum() != layout.shape[0]:
+            invalid_names = layout.loc[~valid, "name"].values.tolist()
+            msg = f"Inputs for {invalid_names} must be one of: {SystemType.types()}."
+            raise ValueError(msg)
 
+        substation_filter = layout.type == SystemType.SUBSTATION
+        turbine_filter = layout.type == SystemType.TURBINE
+        electrolyzer_filter = layout.type == SystemType.ELECTROLYZER
+        nx.set_node_attributes(
+            windfarm, dict(layout[["id", "type"]].values), name="type"
+        )
+
+        self.turbine_id: np.ndarray = layout.loc[turbine_filter, "id"].values
         self.substation_id = layout.loc[substation_filter, "id"].values
+        self.electrolyzer_id = layout.loc[electrolyzer_filter, "id"].values
+
         for substation in self.substation_id:
             windfarm.nodes[substation]["connection"] = layout.loc[
                 layout.id == substation, "substation_id"
@@ -121,7 +130,7 @@ class Windfarm:
 
         # Create a mapping for each substation to all connected turbines (subgraphs)
         substations = layout[substation_filter].copy()
-        turbines = layout[~substation_filter].copy()
+        turbines = layout[turbine_filter].copy()
         substation_sections = [
             turbines[turbines.substation_id == substation]
             for substation in substations.id
@@ -143,16 +152,27 @@ class Windfarm:
         for substation in self.substation_id:
             row = layout.loc[layout.id == substation]
             windfarm.add_edge(
-                row.substation_id.values[0],
+                row.substation_id.squeeze(),
                 substation,
-                length=row.distance.values[0],
-                cable=row.upstream_cable.values[0],
+                length=row.distance.squeeze(),
+                cable=row.upstream_cable.squeeze(),
             )
+
+        # Connect the electrolzers
+        if electrolyzer_filter.sum() > 0:
+            electrolyzers = layout.loc[electrolyzer_filter]
+            for _, row in electrolyzers.iterrows():
+                windfarm.add_edge(
+                    row.id,
+                    row.substation_id,
+                    length=row.distance,
+                    cable=row.upstream_cable,
+                )
 
         self.graph: nx.DiGraph = windfarm
         self.layout_df = layout
 
-    def _create_turbines_and_substations(self) -> None:
+    def _create_systems(self) -> None:
         """Instantiates the turbine and substation models as defined in the
         user-provided layout file, and connects these models to the appropriate graph
         nodes to create a fully representative windfarm network model.
@@ -230,7 +250,7 @@ class Windfarm:
                 if name.endswith((".yml", ".yaml")):
                     cable_dict = load_yaml(self.env.data_dir / "cables", name)
                 else:
-                    if self._inputs["cables"] is None:
+                    if self._inputs["cable"] is None:
                         msg = (
                             f"cable configuration: '{name}' is not a file, and"
                             f" no configuration input to 'cables' was provided."
@@ -266,10 +286,10 @@ class Windfarm:
                 ).km
 
             # Encode whether it is an array cable or an export cable
-            if self.graph.nodes[end_node]["type"] == "substation":
-                data["type"] = "export"
-            else:
+            if self.graph.nodes[end_node]["type"] == SystemType.TURBINE:
                 data["type"] = "array"
+            else:
+                data["type"] = "export"
 
             # Create the Cable simulation object
             data["cable"] = Cable(
@@ -348,7 +368,11 @@ class Windfarm:
         graph = self.graph
         wind_map = dict(zip(substations, itertools.repeat({})))
 
-        export = [el for el in graph.edges if el[1] in substations]
+        export = [
+            el
+            for el in graph.edges([*substations, *self.electrolyzer_id])
+            if graph.edges[el]["type"] == "export"
+        ]
         for cable_tuple in export:
             self.cable(cable_tuple).set_string_details(*cable_tuple[::-1])
 
@@ -394,6 +418,7 @@ class Windfarm:
         self.wind_farm_map = WindFarmMap(
             substation_map=wind_map,
             export_cables=export,  # type: ignore
+            electrolyzers=self.electrolyzer_id,
         )
 
     def finish_setup(self) -> None:
@@ -401,7 +426,7 @@ class Windfarm:
         for start_node, end_node in self.graph.edges():
             self.cable((start_node, end_node)).finish_setup()
 
-    def _setup_logger(self, initial: bool = True):
+    def _setup_logger(self, *, initial: bool = True):
         self._log_columns = [
             "datetime",
             "env_datetime",

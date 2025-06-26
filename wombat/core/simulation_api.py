@@ -53,8 +53,9 @@ class Configuration(FromDictMixin):
     ----------
     name: str
         Name of the simulation. Used for logging files.
-    layout : str
-        The windfarm layout file. See ``wombat.Windfarm`` for more details.
+    layout : str | pd.DataFrame
+        The windfarm layout file or Pandas DataFrame. See ``wombat.Windfarm`` for more
+        details.
     service_equipment : str | list[str | list[str, int]]
         The equpiment that will be used in the simulation. For multiple instances of a
         single vessel use a list of the file name/id and the number of vessels. See
@@ -87,6 +88,11 @@ class Configuration(FromDictMixin):
     end_year : int
         Final year of the simulation. The exact date will be determined by
         the last valid date of this year in ``weather``.
+    maintenance_start : str | datetime.datetime | None
+        Universalized starting date to set the cadence of all maintenance activity that
+        has not been individually set. For instance, this enables maintenance activity
+        to be automatically set to start in clear weather months, rather than timed
+        with the start of a simulation.
     non_operational_start : str | datetime.datetime | None
         The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
         period of prohibited operations. When defined at the environment level, an
@@ -125,12 +131,16 @@ class Configuration(FromDictMixin):
         file defintions, by default None.
     substations : dict[str, dict] | None
         A dictionary of substation configurations with the keys aligning with the layout
-        file's :py:attr:`upstream_cable` field, which would replace the need for YAML
+        file's :py:attr:`subassembly` field, which would replace the need for YAML
         file defintions, by default None.
     turbines : dict[str, dict] | None
         A dictionary of turbine configurations with the keys aligning with the layout
-        file's :py:attr:`upstream_cable` field, which would replace the need for YAML
+        file's :py:attr:`subassembly` field, which would replace the need for YAML
         file defintions, by default None.
+    electrolyzers : dict[str, dict] | None
+        A dictionary of electrolyzer configurations with the keys aligning with the
+        layout file's :py:attr:`subassembly` field, which would replace the need for
+        YAML file defintions, by default None.
     vessels : dict[str, dict] | None
         A dictionary of servicing equipment configurations with the keys aligning with
         entries of :py:attr:`service_equipment` field, which would replace the need for
@@ -138,7 +148,7 @@ class Configuration(FromDictMixin):
     """
 
     name: str
-    layout: str
+    layout: str | pd.DataFrame
     service_equipment: str | list[str] = field(converter=convert_to_list)
     weather: str | pd.DataFrame
     workday_start: int = field(converter=int)
@@ -150,6 +160,7 @@ class Configuration(FromDictMixin):
     start_year: int = field(default=None)
     end_year: int = field(default=None)
     port_distance: int | float = field(default=None)
+    maintenance_start: str | datetime.datetime | None = field(default=None)
     non_operational_start: str | datetime.datetime | None = field(default=None)
     non_operational_end: str | datetime.datetime | None = field(default=None)
     reduced_speed_start: str | datetime.datetime | None = field(default=None)
@@ -164,6 +175,9 @@ class Configuration(FromDictMixin):
         default=None, validator=validators.instance_of((dict, type(None)))
     )
     turbines: dict[str, dict] | None = field(
+        default=None, validator=validators.instance_of((dict, type(None)))
+    )
+    electrolyzers: dict[str, dict] | None = field(
         default=None, validator=validators.instance_of((dict, type(None)))
     )
     vessels: dict[str, dict] | None = field(
@@ -372,6 +386,7 @@ class Simulation(FromDictMixin):
             start_year=self.config.start_year,
             end_year=self.config.end_year,
             port_distance=self.config.port_distance,
+            maintenance_start=self.config.maintenance_start,
             non_operational_start=self.config.non_operational_start,
             non_operational_end=self.config.non_operational_end,
             reduced_speed_start=self.config.reduced_speed_start,
@@ -387,6 +402,7 @@ class Simulation(FromDictMixin):
             repair_manager=self.repair_manager,
             substations=self.config.substations,
             turbines=self.config.turbines,
+            electrolyzers=self.config.electrolyzers,
             cables=self.config.cables,
         )
         self.service_equipment: dict[str, ServiceEquipment] = {}  # type: ignore
@@ -416,8 +432,10 @@ class Simulation(FromDictMixin):
     def run(
         self,
         until: int | float | Event | None = None,
+        *,
         create_metrics: bool = True,
         save_metrics_inputs: bool = True,
+        delete_logs: bool = False,
     ):
         """Calls ``WombatEnvironment.run()`` and gathers the results for
         post-processing. See ``wombat.simulation.WombatEnvironment.run`` or
@@ -435,26 +453,53 @@ class Simulation(FromDictMixin):
             If True, the metrics inputs data will be saved to a yaml file, with file
             references to any larger data structures that can be reloaded later. If
             False, the data will not be saved, by default True.
+        delete_logs : bool, optional
+            If True, automatically run ``Simulation.env.cleanup_log_files()`` after
+            creating and saving any necessary files. If False, the log files will not
+            be deleted. This method should not be used when
+            :py:attr:`save_metrics_inputs` is ``True`` because the files referenced
+            will be deleted.
+
+        Raises
+        ------
+        ValueError
+            Raised when :py:attr:`delete_log_files` :py:attr:`save_metrics_inputs` are
+            both set to ``True``.
         """
+        if delete_logs and save_metrics_inputs:
+            msg = (
+                "Cannot save references to deleted files. Use `delete_logs=False`"
+                " (default option) to save the metrics inputs."
+            )
+            raise ValueError(msg)
+
         self.env.run(until=until)
-        if save_metrics_inputs:
-            self.save_metrics_inputs()
+        self.env.convert_logs_to_pqt()
+
         if create_metrics:
             self.initialize_metrics()
+        if delete_logs:
+            self.env.cleanup_log_files()
+        if save_metrics_inputs:
+            self.save_metrics_inputs()
 
     def initialize_metrics(self) -> None:
         """Instantiates the ``metrics`` attribute after the simulation is run."""
         events = self.env.load_events_log_dataframe()
         operations = self.env.load_operations_log_dataframe()
-        power_potential, power_production = self.env.power_production_potential_to_csv(
+        power_potential, power_production = self.env.power_production_potential_to_pqt(
             windfarm=self.windfarm, operations=operations, return_df=True
         )
         substation_turbine_map = {
             s_id: {k: v.tolist() for k, v in dict.items()}
             for s_id, dict in self.windfarm.substation_turbine_map.items()
         }
-        capacities = [
+        turbine_capacities = [
             self.windfarm.system(t).capacity for t in self.windfarm.turbine_id
+        ]
+        electrolyzer_rated_production = [
+            self.windfarm.system(t).rated_production
+            for t in self.windfarm.electrolyzer_id
         ]
         self.metrics = Metrics(
             data_dir=self.library_path,
@@ -464,10 +509,12 @@ class Simulation(FromDictMixin):
             production=power_production,
             inflation_rate=self.config.inflation_rate,
             project_capacity=self.config.project_capacity,
-            turbine_capacities=capacities,
+            turbine_capacities=turbine_capacities,
+            electrolyzer_rated_production=electrolyzer_rated_production,
             fixed_costs=self.config.fixed_costs,  # type: ignore
             substation_id=self.windfarm.substation_id.tolist(),
             turbine_id=self.windfarm.turbine_id.tolist(),
+            electrolyzer_id=self.windfarm.electrolyzer_id.tolist(),
             substation_turbine_map=substation_turbine_map,
             service_equipment_names=[*self.service_equipment],  # type: ignore
         )
@@ -491,9 +538,14 @@ class Simulation(FromDictMixin):
             "turbine_capacities": [
                 self.windfarm.system(t_id).capacity for t_id in self.windfarm.turbine_id
             ],
+            "electrolyzer_rated_production": [
+                self.windfarm.system(e_id).rated_production
+                for e_id in self.windfarm.electrolyzer_id
+            ],
             "fixed_costs": self.config.fixed_costs,
             "substation_id": self.windfarm.substation_id.tolist(),
             "turbine_id": self.windfarm.turbine_id.tolist(),
+            "electrolyzer_id": self.windfarm.electrolyzer_id.tolist(),
             "substation_turbine_map": substation_turbine_map,
             "service_equipment_names": [*self.service_equipment],
         }

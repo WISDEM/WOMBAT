@@ -11,6 +11,8 @@ import simpy
 
 from wombat.core import (
     Failure,
+    CableType,
+    SystemType,
     Maintenance,
     RepairRequest,
     SubassemblyData,
@@ -68,28 +70,29 @@ class Cable:
         cable_data : dict
             The dictionary defining the cable segment.
         name : str | None
-            The name of the cable to use during logging.
+            A unique name used in the ``system_name`` during logging.
         """
         self.env = env
         self.windfarm = windfarm
-        self.connection_type = connection_type
+        self.connection_type = CableType(connection_type)
         self.start_node = start_node
         self.end_node = end_node
         self.id = f"cable::{start_node}::{end_node}"
         self.system = windfarm.system(start_node)
 
-        if self.connection_type not in ("array", "export"):
-            raise ValueError(
-                f"Input to `connection_type` for {self.id} must be one of 'array'"
-                " or 'export'."
-            )
-
         cable_data = {
             **cable_data,
             "system_value": self.system.value,
             "rng": self.env.random_generator,
+            "maintenance_start": self.env.maintenance_start,
         }
-        self.data = SubassemblyData.from_dict(cable_data)
+        try:
+            self.data = SubassemblyData.from_dict(cable_data)
+        except Exception as e:
+            msg = f"Could not create {self.connection_type} cable: {self.id}"
+            raise ValueError(msg) from e
+
+        self.system_name = self.data.name
         self.name = self.data.name if name is None else name
 
         self.operating_level = 1.0
@@ -140,9 +143,16 @@ class Cable:
             turbines.extend(_turbines)
 
         if self.connection_type == "export":
-            turbines, cables = wf_map.get_upstream_connections_from_substation(
-                self.substation
-            )
+            if (
+                self.windfarm.system(self.start_node).system_type
+                is SystemType.SUBSTATION
+            ):
+                turbines, cables = wf_map.get_upstream_connections_from_substation(
+                    self.substation
+                )
+            else:
+                turbines = []
+                cables = []
 
         self.upstream_nodes = turbines
         self.upstream_cables = cables
@@ -307,7 +317,7 @@ class Cable:
             system_id=self.id,
             system_name=self.name,
             subassembly_id=self.id,
-            subassembly_name=self.name,
+            subassembly_name=self.system_name,
             severity_level=action.level,
             details=action,
             cable=True,
@@ -320,10 +330,10 @@ class Cable:
             system_id=self.id,
             system_name=self.name,
             part_id=self.id,
-            part_name=self.name,
+            part_name=self.system_name,
             system_ol=self.operating_level,
             part_ol=self.operating_level,
-            agent=self.name,
+            agent=self.system_name,
             action=f"{which} request",
             reason=action.description,
             additional=f"severity level {action.level}",

@@ -15,6 +15,7 @@ from wombat.core import (
     Maintenance,
     StrategyMap,
     RepairRequest,
+    EquipmentClass,
     WombatEnvironment,
     UnscheduledServiceEquipmentData,
 )
@@ -190,7 +191,7 @@ class RepairManager(FilterStore):
 
         # Port-based servicing equipment should be handled by the port and does not
         # have an operating reduction threshold to meet at this time
-        if "TOW" in request.details.service_equipment:
+        if EquipmentClass.TOW in request.details.service_equipment:
             if request.system_id not in self.port.invalid_systems:
                 system = self.windfarm.system(request.system_id)
                 yield system.servicing_queue & system.servicing
@@ -253,7 +254,7 @@ class RepairManager(FilterStore):
 
         # Port-based servicing equipment should be handled by the port and does not have
         # a requests-based threshold to meet at this time
-        if "TOW" in request.details.service_equipment:
+        if EquipmentClass.TOW in request.details.service_equipment:
             if request.system_id not in self.port.invalid_systems:
                 self.systems_waiting_for_tow.append(request.system_id)
                 system = self.windfarm.system(request.system_id)
@@ -382,7 +383,7 @@ class RepairManager(FilterStore):
             self.env.process(self._run_equipment_requests(request))
 
     def get_request_by_system(
-        self, equipment_capability: list[str], system_id: str | None = None
+        self, equipment_capability: list[EquipmentClass], system_id: str | None = None
     ) -> FilterStoreGet | None:
         """Gets all repair requests for a certain turbine with given a sequence of
         ``equipment_capability`` as long as it isn't registered as unable to be
@@ -390,7 +391,7 @@ class RepairManager(FilterStore):
 
         Parameters
         ----------
-        equipment_capability : list[str]
+        equipment_capability : list[EquipmentClass]
             The capability of the servicing equipment requesting repairs to process.
         system_id : Optional[str], optional
             ID of the turbine or OSS; should correspond to ``System.id``, by default
@@ -441,7 +442,7 @@ class RepairManager(FilterStore):
 
     def get_request_by_severity(
         self,
-        equipment_capability: list[str] | set[str],
+        equipment_capability: list[EquipmentClass] | set[EquipmentClass],
         severity_level: int | None = None,
     ) -> FilterStoreGet | None:
         """Gets the next repair request by ``severity_level``.
@@ -501,7 +502,7 @@ class RepairManager(FilterStore):
         return None
 
     def invalidate_system(
-        self, system: System | Cable | str, tow: bool = False
+        self, system: System | Cable | str, *, tow: bool = False
     ) -> None:
         """Disables the ability for servicing equipment to service a specific system,
         sets the turbine status to be in servicing, and interrupts all the processes
@@ -577,7 +578,7 @@ class RepairManager(FilterStore):
         yield self.in_process_requests.get(lambda x: x is repair)
 
     def enable_requests_for_system(
-        self, system: System | Cable, tow: bool = False
+        self, system: System | Cable, *, tow: bool = False
     ) -> None:
         """Reenables service equipment operations on the provided system.
 
@@ -718,7 +719,9 @@ class RepairManager(FilterStore):
         # unless a separate subassembly required the tow
         if sid in self.systems_waiting_for_tow:
             other_subassembly_match = [
-                r for r in system_requests if "TOW" in r.details.service_equipment
+                r
+                for r in system_requests
+                if EquipmentClass.TOW in r.details.service_equipment
             ]
             if sid not in self.systems_in_tow and other_subassembly_match == []:
                 _ = self.systems_waiting_for_tow.pop(

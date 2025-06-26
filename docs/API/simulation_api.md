@@ -18,7 +18,7 @@
     workday_end, inflation_rate, fixed_costs, project_capacity, start_year, end_year,
     port, port_distance, non_operational_start, non_operational_end, reduced_speed_start,
     reduced_speed_end, reduced_speed, random_seed, random_generator, cables, vessels,
-    turbines, substations
+    turbines, substations, electrolyzers, maintenance_start
 ```
 
 (simulation-api:interface)=
@@ -41,11 +41,12 @@ For example usage of the Metrics class and its associated methods, please see th
 
 ```{eval-rst}
 .. autoclass:: wombat.core.post_processor.Metrics
-   :members: from_simulation_outputs, power_production, time_based_availability,
-    production_based_availability, capacity_factor, task_completion_rate,
-    equipment_costs, service_equipment_utilization, vessel_crew_hours_at_sea,
-    number_of_tows, labor_costs, equipment_labor_cost_breakdowns, emissions,
-    process_times, component_costs, port_fees, project_fixed_costs, opex, npv
+   :members: from_simulation_outputs, power_production, h2_production,
+    time_based_availability, production_based_availability, capacity_factor,
+    task_completion_rate, equipment_costs, service_equipment_utilization,
+    vessel_crew_hours_at_sea, number_of_tows, dispatch_summary,labor_costs,
+    equipment_labor_cost_breakdowns, emissions, process_times, request_summary,
+    component_costs, port_fees, project_fixed_costs, opex, npv
    :member-order: bysource
    :undoc-members:
    :exclude-members: _yield_comparisons, _repr_compare

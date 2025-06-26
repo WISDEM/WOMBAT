@@ -1,17 +1,52 @@
 """Unit tests configuration file."""
 
+import datetime
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from wombat.core import Metrics, WombatEnvironment
+from wombat.core import Metrics, Simulation, WombatEnvironment
 from wombat.utilities import IEC_power_curve
 from wombat.core.library import load_yaml
 
 
-TEST_DATA = Path(__file__).resolve().parent / "library"
+ROOT = Path(__file__).parent
+TEST_DATA = ROOT / "library"
+
+
+def pytest_addoption(parser):  # noqa: D103
+    parser.addoption(
+        "--unit", action="store_true", default=False, help="run tests in test/unit/."
+    )
+    parser.addoption(
+        "--regression",
+        action="store_true",
+        default=False,
+        help="run tests in test/regression/.",
+    )
+
+
+def pytest_configure(config):  # noqa: D103
+    # Check for the options
+    unit = config.getoption("--unit")
+    regression = config.getoption("--regression")
+
+    # Provide the appropriate directories
+    unit_tests = [el for el in (ROOT / "unit").iterdir() if el.suffix == ".py"]
+    regression_tests = [
+        el for el in (ROOT / "regression").iterdir() if el.suffix == ".py"
+    ]
+
+    # If both, run them all; if neither skip any modifications; otherwise run just the
+    # appropriate subset
+    if regression and unit:
+        config.args = unit_tests + regression_tests
+    elif regression:
+        config.args = regression_tests
+    elif unit:
+        config.args = unit_tests
 
 
 def pytest_assertrepr_compare(op, left, right):
@@ -52,6 +87,15 @@ def env_setup_full_profile():
     env.cleanup_log_files()
 
 
+@pytest.fixture(scope="module")
+def setup_ttp():
+    """Create a full weather profile environment with proper teardown."""
+    sim = Simulation("COREWIND", "morro_bay_tow_to_port.yaml", random_seed=2022)
+    sim.run(8760 * 5)
+    yield sim
+    sim.env.cleanup_log_files()
+
+
 SUBSTATION = load_yaml(TEST_DATA / "substations", "offshore_substation.yaml")
 VESTAS_V90 = load_yaml(TEST_DATA / "turbines", "vestas_v90.yaml")
 VESTAS_V90_1_SUBASSEMBLY = load_yaml(
@@ -66,6 +110,12 @@ VESTAS_V90_TEST_TIMEOUTS = load_yaml(
 ARRAY_33KV_240MM = load_yaml(TEST_DATA / "cables", "array_33kv_240mm.yaml")
 ARRAY_33KV_630MM = load_yaml(TEST_DATA / "cables", "array_33kv_630mm.yaml")
 EXPORT = load_yaml(TEST_DATA / "cables", "export.yaml")
+ELECTROLYZER_POLY = load_yaml(TEST_DATA / "project/config", "poly_electrolyzer.yml")[
+    "electrolyzers"
+]["test_electrolyzer_poly"]
+ELECTROLYZER_LINEAR = load_yaml(
+    TEST_DATA / "project/config", "linear_electrolyzer.yml"
+)["electrolyzers"]["test_electrolyzer_linear"]
 
 
 power_curve = TEST_DATA / "turbines" / "vestas_v90_power_curve.csv"
@@ -86,6 +136,7 @@ RNG = np.random.default_rng(seed=34)
 GENERATOR_SUBASSEMBLY = {
     "name": "generator",
     "system_value": 39000000,
+    "maintenance_start": datetime.datetime(2000, 6, 1),
     "maintenance": [
         {
             "description": "annual service",
@@ -250,39 +301,3 @@ SCHEDULED_VESSEL = {
         "n_hourly_rate": 0,
     },
 }
-
-# NOTE: This seems kind of useful, so I'm leaving it as a reference in case of later use
-# def pytest_addoption(parser):
-#     """Adds the ``run-category`` flag as a workaround to not being able to run some of
-#     the individual test modules due to issues with consistent random seeding.
-#     """
-#     parser.addoption(
-#         "--run-category",
-#         type=str,
-#         nargs="*",
-#         action="store",
-#         default="all",
-#         choices=["all", "subassembly", "cable", "service_equipment"],
-#         metavar="which",
-#         help=(
-#             "only run a specific subset of tests, takes one of 'subassembly',"
-#             " 'cable', 'service_equipment', and 'simulation'."
-#         ),
-#     )
-
-
-# def pytest_configure(config):
-#     """Registers the ``cat`` marker."""
-#     config.addinivalue_line(
-#         "markers", "cat(which): mark test to run only on named environment"
-#     )
-
-
-# def pytest_runtest_setup(item):
-#     """Determines which tests will get run depending on if they overlap with the
-#     user-passed category.
-#     """
-#     test_level = next(item.iter_markers(name="cat")).args
-#     req_level = item.config.getoption("--run-category")
-#     if all(tl not in req_level for tl in test_level):
-#         pytest.skip(f"Only tests in the category: {req_level}, were requested")

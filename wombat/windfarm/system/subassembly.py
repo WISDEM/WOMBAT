@@ -16,7 +16,7 @@ from wombat.core import (
 
 
 class Subassembly:
-    """A major system composes the turbine or substation objects."""
+    """A major system composes the turbine, substation, and electrolyzer objects."""
 
     def __init__(
         self,
@@ -48,8 +48,13 @@ class Subassembly:
             **subassembly_data,
             "system_value": self.system.value,
             "rng": self.env.random_generator,
+            "maintenance_start": self.env.maintenance_start,
         }
-        self.data = SubassemblyData.from_dict(subassembly_data)
+        try:
+            self.data = SubassemblyData.from_dict(subassembly_data)
+        except Exception as e:
+            msg = f"Could not create {s_id} for {system.system_type}: {system.id}"
+            raise ValueError(msg) from e
         self.name = self.data.name
 
         self.operating_level = 1.0
@@ -118,16 +123,17 @@ class Subassembly:
         cause = "failure"
         if self.id == replacement:
             cause = "replacement"
-        if origin is not None and id(origin) == id(self):
-            for _, process in self.processes.items():
-                try:
-                    process.interrupt(cause=cause)
-                except RuntimeError:  # Process initiating process can't be interrupted
-                    pass
-            return
+        # if origin is not None and id(origin) == id(self):
 
+        # Processes that initiate the process can't be interrupted, nor can replaced
+        # (already cancelled) processes
+        # TODO: better management of the process status is required
         for _, process in self.processes.items():
-            process.interrupt(cause=cause)
+            try:
+                process.interrupt(cause=cause)
+            except RuntimeError:
+                pass
+        return None
 
     def interrupt_all_subassembly_processes(self) -> None:
         """Thin wrapper for ``system.interrupt_all_subassembly_processes``."""

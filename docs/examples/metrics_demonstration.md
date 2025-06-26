@@ -70,6 +70,7 @@ is, and how it should be computed.
 - [Vessel-Crew Hours at Sea](metrics-demo:vessel-crew-hours): Number of crew or vessel hours
   spent at sea
 - [Number of Tows](metrics-demo:n-tows): Number of tows breakdowns
+- [Dispatch Summary](metrics-demo:dispatch-summary): Mobilization and charter period breakdown
 - [Labor Costs](metrics-demo:labor-costs): Breakdown of labor costs
 - [Equipment and Labor Costs](metrics-demo:equipment-labor-costs): Combined servicing equipment
   and labor cost breakdown
@@ -78,7 +79,9 @@ is, and how it should be computed.
 - [Fixed Cost Impacts](metrics-demo:fixed-costs): Total fixed costs
 - [OpEx](metrics-demo:opex): Project OpEx
 - [Process Times](metrics-demo:process-times): Timing of various stages of repair and maintenance
-- [Power Production](metrics-demo:power-production): Potential and actually produced power
+- [Request Summary](metrics-demo:request-summary): Total number of submitted, canceled, and completed repair and maintenance tasks
+- [Power Production](metrics-demo:power-production): Energy production, in GWh, MWh, or kWh
+- [H2 Production](metrics-demo:h2-production): Produced Hydrogen, in kg/hr or t/hr
 - [Net Present Value](metrics-demo:npv): Project NPV calculator
 
 (metrics-demo:setup)=
@@ -141,11 +144,16 @@ redundancy. The varying output forms are demonstrated in the
 
   windfarm
   : Aggregated across all turbines, with the resulting `DataFrame` having only
-    "windfarm" as a column
+    "windfarm" as a column.
 
   turbine
   : Computed for each turbine, with the resulting `DataFrame` having a column for each
-    turbine
+    turbine.
+
+  electrolyzer
+  : Computed for each electrolyzer, with the resulting `DataFrame` having a column for
+    each electrolyzer. This option is only available for the availability and capacity
+    factor metrics.
 
 (metrics-demo:availability)=
 ## Availability
@@ -164,8 +172,8 @@ Here, we will go through the various input definitions to get time-based availab
 
 - `frequency`, as explained [above](metrics-demo:common-parameters) options: "project",
   "annual", "monthly", and "month-year"
-- `by`, as explained [above](metrics-demo:common-parameters) options: "windfarm" and
-  "turbine"
+- `by`, as explained [above](metrics-demo:common-parameters) options: "windfarm",
+  "turbine", or "electrolyzer"
 
 Below is a demonstration of the variations on `frequency` and `by` for
 `time_based_availability`.
@@ -233,15 +241,15 @@ divided by the project's capacity. For further documentation, see the API docs h
   - "gross": gross capacity factor, potential production divided by the plant capacity
 - `frequency`, as explained [above](metrics-demo:common-parameters), options: "project",
   "annual", "monthly", and "month-year"
-- `by`, as explained [above](metrics-demo:common-parameters), options: "windfarm" and
-  "turbine"
+- `by`, as explained [above](metrics-demo:common-parameters), options: "windfarm",
+  "turbine", and "electrolyzer"
 
 **Example Usage**:
 
 ```{code-cell} ipython3
 :tags: ["output_scroll"]
-net_cf = metrics.capacity_factor(which="net", frequency="project", by="windfarm").values[0][0]
-gross_cf = metrics.capacity_factor(which="gross", frequency="project", by="windfarm").values[0][0]
+net_cf = metrics.capacity_factor(which="net", frequency="project", by="windfarm").squeeze()
+gross_cf = metrics.capacity_factor(which="gross", frequency="project", by="windfarm").squeeze()
 print(f"  Net capacity factor: {net_cf:.2%}")
 print(f"Gross capacity factor: {gross_cf:.2%}")
 ```
@@ -387,6 +395,26 @@ documentation, see the API docs here:
 style(metrics.number_of_tows(frequency="project"))
 ```
 
+(metrics-demo:dispatch-summary)=
+## Dispatch Summary
+
+The number of mobilizations and the average length of their charter during the
+simulation for each piece of servicing equipment. For further documentation, see the API
+docs here: {py:meth}`wombat.core.post_processor.Metrics.dispatch_summary`.
+
+**Inputs**:
+
+- `frequency`, as explained [above](metrics-demo:common-parameters), options: "project",
+  "annual", "monthly", and "month-year"
+
+**Example Usage**:
+
+```{code-cell} ipython3
+:tags: ["output_scroll"]
+# Project Total
+style(metrics.dispatch_summary(frequency="project"))
+```
+
 (metrics-demo:labor-costs)=
 ## Labor Costs
 
@@ -507,7 +535,13 @@ emissions_factors = {
         "idle at site": 0.2,
         "idle at port": 0.2,
     },
-    "Anchor Handling Vessel": {
+    "Cable Laying Vessel": {
+        "transit": 4,
+        "maneuvering": 7,
+        "idle at site": 0.2,
+        "idle at port": 0.2,
+    },
+    "Anchor Handling Tug": {
         "transit": 4,
         "maneuvering": 3,
         "idle at site": 1,
@@ -535,12 +569,18 @@ tied to a repair. For further documentation, see the API docs here:
 - `frequency`, as explained [above](metrics-demo:common-parameters), options: "project",
   "annual", "monthly", and "month-year"
 - `by_category`
-  - `True`: Computed across each cost category
-  - `False`: Aggregated to the sum of all categories
+  - `True`: Computed across each subassembly
+  - `False`: (default) Aggregated to the sum of all subassemblies
 - `by_action`
   - `True`: Computed by each of "repair", "maintenance", and "delay", and is included in
     the MultiIndex
-  - `False`: Aggregated as the sum of all actions
+  - `False`: (default) Aggregated as the sum of all actions
+- `by_task`
+  - `True`: Computed by each repair and maintenance task for each subassembly
+  - `False`: (default) Aggregated as the sum of all tasks
+- `include_travel`
+  - `True`: Include intrasite and port-to-site travel costs in the repair summary.
+  - `False`: (default) Exclude travel from the cost summary
 
 `action` definitions:
 
@@ -548,6 +588,8 @@ tied to a repair. For further documentation, see the API docs here:
 - repair: unscheduled maintenance, ranging from inspections to replacements
 - delay: Any delays caused by unsafe weather conditions or not being able to finish a
   process within a single shift
+- travel: Any travel to and from the site between shifts or traveling to the system for
+  initial repair, including crew transfer time.
 
 **Example Usage**:
 
@@ -639,15 +681,40 @@ style(metrics.opex("annual", by_category=True))
 ## Process Times
 
 Computes the total number of hours spent from repair request submission to completion,
-performing repairs, and the number of request for each repair category. For further
-documentation, see the API docs here:
+performing repairs, and the number of request for each subassembly and repair category.
+For further documentation, see the API docs here:
 {py:meth}`wombat.core.post_processor.Metrics.process_times`.
+
+**Inputs**:
+
+- `include_incompletes`
+  - `True`: include requests that have been submitted, but not completed.
+  - `False`: only include requests that have been completed.
 
 **Example Usage**:
 
 ```{code-cell} ipython3
 :tags: ["output_scroll"]
 style(metrics.process_times())
+```
+
+```{code-cell} ipython3
+:tags: ["output_scroll"]
+style(metrics.process_times(include_incompletes=False))
+```
+
+(metrics-demo:request-sumamry)=
+## Request Summary
+
+Computes the total number of submitted, canceled, incomplete, and completed repair and
+maintenance request by subassembly and task description. For further documentation, see
+the API docs here: {py:meth}`wombat.core.post_processor.Metrics.request_summary`.
+
+**Example Usage**:
+
+```{code-cell} ipython3
+:tags: ["output_scroll"]
+style(metrics.request_summary())
 ```
 
 (metrics-demo:power-production)=
@@ -686,10 +753,37 @@ style(metrics.power_production(frequency="project", units="mwh"))
 style(metrics.power_production(frequency="project"))
 ```
 
+(metrics-demo:h2-production)=
+## Hydrogen Production
+
+Computes the total hydrogen production for the electrolyzer(s). For further documentation, see
+the API docs here: {py:meth}`wombat.core.post_processor.Metrics.h2_production`.
+
+**Inputs**:
+
+- `frequency`, as explained [above](metrics-demo:common-parameters), options: "project",
+  "annual", "monthly", and "month-year"
+- `by`: Similar to the common definition, but with electrolyzer specific inputs.
+  - "total": total H2 produced for all electrolyzers
+  - "electrolyzer": H2 production for all and each electrolyzer
+- `units`
+  - "kgph": kilograms per hour (kgph)
+  - "tph": metric tonnes hours (tph)
+
+**Example Usage**:
+
+Please note, this will raise an error since this analysis does not feature a modeled electrolyzer.
+
+```{code-cell} ipython3
+:tags: ["output_scroll"]
+# Project totals, in kWh, at the wind farm level
+style(metrics.h2_production(frequency="project", by="total", units="kgph"))
+```
+
 (metrics-demo:npv)=
 ## Net Present Value
 
-Calcualtes the net present value (NPV) for the project, as
+Calculates the net present value (NPV) for the project, as
 $NPV = (Power * OfftakePrice - OpEx) / (1 + DiscountRate)$.
 
 For further documentation, see the API docs here: {py:meth}`wombat.core.post_processor.Metrics.npv`.

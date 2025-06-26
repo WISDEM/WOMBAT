@@ -98,6 +98,11 @@ class WombatEnvironment(simpy.Environment):
         should be used as a base setting when multiple or all servicing equipment
         will be operating out of the same base location, but can be individually
         modified.
+    maintenance_start : str | datetime.datetime | None
+        Universalized starting date to set the cadence of all maintenance activity that
+        has not been individually set. For instance, this enables maintenance activity
+        to be automatically set to start in clear weather months, rather than timed
+        with the start of a simulation.
     non_operational_start : str | datetime.datetime | None
         The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
         period of prohibited operations. When defined at the environment level,
@@ -147,6 +152,7 @@ class WombatEnvironment(simpy.Environment):
         start_year: int | None = None,
         end_year: int | None = None,
         port_distance: int | float | None = None,
+        maintenance_start: str | dt.datetime | None = None,
         non_operational_start: str | dt.datetime | None = None,
         non_operational_end: str | dt.datetime | None = None,
         reduced_speed_start: str | dt.datetime | None = None,
@@ -181,6 +187,7 @@ class WombatEnvironment(simpy.Environment):
         self.shift_length = self.workday_end - self.workday_start
 
         # Set the environmental consideration parameters
+        self.maintenance_start = parse_date(maintenance_start)
         self.non_operational_start = parse_date(non_operational_start)
         self.non_operational_end = parse_date(non_operational_end)
         self.reduced_speed_start = parse_date(reduced_speed_start)
@@ -268,8 +275,8 @@ class WombatEnvironment(simpy.Environment):
 
         events_log_fname = f"{dt_stamp}_{simulation}_events.csv"
         operations_log_fname = f"{dt_stamp}_{simulation}_operations.csv"
-        power_potential_fname = f"{dt_stamp}_{simulation}_power_potential.csv"
-        power_production_fname = f"{dt_stamp}_{simulation}_power_production.csv"
+        power_potential_fname = f"{dt_stamp}_{simulation}_power_potential.pqt"
+        power_production_fname = f"{dt_stamp}_{simulation}_power_production.pqt"
         metrics_input_fname = f"{dt_stamp}_{simulation}_metrics_inputs.yaml"
 
         log_path = self.data_dir / "results"
@@ -753,6 +760,9 @@ class WombatEnvironment(simpy.Environment):
         pd.DataFrame
             The formatted logging data from a simulation.
         """
+        if self.events_log_fname.suffix == ".pqt":
+            return pd.read_parquet(self.events_log_fname)
+
         log_df = (
             pd.read_csv(
                 self.events_log_fname,
@@ -819,6 +829,9 @@ class WombatEnvironment(simpy.Environment):
         pd.DataFrame
             The formatted logging data from a simulation.
         """
+        if self.operations_log_fname.suffix == ".pqt":
+            return pd.read_parquet(self.operations_log_fname)
+
         log_df = (
             pd.read_csv(
                 self.operations_log_fname,
@@ -842,10 +855,41 @@ class WombatEnvironment(simpy.Environment):
         )
         return log_df
 
-    def power_production_potential_to_csv(  # type: ignore
+    def convert_logs_to_pqt(
+        self, events: pd.DataFrame | None = None, operations: pd.DataFrame | None = None
+    ) -> None:
+        """Convert the CSV logging files to parquet for more efficient data storage.
+        This method is intended to be used after the simulation has completed as it will
+        also convert the filname references to use ".pqt" in place of ".csv".
+
+        Parameters
+        ----------
+        events : pd.DataFrame | None, optional
+            The events dataframe to be used, if it is already loaded. If None, then the
+            data will be loaded and converted here, by default None.
+        operations : pd.DataFrame | None, optional
+            The operations dataframe to be used, if it is already loaded. If None, then
+            the data will be loaded and converted here, by default None
+        """
+        if events is None:
+            events = self.load_events_log_dataframe()
+        if operations is None:
+            operations = self.load_operations_log_dataframe()
+
+        self.events_log_fname = self.events_log_fname.with_suffix(".pqt")
+        self.operations_log_fname = self.operations_log_fname.with_suffix(".pqt")
+
+        events.to_parquet(self.events_log_fname)
+        operations.to_parquet(self.operations_log_fname)
+
+        self.events_log_fname.with_suffix(".csv").unlink()
+        self.operations_log_fname.with_suffix(".csv").unlink()
+
+    def power_production_potential_to_pqt(  # type: ignore
         self,
         windfarm: wombat.windfarm.Windfarm,
         operations: pd.DataFrame | None = None,
+        *,
         return_df: bool = True,
     ) -> tuple[pd.DataFrame, pd.DataFrame]:
         """Creates the power production ``DataFrame`` and optionally returns it.
@@ -866,8 +910,6 @@ class WombatEnvironment(simpy.Environment):
         Tuple[pd.DataFrame, pd.DataFrame]
             The power potential and production timeseries data.
         """
-        write_options = pa.csv.WriteOptions(delimiter="|")
-
         if operations is None:
             operations = self.load_operations_log_dataframe().sort_values("env_time")
 
@@ -889,11 +931,6 @@ class WombatEnvironment(simpy.Environment):
             env_time=operations.env_time.values,
             env_datetime=operations.env_datetime.values,
         )
-        pa.csv.write_csv(
-            pa.Table.from_pandas(potential_df, preserve_index=False),
-            self.power_potential_fname,
-            write_options=write_options,
-        )
 
         # TODO: The actual windfarm production needs to be clipped at each subgraph to
         # the max of the substation's operating capacity and then summed.
@@ -902,11 +939,27 @@ class WombatEnvironment(simpy.Environment):
         production_df.windfarm = self._calculate_adjusted_production(
             operations, production_df
         )
-        pa.csv.write_csv(
-            pa.Table.from_pandas(production_df, preserve_index=False),
-            self.power_production_fname,
-            write_options=write_options,
-        )
+
+        if (electrolyzers := windfarm.electrolyzer_id).size > 0:
+            potential_df[electrolyzers] = np.vstack(
+                [
+                    windfarm.system(e_id).power(potential_df.windfarm)
+                    for e_id in electrolyzers
+                ]
+            ).T
+            production_df[electrolyzers] = (
+                np.vstack(
+                    [
+                        windfarm.system(e_id).power(production_df.windfarm)
+                        for e_id in electrolyzers
+                    ]
+                ).T
+                * operations[electrolyzers].values
+            )
+
+        potential_df.to_parquet(self.power_potential_fname)
+        production_df.to_parquet(self.power_production_fname)
+
         if return_df:
             return potential_df, production_df
 
