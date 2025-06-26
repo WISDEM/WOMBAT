@@ -535,7 +535,13 @@ emissions_factors = {
         "idle at site": 0.2,
         "idle at port": 0.2,
     },
-    "Anchor Handling Vessel": {
+    "Cable Laying Vessel": {
+        "transit": 4,
+        "maneuvering": 7,
+        "idle at site": 0.2,
+        "idle at port": 0.2,
+    },
+    "Anchor Handling Tug": {
         "transit": 4,
         "maneuvering": 3,
         "idle at site": 1,
