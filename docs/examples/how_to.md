@@ -101,7 +101,13 @@ As of v0.10, a single YAML configuration is enabled for all YAML-based configura
 files. The following structure (inputs based on the COREWIND in situ example) should
 be adopted for single-input files.
 
+```{note}
+Electrolyzers can also be provided in the same manner as turbines, substations, cables,
+and vessels.
+```
+
 ```yaml
+# WOMBAT/library/corewind/project/config/morro_bay_in_situ_consolidated.yaml
 name: COREWIND Morro Bay In Situ
 weather: central_ca.csv
 service_equipment:
@@ -334,6 +340,9 @@ DRN
 
 CTV
 : crew transfer vessel/onsite truck
+
+OFS
+: offsite equipment, such a CTV equivalent for servicing a separately located electrolyzer
 
 SCN
 : small crane (i.e., field support vessel or cherry picker)
@@ -577,8 +586,8 @@ power_curve: p1, p2, p3, p4, and p5
   the polynomial inputs here, or the `efficiency_rate` should be provided, but not both.
 
 power_curve: efficiency_rate
-  The linear efficiency rate that the electrolyzer can convert energy into hydrogen, in
-  kWh/kg.
+:  The linear efficiency rate that the electrolyzer can convert energy into hydrogen, in
+  kWh/kg. Do not use in conjunction with the above `p1` through `p5` parameters.
 
 power_curve: FE
 : Faradic efficiency, defaults to 0.9999999.
@@ -748,6 +757,11 @@ sim = Simulation.from_config(library_path=library_path, config=config)
 sim.env.cleanup_log_files()
 ```
 
+```{important}
+This option's workflow ends here, do not call `sim.run()` after calling the cleanup
+method. Note that a new simulation is loaded in the next example (Option 2).
+```
+
 ### Option 2: `Simulation()`
 
 Load the configuration file automatically given a library path and configuration file name.
@@ -768,7 +782,7 @@ sim = Simulation(
     library_path="DINWOODIE",  # automatically directs to the provided library
     config="base.yaml"
 )
-sim.env.cleanup_log_files()
+sim.env.cleanup_log_files()  # Ends the current demonstration
 ```
 
 ### Seeding the simulation random variable
@@ -783,8 +797,10 @@ sim = Simulation(
     config="base.yaml",
     random_seed=2023,  # integer value indicating how to seed the internally-created generator
 )
-sim.env.cleanup_log_files()
+sim.env.cleanup_log_files()  # Ends the current demonstration
+```
 
+```{code-cell} ipython3
 rng = np.random.default_rng(seed=2023)  # create the generator
 sim = Simulation(
     library_path="DINWOODIE",  # automatically directs to the provided library
@@ -813,6 +829,22 @@ timing = end - start
 print(f"Run time: {timing / 60:,.2f} minutes")
 ```
 
+### Optional: Delete the logging files
+
+In the case that a lot of simulations are going to be run, and the processed outputs
+are all that is required, then there is a convenience method to clean up these files
+automatically once you are done, if not using the `delete_logs=True` parameterization
+shown above.
+
+```{code-cell} ipython3
+sim.env.cleanup_log_files()
+```
+
+For additional convenience, in `Simulation.run()`, `save_metrics_inputs=True` and
+`delete_logs=False` can be added to skip a secondary cleanup step. This is particularly
+useful when running a series of simulations where the log files will not be needed
+afterward.
+
 ## Metric computation
 
 For a more complete view of what metrics can be compiled, please see the [metrics notebook](metrics_demonstration.md), though for the sake of demonstration a few methods will
@@ -828,27 +860,12 @@ print(f"Gross Capacity Factor: {gross_cf:2.1%}")
 ```{code-cell} ipython3
 # Report back a subset of the metrics
 total = sim.metrics.time_based_availability(frequency="project", by="windfarm")
-print(f"  Project time-based availability: {total.windfarm[0]:.1%}")
+print(f"  Project time-based availability: {total.windfarm.squeeze():.1%}")
 
 total = sim.metrics.production_based_availability(frequency="project", by="windfarm")
-print(f"Project energy-based availability: {total.windfarm[0]:.1%}")
+print(f"Project energy-based availability: {total.windfarm.squeeze():.1%}")
 
 total = sim.metrics.equipment_costs(frequency="project", by_equipment=False)
-print(f"          Project equipment costs: ${total.values[0][0] / sim.metrics.project_capacity:,.2f}/MW")
+print(f"          Project equipment costs: ${total.values.squeeze() / sim.metrics.project_capacity:,.2f}/MW")
 
 ```
-
-## Optional: Delete the logging files
-
-In the case that a lot of simulations are going to be run, and the processed outputs
-are all that is required, then there is a convenience method to clean up these files
-automatically once you are done.
-
-```{code-cell} ipython3
-sim.env.cleanup_log_files()
-```
-
-For additional convenience, in `Simulation.run()`, `save_metrics_inputs=True` and
-`delete_logs=False` can be added to skip a secondary cleanup step. This is particularly
-useful when running a series of simulations where the log files will not be needed
-afterward.
