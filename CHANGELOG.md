@@ -87,6 +87,11 @@
   `DataFrame`, in addition to the existing file name string.
 - Adds `examples/electrolyzer_example.ipynb` to demonstrate how to run a standalone
   electrolyzer simulation without creating any intermediary files.
+- Mooring disconnections and reconnections do not consider the tugboat's shift set shift
+  timing considering this process can take multiple days.
+- All parameters starting from the first boolean parameter now must be passed as a
+  keyword argument with the name included (as `x=False` or `x=True, other="value"`), for
+  all methods, except for those in `Metrics` to maintain user workflow compatibility.
 
 ## v0.10.4 (12 May 2025)
 

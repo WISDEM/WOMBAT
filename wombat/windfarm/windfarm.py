@@ -426,7 +426,7 @@ class Windfarm:
         for start_node, end_node in self.graph.edges():
             self.cable((start_node, end_node)).finish_setup()
 
-    def _setup_logger(self, initial: bool = True):
+    def _setup_logger(self, *, initial: bool = True):
         self._log_columns = [
             "datetime",
             "env_datetime",
