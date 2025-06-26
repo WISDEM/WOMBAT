@@ -96,7 +96,7 @@ def calculate_delay_from_forecast(
     return True, safe_operating_windows[clear_windows[0]][0]
 
 
-def validate_end_points(start: str, end: str, no_intrasite: bool = False) -> None:
+def validate_end_points(start: str, end: str, *, no_intrasite: bool = False) -> None:
     """Checks the starting and ending locations for traveling and towing.
 
     Parameters
@@ -368,7 +368,7 @@ class ServiceEquipment(RepairsMixin):
         all_clear = (wind <= max_wind) & (wave <= max_wave)
         return dt, hour, all_clear
 
-    def get_speed(self, tow: bool = False) -> float:
+    def get_speed(self, *, tow: bool = False) -> float:
         """Determines the appropriate speed that the servicing equipment should be
         traveling at for towing or traveling, and if the timeframe is during a reduced
         speed scenario.
@@ -654,7 +654,7 @@ class ServiceEquipment(RepairsMixin):
         )
 
     def find_uninterrupted_weather_window(
-        self, hours_required: int | float
+        self, hours_required: int | float, *, ignore_shift: bool = False
     ) -> tuple[int | float, bool]:
         """Finds the delay required before starting on a process that won't be able to
         be interrupted by a weather delay.
@@ -666,6 +666,10 @@ class ServiceEquipment(RepairsMixin):
         ----------
         hours_required : int | float
             The number of uninterrupted of hours that a process requires for completion.
+        ignore_shift : bool, optional
+            Indicates if the shift timing should be ignored, which is standard for
+            tugboats while towing or working on mooring connections (True), or not
+            (False), by default False.
 
         Returns
         -------
@@ -690,7 +694,8 @@ class ServiceEquipment(RepairsMixin):
             return max_hours, True
 
         _, hour, all_clear = self._weather_forecast(max_hours, which="repair")
-        all_clear &= self._is_workshift(hour)
+        if not ignore_shift:
+            all_clear &= self._is_workshift(hour)
         safe_operating_windows = consecutive_groups(np.where(all_clear)[0])
         window_lengths = np.array([window.size for window in safe_operating_windows])
 
@@ -714,7 +719,7 @@ class ServiceEquipment(RepairsMixin):
         return delay, False
 
     def find_interrupted_weather_window(
-        self, hours_required: int | float
+        self, hours_required: int | float, *, ignore_shift: bool = False
     ) -> tuple[DatetimeIndex, np.ndarray, bool]:
         """Assesses at which points in the repair window, the wind (and wave)
         constraints for safe operation are met.
@@ -729,6 +734,10 @@ class ServiceEquipment(RepairsMixin):
         ----------
         hours_required : int | float
             The number of hours required to complete the repair.
+        ignore_shift : bool, optional
+            Indicates if the shift timing should be ignored, which is standard for
+            tugboats while towing or working on mooring connections (True), or not
+            (False), by default False.
 
         Returns
         -------
@@ -743,8 +752,10 @@ class ServiceEquipment(RepairsMixin):
             dt_ix, hour_ix, weather = self._weather_forecast(
                 hours_required + (i * 24), which="repair"
             )
-            working_hours = self._is_workshift(hour_ix)
-            window = weather & working_hours
+            window = weather
+            if not ignore_shift:
+                working_hours = self._is_workshift(hour_ix)
+                window &= working_hours
             if window.sum() >= hours_required:
                 window_found = True
                 break
@@ -824,7 +835,7 @@ class ServiceEquipment(RepairsMixin):
         return travel_time, distance
 
     def _calculate_uninterrupted_travel_time(
-        self, distance: float, tow: bool = False
+        self, distance: float, *, tow: bool = False
     ) -> tuple[float, float]:
         """Calculates the delay to the start of traveling and the amount of time it
         will take to travel between two locations.
@@ -833,7 +844,7 @@ class ServiceEquipment(RepairsMixin):
         ----------
         distance : float
             The distance to be traveled.
-        tow : bool
+        tow : bool, optional
             Indicates if this travel is for towing (True), or not (False), by default
             False.
 
@@ -865,7 +876,7 @@ class ServiceEquipment(RepairsMixin):
         return -1, hours_required
 
     def _calculate_interrupted_travel_time(
-        self, distance: float, tow: bool = False
+        self, distance: float, *, tow: bool = False
     ) -> float:
         """Calculates the travel time with speed reductions for inclement weather, but
         without shift interruptions.
@@ -1301,7 +1312,9 @@ class ServiceEquipment(RepairsMixin):
 
         which_text = "unmooring" if which == "unmoor" else "mooring reconnection"
 
-        delay, shift_delay = self.find_uninterrupted_weather_window(hours_to_process)
+        delay, shift_delay = self.find_uninterrupted_weather_window(
+            hours_to_process, ignore_shift=True
+        )
         # If there is a shift delay, then wait try again.
         if shift_delay:
             yield self.env.process(
@@ -1357,6 +1370,7 @@ class ServiceEquipment(RepairsMixin):
         request: RepairRequest,
         time_processed: int | float = 0,
         prior_operation_level: float = -1.0,
+        *,
         initial: bool = False,
     ) -> Generator[Timeout | Process]:
         """Processes the repair including any weather and shift delays.
