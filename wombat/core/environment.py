@@ -889,6 +889,7 @@ class WombatEnvironment(simpy.Environment):
         self,
         windfarm: wombat.windfarm.Windfarm,
         operations: pd.DataFrame | None = None,
+        *,
         return_df: bool = True,
     ) -> tuple[pd.DataFrame, pd.DataFrame]:
         """Creates the power production ``DataFrame`` and optionally returns it.

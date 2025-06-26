@@ -432,6 +432,7 @@ class Simulation(FromDictMixin):
     def run(
         self,
         until: int | float | Event | None = None,
+        *,
         create_metrics: bool = True,
         save_metrics_inputs: bool = True,
         delete_logs: bool = False,

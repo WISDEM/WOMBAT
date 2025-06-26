@@ -502,7 +502,7 @@ class RepairManager(FilterStore):
         return None
 
     def invalidate_system(
-        self, system: System | Cable | str, tow: bool = False
+        self, system: System | Cable | str, *, tow: bool = False
     ) -> None:
         """Disables the ability for servicing equipment to service a specific system,
         sets the turbine status to be in servicing, and interrupts all the processes

@@ -90,7 +90,7 @@ def load_yaml(path: str | Path, fname: str | Path) -> Any:
 
 
 def create_library_structure(
-    library_path: str | Path, create_init: bool = False
+    library_path: str | Path, *, create_init: bool = False
 ) -> None:
     """Creates the following library structure at ``library_path``. If ``library_path``
     does not exist, then the method will fail.
@@ -154,6 +154,7 @@ def convert_failure_data(
     configuration: str | Path | dict,
     which: str,
     save_name: str | Path | None = None,
+    *,
     return_dict: bool = False,
 ) -> None | dict:
     """Converts the pre-v0.10 failure configuration data for cable, turbine, substation

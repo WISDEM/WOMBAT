@@ -14,6 +14,7 @@ def plot_farm_layout(
     windfarm: Windfarm,
     figure_kwargs: dict | None = None,
     plot_kwargs: dict | None = None,
+    *,
     return_fig: bool = False,
 ) -> None | tuple[plt.figure, plt.axes]:
     """Plot the graph representation of the windfarm as represented through WOMBAT.
@@ -72,6 +73,7 @@ def plot_farm_layout(
 def plot_farm_availability(
     sim: Simulation,
     which: str = "energy",
+    *,
     individual_turbines: bool = False,
     farm_95_CI: bool = False,
     figure_kwargs: dict | None = None,
@@ -230,6 +232,7 @@ def plot_operational_levels(
     sim: Simulation,
     figure_kwargs: dict | None = None,
     cbar_label_fontsize: int = 14,
+    *,
     return_fig: bool = False,
 ):
     """Plots an hourly view of the operational levels of the wind farm and individual
