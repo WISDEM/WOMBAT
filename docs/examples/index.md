@@ -130,6 +130,9 @@ modeling assumptions as well as the basic operations of the maintenance and fail
     cost for both scheduled and unscheduled servicing equipment. For scheduled equipment,
     the mobilization is scheduled so that the equipment arrives at the site for the
     start of it's first scheduled day.
+  - Mooring disconnections and reconnections operate without considering shift timing
+    to ensure that these (typically) very long processes can find an optimal weather
+    window within the simulation. These typically only occur with tugboats.
   - A wide range of generalized capabilities can be specified for various modeling
     scenarios. It's important to note that outside of the "TOW" designation, there are
     no specific implementations of functionality.
