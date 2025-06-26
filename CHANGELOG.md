@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## v0.11 - 26 June 2025
 
 ### Deprecations
 
