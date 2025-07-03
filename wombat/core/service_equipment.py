@@ -687,11 +687,13 @@ class ServiceEquipment(RepairsMixin):
 
         # If the time required for a transfer is longer than the time left in the shift,
         # then return the hours left in the shift and indicate a shift delay
-        max_hours = hours_until_future_hour(
-            self.env.simulation_time, self.settings.workday_end
-        )
-        if hours_required > max_hours:
-            return max_hours, True
+        max_hours = hours_required
+        if not ignore_shift:
+            max_hours = hours_until_future_hour(
+                self.env.simulation_time, self.settings.workday_end
+            )
+            if hours_required > max_hours:
+                return max_hours, True
 
         _, hour, all_clear = self._weather_forecast(max_hours, which="repair")
         if not ignore_shift:
@@ -702,7 +704,7 @@ class ServiceEquipment(RepairsMixin):
         # If all the safe operating windows are shorter than the time required, then
         # return the time until the end of the shift and indicate a shift delay
         if all(window < hours_required for window in window_lengths):
-            return max_hours, True
+            return max_hours, False if ignore_shift else True
 
         # Find the length of the delay
         delay = safe_operating_windows[

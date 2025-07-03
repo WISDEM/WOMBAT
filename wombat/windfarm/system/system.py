@@ -207,7 +207,7 @@ class System:
     def _initialize_production_curve(self, power_curve_dict: dict | None) -> None:
         """Creates the H2 production curve function based on the
         :py:attr:power_curve_dict` input to the  ``subassembly_data`` dictionary. If no
-        input, then a 0 will always be returned.
+        input, then a 0 will always be returned. Sets ``rated_production`` to kg/hr.
         """
         if power_curve_dict is None:
             power_curve_dict = {}

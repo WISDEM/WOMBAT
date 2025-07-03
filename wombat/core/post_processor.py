@@ -106,10 +106,10 @@ class Metrics:
             The project's rated capacity, in MW.
         turbine_capacities : Union[float, List[float]]
             The capacity of each individual turbine corresponding to
-            :py:attr`turbine_id`, in kW.
+            :py:attr`turbine_id`, in kW/hr.
         electrolyzer_rated_production : Union[float, List[float]]
             The rated production capacity of each individual electrolyzer corresponding
-            to :py:attr:`electrolyzer_id`, in kg.
+            to :py:attr:`electrolyzer_id`, in kg/hr.
         substation_id : str | list[str]
             The substation id(s).
         turbine_id : str | list[str]

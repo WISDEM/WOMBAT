@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.11.1 - 3 July 2025
+
+- Fixes a bug causing 25+ hour mooring connection operations to never complete due to shift delays
+  in an uninterrupted operation.
+- Updates the rated production and capacity docstrings to ensure users understand they are an hourly
+  capacity.
+
 ## v0.11 - 26 June 2025
 
 ### Deprecations
