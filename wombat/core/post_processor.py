@@ -2095,6 +2095,7 @@ class Metrics:
                 events_valid.action.isin(("repair request", "maintenance request")),
                 ["request_id", "env_time"],
             ]
+            .drop_duplicates(subset=["request_id"])
             .set_index("request_id")
             .sort_index()
         )
