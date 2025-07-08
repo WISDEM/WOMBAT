@@ -5,6 +5,8 @@
 - Fixes a bug in the `Metrics.process_times()` calculation inflating the count of total events
   when cables are shut down. This is due to immediate logging of the upstream system and cables
   shutting down with shared logging data.
+- Applies the same fix to the `Metrics.request_summary()` calculation, ensuring duplicated logging
+  messages are not caught up in the end result.
 
 ## v0.11.1 - 3 July 2025
 
