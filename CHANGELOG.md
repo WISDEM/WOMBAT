@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.11.2 - TBD
+
+- Fixes a bug in the `Metrics.process_times()` calculation inflating the count of total events
+  when cables are shut down. This is due to immediate logging of the upstream system and cables
+  shutting down with shared logging data.
+
 ## v0.11.1 - 3 July 2025
 
 - Fixes a bug causing 25+ hour mooring connection operations to never complete due to shift delays
