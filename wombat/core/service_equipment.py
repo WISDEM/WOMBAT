@@ -144,8 +144,11 @@ def reset_system_operations(system: System, subassembly_resets: list[str]) -> No
         The ``subassembly_id`` to reset to good as new, if not assuming all
         subassemblies.
     """
+    system.interrupt_all_subassembly_processes(
+        subassembly_full_reset=subassembly_resets
+    )
     for subassembly in system.subassemblies:
-        if subassembly.name in subassembly_resets:
+        if subassembly.id in subassembly_resets:
             subassembly.operating_level = 1.0
             subassembly.recreate_processes()
 
@@ -1494,7 +1497,7 @@ class ServiceEquipment(RepairsMixin):
             replacement = (
                 request.subassembly_id if request.details.replacement else None
             )
-            self.manager.interrupt_system(system, replacement=replacement)
+            self.manager.interrupt_system(system, subassembly_full_reset=replacement)
         yield self.env.process(
             self.crew_transfer(system, subassembly, request, to_system=True)
         )
@@ -1916,8 +1919,7 @@ class ServiceEquipment(RepairsMixin):
         )
 
         # Turn off the turbine
-        replacement = request.subassembly_id if request.details.replacement else None
-        self.manager.interrupt_system(system, replacement=replacement)
+        self.manager.interrupt_system(system)
 
         # Unmoor the turbine and tow it back to port
         yield self.env.process(self.mooring_connection(system, request, which="unmoor"))
@@ -1972,7 +1974,6 @@ class ServiceEquipment(RepairsMixin):
             self.mooring_connection(system, request, which="reconnect")
         )
 
-        # Reset the turbine back to operating and return to port
         reset_system_operations(system, subassembly_resets)
         self.manager.enable_requests_for_system(system, tow=True)
         yield self.env.process(

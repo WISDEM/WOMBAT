@@ -534,8 +534,27 @@ class RepairManager(FilterStore):
                 self.systems_waiting_for_tow.index(system.id)
             )
 
+    def reset_subassembly_processes(
+        self, system: System | Cable, subassemblies: list[str]
+    ) -> None:
+        """Resets the specified failure and maintenance tasks for each of the
+        :py:attr:`subassemblies` in the :py:attr:`system`.
+
+        Parameters
+        ----------
+        system : System | Cable
+            The turbine, substation, electrolyzer, or cable needing to be interrupted
+            with specified :py:attr:`subassemblies` processes reset.
+        subassemblies : list[str]
+            The list of subassemblies to have their failure and maintenance models
+            recreated (replacement or tow-to-port events only).
+        """
+        system.interrupt_all_subassembly_processes(subassembly_full_reset=subassemblies)
+
     def interrupt_system(
-        self, system: System | Cable, replacement: str | None = None
+        self,
+        system: System | Cable,
+        subassembly_full_reset: str | list[str] | None = None,
     ) -> None:
         """Sets the turbine status to be in servicing, and interrupts all the processes
         to turn off operations.
@@ -544,13 +563,19 @@ class RepairManager(FilterStore):
         ----------
         system_id : str
             The system to disable repairs.
-        replacement: str | None, optional
-            If a subassebly `id` is provided, this indicates the interruption is caused
-            by its replacement event. Defaults to None.
+        subassembly_full_reset: str | list[str] | None, optional
+            If a subassebly `id` is provided, this indicates the interruption will
+            cancel the current maintenance and failure modes, then recreate the
+            replacement or tow-to-port repair is completed. Defaults to None.
         """
+        if subassembly_full_reset is None:
+            subassembly_full_reset = []
+        if isinstance(subassembly_full_reset, str):
+            subassembly_full_reset = [subassembly_full_reset]
+
         if system.servicing.triggered and system.id in self.invalid_systems:
             system.servicing = self.env.event()
-            system.interrupt_all_subassembly_processes(replacement=replacement)
+            self.reset_subassembly_processes(system, subassembly_full_reset)
         else:
             raise RuntimeError(
                 f"{self.env.simulation_time} {system.id} already being serviced"
