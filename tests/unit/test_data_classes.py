@@ -619,9 +619,11 @@ def test_SubassemblyData():
     N_failure = len(failure_levels)
 
     subassembly = SubassemblyData.from_dict(GENERATOR_SUBASSEMBLY)
-    maintenance_list = [
-        Maintenance.from_dict(m) for m in GENERATOR_SUBASSEMBLY["maintenance"]
-    ]
+
+    # ensure subassembly level default start date gets passed through
+    start = {"start_date": GENERATOR_SUBASSEMBLY["maintenance_start"]}
+    maintenance_list = [start | m for m in GENERATOR_SUBASSEMBLY["maintenance"]]
+    maintenance_list = [Maintenance.from_dict(m) for m in maintenance_list]
     failure_list = [
         Failure.from_dict({**f, "rng": RNG}) for f in GENERATOR_SUBASSEMBLY["failures"]
     ]

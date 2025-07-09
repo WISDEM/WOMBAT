@@ -490,10 +490,11 @@ def check_start_stop_dates(
 
 def convert_maintenance_list(value: list[dict], self_) -> list[Maintenance]:
     """Converts a list of ``Maintenance`` configuration dictionaries to a list of
-    ``Maintenance`` objects.
+    ``Maintenance`` objects, setting the ``start_date`` if it doesn't exist yet,
+    and adding the ``self_.system_value``.
     """
     kw = {"system_value": self_.system_value, "start_date": self_.maintenance_start}
-    [el.update(kw) for el in value]
+    value = [kw | el for el in value]
     return [Maintenance.from_dict(el) for el in value]
 
 

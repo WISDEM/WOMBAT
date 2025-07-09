@@ -2095,6 +2095,7 @@ class Metrics:
                 events_valid.action.isin(("repair request", "maintenance request")),
                 ["request_id", "env_time"],
             ]
+            .drop_duplicates(subset=["request_id"])
             .set_index("request_id")
             .sort_index()
         )
@@ -2151,26 +2152,30 @@ class Metrics:
         requests = self.events.loc[
             self.events.action.isin(("repair request", "maintenance request")),
             "request_id",
-        ]
+        ].drop_duplicates()
         canceled_requests = self.events.loc[
             self.events.action.isin(("repair canceled", "maintenance canceled")),
             "request_id",
-        ]
+        ].drop_duplicates()
         completed_requests = self.events.loc[
             self.events.action.isin(("repair complete", "maintenance complete")),
             "request_id",
-        ]
+        ].drop_duplicates()
         incomplete_requests = requests.loc[
             ~requests.isin(canceled_requests) & ~requests.isin(completed_requests)
         ]
-        total_df = self.events.loc[
-            self.events.action.isin(("repair request", "maintenance request")),
-            ["part_name", "reason", "request_id"],
-        ].rename(
-            columns={
-                "part_name": "subassembly",
-                "reason": "task",
-            }
+        total_df = (
+            self.events.loc[
+                self.events.action.isin(("repair request", "maintenance request")),
+                ["part_name", "reason", "request_id"],
+            ]
+            .rename(
+                columns={
+                    "part_name": "subassembly",
+                    "reason": "task",
+                }
+            )
+            .drop_duplicates(subset=["request_id"])
         )
         canceled_df = (
             total_df.loc[total_df.request_id.isin(canceled_requests)]

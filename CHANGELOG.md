@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## v0.11.2 - 9 July 2025
+
+- Fixes a bug primarily impacting tow-to-port scenarios where individual maintenance and failure
+  models are not being reset upon either replacement or following a tow-to-port repair under
+  certain conditions. This allows for these additional processes to be perpetuated throughout the lifecycle
+  of the simulation while succumbing to the same inital flaw, compounding the number of erroneously
+  additional events. The issue is resolved by the following:
+    1. Multiple subassemblies can now be passed to a `Cable` or `System` object during an
+       interruption, allowing for simpler logic handling.
+    2. TTP repairs no longer reset the subassemblies at the time of towing to port, and instead reset
+       the subassemblies after the turbine has been towed to site. Resetting in the final stage
+       ensures that any newly created processes, and especially fixed date maintenance schedules can
+       not create extra processes between tow, repair, and site return operations.
+- Fixes a bug in the `Metrics.process_times()` calculation inflating the count of total events
+  when cables are shut down. This is due to immediate logging of the upstream system and cables
+  shutting down with shared logging data.
+- Applies the same fix to the `Metrics.request_summary()` calculation, ensuring duplicated logging
+  messages are not caught up in the end result.
+
 ## v0.11.1 - 3 July 2025
 
 - Fixes a bug causing 25+ hour mooring connection operations to never complete due to shift delays

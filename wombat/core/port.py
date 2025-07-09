@@ -401,6 +401,7 @@ class Port(RepairsMixin, FilterStore):
 
         system_id = request.system_id
         request_id = request.request_id
+        system = self.windfarm.system(system_id)
 
         # Double check in case a delay causes multiple vessels to be interacting with
         # the same turbine
@@ -410,15 +411,13 @@ class Port(RepairsMixin, FilterStore):
         self.invalid_systems.append(system_id)
 
         # If the system is already undergoing repairs from other servicing equipment,
-        # then wait until it's done being serviced
-        servicing = self.windfarm.system(system_id).servicing
+        # then wait until it's done being serviced. Also wait for a spot to open up in
+        # the port queue
 
-        # Wait for a spot to open up in the port queue
         turbine_request = self.turbine_manager.request()
-
-        yield turbine_request & servicing
+        yield turbine_request & system.servicing
         yield self.env.timeout(self.env.get_random_seconds())
-        yield self.windfarm.system(system_id).servicing
+        yield system.servicing
 
         # Request a tugboat to retrieve the turbine
         tugboat = yield self.service_equipment_manager.get(
