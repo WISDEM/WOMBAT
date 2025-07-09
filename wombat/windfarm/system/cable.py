@@ -195,7 +195,7 @@ class Cable:
         """
         self.processes = dict(self._create_processes())
 
-    def interrupt_processes(self, replacement: str | None = None) -> None:
+    def interrupt_processes(self, subassembly_full_reset: list[str]) -> None:
         """Interrupts all of the running processes within the subassembly except for the
         process associated with failure that triggers the catastrophic failure.
 
@@ -203,12 +203,12 @@ class Cable:
         ----------
         subassembly : Subassembly
             The subassembly that should have all processes interrupted.
-        replacement: bool, optional
-            If a subassebly `id` is provided, this indicates the interruption is caused
-            by its replacement event. Defaults to None.
+        subassembly_full_reset: list[str]
+            List of all subassebly `id` that will get a full reset of their simulated
+            failure and maintenance processes by a replacement or tow-to-port event.
         """
         cause = "failure"
-        if self.id == replacement:
+        if self.id in subassembly_full_reset:
             cause = "replacement"
 
         for _, process in self.processes.items():
@@ -219,17 +219,21 @@ class Cable:
                 pass
 
     def interrupt_all_subassembly_processes(
-        self, replacement: str | None = None
+        self, subassembly_full_reset: list[str] | None = None
     ) -> None:
         """Thin wrapper for ``interrupt_processes`` for consistent usage with system.
 
         Parameters
         ----------
-        replacement: bool, optional
-            If a subassebly `id` is provided, this indicates the interruption is caused
-            by its replacement event. Defaults to None.
+        subassembly_full_reset: list[str] | None, optional
+            List of all subassebly `id` that will get a full reset of their simulated
+            failure and maintenance processes by a replacement or tow-to-port event.
+            Defaults to None.
         """
-        self.interrupt_processes(replacement=replacement)
+        subassembly_full_reset = (
+            [] if subassembly_full_reset is None else subassembly_full_reset
+        )
+        self.interrupt_processes(subassembly_full_reset=subassembly_full_reset)
 
     def stop_all_upstream_processes(self, failure: Failure | Maintenance) -> None:
         """Stops all upstream turbines and cables from producing power by creating a

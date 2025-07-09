@@ -236,7 +236,9 @@ class System:
         self.rated_production, *_ = self.power_curve(np.array([rated_capacity]))
 
     def interrupt_all_subassembly_processes(
-        self, origin: Subassembly | None = None, replacement: str | None = None
+        self,
+        origin: Subassembly | None = None,
+        subassembly_full_reset: list[str] | None = None,
     ) -> None:
         """Interrupts the running processes in all of the system's subassemblies.
 
@@ -245,12 +247,14 @@ class System:
         origin : Subassembly
             The subassembly that triggered the request, if the method call is coming
             from a subassembly shutdown event.
-        replacement: bool, optional
-            If a subassebly `id` is provided, this indicates the interruption is caused
-            by its replacement event. Defaults to None.
+        subassembly_full_reset: list[str] | None
+            List of all subassebly `id` that will get a full reset of their simulated
+            failure and maintenance processes by a replacement or tow-to-port event.
         """
         [
-            subassembly.interrupt_processes(origin=origin, replacement=replacement)  # type: ignore
+            subassembly.interrupt_processes(
+                origin=origin, subassembly_full_reset=subassembly_full_reset
+            )  # type: ignore
             for subassembly in self.subassemblies
         ]
 
