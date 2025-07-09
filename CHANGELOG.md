@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.11.2 - TBD
+## v0.11.2 - 9 July 2025
 
 - Fixes a bug primarily impacting tow-to-port scenarios where individual maintenance and failure
   models are not being reset upon either replacement or following a tow-to-port repair under
