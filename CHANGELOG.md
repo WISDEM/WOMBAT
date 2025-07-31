@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## unreleased
+- Install `polars-lts-cpu` by default when installing on MacOS
+- Add MacOS test runners
+
 ## v0.11.2 - 9 July 2025
 
 - Fixes a bug primarily impacting tow-to-port scenarios where individual maintenance and failure
