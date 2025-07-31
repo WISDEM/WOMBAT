@@ -16,6 +16,7 @@ dependencies = [
     "scipy>=1.8",
     "pandas>=2",
     "polars>=0.20.4",
+    "polars-lts-cpu; sys_platform == 'darwin'",
     "pyarrow>=10",
     "jupyterlab>=3",
     "simpy>=4.0.1",
