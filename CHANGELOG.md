@@ -1,6 +1,7 @@
 # CHANGELOG
 
-## unreleased
+## v0.11.3 - 31 July 2025
+
 - Install `polars-lts-cpu` by default when installing on MacOS
 - Add MacOS test runners
 
