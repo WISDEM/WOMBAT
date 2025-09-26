@@ -155,7 +155,9 @@ checks = [
   "SA01",
   "EX01",
 ]
-exclude = ["*__pycache__"]
+exclude = [
+  "__pycache__",
+]
 
 [tool.ruff]
 src = ["wombat", "tests"]
