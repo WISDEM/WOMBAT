@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+- Allow for missing data columns for either "windspeed" or "waveheight" where a column
+  of zeros will be populated, and a warning will be raised to alert users in case the
+  missing column is an error.
+
 ## v0.11.3 - 31 July 2025
 
 - Install `polars-lts-cpu` by default when installing on MacOS
