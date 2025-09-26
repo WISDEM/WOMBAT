@@ -7,6 +7,7 @@ import csv
 import math
 import logging
 import datetime as dt
+import warnings
 from typing import TYPE_CHECKING
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -526,9 +527,13 @@ class WombatEnvironment(simpy.Environment):
 
         missing = set(REQUIRED).difference(weather.columns)
         if missing:
-            raise KeyError(
-                "The weather data are missing the following required columns:"
-                f" {missing}"
+            msg = (
+                f"The following column(s) are missing and will be set to 0:"
+                f" {', '.join(missing)}. Do NOT run the simulation if this is an error."
+            )
+            warnings.warn(msg)
+            weather = weather.with_columns(
+                pl.Series(name="waveheight", values=np.zeros(weather.height))
             )
 
         # Create the start and end points
