@@ -46,19 +46,7 @@ repos:
   -   id: pretty-format-json
       args: [--autofix]
 
-# -   repo: local
-#     hooks:
-#     - id: pytest
-#       name: pytest
-#       stages: [commit]
-#       entry: pytest --tb=line --deselect=setup.py tests/
-#       language: system
-#       types: [python]
-
-#     - id: pytest-cov
-#       name: pytest-cov
-#       stages: [commit]
-#       language: system
-#       entry: pytest --cov=wombat --tb=no --ignore=*setup.py --cov-fail-under=80
-#       types: [python]
-#       pass_filenames: false
+- repo: https://github.com/numpy/numpydoc
+  rev: v1.9.0
+  hooks:
+  -   id: numpydoc-validation
