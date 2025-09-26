@@ -532,8 +532,9 @@ class WombatEnvironment(simpy.Environment):
                 f" {', '.join(missing)}. Do NOT run the simulation if this is an error."
             )
             warnings.warn(msg)
+
             weather = weather.with_columns(
-                pl.Series(name="waveheight", values=np.zeros(weather.height))
+                pl.Series(name=col, values=np.zeros(weather.height)) for col in missing
             )
 
         # Create the start and end points
@@ -586,12 +587,7 @@ class WombatEnvironment(simpy.Environment):
             self.end_datetime = weather.get_column("datetime").dt.max()
             self.end_year = self.end_datetime.year
 
-        column_order = weather.columns
-        column_order.insert(0, column_order.pop(column_order.index("hour")))
-        column_order.insert(0, column_order.pop(column_order.index("waveheight")))
-        column_order.insert(0, column_order.pop(column_order.index("windspeed")))
-        column_order.insert(0, column_order.pop(column_order.index("datetime")))
-        column_order.insert(0, column_order.pop(column_order.index("index")))
+        column_order = ["index", "datetime", "hour", "windspeed", "waveheight"]
 
         if weather["datetime"].dt.is_leap_year().sum() > 0:
             self.simulation_years = round(
