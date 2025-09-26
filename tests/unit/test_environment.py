@@ -184,6 +184,21 @@ def test_setup():
     assert env.end_datetime == datetime.datetime(2003, 12, 31, 23, 0)
     env.cleanup_log_files()  # delete the logged data
 
+    # Test missing columns raise a warning, and are produced with 0s
+    with pytest.warns(UserWarning):
+        env = WombatEnvironment(
+            data_dir=TEST_DATA,
+            weather_file="test_weather_no_data.csv",
+            workday_start=8,
+            workday_end=16,
+            simulation_name="testing_setup",
+            maintenance_start="6/1/2002",
+            random_seed=2022,
+        )
+        expected_columns = ["index", "datetime", "hour", "windspeed", "waveheight"]
+        assert env.weather.columns == expected_columns
+    env.cleanup_log_files()  # delete the logged data
+
 
 def test_is_workshift():
     """Tests the ``is_workshift`` method for a variety of inputs."""
