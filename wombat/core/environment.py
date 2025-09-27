@@ -534,7 +534,9 @@ class WombatEnvironment(simpy.Environment):
             warnings.warn(msg)
 
             weather = weather.with_columns(
-                pl.Series(name=col, values=np.zeros(weather.height)) for col in missing
+                pl.Series(name=col, values=np.zeros(weather.height))
+                for col in REQUIRED
+                if col in missing
             )
 
         # Create the start and end points

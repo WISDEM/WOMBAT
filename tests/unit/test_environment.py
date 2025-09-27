@@ -192,8 +192,6 @@ def test_setup():
             workday_start=8,
             workday_end=16,
             simulation_name="testing_setup",
-            maintenance_start="6/1/2002",
-            random_seed=2022,
         )
     expected_columns = ["index", "datetime", "hour", "windspeed", "waveheight"]
     assert env.weather.columns == expected_columns
