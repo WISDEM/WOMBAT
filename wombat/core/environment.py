@@ -587,8 +587,6 @@ class WombatEnvironment(simpy.Environment):
             self.end_datetime = weather.get_column("datetime").dt.max()
             self.end_year = self.end_datetime.year
 
-        column_order = ["index", "datetime", "hour", "windspeed", "waveheight"]
-
         if weather["datetime"].dt.is_leap_year().sum() > 0:
             self.simulation_years = round(
                 (self.end_datetime - self.start_datetime).days / 365.25, 2
@@ -599,6 +597,7 @@ class WombatEnvironment(simpy.Environment):
             )
 
         # Ensure the columns are ordered correctly and re-compute pandas-compatible ix
+        column_order = ["index", "datetime", "hour", "windspeed", "waveheight"]
         return weather.select(column_order).drop("index").with_row_index()
 
     @property
