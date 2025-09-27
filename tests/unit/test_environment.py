@@ -195,8 +195,14 @@ def test_setup():
             maintenance_start="6/1/2002",
             random_seed=2022,
         )
-        expected_columns = ["index", "datetime", "hour", "windspeed", "waveheight"]
-        assert env.weather.columns == expected_columns
+    expected_columns = ["index", "datetime", "hour", "windspeed", "waveheight"]
+    assert env.weather.columns == expected_columns
+
+    ws = pl.Series("windspeed", np.zeros(env.weather.height))
+    wh = pl.Series("waveheight", np.zeros(env.weather.height))
+    assert env.weather.get_column("windspeed").equals(ws)
+    assert env.weather.get_column("waveheight").equals(wh)
+
     env.cleanup_log_files()  # delete the logged data
 
 
