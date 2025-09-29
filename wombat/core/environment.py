@@ -538,6 +538,8 @@ class WombatEnvironment(simpy.Environment):
                 for col in REQUIRED
                 if col in missing
             )
+        column_order = ["index", "datetime", "hour", "windspeed", "waveheight"]
+        weather = weather.select(column_order)
 
         # Create the start and end points
         self.start_datetime = weather.get_column("datetime").dt.min()
@@ -598,9 +600,7 @@ class WombatEnvironment(simpy.Environment):
                 (self.end_datetime - self.start_datetime).days / 365, 2
             )
 
-        # Ensure the columns are ordered correctly and re-compute pandas-compatible ix
-        column_order = ["index", "datetime", "hour", "windspeed", "waveheight"]
-        return weather.select(column_order).drop("index").with_row_index()
+        return weather.drop("index").with_row_index()
 
     @property
     def weather_now(self) -> pl.DataFrame:
@@ -635,7 +635,7 @@ class WombatEnvironment(simpy.Environment):
         """
         # If it's not on the hour, ensure we're looking ``hours`` hours into the future
         start = math.floor(self.now)
-        _, ix, wind, wave, hour, *_ = self.weather.slice(
+        _, ix, hour, wind, wave, *_ = self.weather.slice(
             start, math.ceil(hours) + math.ceil(self.now % 1)
         )
         return ix, hour, wind, wave
