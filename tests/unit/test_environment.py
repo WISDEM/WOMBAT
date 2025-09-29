@@ -193,8 +193,9 @@ def test_setup():
             workday_end=16,
             simulation_name="testing_setup",
         )
-    expected_columns = ["index", "datetime", "hour", "windspeed", "waveheight"]
-    assert env.weather.columns == expected_columns
+        expected_columns = ["index", "datetime", "hour", "windspeed", "waveheight"]
+        assert env.weather.columns == expected_columns
+        env.cleanup_log_files()  # delete the logged data
 
     with pytest.warns(UserWarning):
         env = WombatEnvironment(
@@ -206,14 +207,14 @@ def test_setup():
             end_year=2002,
             simulation_name="testing_setup",
         )
-    assert env.weather.columns == expected_columns
+        assert env.weather.columns == expected_columns
 
-    ws = pl.Series("windspeed", np.zeros(env.weather.height))
-    wh = pl.Series("waveheight", np.zeros(env.weather.height))
-    assert env.weather.get_column("windspeed").equals(ws)
-    assert env.weather.get_column("waveheight").equals(wh)
+        ws = pl.Series("windspeed", np.zeros(env.weather.height))
+        wh = pl.Series("waveheight", np.zeros(env.weather.height))
+        assert env.weather.get_column("windspeed").equals(ws)
+        assert env.weather.get_column("waveheight").equals(wh)
 
-    env.cleanup_log_files()  # delete the logged data
+        env.cleanup_log_files()  # delete the logged data
 
 
 def test_is_workshift():

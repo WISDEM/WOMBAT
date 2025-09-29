@@ -8,7 +8,6 @@ import math
 import logging
 import datetime as dt
 import warnings
-from time import sleep
 from typing import TYPE_CHECKING
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -980,7 +979,6 @@ class WombatEnvironment(simpy.Environment):
         logging.shutdown()
         self._events_csv.close()
         self._operations_csv.close()
-        sleep(2)
 
         try:
             self.events_log_fname.unlink()
