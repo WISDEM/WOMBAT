@@ -513,7 +513,7 @@ class WombatEnvironment(simpy.Environment):
                 .set_index("datetime")
                 .sort_index()
                 .resample("h")
-                .interpolate(limit_direction="both")  # , limit=5)
+                .interpolate(limit_direction="both")
                 .reset_index(drop=False)
             )
             .with_row_index()
