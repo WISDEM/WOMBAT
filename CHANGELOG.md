@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## v0.12 - 30 September 2025
 
 - Allow for missing data columns for either "windspeed" or "waveheight" where a column
   of zeros will be populated, and a warning will be raised to alert users in case the
