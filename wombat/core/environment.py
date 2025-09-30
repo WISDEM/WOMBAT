@@ -7,6 +7,7 @@ import csv
 import math
 import logging
 import datetime as dt
+import warnings
 from typing import TYPE_CHECKING
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -512,7 +513,7 @@ class WombatEnvironment(simpy.Environment):
                 .set_index("datetime")
                 .sort_index()
                 .resample("h")
-                .interpolate(limit_direction="both")  # , limit=5)
+                .interpolate(limit_direction="both")
                 .reset_index(drop=False)
             )
             .with_row_index()
@@ -526,10 +527,19 @@ class WombatEnvironment(simpy.Environment):
 
         missing = set(REQUIRED).difference(weather.columns)
         if missing:
-            raise KeyError(
-                "The weather data are missing the following required columns:"
-                f" {missing}"
+            msg = (
+                f"The following column(s) are missing and will be set to 0:"
+                f" {', '.join(missing)}. Do NOT run the simulation if this is an error."
             )
+            warnings.warn(msg)
+
+            weather = weather.with_columns(
+                pl.Series(name=col, values=np.zeros(weather.height))
+                for col in REQUIRED
+                if col in missing
+            )
+        column_order = ["index", "datetime", "hour", "windspeed", "waveheight"]
+        weather = weather.select(column_order)
 
         # Create the start and end points
         self.start_datetime = weather.get_column("datetime").dt.min()
@@ -581,13 +591,6 @@ class WombatEnvironment(simpy.Environment):
             self.end_datetime = weather.get_column("datetime").dt.max()
             self.end_year = self.end_datetime.year
 
-        column_order = weather.columns
-        column_order.insert(0, column_order.pop(column_order.index("hour")))
-        column_order.insert(0, column_order.pop(column_order.index("waveheight")))
-        column_order.insert(0, column_order.pop(column_order.index("windspeed")))
-        column_order.insert(0, column_order.pop(column_order.index("datetime")))
-        column_order.insert(0, column_order.pop(column_order.index("index")))
-
         if weather["datetime"].dt.is_leap_year().sum() > 0:
             self.simulation_years = round(
                 (self.end_datetime - self.start_datetime).days / 365.25, 2
@@ -597,8 +600,7 @@ class WombatEnvironment(simpy.Environment):
                 (self.end_datetime - self.start_datetime).days / 365, 2
             )
 
-        # Ensure the columns are ordered correctly and re-compute pandas-compatible ix
-        return weather.select(column_order).drop("index").with_row_index()
+        return weather.drop("index").with_row_index()
 
     @property
     def weather_now(self) -> pl.DataFrame:
@@ -633,7 +635,7 @@ class WombatEnvironment(simpy.Environment):
         """
         # If it's not on the hour, ensure we're looking ``hours`` hours into the future
         start = math.floor(self.now)
-        _, ix, wind, wave, hour, *_ = self.weather.slice(
+        _, ix, hour, wind, wave, *_ = self.weather.slice(
             start, math.ceil(hours) + math.ceil(self.now % 1)
         )
         return ix, hour, wind, wave
@@ -975,10 +977,8 @@ class WombatEnvironment(simpy.Environment):
         # dataframe generation step, the original logs were deleted
 
         logging.shutdown()
-        if not self._events_csv.closed:
-            self._events_csv.close()
-        if not self._operations_csv.closed:
-            self._operations_csv.close()
+        self._events_csv.close()
+        self._operations_csv.close()
 
         try:
             self.events_log_fname.unlink()

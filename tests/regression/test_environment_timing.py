@@ -59,7 +59,7 @@ def test_timing():
     assert env.simulation_time == correct_datetime
     assert env.hours_to_next_shift() == 8
     current_conditions = env.weather_now.to_numpy().flatten()[2:]
-    assert all(current_conditions == (correct_wind, correct_wave, correct_hour))
+    assert all(current_conditions == (correct_hour, correct_wind, correct_wave))
     assert not env.is_workshift()
 
     # Test for a non-even timing of 128.7 hours
@@ -80,7 +80,7 @@ def test_timing():
     assert env.simulation_time == correct_datetime
     assert env.hours_to_next_shift() == correct_hours_to_next_shift
     current_conditions = env.weather_now.to_numpy().flatten()[2:]
-    assert all(current_conditions == (correct_wind, correct_wave, correct_hour))
+    assert all(current_conditions == (correct_hour, correct_wind, correct_wave))
     assert env.is_workshift()
 
     env.cleanup_log_files()  # delete the logged data
