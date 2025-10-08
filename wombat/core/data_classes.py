@@ -2282,8 +2282,8 @@ class FixedCosts(FromDictMixin):
 
     units: str = field(
         default="$/kw/yr",
-        converters=(str, str.lower),
-        validators=validators.in_("$/kw/yr", "$/yr"),
+        converter=(str, str.lower),
+        validator=validators.in_(["$/kw/yr", "$/yr"]),
     )
 
     resolution: dict = field(init=False)
