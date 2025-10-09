@@ -4,6 +4,9 @@
 
 - Adds the `units` input to `FixedCosts` that allows for costs to be defined on per kW
   basis (default, "\$/kw/yr") or as a set cost ("\$/yr").
+- Adds distance-based coordinates in meters that can be used by providing
+  `layout_coords: distance` in the primary configuration file. The default is "wgs-84
+  to maintain compatibility with existing workflows.
 
 ## v0.12 - 30 September 2025
 
