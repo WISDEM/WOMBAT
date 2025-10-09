@@ -1,7 +1,12 @@
 """Test the post-processing functionality."""
 
+from copy import deepcopy
+
+import pytest
 import pandas.testing as pdt
 from pytest_check import check
+
+from wombat.core import FixedCosts
 
 
 def test_results_consistency(setup_ttp):
@@ -108,3 +113,21 @@ def test_event_summary_consistency(setup_ttp):
         pdt.assert_series_equal(
             combined.N_completed, combined.completed_requests, check_names=False
         )
+
+
+def test_fixed_cost_units(setup_ttp):
+    """Tests that the $/kw/yr and $/yr produce the same result."""
+    sim = setup_ttp
+    metrics = sim.metrics
+
+    fc_kw = FixedCosts(labor=(80000 / 1200.0 / 1000))
+    fc_whole = FixedCosts(labor=80000, units="$/yr")
+
+    metrics_kw = deepcopy(metrics)
+    metrics_whole = deepcopy(metrics)
+    metrics_kw.fixed_costs = fc_kw
+    metrics_whole.fixed_costs = fc_whole
+
+    cost_kw = metrics_kw.project_fixed_costs("project", "high").labor.squeeze()
+    cost_whole = metrics_whole.project_fixed_costs("project", "high").labor.squeeze()
+    assert cost_whole == pytest.approx(cost_kw)

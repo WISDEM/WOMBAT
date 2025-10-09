@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Unreleased
+
+- Adds the `units` input to `FixedCosts` that allows for costs to be defined on per kW
+  basis (default, "\$/kw/yr") or as a set cost ("\$/yr").
+
 ## v0.12 - 30 September 2025
 
 - Allow for missing data columns for either "windspeed" or "waveheight" where a column

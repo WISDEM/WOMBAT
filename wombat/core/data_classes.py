@@ -2154,7 +2154,11 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
 
 @define(frozen=True, auto_attribs=True)
 class FixedCosts(FromDictMixin):
-    """Fixed costs for operating a windfarm. All values are assumed to be in $/kW/yr.
+    """Fixed costs for operating a windfarm. All values are assumed to be in $/kW/yr
+    unless :py:attr:`units` is set to "$/yr". In either case, all costs must use the
+    same units. The cost per kw is helpful if you plan to scale fixed costs with
+    project sizes, otherwise using $/yr allows for a fixed set of cost assumptions
+    across analyses.
 
     Parameters
     ----------
@@ -2240,6 +2244,10 @@ class FixedCosts(FromDictMixin):
     labor : float
         The costs associated with labor, if not being modeled through the simulated
         processes.
+
+    units : str
+        The units that all costs are provided in; must be one of "$/kw/yr" or "$/yr", by
+        default "$/kw/yr".
     """
 
     # Total Cost
@@ -2271,6 +2279,12 @@ class FixedCosts(FromDictMixin):
     onshore_electrical_maintenance: float = field(default=0)
 
     labor: float = field(default=0)
+
+    units: str = field(
+        default="$/kw/yr",
+        converter=(str, str.lower),
+        validator=validators.in_(["$/kw/yr", "$/yr"]),
+    )
 
     resolution: dict = field(init=False)
     hierarchy: dict = field(init=False)

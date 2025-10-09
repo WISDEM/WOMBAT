@@ -45,6 +45,8 @@ rob.hammond@nrel.gov.
 
 ## Latest Changes?
 
+As of v0.13, fixed costs can now be provided as \$/yr instead of only \$/kw/yr.
+
 As of v0.10, a series of convenience features and consistency updates have been made.
 - A breaking change to failure data has been made by using lists instead of dictionaries
   in the configuration of cables, turbines, and substations. To ease adoption, a
