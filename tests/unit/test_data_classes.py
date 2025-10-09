@@ -1093,6 +1093,7 @@ def test_FixedCosts_operations_provided():
     assert high_res.transmission_charges_rights == 0
     assert high_res.onshore_electrical_maintenance == 0
     assert high_res.labor == 0
+    assert high_res.units == "$/kw/yr"
 
 
 def test_FixedCosts_category_values_provided():
@@ -1139,6 +1140,7 @@ def test_FixedCosts_category_values_provided():
     assert high_res.transmission_charges_rights == 0
     assert high_res.onshore_electrical_maintenance == 60
     assert high_res.labor == 100
+    assert high_res.units == "$/kw/yr"
 
 
 def test_equipment_map(env_setup):
