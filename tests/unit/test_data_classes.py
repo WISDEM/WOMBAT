@@ -1072,6 +1072,7 @@ def test_FixedCosts_operations_provided():
         transmission_charges_rights=90,
         onshore_electrical_maintenance=60,
         labor=100,
+        units="$/yr",
     )
 
     assert high_res.operations == 100
@@ -1093,7 +1094,7 @@ def test_FixedCosts_operations_provided():
     assert high_res.transmission_charges_rights == 0
     assert high_res.onshore_electrical_maintenance == 0
     assert high_res.labor == 0
-    assert high_res.units == "$/kw/yr"
+    assert high_res.units == "$/yr"
 
 
 def test_FixedCosts_category_values_provided():
