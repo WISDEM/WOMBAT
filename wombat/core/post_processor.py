@@ -1910,7 +1910,7 @@ class Metrics:
         keys = self.fixed_costs.resolution[resolution]
         vals = np.array([[getattr(self.fixed_costs, key) for key in keys]])
         if self.fixed_costs.units == "$/kw/yr":
-            vals *= self.project_capacity * 1000
+            vals = vals * self.project_capacity * 1000
 
         total = (
             self.operations[["year", "month", "env_time"]]
