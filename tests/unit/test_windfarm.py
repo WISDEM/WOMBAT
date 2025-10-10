@@ -68,12 +68,13 @@ def test_windfarm_init(env_setup):
     }
 
     # Basic init items
+    assert windfarm.env == env
     assert windfarm.repair_manager == manager
     assert manager.windfarm == windfarm
     assert Path(windfarm.env.operations_log_fname).is_file()
 
     # Windfarm layout checking: 6 turbines, 1 substation, and 6 cables
-    assert windfarm.env == env
+    assert windfarm.layout_coords == "wgs-84"
     assert isinstance(windfarm.graph, DiGraph)
     assert len(windfarm.graph.nodes) == correct_N_nodes
     assert len(windfarm.graph.edges) == correct_N_edges
@@ -221,3 +222,82 @@ def test_windfarm_failed_init(env_setup):
     # Test for bad substation file
     with pytest.raises(ValueError):
         Windfarm(env, "layout_array_invalid.csv", manager)
+
+
+def test_windfarm_distance_coords(env_setup):
+    """Tests km based distances between distance-based coordinates."""
+    env = env_setup
+    manager = RepairManager(env)
+    windfarm = Windfarm(env, "layout_distance.csv", manager, layout_coords="distance")
+
+    correct_distances = np.array(
+        [
+            [
+                np.inf,
+                0.282842712474619,
+                0.565685424949238,
+                0.848528137423857,
+                0.282842712474619,
+                0.565685424949238,
+                0.848528137423857,
+            ],
+            [
+                0.282842712474619,
+                np.inf,
+                0.6324555320336759,
+                0.8944271909999159,
+                0.565685424949238,
+                0.282842712474619,
+                0.565685424949238,
+            ],
+            [
+                0.565685424949238,
+                0.6324555320336759,
+                np.inf,
+                0.282842712474619,
+                0.6324555320336759,
+                0.8,
+                1.019803902718557,
+            ],
+            [
+                0.848528137423857,
+                0.8944271909999159,
+                0.282842712474619,
+                np.inf,
+                0.8944271909999159,
+                1.019803902718557,
+                1.2,
+            ],
+            [
+                0.282842712474619,
+                0.565685424949238,
+                0.6324555320336759,
+                0.8944271909999159,
+                np.inf,
+                0.848528137423857,
+                1.131370849898476,
+            ],
+            [
+                0.565685424949238,
+                0.282842712474619,
+                0.8,
+                1.019803902718557,
+                0.848528137423857,
+                np.inf,
+                0.282842712474619,
+            ],
+            [
+                0.848528137423857,
+                0.565685424949238,
+                1.019803902718557,
+                1.2,
+                1.131370849898476,
+                0.282842712474619,
+                np.inf,
+            ],
+        ]
+    )
+
+    test_ids = windfarm.substation_id.tolist() + windfarm.turbine_id.tolist()
+    asset_distances = windfarm.distance_matrix.loc[test_ids, test_ids]
+    npt.assert_equal(asset_distances, correct_distances)
