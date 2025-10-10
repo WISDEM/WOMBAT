@@ -287,10 +287,25 @@ class Windfarm:
             # If the real distance/cable length is not input, then the geodesic distance
             # is calculated
             if data["length"] == 0:
-                data["length"] = distance.geodesic(
-                    start_coordinates, end_coordinates, ellipsoid="WGS-84"
-                ).km
-
+                match self.layout_coords:
+                    case "wgs-84":
+                        data["length"] = distance.geodesic(
+                            start_coordinates, end_coordinates, ellipsoid="WGS-84"
+                        ).km
+                    case "distance":
+                        data["length"] = (
+                            np.linalg.norm(
+                                np.array(start_coordinates) - np.array(end_coordinates)
+                            )
+                            / 1000
+                        )
+                    case _:
+                        msg = (
+                            "Did you reset `Windfarm.layout_coords` manually or"
+                            " implement a new coordinate style without updating the"
+                            " distance calculation?"
+                        )
+                        raise ValueError(msg)
             # Encode whether it is an array cable or an export cable
             if self.graph.nodes[end_node]["type"] == SystemType.TURBINE:
                 data["type"] = "array"
@@ -326,13 +341,13 @@ class Windfarm:
                 ]
             case "distance":
                 c1, c2 = zip(*itertools.combinations(coords, 2))
-                dist = np.linalg.norm(np.array(c1) - np.array(c2), axis=1)
+                dist = np.linalg.norm(np.array(c1) - np.array(c2), axis=1) / 1000
             case _:
                 msg = (
                     "Did you reset `Windfarm.layout_coords` manually or implement a"
                     " new coordinate style without updating the distance calculation?"
                 )
-                raise NotImplementedError(msg)
+                raise ValueError(msg)
         dist_arr = np.ones((len(ids), len(ids)))
         triangle_ix = np.triu_indices_from(dist_arr, 1)
         dist_arr[triangle_ix] = dist_arr.T[triangle_ix] = dist
