@@ -4,6 +4,9 @@
 
 - Adds the `units` input to `FixedCosts` that allows for costs to be defined on per kW
   basis (default, "\$/kw/yr") or as a set cost ("\$/yr").
+- Adds distance-based coordinates in meters that can be used by providing
+  `layout_coords: distance` in the primary configuration file. The default is "wgs-84
+  to maintain compatibility with existing workflows.
 
 ## v0.12 - 30 September 2025
 
@@ -22,7 +25,7 @@
 - Fixes a bug primarily impacting tow-to-port scenarios where individual maintenance and failure
   models are not being reset upon either replacement or following a tow-to-port repair under
   certain conditions. This allows for these additional processes to be perpetuated throughout the lifecycle
-  of the simulation while succumbing to the same inital flaw, compounding the number of erroneously
+  of the simulation while succumbing to the same initial flaw, compounding the number of erroneously
   additional events. The issue is resolved by the following:
     1. Multiple subassemblies can now be passed to a `Cable` or `System` object during an
        interruption, allowing for simpler logic handling.

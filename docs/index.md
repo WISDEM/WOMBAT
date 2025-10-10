@@ -45,7 +45,9 @@ rob.hammond@nrel.gov.
 
 ## Latest Changes?
 
-As of v0.13, fixed costs can now be provided as \$/yr instead of only \$/kw/yr.
+As of v0.13, fixed costs can now be provided as \$/yr instead of only \$/kw/yr and
+coordinates can be provided as meters-based relative coordinates using the `layout_coords`
+input to the primary configuration.
 
 As of v0.10, a series of convenience features and consistency updates have been made.
 - A breaking change to failure data has been made by using lists instead of dictionaries
