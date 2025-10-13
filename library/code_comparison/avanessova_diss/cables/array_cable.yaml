@@ -1,0 +1,18 @@
+name: array_cable
+maintenance:
+  - description: cable & scour survey
+    time: 8
+    materials: 10000
+    service_equipment: RMT
+    frequency: 365
+failures:
+  4:
+    scale: 69.4444  # 0.006 failures/turbine/year (2.4km per line) => 1 / (0.006 * 2.4)
+    shape: 1
+    time: 48
+    materials: 200000
+    description: cable replacement
+    service_equipment: CAB
+    operation_reduction: 0
+    replacement: true
+    level: 4
