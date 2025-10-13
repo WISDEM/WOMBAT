@@ -53,7 +53,7 @@ to date with WOMBAT's input changes.
 This example demonstrates the WOMBAT analysis portion of the 2025 doctoral dissertation by
 Nadezda Avanessova [^avanessova2025], which in part focuses on a comparison of
 ORE Catapult's COMPASS, WavEC's O&M Tool, and NREL's WOMBAT for offshore wind O&M. This example
-was originally run in v0.8.1, so some results will differ from what was published.
+was originally run in v0.8.1, and updated to v0.12, so some results will differ from what was published.
 
 ### `dinwoodie_validation.ipynb`
 
