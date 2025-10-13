@@ -1,0 +1,19 @@
+name: export cable
+maintenance:
+- description: export cable subsea inspection
+  time: 12
+  materials: 684.8
+  service_equipment: DSV
+  frequency: 730
+  level: 1
+failures:
+- scale: 50
+  shape: 1
+  time: 60
+  materials: 41086.4
+  operation_reduction: 0
+  service_equipment:
+  - CAB
+  replacement: false
+  level: 2
+  description: export cable major repair
