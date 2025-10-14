@@ -45,7 +45,7 @@ library_map = {
     "DINWOODIE": DINWOODIE,
     "IEA_26": IEA_26,
     "IEA26": IEA_26,
-    "avanessova_diss": AVANESSOVA_DISS,
+    "AVANESSOVA_DISS": AVANESSOVA_DISS,
     "COREWIND": COREWIND,
     "OSW_FIXED": OSW_FIXED,
     "LBW": LBW,
