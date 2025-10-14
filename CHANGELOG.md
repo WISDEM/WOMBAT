@@ -8,6 +8,11 @@
   `layout_coords: distance` in the primary configuration file. The default is "wgs-84
   to maintain compatibility with existing workflows.
 
+## v0.12.1 - 14 October 2025
+
+- Enable Python 3.13 and 3.14, with the caveat that 3.14 builds will fail until PyArrow 22.0 is
+  released.
+
 ## v0.12 - 30 September 2025
 
 - Allow for missing data columns for either "windspeed" or "waveheight" where a column
