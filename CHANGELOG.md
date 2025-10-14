@@ -7,6 +7,8 @@
 - Adds distance-based coordinates in meters that can be used by providing
   `layout_coords: distance` in the primary configuration file. The default is "wgs-84
   to maintain compatibility with existing workflows.
+- Adds the configuration data and analysis code used in the code comparison study,
+  published at http://dx.doi.org/10.7488/era/5854.
 
 ## v0.12 - 30 September 2025
 
