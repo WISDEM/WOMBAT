@@ -36,6 +36,7 @@ class Windfarm:
         env: WombatEnvironment,
         windfarm_layout: str | pd.DataFrame,
         repair_manager: RepairManager,
+        layout_coords: str = "wgs-84",
         substations: dict[str, dict] | None = None,
         turbines: dict[str, dict] | None = None,
         cables: dict[str, dict] | None = None,
@@ -43,6 +44,11 @@ class Windfarm:
     ) -> None:
         self.env = env
         self.repair_manager = repair_manager
+
+        if layout_coords not in ("wgs-84", "distance"):
+            msg = "Windfarm `layout_coords` must be one of 'wgs-84' or 'distance'."
+            raise ValueError(msg)
+        self.layout_coords = layout_coords
 
         # Set up the layout and instantiate all windfarm objects
         self._inputs: dict[str, dict | None] = {
@@ -281,10 +287,25 @@ class Windfarm:
             # If the real distance/cable length is not input, then the geodesic distance
             # is calculated
             if data["length"] == 0:
-                data["length"] = distance.geodesic(
-                    start_coordinates, end_coordinates, ellipsoid="WGS-84"
-                ).km
-
+                match self.layout_coords:
+                    case "wgs-84":
+                        data["length"] = distance.geodesic(
+                            start_coordinates, end_coordinates, ellipsoid="WGS-84"
+                        ).km
+                    case "distance":
+                        data["length"] = (
+                            np.linalg.norm(
+                                np.array(start_coordinates) - np.array(end_coordinates)
+                            )
+                            / 1000
+                        )
+                    case _:
+                        msg = (
+                            "Did you reset `Windfarm.layout_coords` manually or"
+                            " implement a new coordinate style without updating the"
+                            " distance calculation?"
+                        )
+                        raise ValueError(msg)
             # Encode whether it is an array cable or an export cable
             if self.graph.nodes[end_node]["type"] == SystemType.TURBINE:
                 data["type"] = "array"
@@ -312,9 +333,21 @@ class Windfarm:
             for *_, data in (*self.graph.nodes(data=True), *self.graph.edges(data=True))
         ]
 
-        dist = [
-            distance.geodesic(c1, c2).km for c1, c2 in itertools.combinations(coords, 2)
-        ]
+        match self.layout_coords:
+            case "wgs-84":
+                dist = [
+                    distance.geodesic(c1, c2).km
+                    for c1, c2 in itertools.combinations(coords, 2)
+                ]
+            case "distance":
+                c1, c2 = zip(*itertools.combinations(coords, 2))
+                dist = np.linalg.norm(np.array(c1) - np.array(c2), axis=1) / 1000
+            case _:
+                msg = (
+                    "Did you reset `Windfarm.layout_coords` manually or implement a"
+                    " new coordinate style without updating the distance calculation?"
+                )
+                raise ValueError(msg)
         dist_arr = np.ones((len(ids), len(ids)))
         triangle_ix = np.triu_indices_from(dist_arr, 1)
         dist_arr[triangle_ix] = dist_arr.T[triangle_ix] = dist
