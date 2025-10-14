@@ -1,9 +1,8 @@
 name: Broadshore Layout 1 - Tow-to-Port - Increase Wave Limit
-library: ../library
 start_year: 2000
 end_year: 2019
 service_equipment:
-  - [ctv_increases_wave.yaml, 3]
+  - [ctv_increase_wave.yaml, 3]
   - cab_increase_wave.yaml
   - ahv_increase_wave.yaml
   - rov_increase_wave.yaml
