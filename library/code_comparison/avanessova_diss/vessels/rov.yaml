@@ -1,0 +1,22 @@
+name: ROV Support Vessel
+equipment_rate: 24000  # £/day
+capability: RMT
+mobilization_cost: 0
+mobilization_days: 0
+speed: 22.224  # 12 knots
+max_windspeed_transport: 99
+max_windspeed_repair: 99
+max_waveheight_transport: 2.5
+max_waveheight_repair: 2.5
+strategy: requests
+strategy_threshold: 1
+charter_days: 3
+non_operational_start: "10/1"
+non_operational_end: "3/31"
+crew_transfer_time: 0
+n_crews: 1
+crew:
+  day_rate: 0  # crew comes with vessel
+  n_day_rate: 0
+  hourly_rate: 0
+  n_hourly_rate: 0

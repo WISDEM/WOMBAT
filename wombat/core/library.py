@@ -35,6 +35,7 @@ BASE_CASES = DEFAULT_LIBRARY / "baseline"
 
 DINWOODIE = CODE_COMPARISON / "dinwoodie"
 IEA_26 = CODE_COMPARISON / "iea26"
+AVANESSOVA_DISS = CODE_COMPARISON / "avanessova_diss"
 COREWIND = DEFAULT_LIBRARY / "corewind"
 
 OSW_FIXED = BASE_CASES / "offshore_fixed"
@@ -44,6 +45,7 @@ library_map = {
     "DINWOODIE": DINWOODIE,
     "IEA_26": IEA_26,
     "IEA26": IEA_26,
+    "AVANESSOVA_DISS": AVANESSOVA_DISS,
     "COREWIND": COREWIND,
     "OSW_FIXED": OSW_FIXED,
     "LBW": LBW,

@@ -1,0 +1,324 @@
+capacity_kw: 15000
+capex_kw: 1300
+power_curve:
+  file: IEA_15MW_240_RWT.csv
+  bin_width: 0.25
+rotor_system:
+  name: rotor_system
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+  - scale: 1.1111
+    shape: 1
+    time: 4
+    materials: 4200
+    description: minor repair
+    service_equipment: CTV
+    operation_reduction: 0
+    replacement: false
+    level: 1
+  - scale: 1.1111
+    shape: 1
+    time: 11
+    materials: 77700
+    description: medium repair
+    service_equipment: CTV
+    operation_reduction: 0
+    replacement: false
+    level: 2
+rotor_blades:
+  name: rotor_blades
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: RMT
+    frequency: 0
+  failures:
+  - scale: 0
+    shape: 0
+    time: 0
+    materials: 0
+    description: na
+    service_equipment: LCN
+    operation_reduction: 0
+    replacement: false
+    level: 3
+generator_system:
+  name: generator_system
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+  - scale: 1.7544
+    shape: 1
+    time: 4
+    materials: 4200
+    description: minor repair
+    service_equipment: CTV
+    operation_reduction: 0
+    replacement: false
+    level: 1
+  - scale: 1.7544
+    shape: 1
+    time: 11
+    materials: 77700
+    description: medium repair
+    service_equipment: CTV
+    operation_reduction: 0
+    replacement: false
+    level: 2
+  - scale: 0
+    shape: 0
+    time: 0
+    materials: 0
+    description: na
+    service_equipment: LCN
+    operation_reduction: 0
+    replacement: false
+    level: 3
+electrical_system:
+  name: electrical_system
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+  - scale: 0
+    shape: 0
+    time: 0
+    materials: 0
+    description: na
+    service_equipment: LCN
+    operation_reduction: 0
+    replacement: false
+    level: 3
+gearbox:
+  name: gearbox
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+  - scale: 0
+    shape: 0
+    time: 0
+    materials: 0
+    description: na
+    service_equipment: LCN
+    operation_reduction: 0
+    replacement: false
+    level: 3
+drive_train_system:
+  name: drive_train_system
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+  - scale: 2.5641
+    shape: 1
+    time: 4
+    materials: 4200
+    description: minor repair
+    service_equipment: CTV
+    operation_reduction: 0
+    replacement: false
+    level: 1
+  - scale: 2.5641
+    shape: 1
+    time: 8
+    materials: 77700
+    description: medium repair
+    service_equipment: CTV
+    operation_reduction: 0
+    replacement: false
+    level: 2
+  - scale: 0
+    shape: 0
+    time: 0
+    materials: 0
+    description: na
+    service_equipment: LCN
+    operation_reduction: 0
+    replacement: false
+    level: 3
+transmission_system:
+  name: transmission_system
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+  - scale: 0.551
+    shape: 1
+    time: 4
+    materials: 4200
+    description: minor repair
+    service_equipment: CTV
+    operation_reduction: 0
+    replacement: false
+    level: 2
+  - scale: 0.551
+    shape: 1
+    time: 16
+    materials: 77700
+    description: medium repair
+    service_equipment: CTV
+    operation_reduction: 0
+    replacement: false
+    level: 2
+yaw_system:
+  name: yaw_system
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+  - scale: 0.8547
+    shape: 1
+    time: 4
+    materials: 4200
+    description: minor repair
+    service_equipment: CTV
+    operation_reduction: 0
+    replacement: false
+    level: 1
+  - scale: 0.8547
+    shape: 1
+    time: 5
+    materials: 77700
+    description: medium repair
+    service_equipment: CTV
+    operation_reduction: 0
+    replacement: false
+    level: 2
+central_hydraulics_system:
+  name: central_hydraulics_system
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: RMT
+    frequency: 0
+  failures:
+  - scale: 1.7544
+    shape: 1
+    time: 4
+    materials: 4200
+    description: minor repair
+    service_equipment: CTV
+    operation_reduction: 0
+    replacement: false
+    level: 1
+  - scale: 1.7544
+    shape: 1
+    time: 6
+    materials: 77700
+    description: medium repair
+    service_equipment: CTV
+    operation_reduction: 0
+    replacement: false
+    level: 2
+turbine:
+  name: turbine
+  maintenance:
+  - description: annual service - turbine
+    time: 16
+    materials: 5000
+    service_equipment: CTV
+    frequency: 365
+    operation_reduction: 0
+  - description: annual service - lifting & safety equipment
+    time: 4
+    materials: 5000
+    service_equipment: CTV
+    frequency: 365
+    operation_reduction: 0
+  - description: annual service - HV components
+    time: 8
+    materials: 5000
+    service_equipment: CTV
+    frequency: 365
+    operation_reduction: 0
+  failures:
+  - scale: 3.7037
+    shape: 1
+    time: 4
+    materials: 4200
+    description: minor repair
+    service_equipment: CTV
+    operation_reduction: 0
+    replacement: false
+    level: 1
+  - scale: 3.7037
+    shape: 1
+    time: 6
+    materials: 77700
+    description: medium repair
+    service_equipment: CTV
+    operation_reduction: 0
+    replacement: false
+    level: 2
+substructure:
+  name: substructure
+  maintenance:
+  - description: n/a
+    time: 0
+    materials: 0
+    service_equipment: RMT
+    frequency: 0
+  failures:
+  - scale: 2
+    shape: 1
+    time: 4
+    materials: 4200
+    description: minor repair
+    service_equipment: CTV
+    operation_reduction: 0
+    replacement: false
+    level: 1
+  - scale: 10
+    shape: 1
+    time: 8
+    materials: 77700
+    description: medium repair
+    service_equipment: CTV
+    operation_reduction: 0
+    replacement: false
+    level: 2
+mooring_lines:
+  name: mooring_lines
+  maintenance:
+  - description: mooring and cable inspection
+    time: 8
+    materials: 10000
+    service_equipment: RMT
+    frequency: 365
+  failures:
+  - scale: 0
+    shape: 0
+    time: 0
+    materials: 0
+    description: na
+    service_equipment: LCN
+    operation_reduction: 0
+    replacement: false
+    level: 4
