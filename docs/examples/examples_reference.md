@@ -48,7 +48,7 @@ These example are no longer recalibrated for updated releases, and are merely ke
 to date with WOMBAT's input changes.
 ```
 
-### `code_comparison_2025.ipynb`
+### `avanessova_2025.ipynb`
 
 This example demonstrates the WOMBAT analysis portion of the 2025 doctoral dissertation by
 Nadezda Avanessova [^avanessova2025], which in part focuses on a comparison of
