@@ -539,6 +539,7 @@ class WombatEnvironment(simpy.Environment):
                 if col in missing
             )
         column_order = ["index", "datetime", "hour", "windspeed", "waveheight"]
+        column_order += [col for col in weather.columns if col not in column_order]
         weather = weather.select(column_order)
 
         # Create the start and end points
