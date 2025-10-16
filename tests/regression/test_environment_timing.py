@@ -58,7 +58,7 @@ def test_timing():
     assert env.now == correct_index
     assert env.simulation_time == correct_datetime
     assert env.hours_to_next_shift() == 8
-    current_conditions = env.weather_now.to_numpy().flatten()[2:]
+    current_conditions = env.weather_now.to_numpy().flatten()[2:5]
     assert all(current_conditions == (correct_hour, correct_wind, correct_wave))
     assert not env.is_workshift()
 
@@ -79,7 +79,7 @@ def test_timing():
     assert env.now == until
     assert env.simulation_time == correct_datetime
     assert env.hours_to_next_shift() == correct_hours_to_next_shift
-    current_conditions = env.weather_now.to_numpy().flatten()[2:]
+    current_conditions = env.weather_now.to_numpy().flatten()[2:5]
     assert all(current_conditions == (correct_hour, correct_wind, correct_wave))
     assert env.is_workshift()
 

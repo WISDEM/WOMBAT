@@ -216,6 +216,20 @@ def test_setup():
 
         env.cleanup_log_files()  # delete the logged data
 
+    # Ensure the extra column exists
+    env = WombatEnvironment(
+        data_dir=TEST_DATA,
+        weather_file="test_weather_quick_load.csv",
+        workday_start=8,
+        workday_end=16,
+        start_year=2002,
+        end_year=2002,
+        simulation_name="testing_setup",
+    )
+    expected_columns = ["index", "datetime", "hour", "windspeed", "waveheight", "extra"]
+    assert env.weather.columns == expected_columns
+    env.cleanup_log_files()  # delete the logged data
+
 
 def test_is_workshift():
     """Tests the ``is_workshift`` method for a variety of inputs."""
