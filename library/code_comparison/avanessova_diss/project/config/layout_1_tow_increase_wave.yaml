@@ -12,6 +12,6 @@ workday_end: 19
 project_capacity: 600  # 15MW x 40 turbines
 port: port_increase_wave.yaml
 port_distance: 45.79
-weather: ore_validation_58.0_-1.5.csv
+weather: ore_validation_58.0_-1.5.pqt
 inflation_rate: 0
 fixed_costs: fixed_costs.yaml

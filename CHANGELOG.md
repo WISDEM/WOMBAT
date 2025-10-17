@@ -9,6 +9,13 @@
   to maintain compatibility with existing workflows.
 - Adds the configuration data and analysis code used in the code comparison study,
   published at http://dx.doi.org/10.7488/era/5854.
+- Moves the standard weather loading routines to the `wombat/core/library.py, which includes the
+  following:
+  - Ability to read pre-processed Parquet data files for smaller file sizes and efficient I/O.
+  - `load_weather()` automatically reads the Parquet data or reads and transforms the CSV data.
+  - `read_weather_csv()` reads and converts the datetime column from standard datetime formats.
+  - `format_weather()` converts a resultant DataFrame from `read_weather_csv()` into a
+    WOMBAT-compatible weather profile.
 
 ## v0.12.2 - 16 October 2025
 
