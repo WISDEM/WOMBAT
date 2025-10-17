@@ -260,7 +260,8 @@ def convert_failure_data(
 
 
 def read_weather_csv(filename: str | Path) -> pd.DataFrame:
-    """Reads the weather profile from a CSV file and converts to a Pandas ``DataFrame``.
+    """Reads the weather profile from a CSV file and converts to a Pandas ``DataFrame``
+    with a converted "datetime" column.
 
     Parameters
     ----------
