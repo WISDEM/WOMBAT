@@ -475,7 +475,7 @@ class WombatEnvironment(simpy.Environment):
             The wind (and  wave) timeseries.
         """
         if isinstance(weather, str | Path):
-            weather = library.load_weather(weather)
+            weather = library.load_weather(self.data_dir / "weather" / weather)
         else:
             weather = library.format_weather(weather)
 
