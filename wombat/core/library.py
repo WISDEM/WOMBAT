@@ -300,36 +300,6 @@ def read_weather_csv(filename: str | Path) -> pd.DataFrame:
     return pa.csv.read_csv(filename, convert_options=convert_options).to_pandas()
 
 
-def load_weather(filename: str | Path) -> pd.DataFrame:
-    """Load the weather profile from either a CSV or Parquet file. If using Parquet
-    data, then all formatting is expected to have been previously completed.
-
-    Parameters
-    ----------
-    filename : str | Path
-        The full file path and name of the file ending in ".csv" or ".pqt".capitalize
-
-    Returns
-    -------
-    pd.DataFrame
-        A WOMBAT-friendly weather profile.
-
-    Raises
-    ------
-    ValueError
-        Raised if an invalid file format is provided.
-    """
-    filename = Path(filename).resolve()
-    match filename.suffix:
-        case ".csv":
-            weather = read_weather_csv(filename)
-            return format_weather(weather)
-        case ".pqt":
-            return pl.read_parquet(filename)
-        case _:
-            raise ValueError("Only .csv and .pqt files are accepted.")
-
-
 def format_weather(weather: pd.DataFrame) -> pl.DataFrame:
     """Format a weather profile to be compliant with WOMBAT's internal expectations.
 
@@ -380,3 +350,33 @@ def format_weather(weather: pd.DataFrame) -> pl.DataFrame:
         )
     column_order += [col for col in weather.columns if col not in column_order]
     return weather.select(column_order)
+
+
+def load_weather(filename: str | Path) -> pd.DataFrame:
+    """Load the weather profile from either a CSV or Parquet file. If using Parquet
+    data, then all formatting is expected to have been previously completed.
+
+    Parameters
+    ----------
+    filename : str | Path
+        The full file path and name of the file ending in ".csv" or ".pqt".capitalize
+
+    Returns
+    -------
+    pd.DataFrame
+        A WOMBAT-friendly weather profile.
+
+    Raises
+    ------
+    ValueError
+        Raised if an invalid file format is provided.
+    """
+    filename = Path(filename).resolve()
+    match filename.suffix:
+        case ".csv":
+            weather = read_weather_csv(filename)
+            return format_weather(weather)
+        case ".pqt":
+            return pl.read_parquet(filename)
+        case _:
+            raise ValueError("Only .csv and .pqt files are accepted.")
