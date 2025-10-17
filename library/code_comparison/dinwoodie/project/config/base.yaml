@@ -1,6 +1,6 @@
 name: dinwoodie_base
 library: DINWOODIE
-weather: alpha_ventus_weather_2002_2014.csv  # located in: dinwoodie / weather
+weather: alpha_ventus_weather_2002_2014.pqt  # located in: dinwoodie / weather
 service_equipment:
 # YAML-encoded list, but could also be created in standard Python list notation with
 # square brackets: [ctv1.yaml, ctv2.yaml, ..., hlv_requests.yaml]

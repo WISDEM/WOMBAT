@@ -1,5 +1,5 @@
 name: COREWIND Morro Bay In Situ
-weather: central_ca.csv
+weather: central_ca.pqt
 service_equipment:
   - ctv1.yaml
   - ctv2.yaml

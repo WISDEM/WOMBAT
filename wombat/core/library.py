@@ -21,11 +21,17 @@ signifies the user's input library path:
 from __future__ import annotations
 
 import re
+import warnings
 from copy import deepcopy
 from typing import Any
 from pathlib import Path
 
 import yaml
+import numpy as np
+import pandas as pd
+import polars as pl
+import pyarrow as pa
+import pyarrow.csv  # pylint: disable=W0611
 
 
 ROOT = Path(__file__).parents[2].resolve()
@@ -35,6 +41,7 @@ DEFAULT_DATA = DEFAULT_LIBRARY / "default"
 
 DINWOODIE = CODE_COMPARISON / "dinwoodie"
 IEA_26 = CODE_COMPARISON / "iea26"
+AVANESSOVA_DISS = CODE_COMPARISON / "avanessova_diss"
 COREWIND = DEFAULT_LIBRARY / "corewind"
 
 library_map = {
@@ -43,6 +50,7 @@ library_map = {
     "DINWOODIE": DINWOODIE,
     "IEA_26": IEA_26,
     "IEA26": IEA_26,
+    "AVANESSOVA_DISS": AVANESSOVA_DISS,
 }
 
 # YAML loader that is able to read scientific notation
@@ -244,3 +252,126 @@ def convert_failure_data(
     if return_dict:
         return configuration
     return None
+
+
+def read_weather_csv(filename: str | Path) -> pd.DataFrame:
+    """Reads the weather profile from a CSV file and converts to a Pandas ``DataFrame``
+    with a converted "datetime" column.
+
+    Parameters
+    ----------
+    filename : str | Path
+        Full filename and path for the weather profile.
+
+    Returns
+    -------
+    pd.DataFrame
+        Pandas dataframe with a converted datetime column.
+    """
+    convert_options = pa.csv.ConvertOptions(
+        timestamp_parsers=[
+            "%m/%d/%y %H:%M",
+            "%m/%d/%y %I:%M",
+            "%m/%d/%y %H:%M:%S",
+            "%m/%d/%y %I:%M:%S",
+            "%m/%d/%Y %H:%M",
+            "%m/%d/%Y %I:%M",
+            "%m/%d/%Y %H:%M:%S",
+            "%m/%d/%Y %I:%M:%S",
+            "%m-%d-%y %H:%M",
+            "%m-%d-%y %I:%M",
+            "%m-%d-%y %H:%M:%S",
+            "%m-%d-%y %I:%M:%S",
+            "%m-%d-%Y %H:%M",
+            "%m-%d-%Y %I:%M",
+            "%m-%d-%Y %H:%M:%S",
+            "%m-%d-%Y %I:%M:%S",
+            "%Y-%m-%d %H:%M",
+            "%Y-%m-%d %I:%M",
+            "%Y-%m-%d %H:%M:%S",
+            "%Y-%m-%d %I:%M:%S",
+        ]
+    )
+    return pa.csv.read_csv(filename, convert_options=convert_options).to_pandas()
+
+
+def format_weather(weather: pd.DataFrame) -> pl.DataFrame:
+    """Format a weather profile to be compliant with WOMBAT's internal expectations.
+
+    Parameters
+    ----------
+    weather : pd.DataFrame
+        A dataframe with at least a valid DateTime column with hourly resolution. All
+        used columns are "datetime", "windspeed", and "waveheight".
+
+    Returns
+    -------
+    pl.DataFrame
+        A WOMBAT-compatible weather Polars DataFrame.
+    """
+    required = ["windspeed", "waveheight"]
+    column_order = ["index", "datetime", "hour", "windspeed", "waveheight"]
+
+    weather = (
+        pl.from_pandas(
+            weather.fillna(0.0)
+            .set_index("datetime")
+            .sort_index()
+            .resample("h")
+            .interpolate(limit_direction="both")
+            .reset_index(drop=False)
+        )
+        .with_row_index()
+        .with_columns(
+            [
+                pl.col("datetime").cast(pl.Datetime).dt.cast_time_unit("ns"),
+                (pl.col("datetime").dt.hour()).alias("hour"),
+            ]
+        )
+    )
+
+    missing = set(required).difference(weather.columns)
+    if missing:
+        msg = (
+            f"The following column(s) are missing and will be set to 0:"
+            f" {', '.join(missing)}. Do NOT run the simulation if this is an error."
+        )
+        warnings.warn(msg)
+
+        weather = weather.with_columns(
+            pl.Series(name=col, values=np.zeros(weather.height))
+            for col in required
+            if col in missing
+        )
+    column_order += [col for col in weather.columns if col not in column_order]
+    return weather.select(column_order)
+
+
+def load_weather(filename: str | Path) -> pd.DataFrame:
+    """Load the weather profile from either a CSV or Parquet file. If using Parquet
+    data, then all formatting is expected to have been previously completed.
+
+    Parameters
+    ----------
+    filename : str | Path
+        The full file path and name of the file ending in ".csv" or ".pqt".capitalize
+
+    Returns
+    -------
+    pd.DataFrame
+        A WOMBAT-friendly weather profile.
+
+    Raises
+    ------
+    ValueError
+        Raised if an invalid file format is provided.
+    """
+    filename = Path(filename).resolve()
+    match filename.suffix:
+        case ".csv":
+            weather = read_weather_csv(filename)
+            return format_weather(weather)
+        case ".pqt":
+            return pl.read_parquet(filename)
+        case _:
+            raise ValueError("Only .csv and .pqt files are accepted.")

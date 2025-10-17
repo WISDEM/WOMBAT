@@ -1,10 +1,17 @@
 """Tests for wombat/core/library.py."""
 
 from copy import deepcopy
+from pathlib import Path
 
 import pytest
+from polars.testing import assert_frame_equal
 
-from wombat.core.library import load_yaml, library_map, convert_failure_data
+from wombat.core.library import (
+    load_yaml,
+    library_map,
+    load_weather,
+    convert_failure_data,
+)
 
 
 def test_load_yaml():
@@ -298,3 +305,18 @@ def test_convert_failure_dict():
 
     with pytest.raises(ValueError):
         convert_failure_data(base_cable, "cables", return_dict=True)
+
+
+def test_csv_pqt_conversion():
+    """Tests that a Parquet data file saved from a converted CSV yields the same result
+    as the original CSV load and conversion.
+    """
+    weather_csv = Path(__file__).parents[1] / "library" / "weather" / "test_weather.csv"
+    weather_pqt = weather_csv.with_suffix(".pqt")
+
+    df_csv = load_weather(weather_csv)
+    df_csv.write_parquet(weather_pqt)
+    df_pqt = load_weather(weather_pqt)
+    weather_pqt.unlink()
+
+    assert_frame_equal(df_csv, df_pqt)

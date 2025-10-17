@@ -1,0 +1,17 @@
+name: Broadshore Layout 1 - In Situ - Increase Failure Rates
+start_year: 2000
+end_year: 2019
+service_equipment:
+  - [ctv.yaml, 3]
+  - cab.yaml
+  - hlv.yaml
+  - ahv.yaml
+  - rov.yaml
+layout: broadshore_layout_1_in_situ_increase_failure.csv
+workday_start: 0
+workday_end: 24
+project_capacity: 600  # 15MW x 40 turbines
+port_distance: 45.79
+weather: ore_validation_58.0_-1.5.pqt
+inflation_rate: 0
+fixed_costs: fixed_costs.yaml

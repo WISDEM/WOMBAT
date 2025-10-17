@@ -1,0 +1,20 @@
+name: Cable Laying Vessel
+equipment_rate: 80000  # £/day
+charter_days: 28
+capability: CAB
+mobilization_cost: 500000
+mobilization_days: 14
+speed: 37.04  # 12 knots
+max_windspeed_transport: 99
+max_windspeed_repair: 99
+max_waveheight_transport: 2.5
+max_waveheight_repair: 2.5
+strategy: requests
+strategy_threshold: 1
+crew_transfer_time: 0
+n_crews: 1
+crew:
+  day_rate: 0  # crew comes with vessel
+  n_day_rate: 0
+  hourly_rate: 0
+  n_hourly_rate: 0

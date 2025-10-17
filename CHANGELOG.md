@@ -7,6 +7,20 @@
 - Adds distance-based coordinates in meters that can be used by providing
   `layout_coords: distance` in the primary configuration file. The default is "wgs-84
   to maintain compatibility with existing workflows.
+- Adds the configuration data and analysis code used in the code comparison study,
+  published at http://dx.doi.org/10.7488/era/5854.
+- Moves the standard weather loading routines to the `wombat/core/library.py, which includes the
+  following:
+  - Ability to read pre-processed Parquet data files for smaller file sizes and efficient I/O.
+  - `load_weather()` automatically reads the Parquet data or reads and transforms the CSV data.
+  - `read_weather_csv()` reads and converts the datetime column from standard datetime formats.
+  - `format_weather()` converts a resultant DataFrame from `read_weather_csv()` into a
+    WOMBAT-compatible weather profile.
+
+## v0.12.2 - 16 October 2025
+
+- Reinstate the ability to have extra columns in the weather profile to avoid upstream conflicts,
+  but enforce that they are placed after the columns used by the model.
 
 ## v0.12.1 - 14 October 2025
 

@@ -1,0 +1,23 @@
+name: Tugboat 1
+equipment_rate: 55600  # £/day
+charter_days: 28
+capability: TOW
+mobilization_cost: 200000
+mobilization_days: 14
+speed: 37.04  # 20 knots
+tow_speed: 5.556  # 3 knots
+max_windspeed_transport: 99
+max_windspeed_repair: 99
+max_waveheight_transport: 3
+max_waveheight_repair: 1.5
+strategy: requests
+strategy_threshold: 1
+crew_transfer_time: 0
+unmoor_hours: 12
+reconnection_hours: 12
+n_crews: 1
+crew:
+  day_rate: 0  # crew comes with vessel
+  n_day_rate: 0
+  hourly_rate: 0
+  n_hourly_rate: 0

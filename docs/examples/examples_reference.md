@@ -48,6 +48,13 @@ These example are no longer recalibrated for updated releases, and are merely ke
 to date with WOMBAT's input changes.
 ```
 
+### `avanessova_2025.ipynb`
+
+This example demonstrates the WOMBAT analysis portion of the 2025 doctoral dissertation by
+Nadezda Avanessova [^avanessova2025], which in part focuses on a comparison of
+ORE Catapult's COMPASS, WavEC's O&M Tool, and NREL's WOMBAT for offshore wind O&M. This example
+was originally run in v0.8.1, and updated to v0.12, so some results will differ from what was published.
+
 ### `dinwoodie_validation.ipynb`
 
 This shows the latest results of the model validation using the modeling parameters from
@@ -66,3 +73,4 @@ the listed times for v0.7 in the notebooks will not match those in this example.
 
 [^dinwoodie2015reference]: Iain Dinwoodie, Ole-Erik V Endrerud, Matthias Hofmann, Rebecca Martin, and Iver Bakken Sperstad. Reference cases for verification of operation and maintenance simulation models for offshore wind farms. *Wind Engineering*, 39(1):1–14, 2015.
 [^smart2016iea]: Gavin Smart, Aaron Smith, Ethan Warner, Iver Bakken Sperstad, Bob Prinsen, and Roberto Lacal-Arantegui. Iea wind task 26: offshore wind farm baseline documentation. Technical Report, National Renewable Energy Lab.(NREL), Golden, CO (United States), 2016.
+[^avanessova2025]: Avanessova, Nadezda. "Developing a holistic operation and maintenance simulation tool for emerging offshore wind projects." (2025).
