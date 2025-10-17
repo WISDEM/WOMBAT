@@ -10,6 +10,11 @@
 - Adds the configuration data and analysis code used in the code comparison study,
   published at http://dx.doi.org/10.7488/era/5854.
 
+## v0.12.2 - 16 October 2025
+
+- Reinstate the ability to have extra columns in the weather profile to avoid upstream conflicts,
+  but enforce that they are placed after the columns used by the model.
+
 ## v0.12.1 - 14 October 2025
 
 - Enable Python 3.13 and 3.14, with the caveat that 3.14 builds will fail until PyArrow 22.0 is
