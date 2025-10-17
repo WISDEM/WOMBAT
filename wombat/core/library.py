@@ -37,25 +37,20 @@ import pyarrow.csv  # pylint: disable=W0611
 ROOT = Path(__file__).parents[2].resolve()
 DEFAULT_LIBRARY = ROOT / "library"
 CODE_COMPARISON = DEFAULT_LIBRARY / "code_comparison"
-BASE_CASES = DEFAULT_LIBRARY / "baseline"
+DEFAULT_DATA = DEFAULT_LIBRARY / "default"
 
 DINWOODIE = CODE_COMPARISON / "dinwoodie"
 IEA_26 = CODE_COMPARISON / "iea26"
 AVANESSOVA_DISS = CODE_COMPARISON / "avanessova_diss"
 COREWIND = DEFAULT_LIBRARY / "corewind"
 
-OSW_FIXED = BASE_CASES / "offshore_fixed"
-LBW = BASE_CASES / "land_based"
-
 library_map = {
+    "DEFAULT": DEFAULT_DATA,
+    "COREWIND": COREWIND,
     "DINWOODIE": DINWOODIE,
     "IEA_26": IEA_26,
     "IEA26": IEA_26,
     "AVANESSOVA_DISS": AVANESSOVA_DISS,
-    "COREWIND": COREWIND,
-    "OSW_FIXED": OSW_FIXED,
-    "LBW": LBW,
-    "LAND_BASED": LBW,
 }
 
 # YAML loader that is able to read scientific notation

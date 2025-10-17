@@ -1,0 +1,23 @@
+name: Heavy Lift Vessel
+equipment_rate: 400000.0 # Reference: WOMBAT_Cost_History.xslx
+capability: LCN
+speed: 20.37  # 11 knots
+strategy: requests
+strategy_threshold: 1
+max_windspeed_transport: 10
+max_windspeed_repair: 10
+max_waveheight_transport: 2
+max_waveheight_repair: 2
+onsite: false
+mobilization_cost: 0 # Reference: WOMBAT_Cost_History.xsl, assumed domestic WTIV (no mobilization costs)
+mobilization_days: 10
+workday_start: 0
+workday_end: 24
+charter_days: 20
+crew_transfer_time: 0.25
+n_crews: 1
+crew:
+  day_rate: 0  # Labor cost assumed separately as a fixed cost based on WOMBAT_Cost_History.xslx
+  n_day_rate: 5  # Most tasks are 3 or 4, but some larger ones are 8, 10, and 21
+  hourly_rate: 0
+  n_hourly_rate: 0
