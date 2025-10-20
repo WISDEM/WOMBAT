@@ -18,7 +18,7 @@ import simpy
 import pandas as pd
 import polars as pl
 from simpy.events import Process, Timeout
-from simpy.resources.store import FilterStore, FilterStoreGet
+from simpy.resources.store import Store, FilterStore, FilterStoreGet
 
 from wombat.windfarm import Windfarm
 from wombat.core.mixins import RepairsMixin
@@ -33,6 +33,62 @@ from wombat.core.data_classes import (
 )
 from wombat.core.repair_management import RepairManager
 from wombat.core.service_equipment import ServiceEquipment
+
+
+class PortManager(Store):
+    """Pass."""
+
+    def __init__(self, env: WombatEnvironment, capacity: float = np.inf) -> None:
+        super().__init__(env, capacity)
+
+        self.env = env
+        self.active_tugs: list[ServiceEquipment] = []
+
+    def register_tugboat(self, tugbat: ServiceEquipment) -> None:
+        """Add a tugboat to the collection of tugboats to be used during the simulation.
+
+        Parameters
+        ----------
+        tugbat : ServiceEquipment
+            Tugboat that is immediately available for use
+        """
+        self.put(tugbat)
+
+    def demobilize_tugboat(self, tugboat: ServiceEquipment) -> None:
+        """Demobilizes the tugboat from its current chartering by removing it from the
+        active tugboats directory and putting back into the ``Store``.
+
+        Parameters
+        ----------
+        tugboat : ServiceEquipment
+            Tugboat whose chartering period has ended by either a lack of tow to port
+            requests or reaching its maximum chartering per mobilization.
+        """
+        _ = self.active_tugs.pop(self.active_tugs.index(tugboat))
+        self.put(tugboat)
+
+    def dispatch_tugboat(self) -> tuple[ServiceEquipment, bool]:
+        """Retrieves an active tugboat by prioritizing chartered tugboats that are
+        currently available, chartered tugboats, or mobilizing a fresh tugboat.
+
+        Returns
+        -------
+        ServiceEquipment | StoreGet
+            Returns valid tugboat that may or may not be ready to use.
+        """
+        # TODO: Determine when a tugboat should be mobilized if one is already available
+        # TODO: active tugs as another filter store for when onsite and available
+        if self.active_tugs:
+            onsite = np.array([tug.onsite for tug in self.active_tugs])
+            available = np.array([tug.at_port for tug in self.active_tugs])
+            if (preferred := np.argwhere(onsite & available).flatten()).size > 0:
+                return preferred[0]
+            elif self.items:
+                return self.get()
+            else:
+                return np.argwhere(available).flatten()[0]
+
+        return self.get()
 
 
 class Port(RepairsMixin, FilterStore):
