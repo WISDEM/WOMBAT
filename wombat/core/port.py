@@ -18,31 +18,29 @@ import simpy
 import pandas as pd
 import polars as pl
 from simpy.events import Process, Timeout
-from simpy.resources.store import Store, FilterStore, FilterStoreGet
+from simpy.resources.store import FilterStore, FilterStoreGet
 
 from wombat.windfarm import Windfarm
 from wombat.core.mixins import RepairsMixin
 from wombat.core.library import load_yaml
 from wombat.utilities.time import hours_until_future_hour
 from wombat.core.environment import WombatEnvironment
-from wombat.core.data_classes import (
-    PortConfig,
-    Maintenance,
-    RepairRequest,
-    EquipmentClass,
-)
+from wombat.core.data_classes import PortConfig, Maintenance, RepairRequest
 from wombat.core.repair_management import RepairManager
 from wombat.core.service_equipment import ServiceEquipment
 
 
-class PortManager(Store):
+class PortManager:
     """Pass."""
 
-    def __init__(self, env: WombatEnvironment, capacity: float = np.inf) -> None:
-        super().__init__(env, capacity)
+    def __init__(self, env: WombatEnvironment) -> None:
+        # TODO: include port input to prioritize waiting for available tug vs
+        # dispatching a new one
+        self.dispatch_priority: bool = True
 
         self.env = env
-        self.active_tugs: list[ServiceEquipment] = []
+        self.active_vessels: FilterStore = FilterStore(env)
+        self.reserve_vessels: FilterStore = FilterStore(env)
 
     def register_tugboat(self, tugbat: ServiceEquipment) -> None:
         """Add a tugboat to the collection of tugboats to be used during the simulation.
@@ -52,9 +50,9 @@ class PortManager(Store):
         tugbat : ServiceEquipment
             Tugboat that is immediately available for use
         """
-        self.put(tugbat)
+        self.reserve_vessels.put(tugbat)
 
-    def demobilize_tugboat(self, tugboat: ServiceEquipment) -> None:
+    def demobilize_vessel(self, vessel: ServiceEquipment) -> Generator:
         """Demobilizes the tugboat from its current chartering by removing it from the
         active tugboats directory and putting back into the ``Store``.
 
@@ -64,31 +62,66 @@ class PortManager(Store):
             Tugboat whose chartering period has ended by either a lack of tow to port
             requests or reaching its maximum chartering per mobilization.
         """
-        _ = self.active_tugs.pop(self.active_tugs.index(tugboat))
-        self.put(tugboat)
+        vessel = yield self.active_vessels.get(lambda x: x is vessel)
+        self.reserve_vessels.put(vessel)
 
-    def dispatch_tugboat(self) -> tuple[ServiceEquipment, bool]:
-        """Retrieves an active tugboat by prioritizing chartered tugboats that are
-        currently available, chartered tugboats, or mobilizing a fresh tugboat.
+    def dispatch_vessel(self, *, tugboat: bool) -> tuple[FilterStoreGet, bool]:
+        """Retrieves an available tugboat.
+
+        If a tugboat is already at port, and available, then it will be utilized. If
+        there aren't any available tugboats, and ``dispatch_priority`` is True, then
+        another tugboat will be mobilized if there are more in reserve, otherwise, the
+        next available tugboat will be made available.
 
         Returns
         -------
-        ServiceEquipment | StoreGet
-            Returns valid tugboat that may or may not be ready to use.
+        FilterStoreGet | StoreGet
+            Returns ``.get()`` from either the :py:attr:`active_vessels` or
+            :py:attr:`reserve_vessels`.
+        bool
+            If True, then the returned tugboat getter needs to be mobilized, otherwise
+            False.
         """
-        # TODO: Determine when a tugboat should be mobilized if one is already available
-        # TODO: active tugs as another filter store for when onsite and available
-        if self.active_tugs:
-            onsite = np.array([tug.onsite for tug in self.active_tugs])
-            available = np.array([tug.at_port for tug in self.active_tugs])
-            if (preferred := np.argwhere(onsite & available).flatten()).size > 0:
-                return preferred[0]
-            elif self.items:
-                return self.get()
-            else:
-                return np.argwhere(available).flatten()[0]
+        if tugboat:
+            if self.active_vessels.items:
+                for vessel in self.active_vessels.items:
+                    if (
+                        vessel.at_port
+                        and not vessel.dispatched
+                        and "TOW" in vessel.settings.capability
+                    ):
+                        return self.active_vessels.get(lambda x: x is vessel), False
+                if self.dispatch_priority & self.reserve_vessels.items:
+                    return self.reserve_vessels.get(
+                        lambda x: "TOW" in x.settings.capability
+                    ), True
+                return self.active_vessels.get(
+                    lambda x: x.at_port
+                    and not x.dispatched
+                    and "TOW" in x.settings.capability
+                ), False
+            return self.reserve_vessels.get(
+                lambda x: "TOW" in x.settings.capability
+            ), True
 
-        return self.get()
+        if self.active_vessels.items:
+            for vessel in self.active_vessels.items:
+                if (
+                    vessel.at_port
+                    and not vessel.dispatched
+                    and "TOW" not in vessel.settings.capability
+                ):
+                    return self.active_vessels.get(lambda x: x is vessel), False
+            if self.dispatch_priority & self.reserve_vessels.items:
+                return self.reserve_vessels.get(
+                    lambda x: "TOW" in x.settings.capability
+                ), True
+            return self.active_vessels.get(
+                lambda x: x.at_port
+                and not x.dispatched
+                and "TOW" not in x.settings.capability
+            ), False
+        return self.reserve_vessels.get(lambda x: "TOW" in x.settings.capability), True
 
 
 class Port(RepairsMixin, FilterStore):
@@ -190,14 +223,12 @@ class Port(RepairsMixin, FilterStore):
         self.turbine_manager = simpy.Resource(env, self.settings.max_operations)
         self.crew_manager = simpy.Resource(env, self.settings.n_crews)
 
-        service_equipment = []
+        self.service_equipment_manager = PortManager(self.env)
         for t in self.settings.tugboats:
             tugboat = ServiceEquipment(self.env, self.windfarm, repair_manager, t)
             tugboat._register_port(self)
-            service_equipment.append(tugboat)
+            self.service_equipment_manager.register_tugboat(tugboat)
 
-        self.service_equipment_manager = simpy.FilterStore(env, len(service_equipment))
-        self.service_equipment_manager.items = service_equipment
         self.active_repairs: dict[str, dict[str, simpy.events.Event]] = {}
         self.subassembly_resets: dict[str, list[str]] = {}
 
@@ -476,11 +507,11 @@ class Port(RepairsMixin, FilterStore):
         yield system.servicing
 
         # Request a tugboat to retrieve the turbine
-        tugboat = yield self.service_equipment_manager.get(
-            lambda x: x.at_port
-            and (not x.dispatched)
-            and EquipmentClass.TOW in x.settings.capability
+        tugboat, mobilize = yield self.service_equipment_manager.dispatch_vessel(
+            tugboat=True
         )
+        if mobilize:
+            yield self.env.process(tugboat.mobilize())
 
         # Check that there is enough time to complete towing, connection, and repairs
         # before starting the process, otherwise, wait until the next operational period
@@ -509,8 +540,9 @@ class Port(RepairsMixin, FilterStore):
             assert isinstance(tugboat, ServiceEquipment)
         yield self.env.process(tugboat.run_tow_to_port(request))
 
+        # TODO: fix me
         # Make the tugboat available again
-        yield self.service_equipment_manager.put(tugboat)
+        yield self.service_equipment_manager.reserve_vessels.put(tugboat)
 
         # Transfer the repairs to the port queue, which will initiate the repair process
         yield self.env.process(self.run_repairs(system_id))
@@ -519,11 +551,13 @@ class Port(RepairsMixin, FilterStore):
         yield simpy.AllOf(self.env, self.active_repairs[system_id].values())
 
         # Request a tugboat to tow the turbine back to site, and open the turbine queue
-        tugboat = yield self.service_equipment_manager.get(
-            lambda x: x.at_port
-            and (not x.dispatched)
-            and EquipmentClass.TOW in x.settings.capability
+        tugboat, mobilize = yield self.service_equipment_manager.dispatch_vessel(
+            tugboat=True
         )
+        if mobilize:
+            yield self.env.process(tugboat.mobilize())
+
+        # TODO: fix me, this is old logic, broken by the above tugboat retrieval
         self.turbine_manager.release(turbine_request)
         self.subassembly_resets[system_id] = list(
             set(self.subassembly_resets[system_id])
@@ -533,8 +567,9 @@ class Port(RepairsMixin, FilterStore):
         )
         self.invalid_systems.pop(self.invalid_systems.index(system_id))
 
+        # TODO: fix me
         # Make the tugboat available again
-        yield self.service_equipment_manager.put(tugboat)
+        yield self.service_equipment_manager.reserve_vessels.put(tugboat)
 
     def run_unscheduled_in_situ(
         self, request: RepairRequest, *, initial: bool = False
@@ -582,11 +617,12 @@ class Port(RepairsMixin, FilterStore):
         self.requests_serviced.update([request.request_id])
 
         # Request a vessel that isn't solely a towing vessel
-        vessel = yield self.service_equipment_manager.get(
-            lambda x: x.at_port
-            and (not x.dispatched)
-            and x.settings.capability != [EquipmentClass.TOW]
+        vessel, mobilize = yield self.service_equipment_manager.dispatch_vessel(
+            tugboat=False
         )
+        if mobilize:
+            yield self.env.process(vessel.mobilize())
+
         if TYPE_CHECKING:
             assert isinstance(vessel, ServiceEquipment)
         request = yield self.manager.get(lambda x: x is request)
@@ -609,5 +645,6 @@ class Port(RepairsMixin, FilterStore):
                 )
             )
 
+        # TODO: fix me
         # Make the tugboat available again
-        yield self.service_equipment_manager.put(vessel)
+        yield self.service_equipment_manager.reserve_vessels.put(vessel)

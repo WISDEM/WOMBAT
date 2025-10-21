@@ -423,7 +423,8 @@ class Simulation(FromDictMixin):
             self.port = Port(
                 self.env, self.windfarm, self.repair_manager, self.config.port
             )
-            for service_equipment in self.port.service_equipment_manager.items:
+            tugboats = self.port.service_equipment_manager.reserve_vessels.items
+            for service_equipment in tugboats:
                 name = service_equipment.settings.name  # type: ignore
                 if name in self.service_equipment:
                     raise ValueError(
