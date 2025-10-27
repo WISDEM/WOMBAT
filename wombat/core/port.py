@@ -18,16 +18,20 @@ import simpy
 import pandas as pd
 import polars as pl
 from simpy.events import Process, Timeout
-from simpy.resources.store import FilterStore, FilterStoreGet
+from simpy.resources.store import StorePut, FilterStore, FilterStoreGet
 
 from wombat.windfarm import Windfarm
 from wombat.core.mixins import RepairsMixin
 from wombat.core.library import load_yaml
-from wombat.utilities.time import hours_until_future_hour
+from wombat.utilities.time import HOURS_IN_DAY, hours_until_future_hour
 from wombat.core.environment import WombatEnvironment
 from wombat.core.data_classes import PortConfig, Maintenance, RepairRequest
 from wombat.core.repair_management import RepairManager
 from wombat.core.service_equipment import ServiceEquipment
+
+
+if TYPE_CHECKING:
+    from wombat.core.data_classes import UnscheduledServiceEquipmentData
 
 
 class PortManager:
@@ -42,6 +46,9 @@ class PortManager:
         self.active_vessels: FilterStore = FilterStore(env)
         self.reserve_vessels: FilterStore = FilterStore(env)
 
+        self.charter_map: dict[str, float] = {}
+        # TODO: create process for accumulation of downtime between requests
+
     def register_tugboat(self, tugbat: ServiceEquipment) -> None:
         """Add a tugboat to the collection of tugboats to be used during the simulation.
 
@@ -52,18 +59,20 @@ class PortManager:
         """
         self.reserve_vessels.put(tugbat)
 
-    def demobilize_vessel(self, vessel: ServiceEquipment) -> Generator:
-        """Demobilizes the tugboat from its current chartering by removing it from the
-        active tugboats directory and putting back into the ``Store``.
+    def update_charter_map(self, vessel: ServiceEquipment) -> None:
+        """Updates the charter mapping for :py:attr:`vessel` to include the end of the
+        charter period for the :py:attr:`vessel`.
 
         Parameters
         ----------
-        tugboat : ServiceEquipment
-            Tugboat whose chartering period has ended by either a lack of tow to port
-            requests or reaching its maximum chartering per mobilization.
+        vessel : ServiceEquipment
+            The vessel to add to the charter period mapping.
         """
-        vessel = yield self.active_vessels.get(lambda x: x is vessel)
-        self.reserve_vessels.put(vessel)
+        if TYPE_CHECKING:
+            assert isinstance(vessel.settings, UnscheduledServiceEquipmentData)
+        now = self.env.now
+        charter_hours = vessel.settings.charter_days * HOURS_IN_DAY
+        self.charter_map[vessel.settings.name] = now + charter_hours
 
     def dispatch_vessel(self, *, tugboat: bool) -> tuple[FilterStoreGet, bool]:
         """Retrieves an available tugboat.
@@ -122,6 +131,27 @@ class PortManager:
                 and "TOW" not in x.settings.capability
             ), False
         return self.reserve_vessels.get(lambda x: "TOW" in x.settings.capability), True
+
+    def return_vessel(self, vessel: ServiceEquipment) -> StorePut:
+        """Return the :py:attr:`vessel` to the either the :py:attr:`active_vessels` or
+        :py:attr:`reserve_vessels` store, depending on if there is time left in its
+        charter period.
+
+        Parameters
+        ----------
+        vessel : ServiceEquipment
+            The vessel to be returned to the active or reserve vessels store.
+
+        Yields
+        ------
+        StorePut
+            Request to put the vessel back in either the active or reserve store.
+        """
+        # TODO: mechanism to stop accumulation of downtime costs
+        if self.env.now < self.charter_map[vessel.settings.name]:
+            yield self.active_vessels.put(vessel)
+        else:
+            yield self.reserve_vessels.put(vessel)
 
 
 class Port(RepairsMixin, FilterStore):
@@ -512,6 +542,7 @@ class Port(RepairsMixin, FilterStore):
         )
         if mobilize:
             yield self.env.process(tugboat.mobilize())
+            self.service_equipment_manager.update_charter_map(tugboat)
 
         # Check that there is enough time to complete towing, connection, and repairs
         # before starting the process, otherwise, wait until the next operational period
@@ -540,9 +571,7 @@ class Port(RepairsMixin, FilterStore):
             assert isinstance(tugboat, ServiceEquipment)
         yield self.env.process(tugboat.run_tow_to_port(request))
 
-        # TODO: fix me
-        # Make the tugboat available again
-        yield self.service_equipment_manager.reserve_vessels.put(tugboat)
+        yield self.env.process(self.service_equipment_manager.release_vessel(tugboat))
 
         # Transfer the repairs to the port queue, which will initiate the repair process
         yield self.env.process(self.run_repairs(system_id))
