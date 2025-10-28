@@ -25,7 +25,12 @@ from wombat.core.mixins import RepairsMixin
 from wombat.core.library import load_yaml
 from wombat.utilities.time import HOURS_IN_DAY, hours_until_future_hour
 from wombat.core.environment import WombatEnvironment
-from wombat.core.data_classes import PortConfig, Maintenance, RepairRequest
+from wombat.core.data_classes import (
+    PortConfig,
+    Maintenance,
+    RepairRequest,
+    EquipmentClass,
+)
 from wombat.core.repair_management import RepairManager
 from wombat.core.service_equipment import ServiceEquipment
 
@@ -97,20 +102,20 @@ class PortManager:
                     if (
                         vessel.at_port
                         and not vessel.dispatched
-                        and "TOW" in vessel.settings.capability
+                        and EquipmentClass.TOW in vessel.settings.capability
                     ):
                         return self.active_vessels.get(lambda x: x is vessel), False
                 if self.dispatch_priority & self.reserve_vessels.items:
                     return self.reserve_vessels.get(
-                        lambda x: "TOW" in x.settings.capability
+                        lambda x: EquipmentClass.TOW in x.settings.capability
                     ), True
                 return self.active_vessels.get(
                     lambda x: x.at_port
                     and not x.dispatched
-                    and "TOW" in x.settings.capability
+                    and EquipmentClass.TOW in x.settings.capability
                 ), False
             return self.reserve_vessels.get(
-                lambda x: "TOW" in x.settings.capability
+                lambda x: EquipmentClass.TOW in x.settings.capability
             ), True
 
         if self.active_vessels.items:
@@ -123,14 +128,16 @@ class PortManager:
                     return self.active_vessels.get(lambda x: x is vessel), False
             if self.dispatch_priority & self.reserve_vessels.items:
                 return self.reserve_vessels.get(
-                    lambda x: "TOW" in x.settings.capability
+                    lambda x: EquipmentClass.TOW in x.settings.capability
                 ), True
             return self.active_vessels.get(
                 lambda x: x.at_port
                 and not x.dispatched
                 and "TOW" not in x.settings.capability
             ), False
-        return self.reserve_vessels.get(lambda x: "TOW" in x.settings.capability), True
+        return self.reserve_vessels.get(
+            lambda x: EquipmentClass.TOW in x.settings.capability
+        ), True
 
     def return_vessel(self, vessel: ServiceEquipment) -> StorePut:
         """Return the :py:attr:`vessel` to the either the :py:attr:`active_vessels` or
@@ -537,9 +544,8 @@ class Port(RepairsMixin, FilterStore):
         yield system.servicing
 
         # Request a tugboat to retrieve the turbine
-        tugboat, mobilize = yield self.service_equipment_manager.dispatch_vessel(
-            tugboat=True
-        )
+        tugboat, mobilize = self.service_equipment_manager.dispatch_vessel(tugboat=True)
+        tugboat = yield tugboat
         if mobilize:
             yield self.env.process(tugboat.mobilize())
             self.service_equipment_manager.update_charter_map(tugboat)
@@ -571,7 +577,7 @@ class Port(RepairsMixin, FilterStore):
             assert isinstance(tugboat, ServiceEquipment)
         yield self.env.process(tugboat.run_tow_to_port(request))
 
-        yield self.env.process(self.service_equipment_manager.release_vessel(tugboat))
+        yield self.env.process(self.service_equipment_manager.return_vessel(tugboat))
 
         # Transfer the repairs to the port queue, which will initiate the repair process
         yield self.env.process(self.run_repairs(system_id))
@@ -580,9 +586,8 @@ class Port(RepairsMixin, FilterStore):
         yield simpy.AllOf(self.env, self.active_repairs[system_id].values())
 
         # Request a tugboat to tow the turbine back to site, and open the turbine queue
-        tugboat, mobilize = yield self.service_equipment_manager.dispatch_vessel(
-            tugboat=True
-        )
+        tugboat, mobilize = self.service_equipment_manager.dispatch_vessel(tugboat=True)
+        tugboat = yield tugboat
         if mobilize:
             yield self.env.process(tugboat.mobilize())
             self.service_equipment_manager.update_charter_map(tugboat)
@@ -645,9 +650,8 @@ class Port(RepairsMixin, FilterStore):
         self.requests_serviced.update([request.request_id])
 
         # Request a vessel that isn't solely a towing vessel
-        vessel, mobilize = yield self.service_equipment_manager.dispatch_vessel(
-            tugboat=False
-        )
+        vessel, mobilize = self.service_equipment_manager.dispatch_vessel(tugboat=False)
+        vessel = yield vessel
         if mobilize:
             yield self.env.process(vessel.mobilize())
             self.service_equipment_manager.update_charter_map(vessel)
