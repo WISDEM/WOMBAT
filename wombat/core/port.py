@@ -592,7 +592,6 @@ class Port(RepairsMixin, FilterStore):
             yield self.env.process(tugboat.mobilize())
             self.service_equipment_manager.update_charter_map(tugboat)
 
-        # TODO: fix me, this is old logic, broken by the above tugboat retrieval
         self.turbine_manager.release(turbine_request)
         self.subassembly_resets[system_id] = list(
             set(self.subassembly_resets[system_id])
@@ -602,7 +601,7 @@ class Port(RepairsMixin, FilterStore):
         )
         self.invalid_systems.pop(self.invalid_systems.index(system_id))
 
-        yield self.service_equipment_manager.return_vessel(tugboat)
+        yield self.env.process(self.service_equipment_manager.return_vessel(tugboat))
 
     def run_unscheduled_in_situ(
         self, request: RepairRequest, *, initial: bool = False
