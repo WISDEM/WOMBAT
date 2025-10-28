@@ -54,6 +54,23 @@ class PortManager:
         self.charter_map: dict[str, float] = {}
         # TODO: create process for accumulation of downtime between requests
 
+    def manage_vessels(self):
+        """Runs a daily check to see if any of the :py:attr:`active_vessels` are past
+        their chartering period, and if so, demobilizes them.
+        """
+        while True:
+            yield self.env.timeout(HOURS_IN_DAY)
+            if not self.active_vessels.items:
+                continue
+            now = self.env.now
+            for name, charter_end in self.charter_map.items():
+                if now >= charter_end:
+                    vessel = yield self.active_vessels.get(
+                        lambda x: x.settings.name == name
+                    )
+                    vessel.demobilize()
+                    _ = yield self.reserve_vessels.put(vessel)
+
     def register_tugboat(self, tugbat: ServiceEquipment) -> None:
         """Add a tugboat to the collection of tugboats to be used during the simulation.
 
@@ -158,6 +175,7 @@ class PortManager:
         if self.env.now < self.charter_map[vessel.settings.name]:
             yield self.active_vessels.put(vessel)
         else:
+            vessel.demobilize()
             yield self.reserve_vessels.put(vessel)
 
 
@@ -275,6 +293,8 @@ class Port(RepairsMixin, FilterStore):
         # Run the annualized fee logger
         if self.settings.annual_fee > 0:
             self.env.process(self._log_annual_fee())
+
+        self.env.process(self.service_equipment_manager.manage_vessels())
 
     def _log_annual_fee(self):
         """Logs the annual port lease fee on a monthly-basis."""
