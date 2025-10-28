@@ -419,6 +419,22 @@ class ServiceEquipment(RepairsMixin):
             self.manager.invalidate_system(request.system_id)
             yield request
 
+    def demobilize(self) -> None:
+        """Demobilizes the servicing equipment by resetting the location booleans and
+        logging the site exit.
+        """
+        self.onsite = False
+        self.at_port = False
+        self.at_site = False
+        self.at_system = False
+        self.dispatched = False
+        self.current_system = None
+        self.env.log_action(
+            agent=self.settings.name,
+            action="leaving site",
+            reason="charter period has ended",
+        )
+
     def enable_string_operations(self, cable: Cable) -> None:
         """Traverses the upstream cable and turbine connections and resets the
         ``System.cable_failure`` and ``Cable.downstream_failure`` until it hits
@@ -1818,17 +1834,7 @@ class ServiceEquipment(RepairsMixin):
 
         while True:
             if self.env.now >= charter_end_env_time:
-                self.onsite = False
-                self.at_port = False
-                self.at_site = False
-                self.at_system = False
-                self.dispatched = False
-                self.current_system = None
-                self.env.log_action(
-                    agent=self.settings.name,
-                    action="leaving site",
-                    reason="charter period has ended",
-                )
+                self.demobilize()
                 break
 
             if not self.onsite:
