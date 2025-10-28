@@ -299,8 +299,6 @@ class Port(RepairsMixin, FilterStore):
         if self.settings.annual_fee > 0:
             self.env.process(self._log_annual_fee())
 
-        # TODO: this is prematurely occurring so that the logging column headers
-        # are not produced. Likely to do with the process/yield logic
         self.env.process(self.service_equipment_manager.manage_vessels())
 
     def _log_annual_fee(self):
@@ -684,7 +682,7 @@ class Port(RepairsMixin, FilterStore):
 
         if TYPE_CHECKING:
             assert isinstance(vessel, ServiceEquipment)
-        request = yield self.manager.get(lambda x: x is request)
+        request = yield self.manager.get(lambda x: x is request)  # type: ignore
         yield self.env.process(vessel.in_situ_repair(request, initial=True))
 
         # If the tugboat finished mid-shift, the in-situ repair logic will keep it
