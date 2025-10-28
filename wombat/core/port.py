@@ -54,9 +54,14 @@ class PortManager:
         self.charter_map: dict[str, float] = {}
         # TODO: create process for accumulation of downtime between requests
 
-    def manage_vessels(self):
+    def manage_vessels(self) -> simpy.events.Timeout:
         """Runs a daily check to see if any of the :py:attr:`active_vessels` are past
         their chartering period, and if so, demobilizes them.
+
+        Yields
+        ------
+        simpy.events.Timeout
+            Daily timeout between vessel chartering check-ins.
         """
         while True:
             yield self.env.timeout(HOURS_IN_DAY)
@@ -294,6 +299,8 @@ class Port(RepairsMixin, FilterStore):
         if self.settings.annual_fee > 0:
             self.env.process(self._log_annual_fee())
 
+        # TODO: this is prematurely occurring so that the logging column headers
+        # are not produced. Likely to do with the process/yield logic
         self.env.process(self.service_equipment_manager.manage_vessels())
 
     def _log_annual_fee(self):
