@@ -597,9 +597,7 @@ class Port(RepairsMixin, FilterStore):
         )
         self.invalid_systems.pop(self.invalid_systems.index(system_id))
 
-        # TODO: fix me
-        # Make the tugboat available again
-        yield self.service_equipment_manager.reserve_vessels.put(tugboat)
+        yield self.service_equipment_manager.return_vessel(tugboat)
 
     def run_unscheduled_in_situ(
         self, request: RepairRequest, *, initial: bool = False
@@ -676,6 +674,4 @@ class Port(RepairsMixin, FilterStore):
                 )
             )
 
-        # TODO: fix me
-        # Make the tugboat available again
-        yield self.service_equipment_manager.reserve_vessels.put(vessel)
+        yield self.service_equipment_manager.return_vessel(vessel)
