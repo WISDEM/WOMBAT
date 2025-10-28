@@ -585,6 +585,7 @@ class Port(RepairsMixin, FilterStore):
         )
         if mobilize:
             yield self.env.process(tugboat.mobilize())
+            self.service_equipment_manager.update_charter_map(tugboat)
 
         # TODO: fix me, this is old logic, broken by the above tugboat retrieval
         self.turbine_manager.release(turbine_request)
@@ -651,6 +652,7 @@ class Port(RepairsMixin, FilterStore):
         )
         if mobilize:
             yield self.env.process(vessel.mobilize())
+            self.service_equipment_manager.update_charter_map(vessel)
 
         if TYPE_CHECKING:
             assert isinstance(vessel, ServiceEquipment)
