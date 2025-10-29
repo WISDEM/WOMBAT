@@ -1464,7 +1464,12 @@ class Metrics:
         )
         costs.loc[costs.action == "traveling", "display_reason"] = "Site Travel"
         costs.loc[costs.action == "towing", "display_reason"] = "Towing"
-        costs.loc[costs.action.str.contains("mooring"), "display_reason"] = "Connection"
+        costs.loc[costs.action.str.contains("mooring"), "display_reason"] = (
+            "Reconnection"
+        )
+        costs.loc[costs.action.str.contains("unmooring"), "display_reason"] = (
+            "Disconnection"
+        )
         costs.loc[costs.action == "mobilization", "display_reason"] = "Mobilization"
         costs.loc[costs.additional.isin(weather_hours), "display_reason"] = (
             "Weather Delay"
@@ -1530,6 +1535,8 @@ class Metrics:
             "Crew Transfer",
             "Site Travel",
             "Towing",
+            "Reconnection",
+            "Disconnection",
             "Mobilization",
             "Weather Delay",
             "No Requests",
