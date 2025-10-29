@@ -252,6 +252,7 @@ class ServiceEquipment(RepairsMixin):
         except Exception as e:
             msg = f"Could not create {data['name']}"
             raise ValueError(msg) from e
+        self.name = self.settings.name
 
         # Register servicing equipment with the repair manager if it is using an
         # unscheduled maintenance scenario, so it can be dispatched as needed
@@ -433,7 +434,7 @@ class ServiceEquipment(RepairsMixin):
         self.dispatched = False
         self.current_system = None
         self.env.log_action(
-            agent=self.settings.name,
+            agent=self.name,
             action="leaving site",
             reason="charter period has ended",
         )
@@ -589,7 +590,7 @@ class ServiceEquipment(RepairsMixin):
         self.onsite = False
 
         self.env.log_action(
-            agent=self.settings.name,
+            agent=self.name,
             action="delay",
             reason="work is complete",
             additional=additional,
@@ -619,9 +620,9 @@ class ServiceEquipment(RepairsMixin):
         )
         self.enroute = True
         self.env.log_action(
-            agent=self.settings.name,
+            agent=self.name,
             action="mobilization",
-            reason=f"{self.settings.name} is being mobilized",
+            reason=f"{self.name} is being mobilized",
             additional="mobilization",
             location="enroute",
             duration=mobilization_hours,
@@ -632,9 +633,9 @@ class ServiceEquipment(RepairsMixin):
         self.enroute = False
 
         self.env.log_action(
-            agent=self.settings.name,
+            agent=self.name,
             action="mobilization",
-            reason=f"{self.settings.name} has arrived on site",
+            reason=f"{self.name} has arrived on site",
             additional="mobilization",
             equipment_cost=self.settings.mobilization_cost,
             location="site",
@@ -654,9 +655,9 @@ class ServiceEquipment(RepairsMixin):
         self.enroute = True
         mobilization_hours = self.settings.mobilization_days * HOURS_IN_DAY
         self.env.log_action(
-            agent=self.settings.name,
+            agent=self.name,
             action="mobilization",
-            reason=f"{self.settings.name} is being mobilized",
+            reason=f"{self.name} is being mobilized",
             additional="mobilization",
             duration=mobilization_hours,
             location="enroute",
@@ -667,9 +668,9 @@ class ServiceEquipment(RepairsMixin):
         self.enroute = False
 
         self.env.log_action(
-            agent=self.settings.name,
+            agent=self.name,
             action="mobilization",
-            reason=f"{self.settings.name} has arrived on site",
+            reason=f"{self.name} has arrived on site",
             additional="mobilization",
             equipment_cost=self.settings.mobilization_cost,
             location="site",
@@ -804,7 +805,7 @@ class ServiceEquipment(RepairsMixin):
         """
         if hours < 0:
             raise ValueError(
-                f"`hours` must be greater than 0 for {self.settings.name} to process"
+                f"`hours` must be greater than 0 for {self.name} to process"
                 " a weather delay"
             )
         if hours == 0:
@@ -1214,7 +1215,7 @@ class ServiceEquipment(RepairsMixin):
             "part_name": subassembly.name,
             "system_ol": system.operating_level,
             "part_ol": subassembly.operating_level,
-            "agent": self.settings.name,
+            "agent": self.name,
             "reason": request.details.description,
             "request_id": request.request_id,
         }
@@ -1256,9 +1257,9 @@ class ServiceEquipment(RepairsMixin):
         )
 
         if to_system:
-            additional = f"transferring crew from {self.settings.name} to {system.id}"
+            additional = f"transferring crew from {self.name} to {system.id}"
         else:
-            additional = f"transferring crew from {system.id} to {self.settings.name}"
+            additional = f"transferring crew from {system.id} to {self.name}"
         self.env.log_action(
             action="transferring crew",
             additional=additional,
@@ -1329,7 +1330,7 @@ class ServiceEquipment(RepairsMixin):
             "system_id": system.id,
             "system_name": system.name,
             "system_ol": system.operating_level,
-            "agent": self.settings.name,
+            "agent": self.name,
             "reason": request.details.description,
             "request_id": request.request_id,
         }
@@ -1448,7 +1449,7 @@ class ServiceEquipment(RepairsMixin):
             "system_name": system.name,
             "part_id": subassembly.id,
             "part_name": subassembly.name,
-            "agent": self.settings.name,
+            "agent": self.name,
             "reason": request.details.description,
             "request_id": request.request_id,
         }
@@ -1510,7 +1511,7 @@ class ServiceEquipment(RepairsMixin):
                 )
             )
         else:
-            raise RuntimeError(f"{self.settings.name} is lost!")
+            raise RuntimeError(f"{self.name} is lost!")
 
         if initial:
             replacement = (
@@ -1649,7 +1650,7 @@ class ServiceEquipment(RepairsMixin):
             part_name=subassembly.name,
             system_ol=system.operating_level,
             part_ol=subassembly.operating_level,
-            agent=self.settings.name,
+            agent=self.name,
             action=f"{action} complete",
             reason=request.details.description,
             materials_cost=request.details.materials,
@@ -1697,7 +1698,7 @@ class ServiceEquipment(RepairsMixin):
                 yield self.env.process(
                     self.wait_until_next_shift(
                         **{
-                            "agent": self.settings.name,
+                            "agent": self.name,
                             "reason": "not in working hours",
                             "additional": "not in working hours",
                         }
@@ -1713,13 +1714,13 @@ class ServiceEquipment(RepairsMixin):
                             start="site",
                             end="port",
                             reason="no requests",
-                            agent=self.settings.name,
+                            agent=self.name,
                         )
                     )
                 yield self.env.process(
                     self.wait_until_next_shift(
                         **{
-                            "agent": self.settings.name,
+                            "agent": self.name,
                             "reason": "no requests",
                             "additional": "no work requests, waiting until the next shift",  # noqa: E501
                         }
@@ -1784,7 +1785,7 @@ class ServiceEquipment(RepairsMixin):
             else:
                 hours_to_next = self.env.max_run_time - self.env.now
             self.env.log_action(
-                agent=self.settings.name,
+                agent=self.name,
                 action="delay",
                 reason="non-operational period",
                 additional="waiting for next operational period",
@@ -1804,7 +1805,7 @@ class ServiceEquipment(RepairsMixin):
                 yield self.env.process(
                     self.wait_until_next_shift(
                         **{
-                            "agent": self.settings.name,
+                            "agent": self.name,
                             "reason": "no requests",
                             "additional": "no work requests submitted by start of shift",  # noqa: E501
                         }
@@ -1861,7 +1862,7 @@ class ServiceEquipment(RepairsMixin):
                 yield self.env.process(
                     self.wait_until_next_shift(
                         **{
-                            "agent": self.settings.name,
+                            "agent": self.name,
                             "reason": "not in working hours",
                             "additional": "not in working hours",
                         }
@@ -1873,7 +1874,7 @@ class ServiceEquipment(RepairsMixin):
                 yield self.env.process(
                     self.wait_until_next_shift(
                         **{
-                            "agent": self.settings.name,
+                            "agent": self.name,
                             "reason": "no requests",
                             "additional": "no work requests submitted by start of shift",  # noqa: E501
                         }
@@ -1913,7 +1914,7 @@ class ServiceEquipment(RepairsMixin):
             "system_id": request.system_id,
             "system_name": request.system_name,
             "request_id": request.request_id,
-            "agent": self.settings.name,
+            "agent": self.name,
         }
 
         # Travel to the turbine
@@ -1963,7 +1964,7 @@ class ServiceEquipment(RepairsMixin):
         self.dispatched = True
         system = self.windfarm.system(request.system_id)
         shared_logging = {
-            "agent": self.settings.name,
+            "agent": self.name,
             "request_id": request.request_id,
             "system_id": request.system_id,
             "system_name": request.system_name,
@@ -2019,7 +2020,7 @@ class ServiceEquipment(RepairsMixin):
                 hourly_cost = self.calculate_hourly_cost(0)
                 equipment_cost = self.calculate_equipment_cost(diff)
                 self.env.log_action(
-                    agent=self.settings.name,
+                    agent=self.name,
                     action="delay",
                     reason="no requests",
                     location="port",
@@ -2037,7 +2038,7 @@ class ServiceEquipment(RepairsMixin):
             hourly_cost = self.calculate_hourly_cost(0)
             equipment_cost = self.calculate_equipment_cost(diff)
             self.env.log_action(
-                agent=self.settings.name,
+                agent=self.name,
                 action="delay",
                 reason="no requests",
                 location="port",

@@ -123,7 +123,7 @@ class Metrics:
             capacity).
         service_equipment_names : str | list[str]
             The names of the servicing equipment, corresponding to
-            ``ServiceEquipment.settings.name`` for each ``ServiceEquipment`` in the
+            ``ServiceEquipment.name`` for each ``ServiceEquipment`` in the
             simulation.
         fixed_costs : str | None
             The filename of the project's fixed costs.
@@ -941,7 +941,7 @@ class Metrics:
             Indicates whether the values are with resepect to each tugboat (True) or not
             (False), by default False.
         vessel_crew_assumption : dict[str, float], optional
-            Dictionary of vessel names (``ServiceEquipment.settings.name``) and number
+            Dictionary of vessel names (``ServiceEquipment.name``) and number
             of crew members aboard to trannsform the results from vessel hours at sea
             to crew hours at sea.
 
@@ -953,7 +953,7 @@ class Metrics:
             - year (if appropriate for frequency)
             - month (if appropriate for frequency)
             - Total Crew Hours at Sea
-            - {ServiceEquipment.settings.name} (if broken out)
+            - {ServiceEquipment.name} (if broken out)
 
         Raises
         ------
@@ -1079,9 +1079,9 @@ class Metrics:
             - total_tows
             - total_tows_to_port (if broken out)
             - total_tows_to_site (if broken out)
-            - {ServiceEquipment.settings.name}_total_tows (if broken out)
-            - {ServiceEquipment.settings.name}_to_port (if broken out)
-            - {ServiceEquipment.settings.name}_to_site (if broken out)
+            - {ServiceEquipment.name}_total_tows (if broken out)
+            - {ServiceEquipment.name}_to_port (if broken out)
+            - {ServiceEquipment.name}_to_site (if broken out)
 
         Raises
         ------

@@ -70,9 +70,7 @@ class PortManager:
             now = self.env.now
             for name, charter_end in self.charter_map.items():
                 if now >= charter_end:
-                    vessel = yield self.available_vessels.get(
-                        lambda x: x.settings.name == name
-                    )
+                    vessel = yield self.available_vessels.get(lambda x: x.name == name)
                     vessel.downtime_accrual.interrupt()
                     vessel.demobilize()
                     _ = yield self.reserve_vessels.put(vessel)
@@ -100,7 +98,7 @@ class PortManager:
             assert isinstance(vessel.settings, UnscheduledServiceEquipmentData)
         now = self.env.now
         charter_hours = vessel.settings.charter_days * HOURS_IN_DAY
-        self.charter_map[vessel.settings.name] = now + charter_hours
+        self.charter_map[vessel.name] = now + charter_hours
 
     def dispatch_vessel(self, *, tugboat: bool) -> tuple[FilterStoreGet, bool]:
         """Retrieves an available tugboat.
@@ -188,7 +186,7 @@ class PortManager:
             Request to put the vessel back in either the active or reserve store.
         """
         # TODO: mechanism to stop accumulation of downtime costs
-        if self.env.now < self.charter_map[vessel.settings.name]:
+        if self.env.now < self.charter_map[vessel.name]:
             vessel.downtime_accrual = self.env.process(
                 vessel.run_downtime_accumulation()
             )
@@ -275,6 +273,7 @@ class Port(RepairsMixin, FilterStore):
         if TYPE_CHECKING:
             assert isinstance(config, dict)
         self.settings = PortConfig.from_dict(config)
+        self.name = self.settings.name
 
         self._check_working_hours(which="env")
         self.settings.set_non_operational_dates(
@@ -328,7 +327,7 @@ class Port(RepairsMixin, FilterStore):
 
         # At time 0 log the first monthly fee
         self.env.log_action(
-            agent=self.settings.name,
+            agent=self.name,
             action="monthly lease fee",
             reason="port lease",
             equipment_cost=monthly_fee,
@@ -344,7 +343,7 @@ class Port(RepairsMixin, FilterStore):
             # Log the fee at the start of each month at midnight
             yield self.env.timeout(time_to_next)
             self.env.log_action(
-                agent=self.settings.name,
+                agent=self.name,
                 action="monthly lease fee",
                 reason="port lease",
                 equipment_cost=monthly_fee,
@@ -372,7 +371,7 @@ class Port(RepairsMixin, FilterStore):
         system = self.windfarm.system(request.system_id)
         subassembly = getattr(system, request.subassembly_id)
         shared_logging = {
-            "agent": self.settings.name,
+            "agent": self.name,
             "reason": request.details.description,
             "system_id": system.id,
             "system_name": system.name,
@@ -416,7 +415,7 @@ class Port(RepairsMixin, FilterStore):
             system_id=system.id,
             part_id=subassembly.id,
             part_name=subassembly.name,
-            agent=self.settings.name,
+            agent=self.name,
             action=f"{action} complete",
             reason=request.details.description,
             materials_cost=request.details.materials,
@@ -445,9 +444,7 @@ class Port(RepairsMixin, FilterStore):
         None | list[RepairRequest]
             The list of repair requests that need to be completed at port.
         """
-        requests = self.manager.get_all_requests_for_system(
-            self.settings.name, system_id
-        )
+        requests = self.manager.get_all_requests_for_system(self.name, system_id)
         if requests is None:
             return requests
         requests = [r.value for r in requests]  # type: ignore
@@ -461,7 +458,7 @@ class Port(RepairsMixin, FilterStore):
                 part_name=request.subassembly_name,
                 system_ol=float("nan"),
                 part_ol=float("nan"),
-                agent=self.settings.name,
+                agent=self.name,
                 action="requests moved to port",
                 reason="at-port repair can now proceed",
                 request_id=request.request_id,
@@ -602,7 +599,7 @@ class Port(RepairsMixin, FilterStore):
                 start_search_date=max(intersection)
             )
             self.env.log_action(
-                agent=self.settings.name,
+                agent=self.name,
                 action="delay",
                 reason="non-operational period",
                 additional="waiting for next operational period",
@@ -706,7 +703,7 @@ class Port(RepairsMixin, FilterStore):
                 vessel.travel(
                     start="site",
                     end="port",
-                    agent=vessel.settings.name,
+                    agent=vessel.name,
                     reason=f"{request.details.description} complete",
                     system_id=request.system_id,
                     system_name=request.system_name,
