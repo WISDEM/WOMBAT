@@ -48,14 +48,14 @@ class PortManager:
         self.dispatch_priority: bool = True
 
         self.env = env
-        self.active_vessels: FilterStore = FilterStore(env)
+        self.available_vessels: FilterStore = FilterStore(env)
         self.reserve_vessels: FilterStore = FilterStore(env)
 
         self.charter_map: dict[str, float] = {}
         # TODO: create process for accumulation of downtime between requests
 
     def manage_vessels(self) -> simpy.events.Timeout:
-        """Runs a daily check to see if any of the :py:attr:`active_vessels` are past
+        """Runs a daily check to see if any of the :py:attr:`available_vessels` are past
         their chartering period, and if so, demobilizes them.
 
         Yields
@@ -65,12 +65,12 @@ class PortManager:
         """
         while True:
             yield self.env.timeout(HOURS_IN_DAY)
-            if not self.active_vessels.items:
+            if not self.available_vessels.items:
                 continue
             now = self.env.now
             for name, charter_end in self.charter_map.items():
                 if now >= charter_end:
-                    vessel = yield self.active_vessels.get(
+                    vessel = yield self.available_vessels.get(
                         lambda x: x.settings.name == name
                     )
                     vessel.demobilize()
@@ -112,26 +112,26 @@ class PortManager:
         Returns
         -------
         FilterStoreGet | StoreGet
-            Returns ``.get()`` from either the :py:attr:`active_vessels` or
+            Returns ``.get()`` from either the :py:attr:`available_vessels` or
             :py:attr:`reserve_vessels`.
         bool
             If True, then the returned tugboat getter needs to be mobilized, otherwise
             False.
         """
         if tugboat:
-            if self.active_vessels.items:
-                for vessel in self.active_vessels.items:
+            if self.available_vessels.items:
+                for vessel in self.available_vessels.items:
                     if (
                         vessel.at_port
                         and not vessel.dispatched
                         and EquipmentClass.TOW in vessel.settings.capability
                     ):
-                        return self.active_vessels.get(lambda x: x is vessel), False
+                        return self.available_vessels.get(lambda x: x is vessel), False
                 if self.dispatch_priority & self.reserve_vessels.items:
                     return self.reserve_vessels.get(
                         lambda x: EquipmentClass.TOW in x.settings.capability
                     ), True
-                return self.active_vessels.get(
+                return self.available_vessels.get(
                     lambda x: x.at_port
                     and not x.dispatched
                     and EquipmentClass.TOW in x.settings.capability
@@ -140,19 +140,19 @@ class PortManager:
                 lambda x: EquipmentClass.TOW in x.settings.capability
             ), True
 
-        if self.active_vessels.items:
-            for vessel in self.active_vessels.items:
+        if self.available_vessels.items:
+            for vessel in self.available_vessels.items:
                 if (
                     vessel.at_port
                     and not vessel.dispatched
                     and "TOW" not in vessel.settings.capability
                 ):
-                    return self.active_vessels.get(lambda x: x is vessel), False
+                    return self.available_vessels.get(lambda x: x is vessel), False
             if self.dispatch_priority & self.reserve_vessels.items:
                 return self.reserve_vessels.get(
                     lambda x: EquipmentClass.TOW in x.settings.capability
                 ), True
-            return self.active_vessels.get(
+            return self.available_vessels.get(
                 lambda x: x.at_port
                 and not x.dispatched
                 and "TOW" not in x.settings.capability
@@ -162,8 +162,8 @@ class PortManager:
         ), True
 
     def return_vessel(self, vessel: ServiceEquipment) -> StorePut:
-        """Return the :py:attr:`vessel` to the either the :py:attr:`active_vessels` or
-        :py:attr:`reserve_vessels` store, depending on if there is time left in its
+        """Return the :py:attr:`vessel` to the either the :py:attr:`available_vessels`
+        or :py:attr:`reserve_vessels` store, depending on if there is time left in its
         charter period.
 
         Parameters
@@ -178,7 +178,7 @@ class PortManager:
         """
         # TODO: mechanism to stop accumulation of downtime costs
         if self.env.now < self.charter_map[vessel.settings.name]:
-            yield self.active_vessels.put(vessel)
+            yield self.available_vessels.put(vessel)
         else:
             vessel.demobilize()
             yield self.reserve_vessels.put(vessel)
