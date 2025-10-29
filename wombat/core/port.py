@@ -73,6 +73,7 @@ class PortManager:
                     vessel = yield self.available_vessels.get(
                         lambda x: x.settings.name == name
                     )
+                    vessel.downtime_accrual.interrupt()
                     vessel.demobilize()
                     _ = yield self.reserve_vessels.put(vessel)
 
@@ -126,16 +127,21 @@ class PortManager:
                         and not vessel.dispatched
                         and EquipmentClass.TOW in vessel.settings.capability
                     ):
+                        vessel.downtime_accrual.interrupt()
                         return self.available_vessels.get(lambda x: x is vessel), False
+
                 if self.dispatch_priority & self.reserve_vessels.items:
                     return self.reserve_vessels.get(
                         lambda x: EquipmentClass.TOW in x.settings.capability
                     ), True
+
+                vessel.downtime_accrual.interrupt()
                 return self.available_vessels.get(
                     lambda x: x.at_port
                     and not x.dispatched
                     and EquipmentClass.TOW in x.settings.capability
                 ), False
+
             return self.reserve_vessels.get(
                 lambda x: EquipmentClass.TOW in x.settings.capability
             ), True
@@ -147,16 +153,21 @@ class PortManager:
                     and not vessel.dispatched
                     and "TOW" not in vessel.settings.capability
                 ):
+                    vessel.downtime_accrual.interrupt()
                     return self.available_vessels.get(lambda x: x is vessel), False
+
             if self.dispatch_priority & self.reserve_vessels.items:
                 return self.reserve_vessels.get(
                     lambda x: EquipmentClass.TOW in x.settings.capability
                 ), True
+
+            vessel.downtime_accrual.interrupt()
             return self.available_vessels.get(
                 lambda x: x.at_port
                 and not x.dispatched
                 and "TOW" not in x.settings.capability
             ), False
+
         return self.reserve_vessels.get(
             lambda x: EquipmentClass.TOW in x.settings.capability
         ), True
@@ -178,6 +189,9 @@ class PortManager:
         """
         # TODO: mechanism to stop accumulation of downtime costs
         if self.env.now < self.charter_map[vessel.settings.name]:
+            vessel.downtime_accrual = self.env.process(
+                vessel.run_downtime_accumulation()
+            )
             yield self.available_vessels.put(vessel)
         else:
             vessel.demobilize()

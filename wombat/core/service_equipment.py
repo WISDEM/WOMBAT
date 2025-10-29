@@ -17,6 +17,7 @@ from itertools import zip_longest
 from collections.abc import Generator
 
 import numpy as np
+import simpy
 import pandas as pd
 import polars as pl
 from simpy.events import Event, Process, Timeout
@@ -264,6 +265,8 @@ class ServiceEquipment(RepairsMixin):
 
         # Create partial functions for the labor and equipment costs for clarity
         self.initialize_cost_calculators(which="equipment")
+
+        self.downtime_accrual = None
 
     def finish_setup_with_environment_variables(self) -> None:
         """A post-initialization step that will override unset parameters with those
@@ -1991,3 +1994,56 @@ class ServiceEquipment(RepairsMixin):
             )
         )
         self.dispatched = False
+
+    def run_downtime_accumulation(self) -> Timeout:
+        """Creates daily logs for downtime cost accruals.
+
+        Yields
+        ------
+        simpy.events.Timeout
+            24 hours or time between last downtime start and an interruption caused by
+            either a request or demobilization.
+        """
+        # Don't run if it hasn't been registered to be in temporary storage
+        if not self.at_port:
+            return
+
+        while True:
+            start = self.env.now
+            try:
+                yield self.env.timeout(HOURS_IN_DAY)
+            except simpy.Interrupt:
+                end = self.env.now
+                diff = end - start
+                salary_cost = self.calculate_salary_cost(diff)
+                hourly_cost = self.calculate_hourly_cost(0)
+                equipment_cost = self.calculate_equipment_cost(diff)
+                self.env.log_action(
+                    agent=self.settings.name,
+                    action="delay",
+                    reason="no requests",
+                    location="port",
+                    additional="no work requests, waiting for the next request",
+                    duration=diff,
+                    salary_labor_cost=salary_cost,
+                    hourly_labor_cost=hourly_cost,
+                    equipment_cost=equipment_cost,
+                )
+                return
+
+            end = self.env.now
+            diff = end - start
+            salary_cost = self.calculate_salary_cost(diff)
+            hourly_cost = self.calculate_hourly_cost(0)
+            equipment_cost = self.calculate_equipment_cost(diff)
+            self.env.log_action(
+                agent=self.settings.name,
+                action="delay",
+                reason="no requests",
+                location="port",
+                additional="no work requests, waiting for the next request",
+                duration=diff,
+                salary_labor_cost=salary_cost,
+                hourly_labor_cost=hourly_cost,
+                equipment_cost=equipment_cost,
+            )
