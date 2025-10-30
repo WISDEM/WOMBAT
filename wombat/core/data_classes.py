@@ -2096,7 +2096,8 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
     workday_end : int
         The ending hour of a workshift, in 24 hour time.
     site_distance : int | float
-        Distance, in km, a tugboat has to travel to get between site and port.
+        Distance, in km, a tugboat has to travel to get between site and port. If not
+        passed, the primary configuration's ``port_distance`` will be used.
     annual_fee : int | float
         The annualized fee for access to the repair port that will be distributed
         monthly in the simulation and accounted for on the first of the month from the
