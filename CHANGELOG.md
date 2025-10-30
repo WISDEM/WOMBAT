@@ -16,6 +16,8 @@
   - `read_weather_csv()` reads and converts the datetime column from standard datetime formats.
   - `format_weather()` converts a resultant DataFrame from `read_weather_csv()` into a
     WOMBAT-compatible weather profile.
+- Ensures that a nonexistent `site_distance` passed to the `PortConfig` is still set from the
+  primary configuration's `port_distance`.
 
 ## v0.12.2 - 16 October 2025
 
