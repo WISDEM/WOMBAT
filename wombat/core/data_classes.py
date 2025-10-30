@@ -1160,20 +1160,29 @@ class DateLimitsMixin:
         if self.workday_start == 0 and self.workday_end == 24:  # type: ignore
             object.__setattr__(self, "non_stop_shift", True)
 
-    def _set_port_distance(self, distance: int | float | None) -> None:
+    def _set_port_distance(
+        self, distance: int | float | None, *, port: bool = False
+    ) -> None:
         """Set ``port_distance`` from the environment's or port's variables.
 
         Parameters
         ----------
         distance : int | float
             The distance to port that must be traveled for servicing equipment.
+        port : bool, optional
+            Used to flag if the port is being set, which will override the
+            :py:class:`PortConfig` ``site_distance`` attribute.
         """
         if distance is None:
             return
         if distance <= 0:
             return
-        if self.port_distance <= 0:
-            object.__setattr__(self, "port_distance", float(distance))
+        if port:
+            if self.site_distance <= 0:  # type: ignore
+                object.__setattr__(self, "site_distance", float(distance))
+        else:
+            if self.port_distance <= 0:
+                object.__setattr__(self, "port_distance", float(distance))
 
     def _compare_dates(
         self,
