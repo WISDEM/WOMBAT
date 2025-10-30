@@ -1141,9 +1141,6 @@ class ServiceEquipment(RepairsMixin):
         self._set_location(end, set_current)
         self.env.log_action(
             action="complete towing",
-            salary_labor_cost=salary_labor_cost,
-            hourly_labor_cost=hourly_labor_cost,
-            equipment_cost=equipment_cost,
             additional="complete",
             location=end,
             **kwargs,

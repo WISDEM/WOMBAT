@@ -18,6 +18,7 @@
     WOMBAT-compatible weather profile.
 - Ensures that a nonexistent `site_distance` passed to the `PortConfig` is still set from the
   primary configuration's `port_distance`.
+- Fix a bug where the towing costs are logged twice, and double counting the values in the results.
 
 ## v0.12.2 - 16 October 2025
 
