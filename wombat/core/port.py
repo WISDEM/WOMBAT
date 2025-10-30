@@ -69,6 +69,10 @@ class PortManager:
                 continue
             now = self.env.now
             for name, charter_end in self.charter_map.items():
+                # Avoid scenarios where just mobilized vessels that aren't yet available
+                # with an updated charter end time are being immediately demobilized
+                if name not in (el.name for el in self.available_vessels.items):
+                    continue
                 if now >= charter_end:
                     vessel = yield self.available_vessels.get(lambda x: x.name == name)
                     vessel.downtime_accrual.interrupt()
