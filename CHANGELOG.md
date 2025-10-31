@@ -18,6 +18,8 @@
     WOMBAT-compatible weather profile.
 - `Port` and `ServiceEquipment` now have a `name` attribute that allows for quicker access to the
   highly used `.settings.name` attribute.
+- The COREWIND Morro Bay Port has been updated to a 139 km `site_distance`, and the associated
+  tugboats have charter periods of 10 days.
 
 ### Tow-To-Port Improvements
 

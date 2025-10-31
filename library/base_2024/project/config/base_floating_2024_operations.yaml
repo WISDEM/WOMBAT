@@ -1,9 +1,7 @@
 name: base_floating_2024
 weather: era5_41.0N_125.0W_1989_2019.csv
 service_equipment:
-  - ctv1.yaml
-  - ctv2.yaml
-  - ctv3.yaml
+  - [ctv.yaml, 3]
   - cab.yaml
   - dsv.yaml
   - ahv.yaml

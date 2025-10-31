@@ -1,10 +1,10 @@
-name: Crew Transfer Vessel 3
+name: Crew Transfer Vessel
 equipment_rate: 3201.7 # Reference: WOMBAT_Cost_History.xslx
 capability: CTV
 speed: 37.04  # 20 knots
 strategy: scheduled
-max_windspeed_transport: 16
-max_windspeed_repair: 16
+max_windspeed_transport: 99
+max_windspeed_repair: 99
 max_waveheight_transport: 2
 max_waveheight_repair: 2
 onsite: True

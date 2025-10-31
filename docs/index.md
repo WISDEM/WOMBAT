@@ -45,6 +45,14 @@ rob.hammond@nrel.gov.
 
 ## Latest Changes?
 
+Please see the CHANGELOG, linked below for complete information, and the appropriate
+documentation pages for specific details.
+
+* On this site: https://wisdem.github.io/WOMBAT/changelog.html
+* On GitHub: https://github.com/WISDEM/WOMBAT/blob/main/CHANGELOG.md
+
+Below is a shortlist of some of the most impactful changes made in recent versions.
+
 As of v0.13, a series of convenience features have been made, and are outlined below:
 - Fixed costs can now be provided as \$/yr instead of only \$/kw/yr.
 - Layout coordinates can be provided as meters-based relative coordinates by defining
@@ -52,6 +60,8 @@ As of v0.13, a series of convenience features have been made, and are outlined b
 - Weather profile loading tools are now made accessible through `wombat.core.library.load_weather()`.
 - Parquet data files are enabled to reduce file sizes and simplify the simulation loading process.
   Using the `load_weather()` function, users can save the output Polars DataFrame to Parquet.
+- Tow-to-port simulations now mobilize tugboats, and log downtime during their chartering
+  more closely replicating real life conditions.
 
 As of v0.10, a series of convenience features and consistency updates have been made.
 - A breaking change to failure data has been made by using lists instead of dictionaries
@@ -64,12 +74,6 @@ As of v0.10, a series of convenience features and consistency updates have been 
 - Simplification of duplicated servicing equipment definitions: simply provide a list
   of the filename/id and the number of them that should be in the simulation.
 - Date-based maintenance scheduling is now possible.
-
-Please see the CHANGELOG for complete information, and the appropriate documentation
-pages.
-
-* On this site: https://wisdem.github.io/WOMBAT/changelog.html
-* On GitHub: https://github.com/WISDEM/WOMBAT/blob/main/CHANGELOG.md
 
 ## Part of the WETO Stack
 
