@@ -16,6 +16,15 @@
   - `read_weather_csv()` reads and converts the datetime column from standard datetime formats.
   - `format_weather()` converts a resultant DataFrame from `read_weather_csv()` into a
     WOMBAT-compatible weather profile.
+- `Port` and `ServiceEquipment` now have a `name` attribute that allows for quicker access to the
+  highly used `.settings.name` attribute.
+
+### Tow-To-Port Improvements
+
+- Creation of the `PortManager` to manage the tugboats and other port-managed vessels.
+- Tugboats are now mobilized when there are no currently available tugboats, including when another
+  tugboat might be busy towing or returning from site.
+- Tugboats accumulate downtime costs while at port and unused.
 - Ensures that a nonexistent `site_distance` passed to the `PortConfig` is still set from the
   primary configuration's `port_distance`.
 - Fixes a bug where the towing costs are logged twice, and double counting the values in the results.

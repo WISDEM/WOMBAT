@@ -1,6 +1,6 @@
 name: Tugboat 2
 equipment_rate: 30000
-# mobilization_cost: 200000
+mobilization_cost: 200000
 capability: [TOW]
 speed: 37.04  # 20 knots
 strategy: requests
@@ -13,7 +13,7 @@ port_distance: 0  # automatically set from the port configuration
 # workday_start: 6
 # workday_end: 18
 strategy_threshold: 1  # needs to be here, but doesn't do anything
-charter_days: 3  # needs to be here, but doesn't do anything
+charter_days: 20  # needs to be here, but doesn't do anything
 tow_speed: 9.26  # 5 knots
 unmoor_hours: 2
 reconnection_hours: 4

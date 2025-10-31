@@ -338,7 +338,7 @@ class Simulation(FromDictMixin):
             self.env, self.windfarm, self.repair_manager, configuration
         )
         equipment.finish_setup_with_environment_variables()
-        name = equipment.settings.name
+        name = equipment.name
         if name in self.service_equipment:
             msg = (
                 f"Servicing equipment `{name}` already exists, please use"
@@ -423,8 +423,9 @@ class Simulation(FromDictMixin):
             self.port = Port(
                 self.env, self.windfarm, self.repair_manager, self.config.port
             )
-            for service_equipment in self.port.service_equipment_manager.items:
-                name = service_equipment.settings.name  # type: ignore
+            tugboats = self.port.service_equipment_manager.reserve_vessels.items
+            for service_equipment in tugboats:
+                name = service_equipment.name  # type: ignore
                 if name in self.service_equipment:
                     raise ValueError(
                         f"Servicing equipment `{name}` already exists, please use"
