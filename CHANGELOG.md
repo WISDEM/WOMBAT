@@ -25,6 +25,13 @@
 - Tugboats are now mobilized when there are no currently available tugboats, including when another
   tugboat might be busy towing or returning from site.
 - Tugboats accumulate downtime costs while at port and unused.
+- Ensures that a nonexistent `site_distance` passed to the `PortConfig` is still set from the
+  primary configuration's `port_distance`.
+- Fixes a bug where the towing costs are logged twice, and double counting the values in the results.
+- Fixes a bug in `Metrics.equipment_labor_cost_breakdown()` filters out some costs because a
+  filtering column has a NaN value. This primarily occurred in the towing operations.
+- Fixes a bug in `Metrics.equipment_labor_cost_breakdown()` where the mooring and unmooring
+  processes were entirely removed from the cost breakdown.
 
 ## v0.12.2 - 16 October 2025
 
