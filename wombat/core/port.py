@@ -114,6 +114,7 @@ class Port(RepairsMixin, FilterStore):
         self.settings = PortConfig.from_dict(config)
 
         self._check_working_hours(which="env")
+        self.settings._set_port_distance(self.env.port_distance, port=True)
         self.settings.set_non_operational_dates(
             self.env.non_operational_start,
             self.env.start_year,
