@@ -51,7 +51,14 @@ how each of the APIs are powered to enable the full flexibility of modeling.
 
 ```{eval-rst}
 .. automodule:: wombat.core.port
-   :exclude-members: Port
+   :exclude-members: Port, PortManager
+
+.. autoclass:: wombat.core.port.PortManager
+   :members: register_tugboat, update_charter_map, manage_vessels, dispatch_vessel,
+      return_vessel
+   :inherited-members:
+   :undoc-members:
+   :exclude-members:
 
 .. autoclass:: wombat.core.port.Port
    :members: transfer_requests_from_manager, repair_single, run_repairs,
@@ -59,6 +66,6 @@ how each of the APIs are powered to enable the full flexibility of modeling.
    :inherited-members:
    :undoc-members:
    :exclude-members: env, windfarm, manager, settings, requests_serviced, turbine_manager,
-      crew_manager, tugboat_manager, active_repairs, GetQueue, PutQueue, capacity, get,
-      get_queue, items, put, put_queue
+      crew_manager, service_equipment_manager, active_repairs, GetQueue, PutQueue,
+      capacity, get, get_queue, items, put, put_queue
 ```
