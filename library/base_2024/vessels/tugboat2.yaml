@@ -1,6 +1,6 @@
 name: Tugboat 2
 equipment_rate: 112546.6 # tugboat day rate x3 assuming 2 ocean tugs and 1 harbor tug, day rate WOMBAT_Cost_History.xslx
-# mobilization_cost: 200000
+mobilization_cost: 547818.6   # tugboat mobilization x2 only for the ocean tugs, rate from WOMBAT_Cost_History.xslx
 capability: [TOW]
 speed: 37.04  # 20 knots
 strategy: requests
@@ -13,7 +13,7 @@ port_distance: 0  # automatically set from the port configuration
 # workday_start: 6
 # workday_end: 18
 strategy_threshold: 1  # needs to be here, but doesn't do anything
-charter_days: 3  # needs to be here, but doesn't do anything
+charter_days: 10   
 tow_speed: 9.26  # 5 knots
 unmoor_hours: 2
 reconnection_hours: 4
