@@ -1,0 +1,16 @@
+name: Port - Increase Wave Limit
+tugboats:
+  - tug1_increase_wave.yaml
+max_operations: 1
+n_crew: 1
+crew:
+  n_day_rate: 0
+  day_rate: 0
+  n_hourly_rate: 0
+  hourly_rate: 0
+workday_start: 7
+workday_end: 19
+site_distance: 20
+port_distance: 57.71
+annual_fee: 11862500  # 130,000 EUR day rate x 365 x 0.25 (usage assumption)
+# annual_fee: 47450000  # 130,000 EUR day rate x 365

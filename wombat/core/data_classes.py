@@ -1160,20 +1160,29 @@ class DateLimitsMixin:
         if self.workday_start == 0 and self.workday_end == 24:  # type: ignore
             object.__setattr__(self, "non_stop_shift", True)
 
-    def _set_port_distance(self, distance: int | float | None) -> None:
+    def _set_port_distance(
+        self, distance: int | float | None, *, port: bool = False
+    ) -> None:
         """Set ``port_distance`` from the environment's or port's variables.
 
         Parameters
         ----------
         distance : int | float
             The distance to port that must be traveled for servicing equipment.
+        port : bool, optional
+            Used to flag if the port is being set, which will override the
+            :py:class:`PortConfig` ``site_distance`` attribute.
         """
         if distance is None:
             return
         if distance <= 0:
             return
-        if self.port_distance <= 0:
-            object.__setattr__(self, "port_distance", float(distance))
+        if port:
+            if self.site_distance <= 0:  # type: ignore
+                object.__setattr__(self, "site_distance", float(distance))
+        else:
+            if self.port_distance <= 0:
+                object.__setattr__(self, "port_distance", float(distance))
 
     def _compare_dates(
         self,
@@ -2087,7 +2096,8 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
     workday_end : int
         The ending hour of a workshift, in 24 hour time.
     site_distance : int | float
-        Distance, in km, a tugboat has to travel to get between site and port.
+        Distance, in km, a tugboat has to travel to get between site and port. If not
+        passed, the primary configuration's ``port_distance`` will be used.
     annual_fee : int | float
         The annualized fee for access to the repair port that will be distributed
         monthly in the simulation and accounted for on the first of the month from the
@@ -2154,7 +2164,11 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
 
 @define(frozen=True, auto_attribs=True)
 class FixedCosts(FromDictMixin):
-    """Fixed costs for operating a windfarm. All values are assumed to be in $/kW/yr.
+    """Fixed costs for operating a windfarm. All values are assumed to be in $/kW/yr
+    unless :py:attr:`units` is set to "$/yr". In either case, all costs must use the
+    same units. The cost per kw is helpful if you plan to scale fixed costs with
+    project sizes, otherwise using $/yr allows for a fixed set of cost assumptions
+    across analyses.
 
     Parameters
     ----------
@@ -2240,6 +2254,10 @@ class FixedCosts(FromDictMixin):
     labor : float
         The costs associated with labor, if not being modeled through the simulated
         processes.
+
+    units : str
+        The units that all costs are provided in; must be one of "$/kw/yr" or "$/yr", by
+        default "$/kw/yr".
     """
 
     # Total Cost
@@ -2271,6 +2289,12 @@ class FixedCosts(FromDictMixin):
     onshore_electrical_maintenance: float = field(default=0)
 
     labor: float = field(default=0)
+
+    units: str = field(
+        default="$/kw/yr",
+        converter=(str, str.lower),
+        validator=validators.in_(["$/kw/yr", "$/yr"]),
+    )
 
     resolution: dict = field(init=False)
     hierarchy: dict = field(init=False)

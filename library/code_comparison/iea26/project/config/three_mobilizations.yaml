@@ -1,6 +1,6 @@
 name: iea_26_three_mobilizations
 library: IEA_26
-weather: hornsrev3_weather_1996_2015.csv
+weather: hornsrev3_weather_1996_2015.pqt
 service_equipment: [ctv1.yaml, ctv2.yaml, dsv.yaml, cabling_scheduled.yaml, hlv_1.yaml, hlv_2.yaml, hlv_3.yaml, rmt.yaml]
 layout: layout.csv
 inflation_rate: 0

@@ -123,7 +123,7 @@ class Metrics:
             capacity).
         service_equipment_names : str | list[str]
             The names of the servicing equipment, corresponding to
-            ``ServiceEquipment.settings.name`` for each ``ServiceEquipment`` in the
+            ``ServiceEquipment.name`` for each ``ServiceEquipment`` in the
             simulation.
         fixed_costs : str | None
             The filename of the project's fixed costs.
@@ -941,7 +941,7 @@ class Metrics:
             Indicates whether the values are with resepect to each tugboat (True) or not
             (False), by default False.
         vessel_crew_assumption : dict[str, float], optional
-            Dictionary of vessel names (``ServiceEquipment.settings.name``) and number
+            Dictionary of vessel names (``ServiceEquipment.name``) and number
             of crew members aboard to trannsform the results from vessel hours at sea
             to crew hours at sea.
 
@@ -953,7 +953,7 @@ class Metrics:
             - year (if appropriate for frequency)
             - month (if appropriate for frequency)
             - Total Crew Hours at Sea
-            - {ServiceEquipment.settings.name} (if broken out)
+            - {ServiceEquipment.name} (if broken out)
 
         Raises
         ------
@@ -1079,9 +1079,9 @@ class Metrics:
             - total_tows
             - total_tows_to_port (if broken out)
             - total_tows_to_site (if broken out)
-            - {ServiceEquipment.settings.name}_total_tows (if broken out)
-            - {ServiceEquipment.settings.name}_to_port (if broken out)
-            - {ServiceEquipment.settings.name}_to_site (if broken out)
+            - {ServiceEquipment.name}_total_tows (if broken out)
+            - {ServiceEquipment.name}_to_port (if broken out)
+            - {ServiceEquipment.name}_to_site (if broken out)
 
         Raises
         ------
@@ -1431,6 +1431,7 @@ class Metrics:
                 & ~self.events.additional.isin(["work is complete"]),
                 group_filter + self._cost_columns + ["duration"],
             ]
+            .fillna(0)
             .groupby(group_filter)
             .sum()
             .reset_index()
@@ -1464,7 +1465,10 @@ class Metrics:
         )
         costs.loc[costs.action == "traveling", "display_reason"] = "Site Travel"
         costs.loc[costs.action == "towing", "display_reason"] = "Towing"
-        costs.loc[costs.action.str.contains("mooring"), "display_reason"] = "Connection"
+        costs.loc[costs.action.eq("mooring reconnection"), "display_reason"] = (
+            "Reconnection"
+        )
+        costs.loc[costs.action.eq("unmooring"), "display_reason"] = "Disconnection"
         costs.loc[costs.action == "mobilization", "display_reason"] = "Mobilization"
         costs.loc[costs.additional.isin(weather_hours), "display_reason"] = (
             "Weather Delay"
@@ -1530,6 +1534,8 @@ class Metrics:
             "Crew Transfer",
             "Site Travel",
             "Towing",
+            "Reconnection",
+            "Disconnection",
             "Mobilization",
             "Weather Delay",
             "No Requests",
@@ -1908,11 +1914,9 @@ class Metrics:
 
         # Get the appropriate values and convert to the currency base
         keys = self.fixed_costs.resolution[resolution]
-        vals = (
-            np.array([[getattr(self.fixed_costs, key) for key in keys]])
-            * self.project_capacity
-            * 1000
-        )
+        vals = np.array([[getattr(self.fixed_costs, key) for key in keys]])
+        if self.fixed_costs.units == "$/kw/yr":
+            vals = vals * self.project_capacity * 1000
 
         total = (
             self.operations[["year", "month", "env_time"]]

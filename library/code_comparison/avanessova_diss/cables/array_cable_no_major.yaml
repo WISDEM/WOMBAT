@@ -1,0 +1,17 @@
+name: array_cable
+maintenance:
+- description: cable & scour survey
+  time: 8
+  materials: 10000
+  service_equipment: RMT
+  frequency: 365
+failures:
+- scale: 0
+  shape: 0
+  time: 0
+  materials: 0
+  description: na
+  service_equipment: LCN
+  operation_reduction: 0
+  replacement: false
+  level: 4

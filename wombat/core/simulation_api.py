@@ -56,6 +56,10 @@ class Configuration(FromDictMixin):
     layout : str | pd.DataFrame
         The windfarm layout file or Pandas DataFrame. See ``wombat.Windfarm`` for more
         details.
+    layout_coords : str
+        One of "distance" or "wgs-84" to represent either a meters-based distance from
+        a central location or a standard WGS-84 latitude and longitude, by default
+        "wgs-84".
     service_equipment : str | list[str | list[str, int]]
         The equpiment that will be used in the simulation. For multiple instances of a
         single vessel use a list of the file name/id and the number of vessels. See
@@ -155,6 +159,11 @@ class Configuration(FromDictMixin):
     workday_end: int = field(converter=int)
     inflation_rate: float = field(converter=float)
     project_capacity: int | float = field(converter=float)
+    layout_coords: str = field(
+        default="wgs-84",
+        converter=(str, str.lower),
+        validator=validators.in_(["wgs-84", "distance"]),
+    )
     fixed_costs: dict | str | Path = field(default=None)
     port: dict | str | Path = field(default=None)
     start_year: int = field(default=None)
@@ -329,7 +338,7 @@ class Simulation(FromDictMixin):
             self.env, self.windfarm, self.repair_manager, configuration
         )
         equipment.finish_setup_with_environment_variables()
-        name = equipment.settings.name
+        name = equipment.name
         if name in self.service_equipment:
             msg = (
                 f"Servicing equipment `{name}` already exists, please use"
@@ -399,6 +408,7 @@ class Simulation(FromDictMixin):
         self.windfarm = Windfarm(
             env=self.env,
             windfarm_layout=self.config.layout,
+            layout_coords=self.config.layout_coords,
             repair_manager=self.repair_manager,
             substations=self.config.substations,
             turbines=self.config.turbines,
@@ -413,8 +423,9 @@ class Simulation(FromDictMixin):
             self.port = Port(
                 self.env, self.windfarm, self.repair_manager, self.config.port
             )
-            for service_equipment in self.port.service_equipment_manager.items:
-                name = service_equipment.settings.name  # type: ignore
+            tugboats = self.port.service_equipment_manager.reserve_vessels.items
+            for service_equipment in tugboats:
+                name = service_equipment.name  # type: ignore
                 if name in self.service_equipment:
                     raise ValueError(
                         f"Servicing equipment `{name}` already exists, please use"

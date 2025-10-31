@@ -45,6 +45,14 @@ rob.hammond@nrel.gov.
 
 ## Latest Changes?
 
+As of v0.13, a series of convenience features have been made, and are outlined below:
+- Fixed costs can now be provided as \$/yr instead of only \$/kw/yr.
+- Layout coordinates can be provided as meters-based relative coordinates by defining
+  the `layout_coords` input to the primary configuration as `"distance"`.
+- Weather profile loading tools are now made accessible through `wombat.core.library.load_weather()`.
+- Parquet data files are enabled to reduce file sizes and simplify the simulation loading process.
+  Using the `load_weather()` function, users can save the output Polars DataFrame to Parquet.
+
 As of v0.10, a series of convenience features and consistency updates have been made.
 - A breaking change to failure data has been made by using lists instead of dictionaries
   in the configuration of cables, turbines, and substations. To ease adoption, a

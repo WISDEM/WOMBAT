@@ -1,10 +1,16 @@
 # Helpers and Plotting
 
 (converting-and-structuring)=
-## Importing and Converting From Old Versions
+## Importing and Converting Data
 
 ```{eval-rst}
 .. autofunction:: wombat.core.library.load_yaml
+
+.. autofunction:: wombat.core.library.load_weather
+
+.. autofunction:: wombat.core.library.read_weather_csv
+
+.. autofunction:: wombat.core.library.format_weather
 
 .. autofunction:: wombat.core.library.create_library_structure
 

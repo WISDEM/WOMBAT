@@ -7,7 +7,6 @@ import csv
 import math
 import logging
 import datetime as dt
-import warnings
 from typing import TYPE_CHECKING
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -16,16 +15,15 @@ import numpy as np
 import simpy
 import pandas as pd
 import polars as pl
-import pyarrow as pa
-import pyarrow.csv  # pylint: disable=W0611
 from simpy.events import Event
 
 import wombat  # pylint: disable=W0611
+from wombat.core import library
 from wombat.utilities import (
     hours_until_future_hour,
     calculate_windfarm_operational_level,
 )
-from wombat.core.data_classes import parse_date
+from wombat.utilities.time import parse_date
 
 
 if TYPE_CHECKING:
@@ -448,7 +446,7 @@ class WombatEnvironment(simpy.Environment):
 
     def _weather_setup(
         self,
-        weather_file: str,
+        weather: str | Path | pd.DataFrame,
         start_year: int | None = None,
         end_year: int | None = None,
     ) -> pl.DataFrame:
@@ -460,9 +458,10 @@ class WombatEnvironment(simpy.Environment):
 
         Parameters
         ----------
-        weather_file : str
-            Name of the weather file to be used by the environment. Should be contained
-            within ``data_dir/weather``.
+        weather : str | Path | pd.DataFrame
+            Name of the weather file to be used by the environment, or a Pandas
+            DataFrame. Files should  be contained within ``data_dir/weather``.
+            DataFrames should not have the "datetime" column set as the index.
         start_year : Optional[int], optional
             Custom starting year for the weather profile, by default None. If ``None``
             or less than the first year of the weather profile, this will be ignored.
@@ -472,74 +471,13 @@ class WombatEnvironment(simpy.Environment):
 
         Returns
         -------
-        pd.DataFrame
+        pl.DataFrame
             The wind (and  wave) timeseries.
         """
-        REQUIRED = ["windspeed", "waveheight"]
-
-        # PyArrow datetime conversion setup
-        convert_options = pa.csv.ConvertOptions(
-            timestamp_parsers=[
-                "%m/%d/%y %H:%M",
-                "%m/%d/%y %I:%M",
-                "%m/%d/%y %H:%M:%S",
-                "%m/%d/%y %I:%M:%S",
-                "%m/%d/%Y %H:%M",
-                "%m/%d/%Y %I:%M",
-                "%m/%d/%Y %H:%M:%S",
-                "%m/%d/%Y %I:%M:%S",
-                "%m-%d-%y %H:%M",
-                "%m-%d-%y %I:%M",
-                "%m-%d-%y %H:%M:%S",
-                "%m-%d-%y %I:%M:%S",
-                "%m-%d-%Y %H:%M",
-                "%m-%d-%Y %I:%M",
-                "%m-%d-%Y %H:%M:%S",
-                "%m-%d-%Y %I:%M:%S",
-                "%Y-%m-%d %H:%M",
-                "%Y-%m-%d %I:%M",
-                "%Y-%m-%d %H:%M:%S",
-                "%Y-%m-%d %I:%M:%S",
-            ]
-        )
-        weather = (
-            pl.from_pandas(
-                pa.csv.read_csv(
-                    self.data_dir / "weather" / weather_file,
-                    convert_options=convert_options,
-                )
-                .to_pandas()
-                .fillna(0.0)
-                .set_index("datetime")
-                .sort_index()
-                .resample("h")
-                .interpolate(limit_direction="both")
-                .reset_index(drop=False)
-            )
-            .with_row_index()
-            .with_columns(
-                [
-                    pl.col("datetime").cast(pl.Datetime).dt.cast_time_unit("ns"),
-                    (pl.col("datetime").dt.hour()).alias("hour"),
-                ]
-            )
-        )
-
-        missing = set(REQUIRED).difference(weather.columns)
-        if missing:
-            msg = (
-                f"The following column(s) are missing and will be set to 0:"
-                f" {', '.join(missing)}. Do NOT run the simulation if this is an error."
-            )
-            warnings.warn(msg)
-
-            weather = weather.with_columns(
-                pl.Series(name=col, values=np.zeros(weather.height))
-                for col in REQUIRED
-                if col in missing
-            )
-        column_order = ["index", "datetime", "hour", "windspeed", "waveheight"]
-        weather = weather.select(column_order)
+        if isinstance(weather, str | Path):
+            weather = library.load_weather(self.data_dir / "weather" / weather)
+        else:
+            weather = library.format_weather(weather)
 
         # Create the start and end points
         self.start_datetime = weather.get_column("datetime").dt.min()
