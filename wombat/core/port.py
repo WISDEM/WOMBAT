@@ -40,19 +40,30 @@ if TYPE_CHECKING:
 
 
 class PortManager:
-    """Pass."""
+    """Manages the port-based vessel dispatching, demobilization, and downtime cost
+    accruals.
+    """
 
     def __init__(self, env: WombatEnvironment) -> None:
-        # TODO: include port input to prioritize waiting for available tug vs
-        # dispatching a new one
-        self.dispatch_priority: bool = True
+        """Initialize the PortManager.
 
+        Parameters
+        ----------
+        env : WombatEnvironment
+            Simulation environment.
+        """
+        """
+        TODO: include dispatch strategy for port inputs to determine a proper vessel
+        dispatching choice between prioritize waiting for available tug vs dispatching
+        more tugboats as they're needed. Similarly for extending the chartering period
+        for tugboats when at port.
+        """
+
+        self.dispatch_priority: bool = True
         self.env = env
         self.available_vessels: FilterStore = FilterStore(env)
         self.reserve_vessels: FilterStore = FilterStore(env)
-
         self.charter_map: dict[str, float] = {}
-        # TODO: create process for accumulation of downtime between requests
 
     def manage_vessels(self) -> simpy.events.Timeout:
         """Runs a daily check to see if any of the :py:attr:`available_vessels` are past
