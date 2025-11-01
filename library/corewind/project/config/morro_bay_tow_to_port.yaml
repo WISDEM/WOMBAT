@@ -15,4 +15,3 @@ start_year: 2002
 end_year: 2021
 project_capacity: 1200
 port: morro_bay_port.yaml
-# NOTE: No labor cost data is available in the assumptions

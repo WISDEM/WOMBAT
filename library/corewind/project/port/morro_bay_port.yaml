@@ -1,5 +1,5 @@
 name: Morro Bay Port
-tugboats: [tugboat1.yaml, tugboat2.yaml]
+tugboats: [[tugboat.yaml, 2]]
 n_crews: 3
 crew:
   day_rate: 219.18  # 80K/yr / 365 days
