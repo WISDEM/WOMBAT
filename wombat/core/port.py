@@ -9,6 +9,7 @@ operates on a strict shift scheduling basis.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import TYPE_CHECKING
 from pathlib import Path
 from collections.abc import Generator
@@ -232,6 +233,9 @@ class Port(RepairsMixin, FilterStore):
         A path to a YAML object or dictionary encoding the port's configuration
         settings. This will be loaded into a ``PortConfig`` object during
         initialization.
+    vessel_configs : dict | None
+        The ``vessels`` configuration data from the primary configuration, if one was
+        provided, otherwise None, by default None.
 
     Attributes
     ----------
@@ -271,6 +275,7 @@ class Port(RepairsMixin, FilterStore):
         windfarm: Windfarm,
         repair_manager: RepairManager,
         config: dict | str | Path,
+        vessel_configs: dict | None = None,
     ) -> None:
         super().__init__(env, np.inf)
 
@@ -287,7 +292,7 @@ class Port(RepairsMixin, FilterStore):
             config = load_yaml(env.data_dir / "project/port", config)
         if TYPE_CHECKING:
             assert isinstance(config, dict)
-        self.settings = PortConfig.from_dict(config)
+        self.settings: PortConfig = PortConfig.from_dict(config)
         self.name = self.settings.name
 
         self._check_working_hours(which="env")
@@ -313,10 +318,7 @@ class Port(RepairsMixin, FilterStore):
         self.crew_manager = simpy.Resource(env, self.settings.n_crews)
 
         self.service_equipment_manager = PortManager(self.env)
-        for t in self.settings.tugboats:
-            tugboat = ServiceEquipment(self.env, self.windfarm, repair_manager, t)
-            tugboat._register_port(self)
-            self.service_equipment_manager.register_tugboat(tugboat)
+        self._setup_tugboats(repair_manager, vessel_configs)
 
         self.active_repairs: dict[str, dict[str, simpy.events.Event]] = {}
         self.subassembly_resets: dict[str, list[str]] = {}
@@ -329,6 +331,68 @@ class Port(RepairsMixin, FilterStore):
             self.env.process(self._log_annual_fee())
 
         self.env.process(self.service_equipment_manager.manage_vessels())
+
+    def _initialize_servicing_equipment(
+        self, repair_manager: RepairManager, configuration: str | dict
+    ) -> None:
+        """
+        Initializes a single tugboat.
+
+        Parameters
+        ----------
+        repair_manager : RepairManager
+            The simulation's repair management object.
+        configuration : str | dict
+            The servicing equipment configuration dictionary or YAML file.
+        """
+        # YAML files must be loaded for repeats so that the naming can be unique
+        if isinstance(configuration, str):
+            if configuration.endswith((".yaml", ".yml")):
+                configuration = load_yaml(self.env.data_dir / "vessels", configuration)
+
+        tugboat = ServiceEquipment(
+            self.env, self.windfarm, repair_manager, configuration
+        )
+        tugboat._register_port(self)
+        self.service_equipment_manager.register_tugboat(tugboat)
+
+    def _setup_tugboats(
+        self, repair_manager: RepairManager, vessel_configs: dict | None
+    ) -> None:
+        for tugboat in self.settings.tugboats:
+            n = 1
+            if isinstance(tugboat, list):
+                n, tugboat = tugboat
+                if isinstance(n, str) and isinstance(tugboat, int):
+                    n, tugboat = tugboat, n
+
+            if TYPE_CHECKING:
+                assert isinstance(tugboat, str)
+            if not tugboat.endswith((".yml", ".yaml")):
+                if vessel_configs is None:
+                    msg = (
+                        "The input to `vessel_configs` must be defined if file names"
+                        f" not provided to `tugboats`. '{tugboat}' is not a"
+                        " YAML filename."
+                    )
+                    raise ValueError(msg)
+                tugboat = self.vessel_configs[tugboat]  # type: ignore
+
+            if n == 1:
+                self._initialize_servicing_equipment(repair_manager, tugboat)  # type: ignore
+                continue
+
+            if isinstance(tugboat, str):
+                if tugboat.endswith((".yaml", ".yml")):
+                    tugboat = load_yaml(self.env.data_dir / "vessels", tugboat)
+
+            if TYPE_CHECKING:
+                assert isinstance(tugboat, dict)
+            name = tugboat["name"]
+            for i in range(n):
+                config = deepcopy(tugboat)
+                config["name"] = f"{name} {i + 1}"
+                self._initialize_servicing_equipment(repair_manager, config)
 
     def _log_annual_fee(self):
         """Logs the annual port lease fee on a monthly-basis."""
