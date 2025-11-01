@@ -376,7 +376,7 @@ class Port(RepairsMixin, FilterStore):
                         " YAML filename."
                     )
                     raise ValueError(msg)
-                tugboat = self.vessel_configs[tugboat]  # type: ignore
+                tugboat = vessel_configs[tugboat]
 
             if n == 1:
                 self._initialize_servicing_equipment(repair_manager, tugboat)  # type: ignore
