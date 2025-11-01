@@ -22,6 +22,7 @@
   tugboats have charter periods of 10 days.
 - Tugboats can be defined in the `vessels` section of the primary configuration and be configured
   as copies of each other similar to the vessels in the primary configuration, as seen below.
+
   ```yaml
   ...
   tugboats:
