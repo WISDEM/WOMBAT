@@ -1,8 +1,8 @@
 name: Anchor Handling Tug
-charter_days: 3  # needs to be here, but doesn't do anything
+charter_days: 3
 equipment_rate: 37870.0  # Reference: WOMBAT_Cost_History.xslx
 strategy: requests
-strategy_threshold: 1  # needs to be here, but doesn't do anything
+strategy_threshold: 1
 onsite: false
 capability: AHV
 speed: 24.08  # 13 knots
