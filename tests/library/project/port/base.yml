@@ -1,0 +1,11 @@
+name: Test Port
+tugboats: [[tugboat.yaml, 2]]
+n_crews: 3
+crew:
+  day_rate: 219.18  # 80K/yr / 365 days
+  n_day_rate: 5  # Most tasks are 3 or 4, but some larger ones are 8, 10, and 21
+  hourly_rate: 0
+  n_hourly_rate: 0
+max_operations: 2
+site_distance: 139
+annual_fee: 24e6  # From ORBIT
