@@ -1,0 +1,25 @@
+name: Anchor Handling Tug
+charter_days: 3
+equipment_rate: 37870.0  # Reference: WOMBAT_Cost_History.xslx
+strategy: requests
+strategy_threshold: 1
+onsite: false
+capability: AHV
+speed: 24.08  # 13 knots
+tow_speed: 9.26
+mobilization_cost: 416223.5 # Reference: WOMBAT_Cost_History.xslx
+mobilization_days: 20
+max_windspeed_transport: 20
+max_windspeed_repair: 20
+max_waveheight_transport: 2.5
+max_waveheight_repair: 2.5
+workday_start: 0
+workday_end: 24
+crew_transfer_time: 0.25
+port_distance: 0  # will get automatically set from the port configuration if not provided
+n_crews: 1
+crew:
+  day_rate: 0   # Labor cost assumed separately as a fixed cost based on WOMBAT_Cost_History.xslx
+  n_day_rate: 10  # N technicians for all AHV jobs
+  hourly_rate: 0
+  n_hourly_rate: 0

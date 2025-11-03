@@ -158,6 +158,7 @@ ENV/
 /library/code_comparison/iea26/results
 /library/code_comparison/avanessova_diss/results
 /library/corewind/results
+/library/default/results
 /tests/library/results
 
 # Text editors
