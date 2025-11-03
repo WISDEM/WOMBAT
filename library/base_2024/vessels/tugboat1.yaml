@@ -1,6 +1,6 @@
 name: Tugboat 1
-equipment_rate: 112546.6 # tugboat day rate x3 assuming 2 ocean tugs and 1 harbor tug, day rate WOMBAT_Cost_History.xslx
-mobilization_cost: 547818.6   # tugboat mobilization x2 only for the ocean tugs, rate from WOMBAT_Cost_History.xslx
+equipment_rate: 75031 # tugboat day rate x2 assuming 1 tugs and 1 support tug, day rate WOMBAT_Cost_History.xslx
+mobilization_cost: 273909.3  # tugboat group mobilization rate from WOMBAT_Cost_History.xslx
 capability: [TOW]
 speed: 37.04  # 20 knots
 strategy: requests
