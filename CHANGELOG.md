@@ -20,6 +20,16 @@
   highly used `.settings.name` attribute.
 - The COREWIND Morro Bay Port has been updated to a 139 km `site_distance`, and the associated
   tugboats have charter periods of 10 days.
+- Tugboats can be defined in the `vessels` section of the primary configuration and be configured
+  as copies of each other similar to the vessels in the primary configuration, as seen below.
+
+  ```yaml
+  ...
+  tugboats:
+    - - tugboat.yaml
+      - 2
+  ...
+  ```
 
 ### Tow-To-Port Improvements
 
