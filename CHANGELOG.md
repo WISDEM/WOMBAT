@@ -28,7 +28,8 @@
   tugboats:
     - - tugboat.yaml
       - 2
-  ...`
+  ...
+  ```
 
 ### Tow-To-Port Improvements
 
