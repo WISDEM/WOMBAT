@@ -1,4 +1,4 @@
-name: Morro Bay Port
+name: Test Port
 tugboats: [[tugboat.yaml, 2]]
 n_crews: 3
 crew:

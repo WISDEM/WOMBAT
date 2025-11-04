@@ -71,6 +71,28 @@ def test_simulation_df_layout():
     sim.run(delete_logs=True, save_metrics_inputs=False)
 
 
+def test_tug_loading():
+    """Test that tugboats load correctly whether consolidated or not."""
+    library_path = TEST_DATA
+    config = load_yaml(library_path / "project/config", "ttp.yml")
+
+    # Check for 2 tugboats being loaded via standard list-based reference to a file
+    sim = Simulation.from_config(library_path, config)
+    assert len(sim.port.service_equipment_manager.reserve_vessels.items) == 2
+    sim.env.cleanup_log_files()
+
+    # Check for 2 tugboats being loaded via list-based reference to a config-embedded
+    # dictionary
+    tug = load_yaml(library_path / "vessels", "tugboat.yaml")
+    port = load_yaml(library_path / "project/port", config["port"])
+    port["tugboats"] = [2, "tugboat"]
+    config["vessels"] = {"tugboat": tug}
+
+    sim = Simulation.from_config(library_path, config)
+    assert len(sim.port.service_equipment_manager.reserve_vessels.items) == 2
+    sim.env.cleanup_log_files()
+
+
 @pytest.mark.skipif(
     sys.platform.startswith("win"), reason="Why does Windows load it differently?"
 )

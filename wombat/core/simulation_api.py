@@ -421,7 +421,11 @@ class Simulation(FromDictMixin):
         # Create the port and add any tugboats to the available servicing equipment list
         if self.config.port is not None:
             self.port = Port(
-                self.env, self.windfarm, self.repair_manager, self.config.port
+                env=self.env,
+                windfarm=self.windfarm,
+                repair_manager=self.repair_manager,
+                config=self.config.port,
+                vessel_configs=self.config.vessels,
             )
             tugboats = self.port.service_equipment_manager.reserve_vessels.items
             for service_equipment in tugboats:
