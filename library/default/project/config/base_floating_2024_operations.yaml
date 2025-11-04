@@ -5,9 +5,9 @@ service_equipment:
   - cab.yaml
   - dsv.yaml
   - ahv.yaml
-layout: base_floating_2024_layout.csv
+layout: base_osw_floating.csv
 inflation_rate: 0
-fixed_costs: fixed_costs_floating_2024.yaml
+fixed_costs: fixed_costs_osw_floating.yaml
 workday_start: 7
 workday_end: 19
 start_year: 1999

@@ -1,4 +1,4 @@
-name: Tugboat 1
+name: Tugboat
 equipment_rate: 75031 # tugboat day rate x2 assuming 1 tugs and 1 support tug, day rate WOMBAT_Cost_History.xslx
 mobilization_cost: 273909.3  # tugboat group mobilization rate from WOMBAT_Cost_History.xslx
 capability: [TOW]
@@ -10,8 +10,6 @@ max_waveheight_transport: 2.5
 max_waveheight_repair: 2.5
 onsite: false
 port_distance: 0  # automatically set from the port configuration
-# workday_start: 6
-# workday_end: 18
 strategy_threshold: 1  # needs to be here, but doesn't do anything
 charter_days: 10
 tow_speed: 9.26  # 5 knots

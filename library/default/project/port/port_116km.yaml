@@ -1,5 +1,5 @@
 name: port_116km
-tugboats: [tugboat1.yaml, tugboat2.yaml]
+tugboats: [[tugboat.yaml, 2]]
 max_operations: 2  # max number of turbines at the port at one time
 workday_start: 6
 workday_end: 18
