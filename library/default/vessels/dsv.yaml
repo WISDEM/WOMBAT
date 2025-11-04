@@ -10,8 +10,6 @@ max_waveheight_repair: 2
 onsite: false
 mobilization_cost: 0 # Reference: WOMBAT_Cost_History.xslx
 mobilization_days: 15
-# workday_start: 7
-# workday_end: 18
 strategy_threshold: 1
 charter_days: 4
 crew_transfer_time: 0.25
