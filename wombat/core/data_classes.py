@@ -2106,6 +2106,14 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
         .. note:: Don't include this cost in both this category and either the
             ``FixedCosts.operations_management_administration`` bucket or
             ``FixedCosts.marine_management`` category.
+    monthly_fee : int | float
+        The monthly fee for access to the repair port that will be accounted for on the
+        first of the month from the start of the simulation to the end of the
+        simulation. Do not use in conjunction with :py:attr:`annual_fee`
+
+        .. note:: Don't include this cost in both this category and either the
+            ``FixedCosts.operations_management_administration`` bucket or
+            ``FixedCosts.marine_management`` category.
 
     non_operational_start : str | datetime.datetime | None
         The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
@@ -2143,7 +2151,10 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
     workday_end: int = field(default=-1, converter=int, validator=valid_hour)
     site_distance: float = field(default=0.0, converter=float)
     annual_fee: float = field(
-        default=0, converter=float, validator=attrs.validators.gt(0)
+        default=0, converter=float, validator=attrs.validators.ge(0)
+    )
+    monthly_fee: float = field(
+        default=0, converter=float, validator=attrs.validators.ge(0)
     )
     non_operational_start: datetime.datetime = field(default=None, converter=parse_date)
     non_operational_end: datetime.datetime = field(default=None, converter=parse_date)
@@ -2160,6 +2171,17 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
         """Post-initialization hook."""
         if self.workday_start == 0 and self.workday_end == 24:
             object.__setattr__(self, "non_stop_shift", True)
+
+        if self.annual_fee > 0 and self.monthly_fee > 0:
+            msg = (
+                f"Only set one of the port `annual_fee` ({self.annual_fee}) and the"
+                f" `monthly_fee` ({self.monthly_fee})."
+            )
+            raise ValueError(msg)
+
+        if self.annual_fee > 0:
+            object.__setattr__(self, "monthly_fee", self.annual_fee / 12.0)
+            object.__setattr__(self, "annual_fee", 0)
 
 
 @define(frozen=True, auto_attribs=True)

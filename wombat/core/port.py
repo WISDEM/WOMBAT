@@ -327,8 +327,8 @@ class Port(RepairsMixin, FilterStore):
         self.initialize_cost_calculators(which="port")
 
         # Run the annualized fee logger
-        if self.settings.annual_fee > 0:
-            self.env.process(self._log_annual_fee())
+        if self.settings.monthly_fee > 0:
+            self.env.process(self._log_monthly_fee())
 
         self.env.process(self.service_equipment_manager.manage_vessels())
 
@@ -394,11 +394,11 @@ class Port(RepairsMixin, FilterStore):
                 config["name"] = f"{name} {i + 1}"
                 self._initialize_servicing_equipment(repair_manager, config)
 
-    def _log_annual_fee(self):
-        """Logs the annual port lease fee on a monthly-basis."""
+    def _log_monthly_fee(self):
+        """Logs the monthly port lease fee."""
         if TYPE_CHECKING:
             assert isinstance(self.settings, PortConfig)
-        monthly_fee = self.settings.annual_fee / 12.0
+        monthly_fee = self.settings.monthly_fee
         ix_month_starts = self.env.weather.filter(
             (pl.col("datetime").dt.day() == 1)
             & (pl.col("datetime").dt.hour() == 0)
