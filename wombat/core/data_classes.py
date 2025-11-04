@@ -2115,6 +2115,9 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
             ``FixedCosts.operations_management_administration`` bucket or
             ``FixedCosts.marine_management`` category.
 
+    daily_use_fee : int | float
+        The daily cost of using the port for any repair related activities or while a
+        tugboat is currently dispatched.
     non_operational_start : str | datetime.datetime | None
         The starting month and day, e.g., MM/DD, M/D, MM-DD, etc. for an annualized
         period of prohibited operations. When defined at the port level, an undefined or
@@ -2154,6 +2157,9 @@ class PortConfig(FromDictMixin, DateLimitsMixin):
         default=0, converter=float, validator=attrs.validators.ge(0)
     )
     monthly_fee: float = field(
+        default=0, converter=float, validator=attrs.validators.ge(0)
+    )
+    daily_use_fee: float = field(
         default=0, converter=float, validator=attrs.validators.ge(0)
     )
     non_operational_start: datetime.datetime = field(default=None, converter=parse_date)
