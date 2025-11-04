@@ -3,7 +3,7 @@
 ## Overview
 The **default library** provides a consistent set of cost and performance inputs for offshore wind energy systems, standardized to **2024 USD**. This library supports reproducible analyses in the *Cost of Wind Energy Review (COWER): 2025 Edition*, including both fixed-bottom and floating offshore wind cases.
 
-Unlike other datasets in this repository, which largely reflect publicly available sources, this dataset incorporates **internal adjustments and harmonizations** to align with research-focused scenarios.
+Unlike other datasets in this repository, which largely reflect publicly available sources, this dataset incorporates **internal adjustments and harmonizations** to align with research-focused scenarios for NREL products that may require outputs to be in 2024 USD, like for example, the Annual Technology Baseline, or the Cost of Wind Energy Review.
 
 ## Core Assumptions
 
@@ -15,7 +15,6 @@ Unlike other datasets in this repository, which largely reflect publicly availab
 
 - Serve as a **baseline input** for replicable analyses in the *COWER-2025* results.
 - Support **scenario development** and **sensitivity analyses** exploring the impact of cost evolution, operational performance, and logistics assumptions.
-- Provide a **controlled reference** for comparison against other datasets.
 
 ## Reproducibility
 
