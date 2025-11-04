@@ -9,6 +9,14 @@ This contains the old notebooks and data used to prepare the unveiling of the mo
 DOE. The results are displayed in
 [presentations section](presentations:fy20-doe) of the documentation.
 
+## Ongoing Analysis Work & Default Data Results Demonstration
+
+### `COWER_om_worflow.ipynb`
+
+This workflow example demonstrates the new (as of v0.13) default offshore wind data sets and the
+O&M portion of the NREL Cost of Wind Energy Review (COWER) analysis. The underlying data and example
+are kept up to date every year for this project, so the data will be updated annually (as of 2025).
+
 ## Explanations
 
 The following notebooks are aimed at demonstrating and explaining various functionality
