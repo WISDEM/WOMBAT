@@ -223,6 +223,7 @@ The accompanying notebook, **`examples/COWER-2025-prelim-results.ipynb`**, demon
 - This dataset should be treated as a **scenario-based reference**, not as purely empirical or historical data.
 
 ### Data Sources
+
 - COREWIND, 2020: https://corewind.eu/wp-content/uploads/files/publications/COREWIND-D6.1-General-frame-of-the-analysis-and-description-of-the-new-FOW-assessment-app.pdf
 - COREWIND, 2021: https://corewind.eu/wp-content/uploads/files/publications/COREWIND-D4.2-Floating-Wind-O-and-M-Strategies-Assessment.pdf
 - BVG Associates, 2025a: https://guidetoanoffshorewindfarm.com/wind-farm-costs/
