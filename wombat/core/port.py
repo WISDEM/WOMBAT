@@ -332,6 +332,11 @@ class Port(RepairsMixin, FilterStore):
 
         self.env.process(self.service_equipment_manager.manage_vessels())
 
+        if TYPE_CHECKING:
+            assert isinstance(self.settings, PortConfig)
+        if (usage_fee := self.settings.daily_use_fee) > 0:
+            self.env.process(self._log_usage_fee(usage_fee))
+
     def _initialize_servicing_equipment(
         self, repair_manager: RepairManager, configuration: str | dict
     ) -> None:
@@ -359,6 +364,7 @@ class Port(RepairsMixin, FilterStore):
     def _setup_tugboats(
         self, repair_manager: RepairManager, vessel_configs: dict | None
     ) -> None:
+        total = 0
         for tugboat in self.settings.tugboats:
             n = 1
             if isinstance(tugboat, list):
@@ -380,6 +386,7 @@ class Port(RepairsMixin, FilterStore):
 
             if n == 1:
                 self._initialize_servicing_equipment(repair_manager, tugboat)  # type: ignore
+                total += 1
                 continue
 
             if isinstance(tugboat, str):
@@ -393,6 +400,9 @@ class Port(RepairsMixin, FilterStore):
                 config = deepcopy(tugboat)
                 config["name"] = f"{name} {i + 1}"
                 self._initialize_servicing_equipment(repair_manager, config)
+                total += 1
+
+        self.service_equipment_manager.reserve_vessels._capacity = total
 
     def _log_monthly_fee(self):
         """Logs the monthly port lease fee."""
@@ -428,6 +438,31 @@ class Port(RepairsMixin, FilterStore):
                 reason="port lease",
                 equipment_cost=monthly_fee,
             )
+
+    def _log_usage_fee(self, usage_fee):
+        """Logs the port usage at the end of each day by checking if any activity has
+        occurred through the :py:attr:`activity_check` boolean.
+        """
+        vessel_capacity = self.service_equipment_manager.reserve_vessels.capacity
+        turbine_capacity = self.turbine_manager.capacity
+        while True:
+            hours_remaining = deepcopy(HOURS_IN_DAY)
+            while hours_remaining:
+                yield self.env.timeout(1)
+                hours_remaining -= 1
+
+                inactive_vessels = self.service_equipment_manager.reserve_vessels.items
+                dispatched_vessels = inactive_vessels < vessel_capacity
+                ongoing_repairs = self.turbine_manager.items < turbine_capacity
+                if dispatched_vessels or ongoing_repairs:
+                    self.env.log_action(
+                        agent=self.name,
+                        action="daily use fee",
+                        reason="port usage",
+                        equipment_cost=usage_fee,
+                    )
+                    yield self.env.timeout(hours_remaining)
+                    hours_remaining = 0
 
     def repair_single(self, request: RepairRequest) -> Generator[Timeout | Process]:
         """Simulation logic to process a single repair request.
