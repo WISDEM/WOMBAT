@@ -332,8 +332,6 @@ class Port(RepairsMixin, FilterStore):
 
         self.env.process(self.service_equipment_manager.manage_vessels())
 
-        if TYPE_CHECKING:
-            assert isinstance(self.settings, PortConfig)
         if (usage_fee := self.settings.daily_use_fee) > 0:
             self.env.process(self._log_usage_fee(usage_fee))
 
@@ -440,20 +438,18 @@ class Port(RepairsMixin, FilterStore):
             )
 
     def _log_usage_fee(self, usage_fee):
-        """Logs the port usage at the end of each day by checking if any activity has
-        occurred through the :py:attr:`activity_check` boolean.
+        """Logs the port usage at the end of each day by checking if there was either
+        any vessel activity or turbine activity during each hour of the day.
         """
         vessel_capacity = self.service_equipment_manager.reserve_vessels.capacity
-        turbine_capacity = self.turbine_manager.capacity
         while True:
             hours_remaining = deepcopy(HOURS_IN_DAY)
             while hours_remaining:
                 yield self.env.timeout(1)
                 hours_remaining -= 1
-
                 inactive_vessels = self.service_equipment_manager.reserve_vessels.items
-                dispatched_vessels = inactive_vessels < vessel_capacity
-                ongoing_repairs = self.turbine_manager.items < turbine_capacity
+                dispatched_vessels = len(inactive_vessels) < vessel_capacity
+                ongoing_repairs = len(self.invalid_systems) > 0
                 if dispatched_vessels or ongoing_repairs:
                     self.env.log_action(
                         agent=self.name,
