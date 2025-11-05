@@ -208,7 +208,7 @@ Material costs for repairs and replacements, as well as failure data, are source
 - **Data Integration:** Inputs were consolidated from multiple public sources and internal records (`WOMBAT_cost_history.xlsx`), with historical exchange rates and inflation applied to transform costs to 2024 USD.
 - **Technology Coverage:** Includes representative inputs for offshore (fixed-bottom and floating) technologies.
 
-## Intended Use
+### Intended Use
 
 - Serve as a **baseline input** for replicable analyses in the *COWER-2025* results.
 - Support **scenario development** and **sensitivity analyses** exploring the impact of cost evolution, operational performance, and logistics assumptions.
