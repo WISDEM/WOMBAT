@@ -26,7 +26,7 @@ Material costs for repairs and replacements, as well as failure data, are source
 
 ## Reproducibility
 
-The accompanying notebook, **`examples/COWER-2025-prelim-results.ipynb`**, demonstrates how to replicate O&M results from the *Cost of Wind Energy Review: 2025 Edition*. It runs 50 simulations per case and summarizes mean and standard deviation results to identify sources of variability within cost components.
+The accompanying notebook, **`examples/COWER_om_workflow.ipynb`**, demonstrates how to replicate O&M results from the *Cost of Wind Energy Review: 2025 Edition*. It runs 50 simulations per case and summarizes mean and standard deviation results to identify sources of variability within cost components.
 
 ## Notes
 
