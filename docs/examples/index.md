@@ -156,16 +156,18 @@ modeling assumptions as well as the basic operations of the maintenance and fail
     following additional capabilities:
     - TOW: tugboat or towing equipment
     - AHV: anchor handling vessel (tugboat that doesn't trigger tow-to-port)
-  - There are a few limitations to the tow-to-port model as follows:
-    - Port usage fees are only modeled by the single monthly access fee `equipment_rate`.
-    - Tugboats are not formally mobilized, so cost and vessel wait times are not
-      applied when a tow-to-port simulation is kicked off.
-    - Tugboats are called out on the first request from the requesting system,
-      regardless of the user encoding.
-    - All subsequent repair and maintenance requests following a "TOW" request will not
-      be addressed until the system is at the port. This can create a significant
-      backlog of repairs if there are not enough tugboats, crews, or active turbine
-      slots encoded at the port.
+  - Port access fees can be modeled in the `FixedCosts` module, or applied as a monthly
+    fee using either the `annual_fee` or `monthly_fee` input.
+  - Port usage fees are applied when any turbine is at the port for repairs, and can
+    set using the `daily_use_fee` parameter.
+  - Tugboats are mobilized, and will stay at port for the duration of their
+    `charter_days` parameter.
+  - Tugboats are called out on the first request from the requesting system,
+    regardless of the user encoding.
+  - All subsequent repair and maintenance requests following a "TOW" request will not
+    be addressed until the system is at the port. This can create a significant
+    backlog of repairs if there are not enough tugboats, crews, or active turbine
+    slots encoded at the port.
   - See the [API docs](core:port) for more details
 
 ## Examples and Validation Work

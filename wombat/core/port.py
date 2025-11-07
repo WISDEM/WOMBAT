@@ -642,13 +642,16 @@ class Port(RepairsMixin, FilterStore):
 
         The process follows the following following routine:
 
-        1. Request a tugboat from the tugboat resource manager and wait
-        2. Runs ``ServiceEquipment.tow_to_port``, which encapsulates the traveling to
-            site, unmooring, and return tow with a turbine
+        1. Request a tugboat from the tugboat resource manager and wait for one to be
+            available.
+        2. Mobilize the tugboat if it's not readily available at port
+        3. Runs ``ServiceEquipment.tow_to_port``, which encapsulates the traveling to
+            site, unmooring, and return tow with a turbine.
         3. Transfers the the turbine's repair log to the port, and gets all available
            crews to work on repairs immediately
-        4. Requests a tugboat to return the turbine to site
-        5. Runs ``ServiceEquipment.tow_to_site()``, which encapsulates the tow back to
+        4. Requests a tugboat to return the turbine to site.
+        5. If the tugboat was not already mobilized, mobilize it.
+        6. Runs ``ServiceEquipment.tow_to_site()``, which encapsulates the tow back to
            site, reconnection, resetting the operating status, and returning back to
            port
 
