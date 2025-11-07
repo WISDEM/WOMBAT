@@ -201,7 +201,6 @@ class PortManager:
         StorePut
             Request to put the vessel back in either the active or reserve store.
         """
-        # TODO: mechanism to stop accumulation of downtime costs
         if self.env.now < self.charter_map[vessel.name]:
             vessel.downtime_accrual = self.env.process(
                 vessel.run_downtime_accumulation()
@@ -321,6 +320,7 @@ class Port(RepairsMixin, FilterStore):
         self._setup_tugboats(repair_manager, vessel_configs)
 
         self.active_repairs: dict[str, dict[str, simpy.events.Event]] = {}
+        self.turbines_at_port: dict[str, bool] = {}
         self.subassembly_resets: dict[str, list[str]] = {}
 
         # Create partial functions for the labor and equipment costs for clarity
@@ -446,7 +446,7 @@ class Port(RepairsMixin, FilterStore):
             while hours_remaining:
                 yield self.env.timeout(1)
                 hours_remaining -= 1
-                ongoing_repairs = len(self.invalid_systems) > 0
+                ongoing_repairs = any(self.turbines_at_port.values())
                 if ongoing_repairs:
                     self.env.log_action(
                         agent=self.name,
@@ -720,6 +720,7 @@ class Port(RepairsMixin, FilterStore):
         if TYPE_CHECKING:
             assert isinstance(tugboat, ServiceEquipment)
         yield self.env.process(tugboat.run_tow_to_port(request))
+        self.turbines_at_port[request.system_id] = True
 
         yield self.env.process(self.service_equipment_manager.return_vessel(tugboat))
 
@@ -740,6 +741,7 @@ class Port(RepairsMixin, FilterStore):
         self.subassembly_resets[system_id] = list(
             set(self.subassembly_resets[system_id])
         )
+        self.turbines_at_port[request.system_id] = False
         yield self.env.process(
             tugboat.run_tow_to_site(request, self.subassembly_resets[system_id])
         )
