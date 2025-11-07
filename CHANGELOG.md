@@ -45,7 +45,7 @@
 - Fixes a bug in `Metrics.equipment_labor_cost_breakdown()` where the mooring and unmooring
   processes were entirely removed from the cost breakdown.
 - Adds the `monthly_fee` as an alternative to the `annual_fee` to the port configuration inputs.
-- Adds the `daily_use_fee` for use when any activity occurs at port relating to repairs.
+- Adds the `daily_use_fee` for use when turbine(s) are at the port.
 
 ## v0.12.2 - 16 October 2025
 
