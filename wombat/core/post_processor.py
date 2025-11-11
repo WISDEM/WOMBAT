@@ -788,7 +788,9 @@ class Metrics:
         col_filter = frequency.group_cols
 
         cost_col = [self._equipment_cost]
-        events = self.events.loc[self.events.action != "monthly lease fee"]
+        events = self.events.loc[
+            ~self.events.action.isin(("monthly lease fee", "daily use fee"))
+        ]
         if by_equipment:
             if frequency is Frequency.PROJECT:
                 costs = (
@@ -1860,7 +1862,7 @@ class Metrics:
 
         column = "port_fees"
         port_fee = self.events.loc[
-            self.events.action == "monthly lease fee",
+            self.events.action.isin(("monthly lease fee", "daily use fee")),
             ["year", "month", "equipment_cost"],
         ].rename(columns={"equipment_cost": column})
 

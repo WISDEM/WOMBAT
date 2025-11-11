@@ -62,10 +62,11 @@ As of v0.13, a series of convenience features have been made, and are outlined b
   Using the `load_weather()` function, users can save the output Polars DataFrame to Parquet.
 - Tow-to-port simulations now mobilize tugboats, and log downtime during their chartering
   more closely replicating real life conditions.
+- Ports can now use an `annual_fee` or `monthly_fee`, and have direct use fee applied
+  during any at-port repair operations, using the `daily_use_fee` input.
 - The `"default"` library now standardizes all cost inputs to 2024 USD. This library, together with
   the `COWER_om_workflow.ipynb` notebook, can be used to replicate the OpEx results presented in
   the Cost of Wind Energy Review: 2025 Edition.
-
 
 As of v0.10, a series of convenience features and consistency updates have been made.
 - A breaking change to failure data has been made by using lists instead of dictionaries
