@@ -201,7 +201,6 @@ class PortManager:
         StorePut
             Request to put the vessel back in either the active or reserve store.
         """
-        # TODO: mechanism to stop accumulation of downtime costs
         if self.env.now < self.charter_map[vessel.name]:
             vessel.downtime_accrual = self.env.process(
                 vessel.run_downtime_accumulation()
@@ -321,16 +320,20 @@ class Port(RepairsMixin, FilterStore):
         self._setup_tugboats(repair_manager, vessel_configs)
 
         self.active_repairs: dict[str, dict[str, simpy.events.Event]] = {}
+        self.turbines_at_port: dict[str, bool] = {}
         self.subassembly_resets: dict[str, list[str]] = {}
 
         # Create partial functions for the labor and equipment costs for clarity
         self.initialize_cost_calculators(which="port")
 
         # Run the annualized fee logger
-        if self.settings.annual_fee > 0:
-            self.env.process(self._log_annual_fee())
+        if self.settings.monthly_fee > 0:
+            self.env.process(self._log_monthly_fee())
 
         self.env.process(self.service_equipment_manager.manage_vessels())
+
+        if (usage_fee := self.settings.daily_use_fee) > 0:
+            self.env.process(self._log_usage_fee(usage_fee))
 
     def _initialize_servicing_equipment(
         self, repair_manager: RepairManager, configuration: str | dict
@@ -359,6 +362,7 @@ class Port(RepairsMixin, FilterStore):
     def _setup_tugboats(
         self, repair_manager: RepairManager, vessel_configs: dict | None
     ) -> None:
+        total = 0
         for tugboat in self.settings.tugboats:
             n = 1
             if isinstance(tugboat, list):
@@ -380,6 +384,7 @@ class Port(RepairsMixin, FilterStore):
 
             if n == 1:
                 self._initialize_servicing_equipment(repair_manager, tugboat)  # type: ignore
+                total += 1
                 continue
 
             if isinstance(tugboat, str):
@@ -393,12 +398,15 @@ class Port(RepairsMixin, FilterStore):
                 config = deepcopy(tugboat)
                 config["name"] = f"{name} {i + 1}"
                 self._initialize_servicing_equipment(repair_manager, config)
+                total += 1
 
-    def _log_annual_fee(self):
-        """Logs the annual port lease fee on a monthly-basis."""
+        self.service_equipment_manager.reserve_vessels._capacity = total
+
+    def _log_monthly_fee(self):
+        """Logs the monthly port lease fee."""
         if TYPE_CHECKING:
             assert isinstance(self.settings, PortConfig)
-        monthly_fee = self.settings.annual_fee / 12.0
+        monthly_fee = self.settings.monthly_fee
         ix_month_starts = self.env.weather.filter(
             (pl.col("datetime").dt.day() == 1)
             & (pl.col("datetime").dt.hour() == 0)
@@ -428,6 +436,26 @@ class Port(RepairsMixin, FilterStore):
                 reason="port lease",
                 equipment_cost=monthly_fee,
             )
+
+    def _log_usage_fee(self, usage_fee):
+        """Logs the port usage at the end of each day by checking if there was either
+        any vessel activity or turbine activity during each hour of the day.
+        """
+        while True:
+            hours_remaining = deepcopy(HOURS_IN_DAY)
+            while hours_remaining:
+                yield self.env.timeout(1)
+                hours_remaining -= 1
+                ongoing_repairs = any(self.turbines_at_port.values())
+                if ongoing_repairs:
+                    self.env.log_action(
+                        agent=self.name,
+                        action="daily use fee",
+                        reason="port usage",
+                        equipment_cost=usage_fee,
+                    )
+                    yield self.env.timeout(hours_remaining)
+                    hours_remaining = 0
 
     def repair_single(self, request: RepairRequest) -> Generator[Timeout | Process]:
         """Simulation logic to process a single repair request.
@@ -614,13 +642,16 @@ class Port(RepairsMixin, FilterStore):
 
         The process follows the following following routine:
 
-        1. Request a tugboat from the tugboat resource manager and wait
-        2. Runs ``ServiceEquipment.tow_to_port``, which encapsulates the traveling to
-            site, unmooring, and return tow with a turbine
+        1. Request a tugboat from the tugboat resource manager and wait for one to be
+            available.
+        2. Mobilize the tugboat if it's not readily available at port
+        3. Runs ``ServiceEquipment.tow_to_port``, which encapsulates the traveling to
+            site, unmooring, and return tow with a turbine.
         3. Transfers the the turbine's repair log to the port, and gets all available
            crews to work on repairs immediately
-        4. Requests a tugboat to return the turbine to site
-        5. Runs ``ServiceEquipment.tow_to_site()``, which encapsulates the tow back to
+        4. Requests a tugboat to return the turbine to site.
+        5. If the tugboat was not already mobilized, mobilize it.
+        6. Runs ``ServiceEquipment.tow_to_site()``, which encapsulates the tow back to
            site, reconnection, resetting the operating status, and returning back to
            port
 
@@ -692,6 +723,7 @@ class Port(RepairsMixin, FilterStore):
         if TYPE_CHECKING:
             assert isinstance(tugboat, ServiceEquipment)
         yield self.env.process(tugboat.run_tow_to_port(request))
+        self.turbines_at_port[request.system_id] = True
 
         yield self.env.process(self.service_equipment_manager.return_vessel(tugboat))
 
@@ -712,6 +744,7 @@ class Port(RepairsMixin, FilterStore):
         self.subassembly_resets[system_id] = list(
             set(self.subassembly_resets[system_id])
         )
+        self.turbines_at_port[request.system_id] = False
         yield self.env.process(
             tugboat.run_tow_to_site(request, self.subassembly_resets[system_id])
         )
