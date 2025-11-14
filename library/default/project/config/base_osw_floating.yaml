@@ -13,4 +13,5 @@ workday_end: 19
 start_year: 1999
 end_year: 2018
 project_capacity: 600
+site_distance: 139
 port: port_139km.yaml
