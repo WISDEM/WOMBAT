@@ -11,6 +11,6 @@ fixed_costs: fixed_costs_osw_floating.yaml
 workday_start: 7
 workday_end: 19
 start_year: 1999
-end_year: 2019
+end_year: 2018
 project_capacity: 600
 port: port_139km.yaml
