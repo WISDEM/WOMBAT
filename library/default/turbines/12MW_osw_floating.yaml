@@ -15,7 +15,7 @@ power_converter:
   - scale: 1.859
     shape: 1
     time: 14
-    materials: 1369.5
+    materials: 1095.6
     service_equipment: CTV
     operation_reduction: 0.0
     level: 1
@@ -23,7 +23,7 @@ power_converter:
   - scale: 2.959
     shape: 1
     time: 28
-    materials: 9586.8
+    materials: 7669.44
     service_equipment: TOW
     operation_reduction: 0.0
     level: 2
@@ -31,7 +31,7 @@ power_converter:
   - scale: 12.99
     shape: 1
     time: 170
-    materials: 75325.1
+    materials: 60260.08
     service_equipment: TOW
     operation_reduction: 0
     replacement: true
@@ -49,7 +49,7 @@ electrical_system:
   - scale: 2.793
     shape: 1
     time: 10
-    materials: 1369.5
+    materials: 1095.6
     service_equipment: CTV
     operation_reduction: 0.0
     level: 1
@@ -57,7 +57,7 @@ electrical_system:
   - scale: 62.5
     shape: 1
     time: 28
-    materials: 6847.7
+    materials: 5478.16
     service_equipment: TOW
     operation_reduction: 0.0
     level: 2
@@ -65,7 +65,7 @@ electrical_system:
   - scale: 500
     shape: 1
     time: 54
-    materials: 68477.3
+    materials: 54781.84
     service_equipment: TOW
     operation_reduction: 0
     replacement: true
@@ -83,7 +83,7 @@ hydraulic_pitch_system:
   - scale: 1.214
     shape: 1
     time: 18
-    materials: 684.8
+    materials: 547.84
     service_equipment: CTV
     operation_reduction: 0
     level: 1
@@ -91,7 +91,7 @@ hydraulic_pitch_system:
   - scale: 5.587
     shape: 1
     time: 38
-    materials: 2602.1
+    materials: 2081.68
     service_equipment: CTV
     operation_reduction: 0.0
     level: 2
@@ -99,7 +99,7 @@ hydraulic_pitch_system:
   - scale: 1000
     shape: 1
     time: 75
-    materials: 19173.7
+    materials: 15338.96
     service_equipment: TOW
     operation_reduction: 0
     replacement: true
@@ -117,7 +117,7 @@ ballast_pump:
   - scale: 100
     shape: 1
     time: 8
-    materials: 1369.5
+    materials: 1095.6
     service_equipment: CTV
     operation_reduction: 0
     level: 1
@@ -134,7 +134,7 @@ yaw_system:
   - scale: 6.173
     shape: 1
     time: 10
-    materials: 684.8
+    materials: 547.84
     service_equipment: CTV
     operation_reduction: 0
     level: 1
@@ -142,7 +142,7 @@ yaw_system:
   - scale: 166.7
     shape: 1
     time: 40
-    materials: 4108.6
+    materials: 3286.88
     service_equipment: TOW
     operation_reduction: 0.0
     level: 2
@@ -150,7 +150,7 @@ yaw_system:
   - scale: 1000
     shape: 1
     time: 147
-    materials: 17119.3
+    materials: 13695.44
     service_equipment: TOW
     operation_reduction: 0
     replacement: true
@@ -168,7 +168,7 @@ rotor_blades:
   - scale: 2.193
     shape: 1
     time: 18
-    materials: 6847.7
+    materials: 5478.16
     service_equipment: CTV
     operation_reduction: 0
     level: 1
@@ -176,7 +176,7 @@ rotor_blades:
   - scale: 100
     shape: 1
     time: 42
-    materials: 59041.2
+    materials: 47232.96
     service_equipment: TOW
     operation_reduction: 0.0
     level: 2
@@ -184,7 +184,7 @@ rotor_blades:
   - scale: 1000
     shape: 1
     time: 864
-    materials: 609448.3
+    materials: 487558.64
     service_equipment: TOW
     operation_reduction: 0
     replacement: true
@@ -195,14 +195,14 @@ generator:
   maintenance:
   - description: annual turbine inspection
     time: 24
-    materials: 2054.3
+    materials: 1643.44
     service_equipment: CTV
     frequency: 365
   failures:
   - scale: 1.832
     shape: 1
     time: 13
-    materials: 1369.5
+    materials: 1095.6
     service_equipment: CTV
     operation_reduction: 0.0
     level: 1
@@ -210,7 +210,7 @@ generator:
   - scale: 33.333
     shape: 1
     time: 49
-    materials: 19639.3
+    materials: 15711.44
     service_equipment: TOW
     operation_reduction: 0.0
     level: 2
@@ -218,7 +218,7 @@ generator:
   - scale: 111.1111
     shape: 1
     time: 244
-    materials: 323897.8
+    materials: 259118.24
     service_equipment: TOW
     operation_reduction: 0
     replacement: true
@@ -229,12 +229,12 @@ supporting_structure:
   maintenance:
   - description: structural annual inspection
     time: 24
-    materials: 821.7
+    materials: 657.36
     service_equipment: CTV
     frequency: 365
   - description: structural subsea inspection
     time: 6
-    materials: 684.8
+    materials: 547.84
     service_equipment: DSV
     frequency: 730
   failures:
@@ -258,7 +258,7 @@ anchor:
   - scale: 66.67
     shape: 1
     time: 240
-    materials: 102716.0
+    materials: 82172.8
     service_equipment: AHV
     operation_reduction: 0
     level: 1
@@ -266,7 +266,7 @@ anchor:
   - scale: 80
     shape: 1
     time: 360
-    materials: 701207.9
+    materials: 560966.32
     service_equipment: AHV
     operation_reduction: 0
     replacement: true
@@ -284,7 +284,7 @@ mooring_lines:
   - scale: 8.33
     shape: 1
     time: 40
-    materials: 2054.3
+    materials: 1643.44
     service_equipment: CTV
     operation_reduction: 0
     level: 1
@@ -292,7 +292,7 @@ mooring_lines:
   - scale: 66.67
     shape: 1
     time: 240
-    materials: 27390.9
+    materials: 21912.72
     service_equipment: AHV
     operation_reduction: 0
     level: 2
@@ -300,7 +300,7 @@ mooring_lines:
   - scale: 80
     shape: 1
     time: 360
-    materials: 184888.8
+    materials: 147911.04
     service_equipment: AHV
     operation_reduction: 0
     replacement: true
@@ -309,7 +309,7 @@ mooring_lines:
   - scale: 30.3
     shape: 1
     time: 40
-    materials: 136954.7
+    materials: 109563.76
     service_equipment: CTV
     operation_reduction: 0
     replacement: false
@@ -327,7 +327,7 @@ drive_train:
   - scale: 4.329
     shape: 1
     time: 10
-    materials: 1369.5
+    materials: 1095.6
     service_equipment: CTV
     operation_reduction: 0
     level: 1
@@ -335,7 +335,7 @@ drive_train:
   - scale: 38.462
     shape: 1
     time: 36
-    materials: 19173.7
+    materials: 15338.96
     service_equipment: TOW
     operation_reduction: 0
     level: 2
@@ -343,7 +343,7 @@ drive_train:
   - scale: 111.111
     shape: 1
     time: 144
-    materials: 317734.8
+    materials: 254187.84
     service_equipment: TOW
     operation_reduction: 0
     replacement: true
