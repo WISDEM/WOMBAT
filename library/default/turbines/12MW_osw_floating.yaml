@@ -1,5 +1,5 @@
 capacity_kw: 12000
-capex_kw: 1300
+capex_kw: 1770
 power_curve:
   file: 12MW_216_RWT.csv
   bin_width: 0.5
