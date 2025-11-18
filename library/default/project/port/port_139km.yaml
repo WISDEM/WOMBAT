@@ -10,4 +10,4 @@ crew:
   hourly_rate: 0
   n_hourly_rate: 0
 n_crews: 2  # maximum number of simultaneously operating crews to repair individual failures on a turbine
-annual_fee: 10741400 # Calculated based on avg repair time at port per year of 4.3 mo, assuming monthly port fee in 2024 USD from ORBIT [2.498e6](more appropiate for TTP operations given that additional berth space and heavy-lift capacity would be required compared to a fixed-bottom port with just some space for CTVs)
+daily_use_fee: 83266 # Calculated based on monthly port fee in 2024 USD from ORBIT [2.498e6](more appropiate for TTP operations given that additional berth space and heavy-lift capacity would be required compared to a fixed-bottom port with just some space for CTVs) divided by 30 days in a month
