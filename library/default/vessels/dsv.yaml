@@ -1,0 +1,21 @@
+name: Diving Support Vessel
+equipment_rate: 30736.5 # Reference: WOMBAT_Cost_History.xslx
+capability: DSV
+speed: 29.63  # 16 knots
+strategy: requests
+max_windspeed_transport: 99
+max_windspeed_repair: 99
+max_waveheight_transport: 2
+max_waveheight_repair: 2
+onsite: false
+mobilization_cost: 0 # Reference: WOMBAT_Cost_History.xslx
+mobilization_days: 15
+strategy_threshold: 1
+charter_days: 4
+crew_transfer_time: 0.25
+n_crews: 1
+crew:
+  day_rate: 0 # Labor cost assumed separately as a fixed cost based on WOMBAT_Cost_History.xslx
+  n_day_rate: 10  # N technicians for all DSV tasks
+  hourly_rate: 0
+  n_hourly_rate: 0

@@ -1,0 +1,6 @@
+# All USD figures coming from the WOMBAT_cost_history.xlsx database
+labor: 5.125 # $102.5K/year * 30 workers / Capacity (kW)
+operations_management_administration: 23.5  #  includes Training (fixed), Onshore logistics (fixed), Technical resource (onshore and off) (fixed) and Admin and support staff (onshore) (fixed)
+operating_facilities: 1.7  #Operations control centre (fixed)
+insurance: 14.3 # insurance (fixed)
+annual_leases_fees: 2.72  # Calculation on the WOMBAT_cost_history.xlsx database; assumed net CF = 49%, ISO-NE NREL Cambium projected wholesale electricity prices
