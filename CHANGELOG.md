@@ -31,6 +31,10 @@
   ...
   ```
 
+- Adds an internal validation routine for the wind farm layout file to avoid uncaught layout
+  creation errors.
+- Add more robust type handling and checking for `format_weather()`
+
 ### Tow-To-Port Improvements
 
 - Creation of the `PortManager` to manage the tugboats and other port-managed vessels.
