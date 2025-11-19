@@ -34,6 +34,7 @@
 - Adds an internal validation routine for the wind farm layout file to avoid uncaught layout
   creation errors.
 - Add more robust type handling and checking for `format_weather()`
+- Allow for a `FixedCosts` `dict` to be passed directly to `Metrics` without loading additional data.
 
 ### Tow-To-Port Improvements
 
