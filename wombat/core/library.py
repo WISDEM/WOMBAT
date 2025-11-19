@@ -309,6 +309,12 @@ def format_weather(weather: pd.DataFrame) -> pl.DataFrame:
     pl.DataFrame
         A WOMBAT-compatible weather Polars DataFrame.
     """
+    if isinstance(weather, pl.DataFrame | pa.Table):
+        weather = weather.to_pandas()
+
+    if not isinstance(weather, pd.DataFrame):
+        raise TypeError(f"`weather` must be a Pandas DataFrame, not: {type(weather)}")
+
     required = ["windspeed", "waveheight"]
     column_order = ["index", "datetime", "hour", "windspeed", "waveheight"]
 
