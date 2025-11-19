@@ -79,6 +79,50 @@ class Windfarm:
         self.env._register_windfarm(self)
         self.env.process(self._log_operations())
 
+    def _validate_layout(self, layout: pd.DataFrame) -> pd.DataFrame:
+        """Validate the wind farm layout data, and create any missing columns used
+        during the inital graph layout setup steps that the user may not have provided.
+
+        Parameters
+        ----------
+        layout : pd.DataFrame
+            The wind farm layout.
+
+        Returns
+        -------
+        pd.DataFrame
+            The input :py:attr:`layout` after checking for required columns with any
+            missing optional columns added as 0-valued arrays.
+
+        Raises
+        ------
+        ValueError
+            Raised if any of "id", "substation_id", "name", "type", "string", "order",
+            "subassembly", or "upstream_cable" are missing.
+        """
+        required_cols = [
+            "id",
+            "substation_id",
+            "name",
+            "type",
+            "string",
+            "order",
+            "subassembly",
+            "upstream_cable",
+        ]
+        optional_number_cols = ["logitude", "latitude", "distance"]
+
+        missing = set(required_cols).difference(layout.columns)
+        if missing:
+            msg = f"Farm layout is missing the required columns: {', '.join(missing)}"
+            raise ValueError(msg)
+
+        missing = set(optional_number_cols).difference(layout.columns)
+        if missing:
+            layout = layout.assign(**dict.fromkeys(missing, 0.0))
+
+        return layout.sort_values(by=["string", "order"])
+
     def _create_graph_layout(self, windfarm_layout: str | pd.DataFrame) -> None:
         """Creates a network layout of the windfarm start from the substation(s) to
         be able to capture downstream turbines that can be cut off in the event of a
@@ -93,13 +137,12 @@ class Windfarm:
         # it can be traversed in sequential order later
         if isinstance(windfarm_layout, str):
             layout_path = str(self.env.data_dir / "project/plant" / windfarm_layout)
-            layout = (
-                pd.read_csv(layout_path)
-                .sort_values(by=["string", "order"])
-                .reset_index(drop=True)
-            )
+            layout = pd.read_csv(layout_path).reset_index(drop=True)
         else:
             layout = windfarm_layout.copy()
+
+        layout = self._validate_layout(layout)
+
         layout.subassembly = layout.subassembly.fillna("")
         layout.upstream_cable = layout.upstream_cable.fillna("")
 
