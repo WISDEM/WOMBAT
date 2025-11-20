@@ -110,7 +110,7 @@ class Windfarm:
             "subassembly",
             "upstream_cable",
         ]
-        optional_number_cols = ["logitude", "latitude", "distance"]
+        optional_number_cols = ["longitude", "latitude", "distance"]
 
         missing = set(required_cols).difference(layout.columns)
         if missing:
@@ -152,9 +152,6 @@ class Windfarm:
         # Assign the data attributes to the graph nodes
         for col in ("name", "latitude", "longitude", "subassembly"):
             nx.set_node_attributes(windfarm, dict(layout[["id", col]].values), name=col)
-
-        if "type" not in layout.columns:
-            raise KeyError("Missing columng 'type' to specify system types")
 
         if (valid := layout["type"].isin(SystemType.types())).sum() != layout.shape[0]:
             invalid_names = layout.loc[~valid, "name"].values.tolist()

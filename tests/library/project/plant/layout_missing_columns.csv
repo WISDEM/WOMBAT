@@ -1,0 +1,9 @@
+﻿id,string,order,subassembly
+OSS1,,,offshore_substation.yaml
+S00T1,0,0,vestas_v90.yaml
+S00T1,0,0,vestas_v90.yaml
+S00T2,0,1,vestas_v90.yaml
+S00T3,0,2,vestas_v90.yaml
+S01T4,1,0,vestas_v90.yaml
+S01T5,1,1,vestas_v90.yaml
+S01T6,1,2,vestas_v90.yaml
