@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import pytest
 import numpy.testing as npt
 from networkx.classes.digraph import DiGraph
@@ -222,6 +223,25 @@ def test_windfarm_failed_init(env_setup):
     # Test for bad substation file
     with pytest.raises(ValueError):
         Windfarm(env, "layout_array_invalid.csv", manager)
+
+
+def test_layout_validation(env_setup):
+    """Tests the layout column validation."""
+    env = env_setup
+    manager = RepairManager(env)
+
+    # Check required only columns to ensure optional numeric columns have an initial 0
+    windfarm = Windfarm(env, "layout_required_only.csv", manager)
+    assert (windfarm.layout_df.latitude == 0).all()
+    assert (windfarm.layout_df.longitude == 0).all()
+    assert (windfarm.layout_df.distance == 0).all()
+
+    # Check missing columns fail
+    df = pd.read_csv(env.data_dir / "project/plant/layout_required_only.csv")
+    for col in df.columns:
+        _df = df.drop(columns=col)
+        with pytest.raises(ValueError):
+            Windfarm(env, _df, manager)
 
 
 def test_windfarm_distance_coords(env_setup):

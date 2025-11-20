@@ -79,7 +79,7 @@ class Metrics:
         electrolyzer_id: str | list[str],
         substation_turbine_map: dict[str, dict[str, list[str]]],
         service_equipment_names: str | list[str],
-        fixed_costs: str | None = None,
+        fixed_costs: str | dict | None = None,
     ) -> None:
         """Initializes the Metrics class.
 
@@ -125,7 +125,7 @@ class Metrics:
             The names of the servicing equipment, corresponding to
             ``ServiceEquipment.name`` for each ``ServiceEquipment`` in the
             simulation.
-        fixed_costs : str | None
+        fixed_costs : str | dict | None
             The filename of the project's fixed costs.
         """
         self.data_dir = Path(data_dir)
@@ -139,9 +139,8 @@ class Metrics:
             # Create a zero-cost FixedCosts object
             self.fixed_costs = FixedCosts.from_dict({"operations": 0})
         else:
-            if TYPE_CHECKING:
-                assert isinstance(fixed_costs, str)
-            fixed_costs = load_yaml(self.data_dir / "project/config", fixed_costs)
+            if isinstance(fixed_costs, str):
+                fixed_costs = load_yaml(self.data_dir / "project/config", fixed_costs)
             if TYPE_CHECKING:
                 assert isinstance(fixed_costs, dict)
             self.fixed_costs = FixedCosts.from_dict(fixed_costs)
