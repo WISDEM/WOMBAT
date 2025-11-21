@@ -35,6 +35,7 @@
   creation errors.
 - Add more robust type handling and checking for `format_weather()`
 - Allow for a `FixedCosts` `dict` to be passed directly to `Metrics` without loading additional data.
+- Fixes a test collection error introduced in Pytest v9.
 
 ### Tow-To-Port Improvements
 
