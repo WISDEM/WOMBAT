@@ -75,7 +75,7 @@ dev = [
     "pyupgrade",
 ]
 docs = [
-    "jupyter-book>=0.15",
+    "jupyter-book>=1,<2",
     "myst-nb>=0.16",
     "myst-parser>=0.17",
     "linkify-it-py>=2",
