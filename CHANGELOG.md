@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.12.3 - 1 December 2025
+
+- Converts `PosixPath` objects to `str` before passing to pytest's `args` during custom unit and
+  regression test collection.
+- Pins the maximum version of Jupyter-Book to be "<2" until the documentation has been migrated.
+
 ## v0.12.2 - 16 October 2025
 
 - Reinstate the ability to have extra columns in the weather profile to avoid upstream conflicts,
