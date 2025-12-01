@@ -38,6 +38,8 @@ def pytest_configure(config):  # noqa: D103
     regression_tests = [
         str(el) for el in (ROOT / "regression").iterdir() if el.suffix == ".py"
     ]
+    unit_tests.sort()
+    regression_tests.sort()
 
     # If both, run them all; if neither skip any modifications; otherwise run just the
     # appropriate subset
