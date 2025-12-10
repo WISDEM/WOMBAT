@@ -1,32 +1,22 @@
 name: Crawler Crane - 1350 tonnes
 # IEA 3.6 MW - 120m RD
-equipment_rate: 36000
+equipment_rate: 34328.7
 capability: LCN
 speed: 1.61  # 1 mph
 strategy: requests
-strategy_threshold: 1  # 1 failure required to dispatch the crane
+strategy_threshold: 1
 max_windspeed_transport: 9
 max_windspeed_repair: 9
 max_waveheight_transport: 99
 max_waveheight_repair: 99
 onsite: false
-mobilization_cost: 1000000
+mobilization_cost: 253366.1
 mobilization_days: 10
-charter_days: 6
+charter_days: 20
 crew_transfer_time: 0.25
 n_crews: 1
 crew:
-  day_rate: 123.25
-  n_day_rate: 12
+  day_rate: 0
+  n_day_rate: 0
   hourly_rate: 0
   n_hourly_rate: 0
-
-# rate: 1200/hr -> 28800
-# mobilization: 800000
-# Crane operator: 2 x 95
-# Oiler: 2 x 85
-# Iron worker: 6 x 100
-# Truck driver: 1 x 65
-# Rigger foreman: 1 x 85
-# Per Diem (144/day) added to hourly rate as 6/hr
-# cpi of 1.25 for 2019 -> 2024

@@ -216,13 +216,21 @@ supporting_structure:
     service_equipment: CTV
     frequency: 365
   failures:
-  - description: na
-    scale: 0
-    shape: 0
-    time: 0
-    materials: 0.0
+  - description: minor repair
+    scale: 13.228
+    shape: 1
+    time: 5
+    materials: 117.51
     service_equipment: CTV
-    level: 0
+    level: 1
+    operation_reduction: 0
+  - description: major repair
+    scale: 27.326
+    shape: 1
+    time: 2
+    materials: 923.26
+    service_equipment: CTV
+    level: 2
     operation_reduction: 0
 drive_train:
   name: drive_train
@@ -258,3 +266,202 @@ drive_train:
     replacement: true
     level: 3
     description: main shaft replacement
+safety:
+  name: safety
+  maintenance:
+  - description: na
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+  - description: minor repair
+    scale: 3.263
+    shape: 1
+    time: 1
+    materials: 109.11
+    service_equipment: CTV
+    level: 0
+    operation_reduction: 0
+  - description: major repair
+    scale: 608
+    shape: 1
+    time: 7
+    materials: 2014.39
+    service_equipment: CTV
+    level: 2
+    operation_reduction: 0
+sensors:
+  name: sensors
+  maintenance:
+  - description: na
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+  - description: minor repair
+    scale: 4.927
+    shape: 1
+    time: 8
+    materials: 125.90
+    service_equipment: CTV
+    level: 0
+    operation_reduction: 0
+  - description: major repair
+    scale: 34.743
+    shape: 1
+    time: 6
+    materials: 2098.32
+    service_equipment: CTV
+    level: 2
+    operation_reduction: 0
+hvac:
+  name: hvac
+  maintenance:
+  - description: na
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+  - description: minor repair
+    scale: 6.405
+    shape: 1
+    time: 5
+    materials: 390.29
+    service_equipment: CTV
+    level: 1
+    operation_reduction: 0
+  - description: major repair
+    scale: 347.429
+    shape: 1
+    time: 14
+    materials: 1091.13
+    service_equipment: CTV
+    level: 2
+    operation_reduction: 0
+oil:
+  name: oil
+  maintenance:
+  - description: na
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+  - description: minor repair
+    scale: 2.99
+    shape: 1
+    time: 4
+    materials: 134.29
+    service_equipment: CTV
+    level: 1
+    operation_reduction: 0
+  - description: major repair
+    scale: 405.33
+    shape: 1
+    time: 18
+    materials: 1678.66
+    service_equipment: CTV
+    level: 2
+    operation_reduction: 0
+controls:
+  name: controls
+  maintenance:
+  - description: na
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+  - description: minor repair
+    scale: 3.428
+    shape: 1
+    time: 8
+    materials: 167.87
+    service_equipment: CTV
+    level: 1
+    operation_reduction: 0
+  - description: major repair
+    scale: 45.037
+    shape: 1
+    time: 14
+    materials: 1678.66
+    service_equipment: CTV
+    level: 2
+    operation_reduction: 0
+  - description: major replacement
+    scale: 2432
+    shape: 1
+    time: 12
+    materials: 10911.26
+    service_equipment: CTV
+    level: 2
+    operation_reduction: 0
+hub:
+  name: hub
+  maintenance:
+  - description: na
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+  - description: minor repair
+    scale: 6.687
+    shape: 1
+    time: 10
+    materials: 134.29
+    service_equipment: CTV
+    level: 1
+    operation_reduction: 0
+  - description: major repair
+    scale: 64
+    shape: 1
+    time: 40
+    materials: 1258.99
+    service_equipment: CTV
+    level: 2
+    operation_reduction: 0
+  - description: major replacement
+    scale: 2432
+    shape: 1
+    time: 298
+    materials: 79736.13
+    service_equipment: CTV
+    level: 2
+    operation_reduction: 0
+other:
+  name: other
+  maintenance:
+  - description: na
+    time: 0
+    materials: 0
+    service_equipment: CTV
+    frequency: 0
+  failures:
+  - description: minor repair
+    scale: 1.499
+    shape: 1
+    time: 5
+    materials: 92.33
+    service_equipment: CTV
+    level: 1
+    operation_reduction: 0
+  - description: major repair
+    scale: 57.905
+    shape: 1
+    time: 21
+    materials: 2014.39
+    service_equipment: CTV
+    level: 2
+    operation_reduction: 0
+  - description: major replacement
+    scale: 2432
+    shape: 1
+    time: 36
+    materials: 8393.28
+    service_equipment: CTV
+    level: 2
+    operation_reduction: 0

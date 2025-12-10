@@ -19,8 +19,8 @@ n_crews: 1
 crew:
   day_rate: 0
   n_day_rate: 0
-  hourly_rate: 118.75
-  n_hourly_rate: 3
+  hourly_rate: 0 # 118.75
+  n_hourly_rate: 0 # 3
 
 # rate: 20
 # QC/QA tech: 2 x 90
