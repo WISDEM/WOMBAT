@@ -1,0 +1,28 @@
+capacity_kw: 600
+capex_kw: 120
+transformer:
+  name: transformer
+  maintenance:
+  - description: oss annual inspection
+    time: 24
+    materials: 228.27
+    service_equipment: CTV
+    frequency: 365
+    level: 1
+  failures:
+  - scale: 5
+    shape: 1
+    time: 12
+    materials: 913.03
+    service_equipment: CTV
+    operation_reduction: 0
+    level: 1
+    description: oss minor repair
+  - scale: 100
+    shape: 1
+    time: 60
+    materials: 45651.57
+    service_equipment: CTV
+    operation_reduction: 0
+    level: 2
+    description: oss major repair
