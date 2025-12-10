@@ -64,9 +64,11 @@ As of v0.13, a series of convenience features have been made, and are outlined b
   more closely replicating real life conditions.
 - Ports can now use an `annual_fee` or `monthly_fee`, and have direct use fee applied
   during any at-port repair operations, using the `daily_use_fee` input.
-- The `"default"` library now standardizes all cost inputs to 2024 USD. This library, together with
-  the `COWER_om_workflow.ipynb` notebook, can be used to replicate the OpEx results presented in
-  the Cost of Wind Energy Review: 2025 Edition.
+- `"default"` library now standardizes all baselinecost inputs to 2024 USD.
+  - Contains a validated fixed and floating offshore wind base scenario, and an experimental
+    land-based scenario.
+  - The offshore data set is highlighted in the `COWER_om_workflow.ipynb` notebook, and can be used
+    to replicate the OpEx results presented in the Cost of Wind Energy Review: 2025 Edition.
 
 As of v0.10, a series of convenience features and consistency updates have been made.
 - A breaking change to failure data has been made by using lists instead of dictionaries
