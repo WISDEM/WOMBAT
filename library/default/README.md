@@ -9,7 +9,7 @@ or use them as a starting point for building custom models.
 ### Offshore
 
 The **default library** provides a consistent set of cost and performance inputs for offshore wind
-energy systems, standardized to **2024 USD**. This library supports reproducible analyses in the
+energy systems, standardized to 2024 USD. This library supports reproducible analyses in the
 *Cost of Wind Energy Review (COWER): 2025 Edition*, including both fixed-bottom and floating
 offshore wind cases.
 
