@@ -82,7 +82,7 @@ sphinx:
   - sphinxcontrib.autoyaml
   - sphinxcontrib.bibtex
   config:
-    bibtex_bibfiles: "refs.bib"
+    bibtex_bibfiles: ["refs.bib"]
     html_theme: sphinx_book_theme
     html_theme_options:
       icon_links: [

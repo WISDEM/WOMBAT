@@ -7,8 +7,8 @@ demonstrated through example notebooks. To fully follow the particulars of each 
 it is recommended to see how each model's configuration files are composed.
 
 For thorough explanations of the design and implementation ethos of the model, please
-see our NREL Technical Report: https://www.osti.gov/biblio/1894867, which was published
-alongside v0.5.1, so some functionality has been updated.
+see our NREL Technical Report: https://www.osti.gov/biblio/1894867 {cite}`osti_1894867`,
+which was published alongside v0.5.1, so some functionality has been updated.
 
 ## Feature Overview
 
@@ -152,6 +152,9 @@ modeling assumptions as well as the basic operations of the maintenance and fail
   - Operating limits can be applied for both transiting and repair logic to ensure site
     safety is considered in the model.
 - Ports
+  :::{note}
+  Major improvements as of v0.13
+  :::
   - Currently only used for tow-to-port repairs or tugboat based repairs, which adds the
     following additional capabilities:
     - TOW: tugboat or towing equipment
@@ -178,8 +181,8 @@ Below are a few examples to get started, for users interested in the validation 
 the [code-to-code comparison presentations](presentations:code-comparison),
 the notebooks generating [the most up-to-date results can be found in the main repository](https://github.com/WISDEM/WOMBAT/examples/), where there is a separate analysis
 for the
-[Dinwoodie, et al., 2015 comparison](https://github.com/WISDEM/WOMBAT/blob/main/examples/dinwoodie_validation.ipynb),
-and for the [IEA Task 26, 2016 comparison](https://github.com/WISDEM/blob/main/WOMBAT/examples/iea_26_validation.ipynb).
+[{cite:t}`dinwoodie2015reference` comparison](https://github.com/WISDEM/WOMBAT/blob/main/examples/dinwoodie_validation.ipynb),
+and for the [{cite:t}`smart2016iea` comparison](https://github.com/WISDEM/blob/main/WOMBAT/examples/iea_26_validation.ipynb).
 
 <!-- ```{include} ../../library/default/README.md``` -->
 
@@ -219,7 +222,10 @@ recommended to merely use this data as a starting point for any analysis work.
 #### Offshore
 
 Material costs for repairs and replacements, as well as failure data, are sourced from
-{cite:p}`corewind_d61_2020`, {cite:p}`corewind_d42_2021`. Fixed cost data is primarily derived from BVG Associates (2025a, 2025b), while vessel day rate and mobilization assumptions are compiled from a range of public sources. For detailed reference information, please contact Daniel Mulas Hernando (Daniel.MulasHernando@nrel.gov) to request access to WOMBAT_cost_history.xlsx.
+{cite:t}`corewind_d61_2020, corewind_d42_2021`. Fixed cost data is primarily derived from
+{cite:t}`bvg_guide_2023, bvg_guide_2025`, while vessel day rate and mobilization assumptions are
+compiled from a range of public sources. For detailed reference information, please contact Daniel
+Mulas Hernando (Daniel.MulasHernando@nrel.gov) to request access to WOMBAT_cost_history.xlsx.
 
 - **Cost Year:** All monetary values are standardized to **2024 USD**.
 - **Data Integration:** Inputs were consolidated from multiple public sources and internal records (`WOMBAT_cost_history.xlsx`), with historical exchange rates and inflation applied to transform costs to 2024 USD.
@@ -227,20 +233,20 @@ Material costs for repairs and replacements, as well as failure data, are source
 
 #### Land-Based
 
-Failure rates, repair times, and materials costs not provided in COREWIND (2020) are are largely
-taken from Carroll, et al. (2016) with some custom substitutions or modifications. All failure rates
-are converted to a Weibull scale factor. Using Carroll, et al. (2016) we adjust offshore Weibull
-scale factors for minor repairs for the generator, blades, pitch system, yaw system, and drive train
-(wind-affected subassemblies) by a factor of 5.912, for non-wind-affected subassemblies a factor of
-1.217 is applied, and for all major repairs and replacements, a factor of 2.432 is applied. These
-scaling factors are primarily derived from Carroll et, al. (2016).
+Failure rates, repair times, and materials costs not provided in {cite:t}`corewind_d42_2021` are
+largely taken from {cite:t}`carroll2016failure` with some custom substitutions or modifications. All
+failure rates are converted to a Weibull scale factor. Using {cite:t}`carroll2016failure` we adjust
+offshoreWeibull scale factors for minor repairs for the generator, blades, pitch system, yaw system,
+and drive train (wind-affected subassemblies) by a factor of 5.912, for non-wind-affected
+subassemblies a factor of 1.217 is applied, and for all major repairs and replacements, a factor of
+2.432 is applied. These scaling factors are primarily derived from {cite:t}`carroll2016failure`
 
 All costs are rescaled from the 12 MW baseline to a 3.5 MW baseline using the COWER 2025 turbine
 CapEx figures of \$1,117/kw-yr for onshore and \$1,770/kw-yr for offshore, a 0.6311 scaling factor.
 
-Additional subassemblies are derived from Carroll, et al. (2016) and scaled using the above
-assumptions. Fixed costs are derived from Wiser, et al. (2019), and equipment costs come from
-LandBOSSE and internal source adjustments.
+Additional subassemblies are derived from {cite:t}`carroll2016failure` and scaled using the above
+assumptions. Fixed costs are derived from {cite:t}`WISER201946`, with labor coming supplemented by
+{cite:t}`osti_1995015`, and equipment costs come from LandBOSSE and internal source adjustments.
 
 ### Intended Use
 
@@ -257,13 +263,9 @@ The accompanying notebook, **`examples/COWER_om_workflow.ipynb`**, demonstrates 
 - `WOMBAT_cost_history.xlsx` is an internal NREL document. For questions, contact **Daniel.MulasHernando@nrel.gov**.
 - This dataset should be treated as a **scenario-based reference**, not as purely empirical or historical data.
 
-### Data Sources
-
-- COREWIND, 2020: https://corewind.eu/wp-content/uploads/files/publications/COREWIND-D6.1-General-frame-of-the-analysis-and-description-of-the-new-FOW-assessment-app.pdf
-- COREWIND, 2021: https://corewind.eu/wp-content/uploads/files/publications/COREWIND-D4.2-Floating-Wind-O-and-M-Strategies-Assessment.pdf
-- BVG Associates, 2025a: https://guidetoanoffshorewindfarm.com/wind-farm-costs/
-- BVG Associates, 2025b: https://guidetofloatingoffshorewind.com/wind-farm-costs/
+## References
 
 ```{bibliography}
 :style: unsrt
+:filter: docname in docnames
 ```
