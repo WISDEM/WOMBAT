@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Fixes a previously rare bug where an ongoing repair at a system can cause a queued
+  servicing equipment dispatching to be canceled, and derail the remainder of the
+  simulation. Servicing equipment now check for the existence of any matching requests
+  instead of a failed repair attempt prior to canceling its dispatching.
+
 - Adds the `units` input to `FixedCosts` that allows for costs to be defined on per kW
   basis (default, "\$/kw/yr") or as a set cost ("\$/yr").
 - Adds distance-based coordinates in meters that can be used by providing
