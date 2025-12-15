@@ -1889,15 +1889,21 @@ class ServiceEquipment(RepairsMixin):
 
             _, request = self.get_next_request()
             if request is None:
-                yield self.env.process(
-                    self.wait_until_next_shift(
-                        **{
-                            "agent": self.name,
-                            "reason": "no requests",
-                            "additional": "no work requests submitted by start of shift",  # noqa: E501
-                        }
-                    )
+                wait = 2
+                salary_cost = self.calculate_salary_cost(wait)
+                hourly_cost = self.calculate_hourly_cost(0)
+                equpipment_cost = self.calculate_equipment_cost(wait)
+                self.env.log_action(
+                    duration=wait,
+                    salary_labor_cost=salary_cost,
+                    hourly_labor_cost=hourly_cost,
+                    equipment_cost=equpipment_cost,
+                    agent=self.name,
+                    action="delay",
+                    reason="no requests",
+                    additional="no work requests submitted",
                 )
+                yield self.env.timeout(wait)
             else:
                 if request.cable:
                     system = self.windfarm.cable(request.system_id)
