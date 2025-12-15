@@ -6,6 +6,9 @@
   servicing equipment dispatching to be canceled, and derail the remainder of the
   simulation. Servicing equipment now check for the existence of any matching requests
   instead of a failed repair attempt prior to canceling its dispatching.
+- Servicing equipment now check for new requests every two hours rather than waiting
+  for the next shift to avoid previously rare scenarios where requests go unaddressed
+  during a chartering.
 
 - Adds the `units` input to `FixedCosts` that allows for costs to be defined on per kW
   basis (default, "\$/kw/yr") or as a set cost ("\$/yr").
