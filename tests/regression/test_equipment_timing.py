@@ -1765,8 +1765,9 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
     # catastrophic failure putting the windfarm at 83.3% operations, which is less than
     # the 90% threshold. However, because the timing will be delayed during repairs,
     # realized timeout will be at 14185.753253
-    timeout = 14185.753253
-    env.run(timeout + 1)
+    request_time = 14084.24
+    timeout = request_time + 1 / 60
+    env.run(timeout)
     # For checking in on the actual timing when it eventually changes
     # df = env.load_events_log_dataframe()
     # print(
@@ -1791,19 +1792,24 @@ def test_unscheduled_service_equipment_call(env_setup_full_profile):
 
     # Test that the HLV was successfully mobilized
     timeout += 60 * 24
-    env.run(timeout + 1 / 60)
+    env.run(timeout)
+    assert hlv.at_port
+    assert not hlv.enroute
+
+    timeout += 52.25
+    env.run(timeout)
     assert hlv.transferring_crew is hlv.at_site is hlv.at_system is hlv.onsite is True
     assert hlv.enroute is hlv.at_port is False
-    assert hlv.current_system == "S00T2"
+    assert hlv.current_system == "S00T1"
 
     # Ensure it's still here at the end, accounting for completing its last request
-    timeout += 30 * 24 + 10 + 15 / 60
+    timeout = request_time + 60 * 24 + 30 * 24 + 1.25
     env.run(timeout)
     assert hlv.onsite is hlv.at_site is hlv.at_system is True
     assert hlv.transferring_crew is hlv.at_port is hlv.enroute is False
-    assert hlv.current_system == "S00T2"
+    assert hlv.current_system == "S00T1"
 
     # Check that it's gone
-    timeout += 24 + 15 / 60
-    env.run(timeout + 24)
+    timeout += 0.02
+    env.run(timeout)
     assert hlv.onsite is False
