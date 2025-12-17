@@ -423,6 +423,25 @@ class ServiceEquipment(RepairsMixin):
             self.manager.invalidate_system(request.system_id)
             yield request
 
+    def check_for_matching_requests(self) -> bool:
+        """Checks for any capability matches with requests in the repair manager's
+        queue. This is intended to be used prior to undispatching a requested
+        servicing equipment when the initial attempt to find a request fails.
+
+        Returns
+        -------
+        bool
+            True if there any matching requests, otherwise False.
+        """
+        if not self.manager.items:
+            return False
+        capability = set(self.settings.capability)
+        status = any(
+            capability.intersection(el.details.service_equipment)
+            for el in self.manager.items
+        )
+        return status
+
     def demobilize(self) -> None:
         """Demobilizes the servicing equipment by resetting the location booleans and
         logging the site exit.
@@ -1796,8 +1815,10 @@ class ServiceEquipment(RepairsMixin):
             _, request = self.get_next_request()
             if request is None:
                 if not self.onsite:
-                    self.dispatched = False
-                    return
+                    queued_requests = self.check_for_matching_requests()
+                    if not queued_requests:
+                        self.dispatched = False
+                        return
 
                 yield self.env.process(
                     self.wait_until_next_shift(
@@ -1868,15 +1889,21 @@ class ServiceEquipment(RepairsMixin):
 
             _, request = self.get_next_request()
             if request is None:
-                yield self.env.process(
-                    self.wait_until_next_shift(
-                        **{
-                            "agent": self.name,
-                            "reason": "no requests",
-                            "additional": "no work requests submitted by start of shift",  # noqa: E501
-                        }
-                    )
+                wait = 2
+                salary_cost = self.calculate_salary_cost(wait)
+                hourly_cost = self.calculate_hourly_cost(0)
+                equpipment_cost = self.calculate_equipment_cost(wait)
+                self.env.log_action(
+                    duration=wait,
+                    salary_labor_cost=salary_cost,
+                    hourly_labor_cost=hourly_cost,
+                    equipment_cost=equpipment_cost,
+                    agent=self.name,
+                    action="delay",
+                    reason="no requests",
+                    additional="no work requests submitted",
                 )
+                yield self.env.timeout(wait)
             else:
                 if request.cable:
                     system = self.windfarm.cable(request.system_id)
