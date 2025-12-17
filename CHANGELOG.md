@@ -68,6 +68,13 @@
 - Allow for a `FixedCosts` `dict` to be passed directly to `Metrics` without loading additional data.
 - Fixes a test collection error introduced in Pytest v9.
 - Updates the bibliography style in the documentation.
+- Fixes a previously rare bug where an ongoing repair at a system can cause a queued
+  servicing equipment dispatching to be canceled, and derail the remainder of the
+  simulation. Servicing equipment now check for the existence of any matching requests
+  instead of a failed repair attempt prior to canceling its dispatching.
+- Servicing equipment now check for new requests every two hours rather than waiting
+  for the next shift to avoid previously rare scenarios where requests go unaddressed
+  during a chartering.
 
 ## v0.12.3 - 1 December 2025
 
