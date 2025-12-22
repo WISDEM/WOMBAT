@@ -1,9 +1,10 @@
 name: base_fixed_bottom_2024
-weather: era5_40.0N_72.5W_1990_2020.csv
+weather: era5_40.0N_72.5W_1990_2020.pqt
 service_equipment:
   - [ctv.yaml, 3]
   - cab.yaml
   - hlv.yaml
+  - dsv.yaml
 layout: base_osw_fixed.csv
 inflation_rate: 0
 fixed_costs: fixed_costs_osw_fixed.yaml
