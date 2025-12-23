@@ -70,7 +70,7 @@ folder, but here are a few highlights:
 
 ### Requirements
 
-* Python 3.11 through 3.13. Python 3.14 will be compatible once PyArrow 22.0 is released.
+* Python 3.11+
 
 ### Environment Setup
 
