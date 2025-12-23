@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## v0.13 - 23 December 2025
 
 ### Default Data Now Available
 
@@ -9,6 +9,9 @@
 - `"default"` library is now made available with a validated fixed and floating offshore wind reference
   case based on the 2025 Cost of Wind Energy Review (COWER), and an experimental land-based
   reference data set based on a variety of incomplete sources in onshore O&M studies.
+- A new example
+  ([examples/default_data_demonstration.ipynb](https://github.com/WISDEM/WOMBAT/blob/develop/examples/default_data_demonstration.ipynb))
+  is available to see key statistics of each scenario.
 - A new example
   ([examples/COWER_om_workflow.ipynb](https://github.com/WISDEM/WOMBAT/blob/develop/examples/COWER_om_workflow.ipynb))
   is available to reproduce the current year's offshore COWER results.

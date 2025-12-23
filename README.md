@@ -16,11 +16,11 @@ distributed, land-based, and offshore windfarms using a discrete event simultaio
 framework.
 
 WOMBAT is written around the [`SimPy`](https://gitlab.com/team-simpy/simpy) discrete
-event simulation framework. Additionally, this is supported using a flexible and modular
+event simulation framework. Additionally, this is supported using a flexible
 object-oriented code base, which enables the modeling of arbitrarily large (or small)
 windfarms with as many or as few failure and maintenance tasks that can be encoded.
 
-Please note that this is still heavily under development, so you may find some functionality
+Please note that this is still under development, so you may find some functionality
 to be incomplete at the current moment, but rest assured the functionality is expanding.
 With that said, it would be greatly appreciated for issues or PRs to be submitted for
 any improvements at all, from fixing typos (guaranteed to be a few) to features to
@@ -65,7 +65,6 @@ folder, but here are a few highlights:
 * IEA Task 26
   `validation exercise  <https://github.com/WISDEM/WOMBAT/blob/main/examples/iea_26_validation.ipynb>`_.
 * Presentations: `slides  <https://github.com/WISDEM/WOMBAT/blob/main/presentation_material/>`_.
-
 
 ## Setup
 
@@ -117,10 +116,7 @@ Install it directly into an activated virtual environment:
 
 ```console
 git clone https://github.com/WISDEM/WOMBAT.git
-cd wombat
-python setup.py install
-
-# Alternatively:
+cd WOMBAT
 pip install .
 ```
 
@@ -187,7 +183,7 @@ Basic pre-commit issues that users might encounter and their remedies:
 
 ```console
 git clone https://github.com/WISDEM/WOMBAT.git
-cd wombat
+cd WOMBAT
 pip install -e '.[docs]'
 ```
 
@@ -195,8 +191,8 @@ Build the site
 
 > **Note**
 > You may want to change the "execute_notebooks" parameter in the `docs/_config.yaml`
-> file to "off" unless you're updating the coded examples, or they will be run every
-> time you build the site.
+> file to "off" unless you're updating the coded examples, or they will run every time
+> there is an update to the base files.
 
 ```console
 jupyter-book build docs
@@ -216,11 +212,11 @@ pip install -e '.[all]'
 
 Standard dependencies:
 
-* attrs>=21
+* attrs>=24.1
 * numpy>=1.21
 * scipy>=1.8
 * pandas>=2
-* polars>=0.17
+* polars>=1.33.1
 * pyarrow>=10
 * jupyterlab>=3
 * simpy>=4.0.1
@@ -232,6 +228,8 @@ Standard dependencies:
 * types-typed-ast>=1.5
 * types-PyYAML>=6
 * types-python-dateutil>=2.8
+* python-dateutil
+* "polars-lts-cpu; sys_platform == 'darwin'",
 
 Optional "dev" dependencies:
 
@@ -239,13 +237,13 @@ Optional "dev" dependencies:
 * isort>=5.10
 * pytest>=7
 * pytest-cov>=4
-* mypy==0.991
+* mypy
 * ruff>=0.2
 * pyupgrade
 
 Optional "docs" dependencies:
 
-* jupyter-book>=0.15
+* jupyter-book>1,<2
 * myst-nb>=0.16
 * myst-parser>=0.17
 * linkify-it-py>=2
