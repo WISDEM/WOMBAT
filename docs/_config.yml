@@ -98,12 +98,6 @@ sphinx:
             type: url,
         },
         {
-            name: PyPI downloads,
-            url: "https://pypi.org/project/WOMBAT/",
-            icon: "https://img.shields.io/pypi/dm/WOMBAT",
-            type: url,
-        },
-        {
             name: Launch Binder,
             url: "https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples",
             icon: "https://mybinder.org/badge_logo.svg",
