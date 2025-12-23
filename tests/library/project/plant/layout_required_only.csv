@@ -1,0 +1,8 @@
+﻿id,substation_id,name,type,string,order,subassembly,upstream_cable
+OSS1,OSS1,OSS1,substation,,,offshore_substation.yaml,export.yaml
+S00T1,OSS1,WTG001,turbine,0,0,vestas_v90.yaml,array_33kv_630mm.yaml
+S00T2,OSS1,WTG002,turbine,0,1,vestas_v90.yaml,array_33kv_240mm.yaml
+S00T3,OSS1,WTG003,turbine,0,2,vestas_v90.yaml,array_33kv_240mm.yaml
+S01T4,OSS1,WTG004,turbine,1,0,vestas_v90.yaml,array_33kv_630mm.yaml
+S01T5,OSS1,WTG005,turbine,1,1,vestas_v90.yaml,array_33kv_240mm.yaml
+S01T6,OSS1,WTG006,turbine,1,2,vestas_v90.yaml,array_33kv_240mm.yaml

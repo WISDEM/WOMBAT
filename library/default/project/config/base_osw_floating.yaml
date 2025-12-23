@@ -1,0 +1,17 @@
+name: base_floating_2024
+weather: era5_41.0N_125.0W_1989_2019.pqt
+service_equipment:
+  - [ctv.yaml, 3]
+  - cab.yaml
+  - dsv.yaml
+  - ahv.yaml
+layout: base_osw_floating.csv
+inflation_rate: 0
+fixed_costs: fixed_costs_osw_floating.yaml
+workday_start: 7
+workday_end: 19
+start_year: 1999
+end_year: 2018
+project_capacity: 600
+site_distance: 139
+port: port_139km.yaml

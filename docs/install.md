@@ -44,8 +44,8 @@ using the `pip install -e '.[dev]'` prompt in the next section
 
 ```bash
 git clone https://github.com/WISDEM/WOMBAT.git
-cd wombat
-pip install wombat/
+cd WOMBAT
+pip install .
 ```
 
 ### For contributors
@@ -57,7 +57,7 @@ functionality run and pass before submitting pull requests.
 
 ```bash
 git clone https://github.com/WISDEM/WOMBAT.git
-cd wombat
+cd WOMBAT
 pip install -e '.[dev]'  # some users may need double quotes here, not single quotes
 # Required for automatic code formatting!
 pre-commit install
@@ -85,7 +85,7 @@ packages.
 
 ```bash
 git clone https://github.com/WISDEM/WOMBAT.git
-cd wombat
+cd WOMBAT
 pip install -e '.[docs]'
 ```
 

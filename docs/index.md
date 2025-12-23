@@ -45,31 +45,52 @@ rob.hammond@nrel.gov.
 
 ## Latest Changes?
 
-As of v0.10, a series of convenience features and consistency updates have been made.
-- A breaking change to failure data has been made by using lists instead of dictionaries
-  in the configuration of cables, turbines, and substations. To ease adoption, a
-  function has been provided to convert to the new format:
-  https://wisdem.github.io/WOMBAT/API/utilities.html#importing-and-converting-from-old-versions.
-- Single configuration files are now supported for all non-CSV data. This means that
-  servicing equipment, cables, turbines, and substations can all be included in the
-  primary configuration file.
-- Simplification of duplicated servicing equipment definitions: simply provide a list
-  of the filename/id and the number of them that should be in the simulation.
-- Date-based maintenance scheduling is now possible.
-
-Please see the CHANGELOG for complete information, and the appropriate documentation
-pages.
+Please see the CHANGELOG, linked below for complete information, and the appropriate
+documentation pages for specific details.
 
 * On this site: https://wisdem.github.io/WOMBAT/changelog.html
 * On GitHub: https://github.com/WISDEM/WOMBAT/blob/main/CHANGELOG.md
 
+Below is a shortlist of some of the most impactful changes made in recent versions.
+
+As of v0.13, a series of convenience features have been made, and are outlined below:
+* Major tow-to-port model upgrades!
+  * Tow-to-port simulations now mobilize tugboats, and log downtime during their chartering
+    more closely replicating real life conditions.
+  * Ports can now use an `annual_fee` or `monthly_fee`, and have direct use fee applied
+    during any at-port repair operations, using the `daily_use_fee` input.
+* New default data model!
+  * `"default"` library now standardizes all baselinecost inputs to 2024 USD.
+  * Contains a validated fixed and floating offshore wind base scenario, and an experimental
+    land-based scenario.
+  * The offshore data set is highlighted in the `COWER_om_workflow.ipynb` notebook, and can be used
+    to replicate the OpEx results presented in the Cost of Wind Energy Review: 2025 Edition.
+* Fixed costs can now be provided as \$/yr instead of only \$/kw/yr.
+* Layout coordinates can be provided as meters-based relative coordinates by defining
+  the `layout_coords` input to the primary configuration as `"distance"`.
+* Weather profile loading tools are now made accessible through `wombat.core.library.load_weather()`.
+* Parquet data files are enabled to reduce file sizes and simplify the simulation loading process.
+  Using the `load_weather()` function, users can save the output Polars DataFrame to Parquet.
+
+As of v0.10, a series of convenience features and consistency updates have been made.
+* A breaking change to failure data has been made by using lists instead of dictionaries
+  in the configuration of cables, turbines, and substations. To ease adoption, a
+  function has been provided to convert to the new format:
+  https://wisdem.github.io/WOMBAT/API/utilities.html#importing-and-converting-from-old-versions.
+* Single configuration files are now supported for all non-CSV data. This means that
+  servicing equipment, cables, turbines, and substations can all be included in the
+  primary configuration file.
+* Simplification of duplicated servicing equipment definitions: simply provide a list
+  of the filename/id and the number of them that should be in the simulation.
+* Date-based maintenance scheduling is now possible.
+
 ## Part of the WETO Stack
 
 WOMBAT is primarily developed with the support of the U.S. Department of Energy and is part of the [WETO Software Stack](https://nrel.github.io/WETOStack). For more information and other integrated modeling software, see:
-- [Portfolio Overview](https://nrel.github.io/WETOStack/portfolio_analysis/overview.html)
-- [Entry Guide](https://nrel.github.io/WETOStack/_static/entry_guide/index.html)
-- [Techno-Economic Modeling Workshop](https://nrel.github.io/WETOStack/workshops/user_workshops_2024.html#tea-and-cost-modeling)
-- [Systems Engineering Workshop](https://nrel.github.io/WETOStack/workshops/user_workshops_2024.html#systems-engineering)
+* [Portfolio Overview](https://nrel.github.io/WETOStack/portfolio_analysis/overview.html)
+* [Entry Guide](https://nrel.github.io/WETOStack/_static/entry_guide/index.html)
+* [Techno-Economic Modeling Workshop](https://nrel.github.io/WETOStack/workshops/user_workshops_2024.html#tea-and-cost-modeling)
+* [Systems Engineering Workshop](https://nrel.github.io/WETOStack/workshops/user_workshops_2024.html#systems-engineering)
 
 ## The Model in 30 Seconds Or Less
 

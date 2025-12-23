@@ -204,7 +204,7 @@ class Subassembly:
 
         Yields
         ------
-        simpy.events. HOURS_IN_DAY
+        simpy.events.Timeout
             Time between maintenance requests.
         """
         while True:

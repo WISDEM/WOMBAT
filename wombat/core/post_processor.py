@@ -79,7 +79,7 @@ class Metrics:
         electrolyzer_id: str | list[str],
         substation_turbine_map: dict[str, dict[str, list[str]]],
         service_equipment_names: str | list[str],
-        fixed_costs: str | None = None,
+        fixed_costs: str | dict | None = None,
     ) -> None:
         """Initializes the Metrics class.
 
@@ -123,9 +123,9 @@ class Metrics:
             capacity).
         service_equipment_names : str | list[str]
             The names of the servicing equipment, corresponding to
-            ``ServiceEquipment.settings.name`` for each ``ServiceEquipment`` in the
+            ``ServiceEquipment.name`` for each ``ServiceEquipment`` in the
             simulation.
-        fixed_costs : str | None
+        fixed_costs : str | dict | None
             The filename of the project's fixed costs.
         """
         self.data_dir = Path(data_dir)
@@ -139,9 +139,8 @@ class Metrics:
             # Create a zero-cost FixedCosts object
             self.fixed_costs = FixedCosts.from_dict({"operations": 0})
         else:
-            if TYPE_CHECKING:
-                assert isinstance(fixed_costs, str)
-            fixed_costs = load_yaml(self.data_dir / "project/config", fixed_costs)
+            if isinstance(fixed_costs, str):
+                fixed_costs = load_yaml(self.data_dir / "project/config", fixed_costs)
             if TYPE_CHECKING:
                 assert isinstance(fixed_costs, dict)
             self.fixed_costs = FixedCosts.from_dict(fixed_costs)
@@ -788,7 +787,9 @@ class Metrics:
         col_filter = frequency.group_cols
 
         cost_col = [self._equipment_cost]
-        events = self.events.loc[self.events.action != "monthly lease fee"]
+        events = self.events.loc[
+            ~self.events.action.isin(("monthly lease fee", "daily use fee"))
+        ]
         if by_equipment:
             if frequency is Frequency.PROJECT:
                 costs = (
@@ -941,7 +942,7 @@ class Metrics:
             Indicates whether the values are with resepect to each tugboat (True) or not
             (False), by default False.
         vessel_crew_assumption : dict[str, float], optional
-            Dictionary of vessel names (``ServiceEquipment.settings.name``) and number
+            Dictionary of vessel names (``ServiceEquipment.name``) and number
             of crew members aboard to trannsform the results from vessel hours at sea
             to crew hours at sea.
 
@@ -953,7 +954,7 @@ class Metrics:
             - year (if appropriate for frequency)
             - month (if appropriate for frequency)
             - Total Crew Hours at Sea
-            - {ServiceEquipment.settings.name} (if broken out)
+            - {ServiceEquipment.name} (if broken out)
 
         Raises
         ------
@@ -1079,9 +1080,9 @@ class Metrics:
             - total_tows
             - total_tows_to_port (if broken out)
             - total_tows_to_site (if broken out)
-            - {ServiceEquipment.settings.name}_total_tows (if broken out)
-            - {ServiceEquipment.settings.name}_to_port (if broken out)
-            - {ServiceEquipment.settings.name}_to_site (if broken out)
+            - {ServiceEquipment.name}_total_tows (if broken out)
+            - {ServiceEquipment.name}_to_port (if broken out)
+            - {ServiceEquipment.name}_to_site (if broken out)
 
         Raises
         ------
@@ -1431,6 +1432,7 @@ class Metrics:
                 & ~self.events.additional.isin(["work is complete"]),
                 group_filter + self._cost_columns + ["duration"],
             ]
+            .fillna(0)
             .groupby(group_filter)
             .sum()
             .reset_index()
@@ -1464,7 +1466,10 @@ class Metrics:
         )
         costs.loc[costs.action == "traveling", "display_reason"] = "Site Travel"
         costs.loc[costs.action == "towing", "display_reason"] = "Towing"
-        costs.loc[costs.action.str.contains("mooring"), "display_reason"] = "Connection"
+        costs.loc[costs.action.eq("mooring reconnection"), "display_reason"] = (
+            "Reconnection"
+        )
+        costs.loc[costs.action.eq("unmooring"), "display_reason"] = "Disconnection"
         costs.loc[costs.action == "mobilization", "display_reason"] = "Mobilization"
         costs.loc[costs.additional.isin(weather_hours), "display_reason"] = (
             "Weather Delay"
@@ -1530,6 +1535,8 @@ class Metrics:
             "Crew Transfer",
             "Site Travel",
             "Towing",
+            "Reconnection",
+            "Disconnection",
             "Mobilization",
             "Weather Delay",
             "No Requests",
@@ -1854,7 +1861,7 @@ class Metrics:
 
         column = "port_fees"
         port_fee = self.events.loc[
-            self.events.action == "monthly lease fee",
+            self.events.action.isin(("monthly lease fee", "daily use fee")),
             ["year", "month", "equipment_cost"],
         ].rename(columns={"equipment_cost": column})
 
@@ -1908,11 +1915,9 @@ class Metrics:
 
         # Get the appropriate values and convert to the currency base
         keys = self.fixed_costs.resolution[resolution]
-        vals = (
-            np.array([[getattr(self.fixed_costs, key) for key in keys]])
-            * self.project_capacity
-            * 1000
-        )
+        vals = np.array([[getattr(self.fixed_costs, key) for key in keys]])
+        if self.fixed_costs.units == "$/kw/yr":
+            vals = vals * self.project_capacity * 1000
 
         total = (
             self.operations[["year", "month", "env_time"]]

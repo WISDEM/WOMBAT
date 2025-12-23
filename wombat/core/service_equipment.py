@@ -17,6 +17,7 @@ from itertools import zip_longest
 from collections.abc import Generator
 
 import numpy as np
+import simpy
 import pandas as pd
 import polars as pl
 from simpy.events import Event, Process, Timeout
@@ -251,6 +252,7 @@ class ServiceEquipment(RepairsMixin):
         except Exception as e:
             msg = f"Could not create {data['name']}"
             raise ValueError(msg) from e
+        self.name = self.settings.name
 
         # Register servicing equipment with the repair manager if it is using an
         # unscheduled maintenance scenario, so it can be dispatched as needed
@@ -264,6 +266,8 @@ class ServiceEquipment(RepairsMixin):
 
         # Create partial functions for the labor and equipment costs for clarity
         self.initialize_cost_calculators(which="equipment")
+
+        self.downtime_accrual = None
 
     def finish_setup_with_environment_variables(self) -> None:
         """A post-initialization step that will override unset parameters with those
@@ -419,6 +423,41 @@ class ServiceEquipment(RepairsMixin):
             self.manager.invalidate_system(request.system_id)
             yield request
 
+    def check_for_matching_requests(self) -> bool:
+        """Checks for any capability matches with requests in the repair manager's
+        queue. This is intended to be used prior to undispatching a requested
+        servicing equipment when the initial attempt to find a request fails.
+
+        Returns
+        -------
+        bool
+            True if there any matching requests, otherwise False.
+        """
+        if not self.manager.items:
+            return False
+        capability = set(self.settings.capability)
+        status = any(
+            capability.intersection(el.details.service_equipment)
+            for el in self.manager.items
+        )
+        return status
+
+    def demobilize(self) -> None:
+        """Demobilizes the servicing equipment by resetting the location booleans and
+        logging the site exit.
+        """
+        self.onsite = False
+        self.at_port = False
+        self.at_site = False
+        self.at_system = False
+        self.dispatched = False
+        self.current_system = None
+        self.env.log_action(
+            agent=self.name,
+            action="leaving site",
+            reason="charter period has ended",
+        )
+
     def enable_string_operations(self, cable: Cable) -> None:
         """Traverses the upstream cable and turbine connections and resets the
         ``System.cable_failure`` and ``Cable.downstream_failure`` until it hits
@@ -570,7 +609,7 @@ class ServiceEquipment(RepairsMixin):
         self.onsite = False
 
         self.env.log_action(
-            agent=self.settings.name,
+            agent=self.name,
             action="delay",
             reason="work is complete",
             additional=additional,
@@ -600,9 +639,9 @@ class ServiceEquipment(RepairsMixin):
         )
         self.enroute = True
         self.env.log_action(
-            agent=self.settings.name,
+            agent=self.name,
             action="mobilization",
-            reason=f"{self.settings.name} is being mobilized",
+            reason=f"{self.name} is being mobilized",
             additional="mobilization",
             location="enroute",
             duration=mobilization_hours,
@@ -613,9 +652,9 @@ class ServiceEquipment(RepairsMixin):
         self.enroute = False
 
         self.env.log_action(
-            agent=self.settings.name,
+            agent=self.name,
             action="mobilization",
-            reason=f"{self.settings.name} has arrived on site",
+            reason=f"{self.name} has arrived on site",
             additional="mobilization",
             equipment_cost=self.settings.mobilization_cost,
             location="site",
@@ -635,9 +674,9 @@ class ServiceEquipment(RepairsMixin):
         self.enroute = True
         mobilization_hours = self.settings.mobilization_days * HOURS_IN_DAY
         self.env.log_action(
-            agent=self.settings.name,
+            agent=self.name,
             action="mobilization",
-            reason=f"{self.settings.name} is being mobilized",
+            reason=f"{self.name} is being mobilized",
             additional="mobilization",
             duration=mobilization_hours,
             location="enroute",
@@ -648,9 +687,9 @@ class ServiceEquipment(RepairsMixin):
         self.enroute = False
 
         self.env.log_action(
-            agent=self.settings.name,
+            agent=self.name,
             action="mobilization",
-            reason=f"{self.settings.name} has arrived on site",
+            reason=f"{self.name} has arrived on site",
             additional="mobilization",
             equipment_cost=self.settings.mobilization_cost,
             location="site",
@@ -785,7 +824,7 @@ class ServiceEquipment(RepairsMixin):
         """
         if hours < 0:
             raise ValueError(
-                f"`hours` must be greater than 0 for {self.settings.name} to process"
+                f"`hours` must be greater than 0 for {self.name} to process"
                 " a weather delay"
             )
         if hours == 0:
@@ -1141,9 +1180,6 @@ class ServiceEquipment(RepairsMixin):
         self._set_location(end, set_current)
         self.env.log_action(
             action="complete towing",
-            salary_labor_cost=salary_labor_cost,
-            hourly_labor_cost=hourly_labor_cost,
-            equipment_cost=equipment_cost,
             additional="complete",
             location=end,
             **kwargs,
@@ -1195,7 +1231,7 @@ class ServiceEquipment(RepairsMixin):
             "part_name": subassembly.name,
             "system_ol": system.operating_level,
             "part_ol": subassembly.operating_level,
-            "agent": self.settings.name,
+            "agent": self.name,
             "reason": request.details.description,
             "request_id": request.request_id,
         }
@@ -1237,9 +1273,9 @@ class ServiceEquipment(RepairsMixin):
         )
 
         if to_system:
-            additional = f"transferring crew from {self.settings.name} to {system.id}"
+            additional = f"transferring crew from {self.name} to {system.id}"
         else:
-            additional = f"transferring crew from {system.id} to {self.settings.name}"
+            additional = f"transferring crew from {system.id} to {self.name}"
         self.env.log_action(
             action="transferring crew",
             additional=additional,
@@ -1310,7 +1346,7 @@ class ServiceEquipment(RepairsMixin):
             "system_id": system.id,
             "system_name": system.name,
             "system_ol": system.operating_level,
-            "agent": self.settings.name,
+            "agent": self.name,
             "reason": request.details.description,
             "request_id": request.request_id,
         }
@@ -1429,7 +1465,7 @@ class ServiceEquipment(RepairsMixin):
             "system_name": system.name,
             "part_id": subassembly.id,
             "part_name": subassembly.name,
-            "agent": self.settings.name,
+            "agent": self.name,
             "reason": request.details.description,
             "request_id": request.request_id,
         }
@@ -1491,7 +1527,7 @@ class ServiceEquipment(RepairsMixin):
                 )
             )
         else:
-            raise RuntimeError(f"{self.settings.name} is lost!")
+            raise RuntimeError(f"{self.name} is lost!")
 
         if initial:
             replacement = (
@@ -1630,7 +1666,7 @@ class ServiceEquipment(RepairsMixin):
             part_name=subassembly.name,
             system_ol=system.operating_level,
             part_ol=subassembly.operating_level,
-            agent=self.settings.name,
+            agent=self.name,
             action=f"{action} complete",
             reason=request.details.description,
             materials_cost=request.details.materials,
@@ -1678,7 +1714,7 @@ class ServiceEquipment(RepairsMixin):
                 yield self.env.process(
                     self.wait_until_next_shift(
                         **{
-                            "agent": self.settings.name,
+                            "agent": self.name,
                             "reason": "not in working hours",
                             "additional": "not in working hours",
                         }
@@ -1694,13 +1730,13 @@ class ServiceEquipment(RepairsMixin):
                             start="site",
                             end="port",
                             reason="no requests",
-                            agent=self.settings.name,
+                            agent=self.name,
                         )
                     )
                 yield self.env.process(
                     self.wait_until_next_shift(
                         **{
-                            "agent": self.settings.name,
+                            "agent": self.name,
                             "reason": "no requests",
                             "additional": "no work requests, waiting until the next shift",  # noqa: E501
                         }
@@ -1765,7 +1801,7 @@ class ServiceEquipment(RepairsMixin):
             else:
                 hours_to_next = self.env.max_run_time - self.env.now
             self.env.log_action(
-                agent=self.settings.name,
+                agent=self.name,
                 action="delay",
                 reason="non-operational period",
                 additional="waiting for next operational period",
@@ -1779,13 +1815,15 @@ class ServiceEquipment(RepairsMixin):
             _, request = self.get_next_request()
             if request is None:
                 if not self.onsite:
-                    self.dispatched = False
-                    return
+                    queued_requests = self.check_for_matching_requests()
+                    if not queued_requests:
+                        self.dispatched = False
+                        return
 
                 yield self.env.process(
                     self.wait_until_next_shift(
                         **{
-                            "agent": self.settings.name,
+                            "agent": self.name,
                             "reason": "no requests",
                             "additional": "no work requests submitted by start of shift",  # noqa: E501
                         }
@@ -1818,17 +1856,7 @@ class ServiceEquipment(RepairsMixin):
 
         while True:
             if self.env.now >= charter_end_env_time:
-                self.onsite = False
-                self.at_port = False
-                self.at_site = False
-                self.at_system = False
-                self.dispatched = False
-                self.current_system = None
-                self.env.log_action(
-                    agent=self.settings.name,
-                    action="leaving site",
-                    reason="charter period has ended",
-                )
+                self.demobilize()
                 break
 
             if not self.onsite:
@@ -1852,7 +1880,7 @@ class ServiceEquipment(RepairsMixin):
                 yield self.env.process(
                     self.wait_until_next_shift(
                         **{
-                            "agent": self.settings.name,
+                            "agent": self.name,
                             "reason": "not in working hours",
                             "additional": "not in working hours",
                         }
@@ -1861,15 +1889,21 @@ class ServiceEquipment(RepairsMixin):
 
             _, request = self.get_next_request()
             if request is None:
-                yield self.env.process(
-                    self.wait_until_next_shift(
-                        **{
-                            "agent": self.settings.name,
-                            "reason": "no requests",
-                            "additional": "no work requests submitted by start of shift",  # noqa: E501
-                        }
-                    )
+                wait = 2
+                salary_cost = self.calculate_salary_cost(wait)
+                hourly_cost = self.calculate_hourly_cost(0)
+                equpipment_cost = self.calculate_equipment_cost(wait)
+                self.env.log_action(
+                    duration=wait,
+                    salary_labor_cost=salary_cost,
+                    hourly_labor_cost=hourly_cost,
+                    equipment_cost=equpipment_cost,
+                    agent=self.name,
+                    action="delay",
+                    reason="no requests",
+                    additional="no work requests submitted",
                 )
+                yield self.env.timeout(wait)
             else:
                 if request.cable:
                     system = self.windfarm.cable(request.system_id)
@@ -1904,7 +1938,7 @@ class ServiceEquipment(RepairsMixin):
             "system_id": request.system_id,
             "system_name": request.system_name,
             "request_id": request.request_id,
-            "agent": self.settings.name,
+            "agent": self.name,
         }
 
         # Travel to the turbine
@@ -1954,7 +1988,7 @@ class ServiceEquipment(RepairsMixin):
         self.dispatched = True
         system = self.windfarm.system(request.system_id)
         shared_logging = {
-            "agent": self.settings.name,
+            "agent": self.name,
             "request_id": request.request_id,
             "system_id": request.system_id,
             "system_name": request.system_name,
@@ -1985,3 +2019,56 @@ class ServiceEquipment(RepairsMixin):
             )
         )
         self.dispatched = False
+
+    def run_downtime_accumulation(self) -> Timeout:
+        """Creates daily logs for downtime cost accruals.
+
+        Yields
+        ------
+        simpy.events.Timeout
+            24 hours or time between last downtime start and an interruption caused by
+            either a request or demobilization.
+        """
+        # Don't run if it hasn't been registered to be in temporary storage
+        if not self.at_port:
+            return
+
+        while True:
+            start = self.env.now
+            try:
+                yield self.env.timeout(HOURS_IN_DAY)
+            except simpy.Interrupt:
+                end = self.env.now
+                diff = end - start
+                salary_cost = self.calculate_salary_cost(diff)
+                hourly_cost = self.calculate_hourly_cost(0)
+                equipment_cost = self.calculate_equipment_cost(diff)
+                self.env.log_action(
+                    agent=self.name,
+                    action="delay",
+                    reason="no requests",
+                    location="port",
+                    additional="no work requests, waiting for the next request",
+                    duration=diff,
+                    salary_labor_cost=salary_cost,
+                    hourly_labor_cost=hourly_cost,
+                    equipment_cost=equipment_cost,
+                )
+                return
+
+            end = self.env.now
+            diff = end - start
+            salary_cost = self.calculate_salary_cost(diff)
+            hourly_cost = self.calculate_hourly_cost(0)
+            equipment_cost = self.calculate_equipment_cost(diff)
+            self.env.log_action(
+                agent=self.name,
+                action="delay",
+                reason="no requests",
+                location="port",
+                additional="no work requests, waiting for the next request",
+                duration=diff,
+                salary_labor_cost=salary_cost,
+                hourly_labor_cost=hourly_cost,
+                equipment_cost=equipment_cost,
+            )

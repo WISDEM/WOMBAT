@@ -36,6 +36,7 @@ class Windfarm:
         env: WombatEnvironment,
         windfarm_layout: str | pd.DataFrame,
         repair_manager: RepairManager,
+        layout_coords: str = "wgs-84",
         substations: dict[str, dict] | None = None,
         turbines: dict[str, dict] | None = None,
         cables: dict[str, dict] | None = None,
@@ -43,6 +44,11 @@ class Windfarm:
     ) -> None:
         self.env = env
         self.repair_manager = repair_manager
+
+        if layout_coords not in ("wgs-84", "distance"):
+            msg = "Windfarm `layout_coords` must be one of 'wgs-84' or 'distance'."
+            raise ValueError(msg)
+        self.layout_coords = layout_coords
 
         # Set up the layout and instantiate all windfarm objects
         self._inputs: dict[str, dict | None] = {
@@ -73,6 +79,50 @@ class Windfarm:
         self.env._register_windfarm(self)
         self.env.process(self._log_operations())
 
+    def _validate_layout(self, layout: pd.DataFrame) -> pd.DataFrame:
+        """Validate the wind farm layout data, and create any missing columns used
+        during the inital graph layout setup steps that the user may not have provided.
+
+        Parameters
+        ----------
+        layout : pd.DataFrame
+            The wind farm layout.
+
+        Returns
+        -------
+        pd.DataFrame
+            The input :py:attr:`layout` after checking for required columns with any
+            missing optional columns added as 0-valued arrays.
+
+        Raises
+        ------
+        ValueError
+            Raised if any of "id", "substation_id", "name", "type", "string", "order",
+            "subassembly", or "upstream_cable" are missing.
+        """
+        required_cols = [
+            "id",
+            "substation_id",
+            "name",
+            "type",
+            "string",
+            "order",
+            "subassembly",
+            "upstream_cable",
+        ]
+        optional_number_cols = ["longitude", "latitude", "distance"]
+
+        missing = set(required_cols).difference(layout.columns)
+        if missing:
+            msg = f"Farm layout is missing the required columns: {', '.join(missing)}"
+            raise ValueError(msg)
+
+        missing = set(optional_number_cols).difference(layout.columns)
+        if missing:
+            layout = layout.assign(**dict.fromkeys(missing, 0.0))
+
+        return layout.sort_values(by=["string", "order"])
+
     def _create_graph_layout(self, windfarm_layout: str | pd.DataFrame) -> None:
         """Creates a network layout of the windfarm start from the substation(s) to
         be able to capture downstream turbines that can be cut off in the event of a
@@ -87,13 +137,12 @@ class Windfarm:
         # it can be traversed in sequential order later
         if isinstance(windfarm_layout, str):
             layout_path = str(self.env.data_dir / "project/plant" / windfarm_layout)
-            layout = (
-                pd.read_csv(layout_path)
-                .sort_values(by=["string", "order"])
-                .reset_index(drop=True)
-            )
+            layout = pd.read_csv(layout_path).reset_index(drop=True)
         else:
             layout = windfarm_layout.copy()
+
+        layout = self._validate_layout(layout)
+
         layout.subassembly = layout.subassembly.fillna("")
         layout.upstream_cable = layout.upstream_cable.fillna("")
 
@@ -103,9 +152,6 @@ class Windfarm:
         # Assign the data attributes to the graph nodes
         for col in ("name", "latitude", "longitude", "subassembly"):
             nx.set_node_attributes(windfarm, dict(layout[["id", col]].values), name=col)
-
-        if "type" not in layout.columns:
-            raise KeyError("Missing columng 'type' to specify system types")
 
         if (valid := layout["type"].isin(SystemType.types())).sum() != layout.shape[0]:
             invalid_names = layout.loc[~valid, "name"].values.tolist()
@@ -281,10 +327,25 @@ class Windfarm:
             # If the real distance/cable length is not input, then the geodesic distance
             # is calculated
             if data["length"] == 0:
-                data["length"] = distance.geodesic(
-                    start_coordinates, end_coordinates, ellipsoid="WGS-84"
-                ).km
-
+                match self.layout_coords:
+                    case "wgs-84":
+                        data["length"] = distance.geodesic(
+                            start_coordinates, end_coordinates, ellipsoid="WGS-84"
+                        ).km
+                    case "distance":
+                        data["length"] = (
+                            np.linalg.norm(
+                                np.array(start_coordinates) - np.array(end_coordinates)
+                            )
+                            / 1000
+                        )
+                    case _:
+                        msg = (
+                            "Did you reset `Windfarm.layout_coords` manually or"
+                            " implement a new coordinate style without updating the"
+                            " distance calculation?"
+                        )
+                        raise ValueError(msg)
             # Encode whether it is an array cable or an export cable
             if self.graph.nodes[end_node]["type"] == SystemType.TURBINE:
                 data["type"] = "array"
@@ -312,9 +373,21 @@ class Windfarm:
             for *_, data in (*self.graph.nodes(data=True), *self.graph.edges(data=True))
         ]
 
-        dist = [
-            distance.geodesic(c1, c2).km for c1, c2 in itertools.combinations(coords, 2)
-        ]
+        match self.layout_coords:
+            case "wgs-84":
+                dist = [
+                    distance.geodesic(c1, c2).km
+                    for c1, c2 in itertools.combinations(coords, 2)
+                ]
+            case "distance":
+                c1, c2 = zip(*itertools.combinations(coords, 2))
+                dist = np.linalg.norm(np.array(c1) - np.array(c2), axis=1) / 1000
+            case _:
+                msg = (
+                    "Did you reset `Windfarm.layout_coords` manually or implement a"
+                    " new coordinate style without updating the distance calculation?"
+                )
+                raise ValueError(msg)
         dist_arr = np.ones((len(ids), len(ids)))
         triangle_ix = np.triu_indices_from(dist_arr, 1)
         dist_arr[triangle_ix] = dist_arr.T[triangle_ix] = dist

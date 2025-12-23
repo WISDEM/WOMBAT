@@ -1,0 +1,17 @@
+name: base_fixed_bottom_2024
+weather: era5_40.0N_72.5W_1990_2020.pqt
+service_equipment:
+  - [ctv.yaml, 3]
+  - cab.yaml
+  - hlv.yaml
+  - dsv.yaml
+layout: base_osw_fixed.csv
+inflation_rate: 0
+fixed_costs: fixed_costs_osw_fixed.yaml
+workday_start: 7
+workday_end: 19
+start_year: 2000
+end_year: 2019
+project_capacity: 600
+site_distance: 116
+port: port_116km.yaml

@@ -1,5 +1,90 @@
 # CHANGELOG
 
+## v0.13 - 23 December 2025
+
+### Default Data Now Available
+
+- For complete details, please see the
+  [default data section of the user guide](https://wisdem.github.io/WOMBAT/examples/index.html#default-data)
+- `"default"` library is now made available with a validated fixed and floating offshore wind reference
+  case based on the 2025 Cost of Wind Energy Review (COWER), and an experimental land-based
+  reference data set based on a variety of incomplete sources in onshore O&M studies.
+- A new example
+  ([examples/default_data_demonstration.ipynb](https://github.com/WISDEM/WOMBAT/blob/develop/examples/default_data_demonstration.ipynb))
+  is available to see key statistics of each scenario.
+- A new example
+  ([examples/COWER_om_workflow.ipynb](https://github.com/WISDEM/WOMBAT/blob/develop/examples/COWER_om_workflow.ipynb))
+  is available to reproduce the current year's offshore COWER results.
+
+### Tow-To-Port Improvements
+
+- Creation of the `PortManager` to manage the tugboats and other port-managed vessels.
+- Tugboats are now mobilized when there are no currently available tugboats, including when another
+  tugboat might be busy towing or returning from site.
+- Tugboats accumulate downtime costs while at port and unused.
+- Ensures that a nonexistent `site_distance` passed to the `PortConfig` is still set from the
+  primary configuration's `port_distance`.
+- Fixes a bug where the towing costs are logged twice, and double counting the values in the results.
+- Fixes a bug in `Metrics.equipment_labor_cost_breakdown()` filters out some costs because a
+  filtering column has a NaN value. This primarily occurred in the towing operations.
+- Fixes a bug in `Metrics.equipment_labor_cost_breakdown()` where the mooring and unmooring
+  processes were entirely removed from the cost breakdown.
+- Adds the `monthly_fee` as an alternative to the `annual_fee` to the port configuration inputs.
+- Adds the `daily_use_fee` for use when turbine(s) are at the port.
+
+### Convenience Upgrades
+
+- Adds the `units` input to `FixedCosts` that allows for costs to be defined on per kW
+  basis (default, "\$/kw/yr") or as a set cost ("\$/yr").
+- Adds distance-based coordinates in meters that can be used by providing
+  `layout_coords: distance` in the primary configuration file. The default is "wgs-84
+  to maintain compatibility with existing workflows.
+- Moves the standard weather loading routines to the `wombat/core/library.py, which includes the
+  following:
+  - Ability to read pre-processed Parquet data files for smaller file sizes and efficient I/O.
+  - `load_weather()` automatically reads the Parquet data or reads and transforms the CSV data.
+  - `read_weather_csv()` reads and converts the datetime column from standard datetime formats.
+  - `format_weather()` converts a resultant DataFrame from `read_weather_csv()` into a
+    WOMBAT-compatible weather profile.
+- `Port` and `ServiceEquipment` now have a `name` attribute that allows for quicker access to the
+  highly used `.settings.name` attribute.
+- The COREWIND Morro Bay Port has been updated to a 139 km `site_distance`, and the associated
+  tugboats have charter periods of 10 days.
+- Tugboats can be defined in the `vessels` section of the primary configuration and be configured
+  as copies of each other similar to the vessels in the primary configuration, as seen below.
+
+  ```yaml
+  ...
+  tugboats:
+    - - tugboat.yaml
+      - 2
+  ...
+  ```
+
+### Minor Improvements and Bug Fixes
+
+- Adds the configuration data and analysis code used in the code comparison study,
+  published at http://dx.doi.org/10.7488/era/5854.
+- Adds an internal validation routine for the wind farm layout file to avoid uncaught layout
+  creation errors.
+- Add more robust type handling and checking for `format_weather()`
+- Allow for a `FixedCosts` `dict` to be passed directly to `Metrics` without loading additional data.
+- Fixes a test collection error introduced in Pytest v9.
+- Updates the bibliography style in the documentation.
+- Fixes a previously rare bug where an ongoing repair at a system can cause a queued
+  servicing equipment dispatching to be canceled, and derail the remainder of the
+  simulation. Servicing equipment now check for the existence of any matching requests
+  instead of a failed repair attempt prior to canceling its dispatching.
+- Servicing equipment now check for new requests every two hours rather than waiting
+  for the next shift to avoid previously rare scenarios where requests go unaddressed
+  during a chartering.
+
+## v0.12.3 - 1 December 2025
+
+- Converts `PosixPath` objects to `str` before passing to pytest's `args` during custom unit and
+  regression test collection.
+- Pins the maximum version of Jupyter-Book to be "<2" until the documentation has been migrated.
+
 ## v0.12.3 - 1 December 2025
 
 - Converts `PosixPath` objects to `str` before passing to pytest's `args` during custom unit and
@@ -33,7 +118,7 @@
 - Fixes a bug primarily impacting tow-to-port scenarios where individual maintenance and failure
   models are not being reset upon either replacement or following a tow-to-port repair under
   certain conditions. This allows for these additional processes to be perpetuated throughout the lifecycle
-  of the simulation while succumbing to the same inital flaw, compounding the number of erroneously
+  of the simulation while succumbing to the same initial flaw, compounding the number of erroneously
   additional events. The issue is resolved by the following:
     1. Multiple subassemblies can now be passed to a `Cable` or `System` object during an
        interruption, allowing for simpler logic handling.

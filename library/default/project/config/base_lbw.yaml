@@ -1,0 +1,13 @@
+name: lbw_test
+weather: merra2_32.5N_-100.625W_1980_2024.pqt
+service_equipment:
+  - [truck.yaml, 3]
+  - crawler_large.yaml
+layout: base_lbw.csv
+fixed_costs: fixed_costs_lbw.yaml
+inflation_rate: 0
+workday_start: 7
+workday_end: 19
+start_year: 2000
+end_year: 2019
+project_capacity: 199.5

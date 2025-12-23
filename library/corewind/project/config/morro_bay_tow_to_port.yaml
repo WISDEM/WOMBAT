@@ -1,14 +1,8 @@
 name: COREWIND Morro Bay Tow To Port
 library: library
-weather: central_ca.csv
+weather: central_ca.pqt
 service_equipment:
-  - ctv1.yaml
-  - ctv2.yaml
-  - ctv3.yaml
-  - ctv4.yaml
-  - ctv5.yaml
-  - ctv6.yaml
-  - ctv7.yaml
+  - [ctv.yaml, 7]
   - cab.yaml  # Alternative to SOV w/ROV
   - dsv.yaml  # Alternative to SOV w/ROV
   - ahv.yaml
@@ -21,4 +15,3 @@ start_year: 2002
 end_year: 2021
 project_capacity: 1200
 port: morro_bay_port.yaml
-# NOTE: No labor cost data is available in the assumptions
