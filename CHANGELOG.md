@@ -78,6 +78,8 @@
 - Servicing equipment now check for new requests every two hours rather than waiting
   for the next shift to avoid previously rare scenarios where requests go unaddressed
   during a chartering.
+- Most of the additional columns have been removed from weather profiles to ensure the package
+  can still be made available on PyPI.
 
 ## v0.12.3 - 1 December 2025
 
