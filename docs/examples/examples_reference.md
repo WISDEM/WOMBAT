@@ -33,6 +33,12 @@ This is a Jupyter Notebook version of the
 [*Strategy Demonstration* section](./strategy_demonstration.md) of the documentation
 that allows users to interact with the walk through.
 
+### `default_data_demonstration.ipynb`
+
+This is a Jupyter Notebook version of the
+[*Default Data Demonstration* section](./default_data_demonstration.md) of the documentation
+that allows users to interact with the examples.
+
 ### `metrics_demonstration.ipynb`
 
 This is a Jupyter Notebook version of the

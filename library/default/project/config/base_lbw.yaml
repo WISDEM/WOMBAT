@@ -8,6 +8,6 @@ fixed_costs: fixed_costs_lbw.yaml
 inflation_rate: 0
 workday_start: 7
 workday_end: 19
-start_year: 1998
-end_year: 2017
+start_year: 2000
+end_year: 2019
 project_capacity: 199.5

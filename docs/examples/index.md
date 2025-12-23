@@ -195,7 +195,8 @@ offshore wind data sets, respectively. See the `examples/COWER_om_workflow.ipnyb
 
 The default library provides a validated, ready-to-use data set for fixed and floating offshore wind,
 and an experimental land-based data set. For all three, users can use the pre-configured base models
-or use them as a starting point for building custom models.
+or use them as a starting point for building custom models. Example results can be seen in
+`examples/default_data_demonstration.ipynb` or [online](default_data_demonstration.md)
 
 ### Overview
 

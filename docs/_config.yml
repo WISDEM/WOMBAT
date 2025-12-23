@@ -12,7 +12,7 @@ exclude_patterns: [_build, Thumbs.db, .DS_Store, "**.ipynb_checkpoints"]
 # Force re-execution of notebooks on each build.
 # See https://jupyterbook.org/content/execute.html
 execute:
-  execute_notebooks: off
+  execute_notebooks: auto
   timeout: -1
   allow_errors: true
   exclude_patterns:
@@ -95,12 +95,6 @@ sphinx:
             name: PyPI version,
             url: "https://pypi.org/project/WOMBAT/",
             icon: "https://img.shields.io/pypi/v/WOMBAT",
-            type: url,
-        },
-        {
-            name: PyPI downloads,
-            url: "https://pypi.org/project/WOMBAT/",
-            icon: "https://img.shields.io/pypi/dm/WOMBAT",
             type: url,
         },
         {

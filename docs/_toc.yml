@@ -20,6 +20,7 @@ parts:
     - file: examples/how_to
     - file: examples/strategy_demonstration
     - file: examples/metrics_demonstration
+    - file: examples/default_data_demonstration
     - file: examples/examples_reference
   - file: API/index
     sections:

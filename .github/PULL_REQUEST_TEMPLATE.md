@@ -55,7 +55,7 @@ Replace the below example with any added or modified files, and briefly describe
 
 ## Additional supporting information
 
-<!--Fil out at least the versions listed below and those of any packages that may be related.-->
+<!--Fill out at least the versions listed below and those of any packages that may be related.-->
 Python version: 3.x
 WOMBAT version (`wombat.__version__`): 0.x
 
