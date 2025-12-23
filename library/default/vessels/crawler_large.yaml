@@ -1,0 +1,22 @@
+name: Crawler Crane - 1350 tonnes
+# IEA 3.6 MW - 120m RD
+equipment_rate: 34328.7
+capability: LCN
+speed: 1.61  # 1 mph
+strategy: requests
+strategy_threshold: 1
+max_windspeed_transport: 9
+max_windspeed_repair: 9
+max_waveheight_transport: 99
+max_waveheight_repair: 99
+onsite: false
+mobilization_cost: 253366.1
+mobilization_days: 10
+charter_days: 20
+crew_transfer_time: 0.25
+n_crews: 1
+crew:
+  day_rate: 0
+  n_day_rate: 0
+  hourly_rate: 0
+  n_hourly_rate: 0

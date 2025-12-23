@@ -1,5 +1,5 @@
 name: base_floating_2024
-weather: era5_41.0N_125.0W_1989_2019.csv
+weather: era5_41.0N_125.0W_1989_2019.pqt
 service_equipment:
   - [ctv.yaml, 3]
   - cab.yaml

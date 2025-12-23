@@ -21,8 +21,8 @@ Hammond, Rob, & Cooperman, Aubryn. Windfarm Operations and Maintenance cost-Bene
 
 ## Developing a holistic operation and maintenance simulation tool for emerging offshore wind projects, 2025
 
-The 2025 doctoral dissertation by Nadezda Avanessova [^avanessova2025] highlights a comparison of
-ORE Catapult's COMPASS, WavEC's O&M Tool, and NREL's WOMBAT for offshore wind O&M.
+The 2025 doctoral dissertation by Nadezda Avanessova {cite}`avanessova_2025` highlights a
+comparison of ORE Catapult's COMPASS, WavEC's O&M Tool, and NREL's WOMBAT for offshore wind O&M.
 <br/>
 [Edinburgh University Archive](http://dx.doi.org/10.7488/era/5854)
 
@@ -48,18 +48,20 @@ of the model.
 This document serves as a demonstration of the capabilities of this work in reference to
 two major works to document simulated O&M results from various industry and research
 software systems. Here we compare our software to the published results from
-Dinwoodie, et al., 2015 [^dinwoodie2015reference] and IEA, 2016 [^smart2016iea].
+{cite:t}`dinwoodie2015reference` and {cite:t}`smart2016iea`.
 <br/>
 {download}`presentation PDF <../presentation_material/code_comparison.pdf>`
 
-
 ## IEA Task 26 Presentation
 
-This presentation was given to the IEA Task Force responsible for [^smart2016iea]
+This presentation was given to the IEA Task Force responsible for {cite:t}`smart2016iea`
 as a demonstration of NREL's efforts on O&M model development.
 <br/>
 {download}`presentation PDF <../presentation_material/WOMBAT_IEA_task_26_presentation_6_May_2021.pdf>`
 
-[^dinwoodie2015reference]: Iain Dinwoodie, Ole-Erik V Endrerud, Matthias Hofmann, Rebecca Martin, and Iver Bakken Sperstad. Reference cases for verification of operation and maintenance simulation models for offshore wind farms. *Wind Engineering*, 39(1):1–14, 2015.
-[^smart2016iea]: Gavin Smart, Aaron Smith, Ethan Warner, Iver Bakken Sperstad, Bob Prinsen, and Roberto Lacal-Arantegui. Iea wind task 26: offshore wind farm baseline documentation. Technical Report, National Renewable Energy Lab.(NREL), Golden, CO (United States), 2016.
-[^avanessova2025]: Avanessova, Nadezda. "Developing a holistic operation and maintenance simulation tool for emerging offshore wind projects." (2025).
+## References
+
+```{bibliography}
+:style: unsrt
+:filter: docname in docnames
+```

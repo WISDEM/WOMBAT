@@ -12,7 +12,7 @@ exclude_patterns: [_build, Thumbs.db, .DS_Store, "**.ipynb_checkpoints"]
 # Force re-execution of notebooks on each build.
 # See https://jupyterbook.org/content/execute.html
 execute:
-  execute_notebooks: auto
+  execute_notebooks: off
   timeout: -1
   allow_errors: true
   exclude_patterns:
@@ -28,7 +28,10 @@ latex:
 
 # Add a bibtex file so that we can create citations
 bibtex_bibfiles:
-  - references.bib
+  - refs.bib
+
+bibliography:
+  - refs.bib
 
 # Information about where the book exists on the web
 repository:
@@ -79,6 +82,7 @@ sphinx:
   - sphinxcontrib.autoyaml
   - sphinxcontrib.bibtex
   config:
+    bibtex_bibfiles: ["refs.bib"]
     html_theme: sphinx_book_theme
     html_theme_options:
       icon_links: [
