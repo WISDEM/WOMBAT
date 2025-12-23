@@ -1,0 +1,19 @@
+name: export cable
+maintenance:
+- description: na
+  time: 0
+  materials: 0
+  service_equipment: DSV
+  frequency: 0
+  level: 1
+failures:
+- scale: 0
+  shape: 0
+  time: 0
+  materials: 0
+  operation_reduction: 0
+  service_equipment:
+  - CAB
+  replacement: false
+  level: 1
+  description: na

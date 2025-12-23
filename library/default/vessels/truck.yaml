@@ -1,0 +1,29 @@
+name: Truck
+equipment_rate: 25
+capability: CTV
+speed: 50
+strategy: scheduled
+start_month: 1
+start_day: 1
+start_year: 1998
+end_month: 12
+end_day: 31
+end_year: 2017
+max_windspeed_transport: 16
+max_windspeed_repair: 16
+max_waveheight_transport: 99
+max_waveheight_repair: 99
+onsite: true
+crew_transfer_time: 0
+n_crews: 1
+crew:
+  day_rate: 0
+  n_day_rate: 0
+  hourly_rate: 0 # 118.75
+  n_hourly_rate: 0 # 3
+
+# rate: 20
+# QC/QA tech: 2 x 90
+# Electrician: 1 x 90
+# Per Diem (144/day) added to hourly rate as 6/hr
+# cpi of 1.25 for 2019 -> 2024
