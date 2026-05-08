@@ -55,7 +55,7 @@ jobs:
 
       - name: Run regression tests
         run: |
-          pytest --unit --cov=wombat --cov-report=lcov:./unit-coverage.lcov
+          pytest --regression --cov=wombat --cov-report=lcov:./regression-coverage.lcov
         shell: bash
 
       - name: Upload test coverage
