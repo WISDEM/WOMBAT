@@ -703,7 +703,7 @@ style(metrics.process_times())
 style(metrics.process_times(include_incompletes=False))
 ```
 
-(metrics-demo:request-sumamry)=
+(metrics-demo:request-summary)=
 ## Request Summary
 
 Computes the total number of submitted, canceled, incomplete, and completed repair and

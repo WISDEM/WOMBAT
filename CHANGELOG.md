@@ -224,7 +224,7 @@
     - `by="turbine"` no longer includes the "windfarm" column for results
   - `process_times` now uses a `MultiIndex` with a `subassembly` and `task` column.
 - Improved cable, subassembly, and servicing equipment error handling to show which of
-  the cables, substations, turbines, or vessels produced the intialization error for
+  the cables, substations, turbines, or vessels produced the initialization error for
   easier input debugging.
 - Basic tests are now included for limited set of the `Metrics` class with a focus
   cost summaries.
@@ -444,7 +444,7 @@ cables:
 - `RepairRequest.prior_operating_level` has been added to allow 100% reduction factor failures to correctly and consistently restore the operating level of a subassembly following a repair.
 - Replaces the `valid_reduction` attrs validator with `validate_0_1_inclusive` to reuse the logic in multiple places without duplicating checking methods.
 - Adds a `replacement` flag for interruption methods, so that a failure or replacement comment can be added as a cause for `simpy.process.interrupt`. This update allows the failure and maintenance processes to check if an interruption should cause the process to exit completely. Additionally, the forced exit ensures that processes can't persist after a replacement event when a process is recreated, which was happening in isolated cases.
-- Fixes a bug in `RepairManager.purge_subassemble_requests()` where the pending tows are cleared regardless of whether or not the focal subassembly is the cause of the tow, leading to a simulation failure.
+- Fixes a bug in `RepairManager.purge_subassembly_requests()` where the pending tows are cleared regardless of whether or not the focal subassembly is the cause of the tow, leading to a simulation failure.
 - Fixes a bug in `utilities/utilities.py:create_variable_from_string()` to operate in a way that is expected. The original method was removing all numerics, but only leading punctuation and numerics should be replaced, with any punctuation being replaced with an underscore.
 - Adds additional inline comments for clarification on internal methods.
 - Update README.md to be inline with current conda and Python standards.
@@ -531,13 +531,13 @@ cables:
 ### Features
 
 - Adds a `non_stop_shift` attribute to `ServiceEquipmentData`, `UnscheduledServiceEquipmentData`, `ScheduledServiceEquipmentData`, and `PortConfig` that is set in the post-initialization hook or through `DateLimitsMixin._set_environment_shift()` to ensure it is updated appropriately. Additionally, all checks for a 24 hour shift now check for the `non_stop_shift` attribute.
-- `Metrics.emissions()` has been added to the list of available metrics to calculate the emissions from idling at port or sea, tranisiting, and maneuvering. Co-authored by and inspired by analysis work from @hemezz.
+- `Metrics.emissions()` has been added to the list of available metrics to calculate the emissions from idling at port or sea, transiting, and maneuvering. Co-authored by and inspired by analysis work from @hemezz.
 - `Simulation` now accepts a `random_seed` or `random_generator` variable to seed the random number generators for Weibull failure timeouts and wait timing between event completions. Setting the `random_seed` to the same value from one simulation to the next will net the same results between different simulations, whereas the `random_generator` can be used to use the same generator for a batch of simulations.
 
 ### General
 
 - All `assert` statements are now only called when type checking is performed
-- Replaces all `.get(lamda x: x == request)` with a 10x faster `.get(lambda x: x is request)` to more efficiently filter out the desired event to be removed from the repair manager and port repair management.
+- Replaces all `.get(lambda x: x == request)` with a 10x faster `.get(lambda x: x is request)` to more efficiently filter out the desired event to be removed from the repair manager and port repair management.
 - `WombatEnvironment.weather` is now a Polars DataFrame to improve efficiency and indexing bottlenecks introduced in Pandas 2.0.
 - All subassembly cable files are read in once, and stored in a dictionary to provide a modest speed up for the simulation initialization.
 
@@ -553,7 +553,7 @@ cables:
 - Features:
   - Weather data now has the ability to contain more than just the required "windspeed" and "waveheight" columns. This will allow for easier expansion of the weather model in the future, and increase compatibility with other NLR techno economic modeling frameworks.
 - Bug fixes:
-  - Maintenance and failure simulation process interruptions were occuring prior to starting the process timing, and causing simulation failures.
+  - Maintenance and failure simulation process interruptions were occurring prior to starting the process timing, and causing simulation failures.
   - Duplicated parameters were being processed in `WombatEnvironment.log_action` stemming from improper handling of varying parameters in some of the more complex control flow logic in *in situ* repairs.
   - Another edge case of negative delays during crew transfers where there is insufficient time remaining in the shift after account for weather, so the method was called recursively, but not exiting the original loop.
   - `Port` management of *in situ* and tow-to-port capable tugboats wasn't properly accounting for tugboats of varying capabilities, and assuming all tugboats could do both. The vessel management and repair processing were out of sync causing duplicated turbine servicing/towing.
@@ -697,7 +697,7 @@ In v0.6, due to a series of bug fixes, logic improvements, and feature additions
 - `wombat.core.environment.WombatEnvironment.cleanup_log_files` will only try to delete files that actually
   exist to avoid unexpected simulation failures at the last step.
 - `wombat.core.environment.WombatEnvironment.date_ix` accepts `datetime.datetime` and `datetime.date` inputs to
-  avoid unnecesary errors or manipulations in a simulation.
+  avoid unnecessary errors or manipulations in a simulation.
 - `wombat.core.environment.WombatEnvironment.log_action` now only accepts numeric inputs for
   `system_ol` and `part_ol`.
 - `wombat.core.environment.WombatEnvironment.weather_forecast` now rounds the starting time down to
@@ -760,7 +760,7 @@ In v0.6, due to a series of bug fixes, logic improvements, and feature additions
 - `wombat.core.service_equipment.ServiceEquipment.register_repair_with_subassembly` correctly
   retrieves the cable information for upstream cables to be reset.
 
-- `wombat.core.post_processor.Metrics.service_equipment_utilization` has a new methodolgy that uses the
+- `wombat.core.post_processor.Metrics.service_equipment_utilization` has a new methodology that uses the
   actual number of days in operation instead of a backwards computation that consistently and
   accurately accounts for the days where the servicing equipment is in operation. Additionally, the
   filtering is updated to match the filter for total days, which also improves accuracy of results.

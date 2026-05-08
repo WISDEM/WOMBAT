@@ -60,7 +60,7 @@ As of v0.13, a series of convenience features have been made, and are outlined b
   * Ports can now use an `annual_fee` or `monthly_fee`, and have direct use fee applied
     during any at-port repair operations, using the `daily_use_fee` input.
 * New default data model!
-  * `"default"` library now standardizes all baselinecost inputs to 2024 USD.
+  * `"default"` library now standardizes all baseline cost inputs to 2024 USD.
   * Contains a validated fixed and floating offshore wind base scenario, and an experimental
     land-based scenario.
   * The offshore data set is highlighted in the `COWER_om_workflow.ipynb` notebook, and can be used

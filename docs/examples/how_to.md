@@ -212,7 +212,7 @@ later input reviews:
  - subassembly is all "vestas_v90.yaml", but having to input the turbine subassembly model
   means that multiple turbine types can be used on a windfarm.
     - This same logic applies to the upstream_cable so that multiple cable types can be
-     used as appopriate.
+     used as appropriate.
 ```
 
 <div style="overflow-y:auto;overflow-x:auto">
@@ -416,13 +416,13 @@ frequent manual reset. For a thorough definition, please read the API
 documentation of the [Maintenance](types:maintenance:scheduled) and
 [Failure](types:maintenance:unscheduled) data classes. Note that the yaml definition below
 specifies that maintenance tasks are in a bulleted list format and that failure
-defintions require a dictionary-style input with keys to match the severity level of a
+definitions require a dictionary-style input with keys to match the severity level of a
 given failure. For more details on the complete subassembly definition, please visit the
 [Subassembly API documentation](types:windfarm:subassembly).
 
 ```{important}
 As of v0.10, failure configurations (`failures`) require a list-based definition. To
-convert older cable, subastation, and turbine configuration failues, use the
+convert older cable, substation, and turbine configuration failures, use the
 library function `convert_failure_data` as shown in the
 [helpers API documentation](importing-and-converting-from-old-versions).
 ```
@@ -659,7 +659,7 @@ will know where to go for these pointers when the simulation is initialized so t
 is constructed and validated correctly.
 
 ```{note}
-As of veraion 0.10, all non-CSV file inputs can be difined in a single configuration
+As of version 0.10, all non-CSV file inputs can be difined in a single configuration
 file. Please see [the configuration API details](simulation-api:config) for details.
 ```
 
