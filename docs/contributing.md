@@ -178,9 +178,16 @@ Now, run the build command as follows.
 jupyter-book build docs
 ```
 
+Before a release, the updated example Jupyter Notebooks should be copied from the built
+documentation to the examples folder as follows, then committed to the current branch.
+
+```bash
+cp docs/_build/jupyter_execute/examples/*.ipynb
+```
+
 ## Testing
 
-All code should be paired with a corresponding unit, regression, or integration test written with
+All code should be paired with a corresponding unit, regression, or integration tests written with
 the pytest framework.
 
 To run the tests you can use any of the following commands, depending on your needs.
@@ -245,54 +252,51 @@ All changes must be documented appropriately in CHANGELOG.md in the [Unreleased]
 
 ## Release Process
 
-This section is a reference for WOMBAT's maintainers to keep processes largely consistent
-over time, regardless of who the core developers are.
+### Standard
 
-1. Rerun tests
-2. Rebuild the documentation locally
-   1. Recreate the example notebooks
+Most contributions will be into the `dev` branch, and once the threshold for a release has been
+met the following steps should be taken to create a new release
 
-     ```bash
-     jupytext --to notebook docs/examples/how_to.md docs/examples/metrics_demonstration.md docs/examples/strategy_demonstration.md
-     ```
+1. On `dev`, bump the version appropriately, see the
+   [semantic versioning guidelines](https://semver.org/) for details.
+   - Semantic Versioning follows a MAJOR.MINOR.PATCH versioning pattern, and new functionality
+     should get a minor release, and fixes/minor updates should get a patch release.
+2. Update the `## Unreleased` title to the new version and release date.
+3. Open a pull request from `develop` into `main`.
+4. When all CI tests pass, and the PR has been approved, merge the PR into main.
+5. Pull the latest changes from GitHub into the local copy of the main branch.
+6. Tag the latest commit to match the version bump in step 1 (replace "v1.2.3" in all instances
+   below), and push it to the repository.
 
-   2. Move the notebooks to the examples folder
-
-     ```bash
-     mv docs/examples/*.ipynb examples
-     ```
-
-3. Bump version number and metadata in `WOMBAT/__init__.py`
-4. Bump version numbers of any dependencies in `setup.py`. Be sure to separate to keep dependencies
-   separated by what they are required for (see the `project.optional-dependencies` section of
-   `pyproject.toml`)
-5. Update the changelog at `WOMBAT/CHANGELOG.md`, changing the "UNRELEASED" section to the new
-   version and the release date (e.g. "[2.3 - 2022-01-18]").
-6. Make a pull request into develop with these updates, and be sure to follow the guide in
-   [Pull Requests](contributing:pull-request).
-
-7. Merge develop into main through the git command line
-
-  ```bash
-   git checkout main
-   git merge develop
-   git push
-   ```
-
-- Tag the new release version:
-
-  ```bash
-   git tag -a v1.2.3 -m "Tag message for v1.2.3"
+   ```bash
+   git tag -a v1.2.3 -m "v1.2.3 release"
    git push origin v1.2.3
    ```
 
-   The above process will trigger the `.github/workflows/python-publish-test.yml` GitHub Action
-   that builds the package and pushes it to Test PyPI. If this is successful, you can move to the
-   next step, otherwise the errors from the action should be addressed, and the tag should be
-   deleted, then recreated after the fix is published.
+7. Check that the
+   [Test PyPI GitHub Action](https://github.com/NLRWindSystems/WOMBAT/actions/workflows/python-publish-test.yml)
+   has run successfully.
+   1. If the action failed, identify and fix the issue, then
+   2. delete the local and remote tag using the following (replace "v1.2.3" in all instances just like
+      in step 6):
 
-- Deploying a Package to PyPi
-  - The repository is equipped with a GitHub Action to build and publish new versions to PyPI. A
-    maintainer can invoke this workflow by creating a new release on GitHub that corresponds to the
-    created tag in the previous step.
-  - The action is defined in `.github/workflows/python-publish.yml`.
+      ```bash
+      git tag -d v1.2.3
+      git push --delete origin v1.2.3
+      ```
+
+   3. Start back at step 1.
+8. When the Test PyPI Action has successfully run,
+   [create a new release](https://github.com/NLRWindSystems/WOMBAT/releases/new) using the tag created in
+   step 6.
+
+### Patches
+
+Any pull requests directly into the main branch that alter the WOMBAT model (excludes anything
+in `docs/`, or outside of `wombat/` and `tests/`), should be sure to follow the instructions
+below:
+
+1. All CI tests pass and the patch version has been bumped according to the
+   [semantic versioning guidelines](https://semver.org/).
+2. Follow steps 2 through 8 above.
+3. Merge the NLR main branch back into the `dev` branch and push the changes.
