@@ -11,10 +11,10 @@ jobs:
       pages: write
       id-token: write
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.13
 
@@ -28,7 +28,7 @@ jobs:
         jupyter-book build docs
 
     - name: Upload artifact
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v5
       with:
         path: "docs/_build/html"
 
