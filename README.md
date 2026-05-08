@@ -5,8 +5,8 @@
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/wombat)
 [![codecov](https://codecov.io/gh/NLRWindSystems/WOMBAT/branch/main/graph/badge.svg?token=SK9M10BZXY)](https://codecov.io/gh/NLRWindSystems/WOMBAT)
 [![Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/NLRWindSystems/WOMBAT/main?filepath=examples)
-[![Jupyter Book](https://jupyterbook.org/badge.svg)](https://nlrwindsystems.github.io/WOMBAT)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/WISDEM/WOMBAT/main?filepath=examples)
+[![Jupyter Book Badge](https://raw.githubusercontent.com/jupyter-book/jupyter-book/next/docs/media/images/badge.svg)](nlrwindsystems.github.io/WOMBAT)
 
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
