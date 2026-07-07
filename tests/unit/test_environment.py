@@ -375,8 +375,9 @@ def test_weather_forecast():
     correct_index = pl.from_pandas(
         pd.date_range(
             "1/1/2002 00:00:00", "1/1/2002 04:00:00", freq="1h", name="datetime"
-        )
+        ).astype("datetime64[ns]")
     )
+
     correct_hour = np.array([0, 1, 2, 3, 4], dtype=float)
     correct_wind = np.array(
         [11.75561096, 10.41321252, 8.959270788, 9.10014808, 9.945059601]
@@ -398,7 +399,7 @@ def test_weather_forecast():
     correct_index = pl.from_pandas(
         pd.date_range(
             "1/1/2002 00:00:00", "1/1/2002 05:00:00", freq="1h", name="datetime"
-        )
+        ).astype("datetime64[ns]")
     )
     correct_hour = np.arange(6, dtype=float)
     correct_wind = np.array(
@@ -421,7 +422,7 @@ def test_weather_forecast():
     correct_index = pl.from_pandas(
         pd.date_range(
             "1/1/2002 01:00:00", "1/1/2002 07:00:00", freq="1h", name="datetime"
-        )
+        ).astype("datetime64[ns]")
     )
     correct_hour = np.arange(1, 8, dtype=float)
     correct_wind = np.array(
