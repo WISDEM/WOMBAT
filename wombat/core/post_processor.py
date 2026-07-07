@@ -16,7 +16,6 @@ from wombat.core import Frequency, FixedCosts
 from wombat.utilities import calculate_windfarm_operational_level
 from wombat.core.library import load_yaml
 
-
 def _check_frequency(frequency: str, which: str = "all") -> Frequency:
     """Checks the frequency input to ensure it meets the correct criteria according
     to the ``which`` flag.
@@ -389,9 +388,8 @@ class Metrics:
         years.sort()
         for year in years:
             if year > years[0]:
-                events.loc[events.year.eq(year), self._cost_columns] *= (
-                    adjusted_inflation
-                )
+                for c in self._cost_columns:
+                    events.loc[events.year.eq(year), c] *= adjusted_inflation
                 adjusted_inflation *= self.inflation_rate
 
         return events
