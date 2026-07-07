@@ -385,10 +385,9 @@ class Metrics:
         years = events.year.unique()
         years.sort()
         for year in years:
-            row_filter = events.year == year
             if year > years[0]:
                 for c in self._cost_columns:
-                    events.loc[row_filter, c] *= adjusted_inflation
+                    events.loc[events.year.eq(year), c] *= adjusted_inflation
                 adjusted_inflation *= self.inflation_rate
 
         return events
