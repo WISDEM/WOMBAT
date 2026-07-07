@@ -25,7 +25,6 @@ from wombat.utilities import (
 )
 from wombat.utilities.time import parse_date
 
-
 if TYPE_CHECKING:
     from wombat.windfarm import Windfarm
 
@@ -854,14 +853,14 @@ class WombatEnvironment(simpy.Environment):
         if operations is None:
             operations = self.load_operations_log_dataframe().sort_values("env_time")
 
-        turbines = windfarm.turbine_id
+        turbines = windfarm.turbine_id.tolist()
         windspeed = self.weather.to_pandas().set_index("datetime").windspeed
         windspeed = windspeed.loc[operations.env_datetime].values
         potential_df = pd.DataFrame(
             [],
             index=operations.env_datetime,
             columns=["env_time", "env_datetime", "windspeed", "windfarm"]
-            + turbines.tolist(),
+            + turbines,
         )
         potential_df[turbines] = np.vstack(
             [windfarm.system(t_id).power(windspeed) for t_id in turbines]
