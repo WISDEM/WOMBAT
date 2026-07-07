@@ -165,9 +165,9 @@ class Windfarm:
             windfarm, dict(layout[["id", "type"]].values), name="type"
         )
 
-        self.turbine_id: np.ndarray = layout.loc[turbine_filter, "id"].values
-        self.substation_id = layout.loc[substation_filter, "id"].values
-        self.electrolyzer_id = layout.loc[electrolyzer_filter, "id"].values
+        self.turbine_id: np.ndarray = layout.loc[turbine_filter, "id"].to_numpy()
+        self.substation_id = layout.loc[substation_filter, "id"].to_numpy()
+        self.electrolyzer_id = layout.loc[electrolyzer_filter, "id"].to_numpy()
 
         for substation in self.substation_id:
             windfarm.nodes[substation]["connection"] = layout.loc[

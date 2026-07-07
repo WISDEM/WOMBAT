@@ -19,7 +19,7 @@ You can now use ``conda activate <environment_name>`` to enter the environment a
 ## Installing
 
 ```{note}
-The folowing all asssume you are in your `wombat` environment!
+The following all assume you are in your `wombat` environment!
 ```
 
 ### Pip

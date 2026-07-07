@@ -191,7 +191,7 @@ and for the [{cite:t}`smart2016iea` comparison](https://github.com/NLRWindSystem
 As of version 0.13, a default reference data set has been made available for users. Simply specify
 a simulation as `Simulation.from_config("DEFAULT", "osw_fixed.yaml")` or
 `Simulation.from_config("DEFAULT", "osw_floating.yaml")` to use either of the fixed-bottom or floating
-offshore wind data sets, respectively. See the `examples/COWER_om_workflow.ipnyb` for more details.
+offshore wind data sets, respectively. See the `examples/COWER_om_workflow.ipynb` for more details.
 
 The default library provides a validated, ready-to-use data set for fixed and floating offshore wind,
 and an experimental land-based data set. For all three, users can use the pre-configured base models

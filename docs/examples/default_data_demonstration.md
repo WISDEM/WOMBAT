@@ -17,7 +17,7 @@ kernelspec:
 In this example, we'll show what each of the reference plants look like and what results they yield when simulated.
 
 ```{important}
-The land-based data are expiremental, and should only be used as a starting point for
+The land-based data are experimental, and should only be used as a starting point for
 developing a more robust simulation. Please see the
 [default data section of the user guide for further details](index.md#default-data)
 ```

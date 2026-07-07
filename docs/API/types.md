@@ -1,5 +1,5 @@
 (types)=
-# Conifgurations (Data Classes)
+# Configurations (Data Classes)
 
 The WOMBAT architecture relies heavily on a base set of data classes to process most of
 the model's inputs. This enables a rigid, yet robust data model to properly define a

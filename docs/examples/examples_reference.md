@@ -11,7 +11,7 @@ DOE. The results are displayed in
 
 ## Ongoing Analysis Work & Default Data Results Demonstration
 
-### `COWER_om_worflow.ipynb`
+### `COWER_om_workflow.ipynb`
 
 This workflow example demonstrates the new (as of v0.13) default offshore wind data sets and the
 O&M portion of the NLR Cost of Wind Energy Review (COWER) analysis. The underlying data and example

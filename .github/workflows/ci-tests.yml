@@ -14,11 +14,18 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.11", "3.12", "3.13"]
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
+          - "3.14"
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
@@ -28,14 +35,46 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .
           pip install -e ".[dev]"
         shell: bash
 
-      - name: Test with pytest
+      - name: Run unit tests
         run: |
-          pytest --cov=wombat --cov-report=xml
+          pytest --unit --cov=wombat --cov-report=lcov:./unit-coverage.lcov
         shell: bash
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+      - name: Upload test coverage
+        uses: coverallsapp/github-action@v2
+        if: contains(matrix.os, 'ubuntu') && contains(matrix.python-version, '3.14')
+        with:
+          github-token: ${{ secrets.COVERALLS_REPO_TOKEN }}
+          files: ./unit-coverage.lcov
+          flag-name: unit
+          parallel: true
+          fail-on-error: false
+
+      - name: Run regression tests
+        run: |
+          pytest --regression --cov=wombat --cov-report=lcov:./regression-coverage.lcov
+        shell: bash
+
+      - name: Upload test coverage
+        uses: coverallsapp/github-action@v2
+        if: contains(matrix.os, 'ubuntu') && contains(matrix.python-version, '3.14')
+        with:
+          github-token: ${{ secrets.COVERALLS_REPO_TOKEN }}
+          files: ./regression-coverage.lcov
+          flag-name: regression
+          parallel: true
+          fail-on-error: false
+  coverage-finish:
+    needs: build
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Coveralls finished
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.COVERALLS_REPO_TOKEN }}
+          parallel-finished: true
+          fail-on-error: false

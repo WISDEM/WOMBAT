@@ -330,7 +330,7 @@ def format_weather(weather: pd.DataFrame) -> pl.DataFrame:
         .with_row_index()
         .with_columns(
             [
-                pl.col("datetime").cast(pl.Datetime).dt.cast_time_unit("ns"),
+                pl.col("datetime").cast(pl.Datetime).dt.cast_time_unit("us"),
                 (pl.col("datetime").dt.hour()).alias("hour"),
             ]
         )
