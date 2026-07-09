@@ -1,10 +1,5 @@
 # CHANGELOG
 
-## v0.13.4 - TBD
-
-- Replaces the use of `pandas.date_range` with `polars.datetime_range` for changed default time
-  resolution of us to ns.
-
 ## v0.13.3. - 8 April 2026
 
 - Enable Pandas v3.
