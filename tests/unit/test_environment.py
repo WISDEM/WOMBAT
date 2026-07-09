@@ -6,6 +6,7 @@ import datetime
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import polars as pl
 import pytest
 import numpy.testing as npt
@@ -371,12 +372,11 @@ def test_weather_forecast():
 
     # Test for the next 5 hours, but at the top of the hour
     # Starts with hour 0, and ends with the 5th hour following
-    correct_index = pl.datetime_range(
-        datetime.datetime(2002, 1, 1),
-        datetime.datetime(2002, 1, 1, 4),
-        interval="1h",
-        eager=True,
-    ).alias("datetime")
+    correct_index = pl.from_pandas(
+        pd.date_range(
+            "1/1/2002 00:00:00", "1/1/2002 04:00:00", freq="1h", name="datetime"
+        )
+    )
     correct_hour = np.array([0, 1, 2, 3, 4], dtype=float)
     correct_wind = np.array(
         [11.75561096, 10.41321252, 8.959270788, 9.10014808, 9.945059601]
@@ -395,12 +395,11 @@ def test_weather_forecast():
     # Test for 5 hours at an uneven start time increment
     # Starts at hour 1, and ends with the 5th hour following
     env.run(until=0.1)
-    correct_index = pl.datetime_range(
-        datetime.datetime(2002, 1, 1),
-        datetime.datetime(2002, 1, 1, 5),
-        interval="1h",
-        eager=True,
-    ).alias("datetime")
+    correct_index = pl.from_pandas(
+        pd.date_range(
+            "1/1/2002 00:00:00", "1/1/2002 05:00:00", freq="1h", name="datetime"
+        )
+    )
     correct_hour = np.arange(6, dtype=float)
     correct_wind = np.array(
         [11.75561096, 10.41321252, 8.959270788, 9.10014808, 9.945059601, 11.50807971]
@@ -419,12 +418,11 @@ def test_weather_forecast():
     # Test for 5.5 hours at an uneven start time increment
     # Starts at hour 1, and ends at the 7th hour following
     env.run(until=1.2)
-    correct_index = pl.datetime_range(
-        datetime.datetime(2002, 1, 1, 1),
-        datetime.datetime(2002, 1, 1, 7),
-        interval="1h",
-        eager=True,
-    ).alias("datetime")
+    correct_index = pl.from_pandas(
+        pd.date_range(
+            "1/1/2002 01:00:00", "1/1/2002 07:00:00", freq="1h", name="datetime"
+        )
+    )
     correct_hour = np.arange(1, 8, dtype=float)
     correct_wind = np.array(
         [
