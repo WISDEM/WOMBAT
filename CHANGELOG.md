@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.13.4 - 14 July 2026
+
+- Replaces the use of `pandas.date_range` with `polars.datetime_range` in
+  `tests/unit/test_environment.py` to account for Pandas updated default time resolution of us to ns.
+
 ## v0.13.3. - 8 April 2026
 
 - Enable Pandas v3.
