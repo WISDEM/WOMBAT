@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.13.4
+## Unreleased
 
 - Fix issues with Pandas v3 compatibility
 
