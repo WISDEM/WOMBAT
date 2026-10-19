@@ -31,14 +31,17 @@ IMPORTANT NOTES
 ## PR Checklist
 
 <!--Tick these boxes if they are complete, or format them as "[x]" for the markdown to render. -->
+- [ ] PR description thoroughly describes the new feature, bug fix, etc.
 - [ ] `CHANGELOG.md` has been updated to describe the changes made in this PR
 - [ ] Documentation
   - [ ] Docstrings are up-to-date
   - [ ] Related `docs/` files are up-to-date, or added when necessary
   - [ ] Documentation has been rebuilt successfully
-  - [ ] Examples have been updated
-- [ ] Tests pass (If not, and this is expected, please elaborate in the tests section)
-- [ ] PR description thoroughly describes the new feature, bug fix, etc.
+  - [ ] Examples have been updated, if applicable
+  - [ ] No documentation or code-related changes
+- [ ] Tests pass locally
+  - [ ] Failing tests have been described in the appropriate section below
+  - [ ] No code updates
 
 ## Related issues
 
@@ -54,10 +57,6 @@ Replace the below example with any added or modified files, and briefly describe
   - `method1`: What and why something was changed in one sentence or less.
 
 ## Additional supporting information
-
-<!--Fill out at least the versions listed below and those of any packages that may be related.-->
-Python version: 3.x
-WOMBAT version (`wombat.__version__`): 0.x
 
 <!--Add any other context about the problem here.-->
 
