@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Unreleased
+
+- Update versioning requirements for the pre-commit workflows.
+- Update the target Python version for ruff workflows.
+
 ## v0.13.3. - 8 April 2026
 
 - Enable Pandas v3.
