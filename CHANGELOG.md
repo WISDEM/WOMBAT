@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.13.4
+
+- Fix issues with Pandas v3 compatibility
+
 ## v0.13.3. - 8 April 2026
 
 - Enable Pandas v3.
