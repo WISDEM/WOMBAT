@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Update versioning requirements for the pre-commit workflows.
+- Update the target Python version for ruff workflows.
 - Fix issues with Pandas v3 compatibility
 
 ## v0.13.3. - 8 April 2026

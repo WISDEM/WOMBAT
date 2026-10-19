@@ -1595,7 +1595,7 @@ class ServiceEquipment(RepairsMixin):
                         hours_to_process, request.details, **shared_logging
                     )
                 )
-                hours_processed += hours_to_process
+                hours_processed += hours_to_process  # type: ignore[assignment]
                 hours_available -= hours_to_process
                 hours_required -= hours_to_process
 

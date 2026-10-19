@@ -6,10 +6,10 @@ import datetime
 from copy import deepcopy
 from enum import StrEnum, auto
 from math import fsum
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 from pathlib import Path
 from functools import partial, update_wrapper
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 
 import attr
 import attrs

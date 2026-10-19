@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import math
 from string import digits, punctuation
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 from functools import cache
+from collections.abc import Callable
 
 import numpy as np
 import pandas as pd
