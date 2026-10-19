@@ -151,9 +151,11 @@ class PortManager:
 
                 vessel.downtime_accrual.interrupt()
                 return self.available_vessels.get(
-                    lambda x: x.at_port
-                    and not x.dispatched
-                    and EquipmentClass.TOW in x.settings.capability
+                    lambda x: (
+                        x.at_port
+                        and not x.dispatched
+                        and EquipmentClass.TOW in x.settings.capability
+                    )
                 ), False
 
             return self.reserve_vessels.get(
@@ -177,9 +179,11 @@ class PortManager:
 
             vessel.downtime_accrual.interrupt()
             return self.available_vessels.get(
-                lambda x: x.at_port
-                and not x.dispatched
-                and "TOW" not in x.settings.capability
+                lambda x: (
+                    x.at_port
+                    and not x.dispatched
+                    and "TOW" not in x.settings.capability
+                )
             ), False
 
         return self.reserve_vessels.get(
@@ -693,6 +697,8 @@ class Port(RepairsMixin, FilterStore):
         # Request a tugboat to retrieve the turbine
         tugboat, mobilize = self.service_equipment_manager.dispatch_vessel(tugboat=True)
         tugboat = yield tugboat
+        if TYPE_CHECKING:
+            assert isinstance(tugboat, ServiceEquipment)
         if mobilize:
             yield self.env.process(tugboat.mobilize())
             self.service_equipment_manager.update_charter_map(tugboat)
@@ -800,6 +806,8 @@ class Port(RepairsMixin, FilterStore):
         # Request a vessel that isn't solely a towing vessel
         vessel, mobilize = self.service_equipment_manager.dispatch_vessel(tugboat=False)
         vessel = yield vessel
+        if TYPE_CHECKING:
+            assert isinstance(vessel, ServiceEquipment)
         if mobilize:
             yield self.env.process(vessel.mobilize())
             self.service_equipment_manager.update_charter_map(vessel)

@@ -163,7 +163,7 @@ exclude = [
 [tool.ruff]
 src = ["wombat", "tests"]
 line-length = 88
-target-version = "py39"
+target-version = "py311"
 fix = true
 
 [tool.ruff.lint]
