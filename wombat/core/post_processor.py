@@ -389,9 +389,8 @@ class Metrics:
         years.sort()
         for year in years:
             if year > years[0]:
-                events.loc[events.year.eq(year), self._cost_columns] *= (
-                    adjusted_inflation
-                )
+                for c in self._cost_columns:
+                    events.loc[events.year.eq(year), c] *= adjusted_inflation
                 adjusted_inflation *= self.inflation_rate
 
         return events
