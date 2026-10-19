@@ -25,6 +25,7 @@ from wombat.utilities import (
 )
 from wombat.utilities.time import parse_date
 
+
 if TYPE_CHECKING:
     from wombat.windfarm import Windfarm
 
@@ -859,8 +860,7 @@ class WombatEnvironment(simpy.Environment):
         potential_df = pd.DataFrame(
             [],
             index=operations.env_datetime,
-            columns=["env_time", "env_datetime", "windspeed", "windfarm"]
-            + turbines,
+            columns=["env_time", "env_datetime", "windspeed", "windfarm"] + turbines,
         )
         potential_df[turbines] = np.vstack(
             [windfarm.system(t_id).power(windspeed) for t_id in turbines]
