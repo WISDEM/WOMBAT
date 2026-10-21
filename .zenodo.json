@@ -1,0 +1,6 @@
+{
+  "description": "Windfarm Operations & Maintenance cost-Benefit Analysis Tool (WOMBAT) is a low-fidelity, discrete event simulation library to simulate the operations and maintenance (O&M) phase of onshore and offshore wind farms.",
+  "license": "Apache License 2.0",
+  "title": "WOMBAT",
+  "upload_type": "software"
+}
