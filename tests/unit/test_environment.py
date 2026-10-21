@@ -374,10 +374,9 @@ def test_weather_forecast():
     correct_index = pl.datetime_range(
         datetime.datetime(2002, 1, 1),
         datetime.datetime(2002, 1, 1, 4),
-        "1H",
+        interval="1h",
         eager=True,
     ).alias("datetime")
-
     correct_hour = np.array([0, 1, 2, 3, 4], dtype=float)
     correct_wind = np.array(
         [11.75561096, 10.41321252, 8.959270788, 9.10014808, 9.945059601]
@@ -399,7 +398,7 @@ def test_weather_forecast():
     correct_index = pl.datetime_range(
         datetime.datetime(2002, 1, 1),
         datetime.datetime(2002, 1, 1, 5),
-        "1H",
+        interval="1h",
         eager=True,
     ).alias("datetime")
     correct_hour = np.arange(6, dtype=float)
@@ -423,7 +422,7 @@ def test_weather_forecast():
     correct_index = pl.datetime_range(
         datetime.datetime(2002, 1, 1, 1),
         datetime.datetime(2002, 1, 1, 7),
-        "1H",
+        interval="1h",
         eager=True,
     ).alias("datetime")
     correct_hour = np.arange(1, 8, dtype=float)
