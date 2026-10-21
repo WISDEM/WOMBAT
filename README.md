@@ -100,7 +100,7 @@ for the appropriate OS version.
 Using conda, create a new virtual environment:
 
 ```console
-conda create -n <environment_name> python=3.11
+conda create -n <environment_name> python=3.15
 conda activate <environment_name>
 conda install -c anaconda pip
 
@@ -183,7 +183,7 @@ Basic pre-commit issues that users might encounter and their remedies:
   contributors will have to rerun `git add <the changed files>` and
   `git commit -m <the commit message>` to restart the pre-commit workflow with the
   applied changes. Once all checks pass, the commit is safe to be pushed.
-* `isort`, `black`, or simple file checks failed, but made changes
+* `isort`, `ruff`, or simple file checks failed, but made changes
   * rerun the `add` and `commit` processes as needed until the changes satisfy the checks
 * `ruff` failed:
   * Address the errors and rerun the `add` and `commit` processes
@@ -193,6 +193,7 @@ Basic pre-commit issues that users might encounter and their remedies:
   * If `mypy` simply seems confused with seemingly correct types, the following statement
   can be added above the `mypy` error:
   `assert isinstance(<variable of concern>, <the type you think mypy should be registering>)`
+  * Check https://mypy.readthedocs.io/en/stable/common_issues.html for an existing solution.
   * If that's still not working, but you are definitely sure the types are correct,
   simply add a `# type ignore` comment at the end of the line. Sometimes `mypy` struggles
   with complex scenarios, or especially with certain `attrs` conventions.
@@ -225,47 +226,3 @@ git clone https://github.com/NLRWindSystems/WOMBAT.git
 cd wombat
 pip install -e '.[all]'
 ```
-
-### Dependencies
-
-Standard dependencies:
-
-* attrs>=24.1
-* numpy>=1.21
-* scipy>=1.8
-* pandas>=2
-* polars>=1.33.1
-* pyarrow>=10
-* jupyterlab>=3
-* simpy>=4.0.1
-* pyyaml>=6
-* geopy>=2.3
-* networkx>=2.7
-* matplotlib>=3.3
-* types-attrs>=19
-* types-typed-ast>=1.5
-* types-PyYAML>=6
-* types-python-dateutil>=2.8
-* python-dateutil
-* "polars-lts-cpu; sys_platform == 'darwin'",
-
-Optional "dev" dependencies:
-
-* pre-commit>=2.20
-* isort>=5.10
-* pytest>=7
-* pytest-cov>=4
-* mypy
-* ruff>=0.2
-* pyupgrade
-
-Optional "docs" dependencies:
-
-* jupyter-book>1,<2
-* myst-nb>=0.16
-* myst-parser>=0.17
-* linkify-it-py>=2
-* sphinx-autodoc-typehints
-* sphinxcontrib-autoyaml
-* sphinxcontrib-bibtex>=2.4
-* sphinxcontrib-spelling>=7
