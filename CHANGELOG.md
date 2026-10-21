@@ -1,11 +1,12 @@
 # CHANGELOG
 
-## Unreleased
+## v0.13.5 - 21 October 2026
 
 - Update versioning requirements for the pre-commit workflows.
 - Update the target Python version for ruff workflows.
-- Fix issues with Pandas v3 compatibility
-- Enable Python 3.15
+- Fix issues with Pandas v3 compatibility.
+- Enable Python 3.15.
+- Add a Zenodo release publisher for maintaining versioned DOIs.
 
 ## v0.13.4 - 14 July 2026
 
