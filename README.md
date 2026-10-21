@@ -1,5 +1,6 @@
 # WOMBAT: Windfarm Operations & Maintenance cost-Benefit Analysis Tool
 
+[![DOI 10.5281/zenodo.23537986](https://zenodo.org/badge/DOI/10.5281/zenodo.23537986.svg)](https://doi.org/10.5281/zenodo.23537986)
 [![DOI 10.2172/1894867](https://img.shields.io/badge/DOI-10.2172%2F1894867-brightgreen?link=https://doi.org/10.2172/1894867)](https://www.osti.gov/biblio/1894867)
 [![PyPI version](https://badge.fury.io/py/wombat.svg)](https://badge.fury.io/py/wombat)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/wombat)
@@ -41,6 +42,21 @@ If you use this library please cite our NLR Technical Report:
       month = {10},
       institution = {National Renewable Energy Lab. (NREL)},
    }
+```
+
+To cite a specific version of the software, please use the appropriate Zenodo listing:
+
+```bibtex
+@software{hammond_2026_23537588,
+  author = {Hammond, Rob and Cooperman, Aubryn and Mulas Hernando, Daniel},
+  title = {WOMBAT},
+  month = jul,
+  year = 2026,
+  publisher = {Zenodo},
+  version = {0.13.4},
+  doi = {10.5281/zenodo.23537588},
+  url = {https://doi.org/10.5281/zenodo.23537588},
+}
 ```
 
 ## Part of the WETO Stack
