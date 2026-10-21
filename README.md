@@ -44,7 +44,8 @@ If you use this library please cite our NLR Technical Report:
    }
 ```
 
-To cite a specific version of the software, please use the appropriate Zenodo listing:
+To cite a specific version of the software, please use the appropriate Zenodo listing, such as the
+one below for v0.13.4.
 
 ```bibtex
 @software{hammond_2026_23537588,
